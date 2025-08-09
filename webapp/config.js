@@ -9,8 +9,23 @@ let supabase;
 
 // Функция инициализации
 function initSupabase() {
-    if (typeof supabase === 'undefined' && window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+    try {
+        if (typeof supabase === 'undefined' && window.supabase) {
+            supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+                auth: {
+                    persistSession: false,
+                    autoRefreshToken: false
+                },
+                realtime: {
+                    params: {
+                        eventsPerSecond: 2
+                    }
+                }
+            });
+            console.log('Supabase клиент инициализирован');
+        }
+    } catch (error) {
+        console.error('Ошибка инициализации Supabase:', error);
     }
 }
 

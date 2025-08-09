@@ -20,13 +20,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Инициализация Supabase
-    if (window.supabase) {
-        supabase = window.supabase.createClient(
-            window.SUPABASE_CONFIG.url, 
-            window.SUPABASE_CONFIG.anonKey
-        );
+    if (window.supabase && window.SUPABASE_CONFIG) {
+        try {
+            supabase = window.supabase.createClient(
+                window.SUPABASE_CONFIG.url, 
+                window.SUPABASE_CONFIG.anonKey,
+                {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false
+                    }
+                }
+            );
+            console.log('✅ Supabase инициализирован');
+            
+            // Тестируем подключение
+            const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
+            if (error) {
+                console.error('❌ Ошибка подключения к Supabase:', error);
+            } else {
+                console.log('✅ Подключение к базе работает, пользователей:', data);
+            }
+        } catch (error) {
+            console.error('❌ Ошибка инициализации Supabase:', error);
+        }
         
         // Получение данных пользователя из Telegram
+        await initUser();
+    } else {
+        console.warn('⚠️ Supabase или конфигурация недоступны');
         await initUser();
     }
 
@@ -166,9 +188,13 @@ async function sendMessage() {
     }
 
     try {
-        if (supabase) {
+        if (supabase && currentUser) {
+            console.log('📤 Отправка сообщения от пользователя:', currentUser.id);
+            
             // Создаем или находим активный диалог
             if (!currentDialogId) {
+                console.log('📋 Создание нового диалога...');
+                
                 // Простое создание диалога без RPC функции
                 const { data: dialogData, error: dialogError } = await supabase
                     .from('dialogs')
@@ -180,11 +206,13 @@ async function sendMessage() {
                     .single();
 
                 if (dialogError) {
-                    console.error('Ошибка создания диалога:', dialogError);
+                    console.error('❌ Ошибка создания диалога:', dialogError);
                 } else {
                     currentDialogId = dialogData.id;
+                    console.log('✅ Диалог создан с ID:', currentDialogId);
                     
                     // Добавляем первое сообщение
+                    console.log('💬 Добавление первого сообщения...');
                     const { error: messageError } = await supabase
                         .from('messages')
                         .insert({
@@ -195,10 +223,14 @@ async function sendMessage() {
                         });
 
                     if (messageError) {
-                        console.error('Ошибка отправки сообщения:', messageError);
+                        console.error('❌ Ошибка отправки сообщения:', messageError);
+                    } else {
+                        console.log('✅ Сообщение сохранено в БД');
                     }
                 }
             } else {
+                console.log('💬 Добавление сообщения к диалогу:', currentDialogId);
+                
                 // Добавляем сообщение к существующему диалогу
                 const { error } = await supabase
                     .from('messages')
@@ -210,9 +242,13 @@ async function sendMessage() {
                     });
 
                 if (error) {
-                    console.error('Ошибка отправки сообщения:', error);
+                    console.error('❌ Ошибка отправки сообщения:', error);
+                } else {
+                    console.log('✅ Сообщение сохранено в БД');
                 }
             }
+        } else {
+            console.warn('⚠️ Supabase или пользователь недоступны, работаем локально');
         }
 
         // Симуляция ответа админа
