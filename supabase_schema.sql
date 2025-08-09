@@ -100,8 +100,9 @@ CREATE POLICY "Users can send messages in their dialogs" ON messages
     FOR INSERT WITH CHECK (sender_id = current_setting('app.current_user_id')::BIGINT);
 
 -- 7. Создание первого админа (замените YOUR_TELEGRAM_ID на ваш Telegram ID)
--- INSERT INTO users (telegram_id, username, first_name, is_admin) 
--- VALUES (YOUR_TELEGRAM_ID, 'admin', 'Administrator', TRUE);
+INSERT INTO users (telegram_id, username, first_name, is_admin) 
+VALUES (708907063, 'admin', 'Administrator', TRUE);
+VALUES (7365307696, 'admin', 'Administrator', TRUE);
 
 -- 8. Функция для получения статистики диалогов для админа
 CREATE OR REPLACE FUNCTION get_admin_dialog_stats()
