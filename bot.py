@@ -4,8 +4,15 @@ from queue import Queue
 from telegram.ext import ApplicationBuilder
 import pytz
 from telegram.ext import CallbackQueryHandler
+from supabase import create_client, Client
+import asyncio
 
-MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/webapp/"
+MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
+
+# Supabase configuration
+SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ---------- Builders for messages & keyboards ----------
 

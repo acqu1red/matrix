@@ -3,5 +3,3 @@ aiogram
 pycryptodome
 pytz
 supabase
-flask
-flask-cors

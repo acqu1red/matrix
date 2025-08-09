@@ -423,10 +423,58 @@ async function markMessagesAsRead(conversationId) {
     }
 }
 
-// Уведомление пользователя
+// Уведомление пользователя через Telegram Bot API
 async function notifyUser(conversationId) {
-    // Здесь должен быть вызов backend API для отправки уведомления через бота
-    console.log('Отправка уведомления пользователю для диалога:', conversationId);
+    try {
+        // Получаем информацию о диалоге
+        const { data: conversation, error } = await supabaseClient
+            .from('conversations')
+            .select('user_id')
+            .eq('id', conversationId)
+            .single();
+            
+        if (error || !conversation) {
+            console.error('Ошибка при получении диалога:', error);
+            return;
+        }
+        
+        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
+        const userId = conversation.user_id;
+        
+        const message = {
+            chat_id: userId,
+            text: '💬 <b>У вас новый ответ от администратора!</b>\n\nАдминистратор ответил на ваш вопрос.',
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [[
+                    {
+                        text: '👀 Посмотреть ответ',
+                        web_app: {
+                            url: `https://acqu1red.github.io/tourmalineGG/?conversation=${conversationId}`
+                        }
+                    }
+                ]]
+            }
+        };
+        
+        // Отправляем уведомление через Telegram Bot API
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(message)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to send notification');
+        }
+        
+        console.log('Уведомление отправлено пользователю');
+        
+    } catch (error) {
+        console.error('Ошибка при отправке уведомления:', error);
+    }
 }
 
 // Навигация между экранами
