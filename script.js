@@ -46,27 +46,28 @@ async function initUser() {
             console.log(`Пользователь ${telegramUser.id} (${telegramUser.username}), isAdmin: ${isAdmin}`);
             
             if (supabase) {
-                // Установка контекста пользователя для RLS
-                await supabase.rpc('set_context', {
-                    key: 'app.current_user_id',
-                    value: telegramUser.id.toString()
-                });
+                try {
+                    // Создание или обновление пользователя в БД
+                    const { data, error } = await supabase
+                        .from('users')
+                        .upsert({
+                            telegram_id: telegramUser.id,
+                            username: telegramUser.username || null,
+                            first_name: telegramUser.first_name || null,
+                            last_name: telegramUser.last_name || null,
+                            is_admin: isAdmin  // Устанавливаем админские права
+                        })
+                        .select()
+                        .single();
 
-                // Создание или обновление пользователя в БД
-                const { data, error } = await supabase
-                    .from('users')
-                    .upsert({
-                        telegram_id: telegramUser.id,
-                        username: telegramUser.username || null,
-                        first_name: telegramUser.first_name || null,
-                        last_name: telegramUser.last_name || null,
-                        is_admin: isAdmin  // Устанавливаем админские права
-                    })
-                    .select()
-                    .single();
-
-                if (error) {
-                    console.error('Ошибка при сохранении пользователя:', error);
+                    if (error) {
+                        console.error('Ошибка при сохранении пользователя:', error);
+                    } else {
+                        console.log('Пользователь успешно сохранён в БД');
+                    }
+                } catch (dbError) {
+                    console.error('Ошибка работы с БД:', dbError);
+                    // Продолжаем работу даже если БД недоступна
                 }
             }
 
@@ -147,37 +148,74 @@ function initEventListeners() {
 async function sendMessage() {
     const input = document.getElementById('messageInput');
     const text = input.value.trim();
-    if (!text || !currentUser) return;
+    if (!text) return;
+
+    // Отображаем сообщение локально
+    appendMessage({ text, inbound: false });
+    input.value = '';
+
+    // Если нет пользователя, работаем локально
+    if (!currentUser) {
+        setTimeout(() => {
+            appendMessage({ 
+                text: 'Спасибо за сообщение! Для полной функциональности откройте через Telegram бота.', 
+                inbound: true 
+            });
+        }, 1000);
+        return;
+    }
 
     try {
-        // Создаем или находим активный диалог
-        if (!currentDialogId) {
-            const { data, error } = await supabase.rpc('create_new_dialog', {
-                user_telegram_id: currentUser.id,
-                first_message: text
-            });
+        if (supabase) {
+            // Создаем или находим активный диалог
+            if (!currentDialogId) {
+                // Простое создание диалога без RPC функции
+                const { data: dialogData, error: dialogError } = await supabase
+                    .from('dialogs')
+                    .insert({
+                        user_id: currentUser.id,
+                        status: 'open'
+                    })
+                    .select()
+                    .single();
 
-            if (error) throw error;
-            currentDialogId = data;
-        } else {
-            // Добавляем сообщение к существующему диалогу
-            const { error } = await supabase
-                .from('messages')
-                .insert({
-                    dialog_id: currentDialogId,
-                    sender_id: currentUser.id,
-                    content: text,
-                    is_from_admin: false
-                });
+                if (dialogError) {
+                    console.error('Ошибка создания диалога:', dialogError);
+                } else {
+                    currentDialogId = dialogData.id;
+                    
+                    // Добавляем первое сообщение
+                    const { error: messageError } = await supabase
+                        .from('messages')
+                        .insert({
+                            dialog_id: currentDialogId,
+                            sender_id: currentUser.id,
+                            content: text,
+                            is_from_admin: false
+                        });
 
-            if (error) throw error;
+                    if (messageError) {
+                        console.error('Ошибка отправки сообщения:', messageError);
+                    }
+                }
+            } else {
+                // Добавляем сообщение к существующему диалогу
+                const { error } = await supabase
+                    .from('messages')
+                    .insert({
+                        dialog_id: currentDialogId,
+                        sender_id: currentUser.id,
+                        content: text,
+                        is_from_admin: false
+                    });
+
+                if (error) {
+                    console.error('Ошибка отправки сообщения:', error);
+                }
+            }
         }
 
-        // Отображаем сообщение
-        appendMessage({ text, inbound: false });
-        input.value = '';
-
-        // Симуляция ответа админа для демо
+        // Симуляция ответа админа
         setTimeout(() => {
             appendMessage({ 
                 text: 'Спасибо за сообщение! Администратор ответит в ближайшее время.', 
@@ -187,7 +225,7 @@ async function sendMessage() {
 
     } catch (error) {
         console.error('Ошибка отправки сообщения:', error);
-        appendMessage({ text, inbound: false }); // Показываем локально
+        // Продолжаем работу локально
     }
 }
 
@@ -228,16 +266,72 @@ async function openAdminPanel() {
     if (!isAdmin) return;
 
     try {
-        const { data, error } = await supabase.rpc('get_admin_dialog_stats');
-        if (error) throw error;
+        if (!supabase) {
+            document.getElementById('dialogsList').innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">База данных недоступна</p>';
+            document.getElementById('adminPanel').style.display = 'block';
+            return;
+        }
+
+        // Простой запрос диалогов без RPC функции
+        const { data: dialogs, error: dialogsError } = await supabase
+            .from('dialogs')
+            .select(`
+                id,
+                user_id,
+                status,
+                created_at,
+                updated_at
+            `)
+            .in('status', ['open', 'in_progress'])
+            .order('updated_at', { ascending: false });
+
+        if (dialogsError) {
+            console.error('Ошибка загрузки диалогов:', dialogsError);
+            document.getElementById('dialogsList').innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">Ошибка загрузки диалогов</p>';
+            document.getElementById('adminPanel').style.display = 'block';
+            return;
+        }
+
+        // Получаем информацию о пользователях
+        const userIds = [...new Set(dialogs.map(d => d.user_id))];
+        const { data: users, error: usersError } = await supabase
+            .from('users')
+            .select('telegram_id, username, first_name, last_name')
+            .in('telegram_id', userIds);
+
+        if (usersError) {
+            console.error('Ошибка загрузки пользователей:', usersError);
+        }
+
+        // Получаем количество сообщений для каждого диалога
+        const dialogsWithStats = await Promise.all(dialogs.map(async (dialog) => {
+            const { count } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('dialog_id', dialog.id);
+
+            const user = users?.find(u => u.telegram_id === dialog.user_id) || {};
+
+            return {
+                dialog_id: dialog.id,
+                user_telegram_id: dialog.user_id,
+                username: user.username,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                status: dialog.status,
+                message_count: count || 0,
+                last_message_at: dialog.updated_at,
+                created_at: dialog.created_at
+            };
+        }));
 
         const dialogsList = document.getElementById('dialogsList');
         dialogsList.innerHTML = '';
 
-        if (data.length === 0) {
+        if (dialogsWithStats.length === 0) {
             dialogsList.innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">Нет активных диалогов</p>';
         } else {
-            data.forEach(dialog => {
+            dialogsWithStats.forEach(dialog => {
                 const dialogItem = createDialogItem(dialog);
                 dialogsList.appendChild(dialogItem);
             });
@@ -246,6 +340,8 @@ async function openAdminPanel() {
         document.getElementById('adminPanel').style.display = 'block';
     } catch (error) {
         console.error('Ошибка загрузки диалогов:', error);
+        document.getElementById('dialogsList').innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">Ошибка загрузки диалогов</p>';
+        document.getElementById('adminPanel').style.display = 'block';
     }
 }
 
