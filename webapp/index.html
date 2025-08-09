@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Формула — Обратная связь</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="app__header">
+      <div class="header__title">
+        <span class="title__name">Администратор канала</span>
+        <span class="title__check" aria-label="verified" title="verified">✓</span>
+      </div>
+    </header>
+
+    <main class="app__main">
+      <div id="chat" class="chat" aria-live="polite">
+        <!-- Сообщения будут добавляться здесь -->
+      </div>
+    </main>
+
+    <footer class="app__footer">
+      <label class="attach" title="Прикрепить файл">
+        <input id="fileInput" type="file" class="attach__input" />
+        <svg width="22" height="22" viewBox="0 0 24 24" class="icon">
+          <path fill="currentColor" d="M7 17a5 5 0 0 1 5-5h6a3 3 0 1 1 0 6H12a7 7 0 1 1 0-14h6a1 1 0 1 1 0 2H12a5 5 0 1 0 0 10h6a1 1 0 1 0 0-2H12a3 3 0 1 1 0-6h6a1 1 0 1 1 0 2h-6a1 1 0 1 0 0 2h6"/>
+        </svg>
+      </label>
+      <input id="messageInput" type="text" placeholder="Напишите сообщение..." class="input" />
+      <button id="sendBtn" class="send" title="Отправить">
+        <svg width="22" height="22" viewBox="0 0 24 24" class="icon">
+          <path fill="currentColor" d="M2 21L23 12L2 3v7l15 2l-15 2z"/>
+        </svg>
+      </button>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
