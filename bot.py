@@ -6,7 +6,7 @@ import pytz
 from telegram.ext import CallbackQueryHandler
 
 MINIAPP_URL = "https://t.me/OSNOVAprivate_bot/formulaprivate"
-WEBAPP_URL = "https://acqu1red.github.io/tourmalineGG/webapp/"
+WEBAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
 
 # ---------- Builders for messages & keyboards ----------
 
@@ -19,7 +19,7 @@ def build_start_content():
     keyboard = [
         [InlineKeyboardButton("💳 Оплатить доступ", callback_data='payment')],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=WEBAPP_URL))]
+        [InlineKeyboardButton("❓ Задать вопрос", url=MINIAPP_URL)]
     ]
     return text, InlineKeyboardMarkup(keyboard)
 
@@ -62,7 +62,7 @@ def build_more_info_content():
         "Решай."
     )
     keyboard = [
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("❓ Задать вопрос", url=MINIAPP_URL)],
         [InlineKeyboardButton("🔙 Назад", callback_data='back')]
     ]
     return text, InlineKeyboardMarkup(keyboard)
@@ -79,7 +79,7 @@ def build_checkout_content(duration_label: str):
     )
     keyboard = [
         [InlineKeyboardButton("💳 Карта (любая валюта)", callback_data='noop')],
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("❓ Задать вопрос", url=MINIAPP_URL)],
         [InlineKeyboardButton("📄 Договор оферты", callback_data='noop')],
         [InlineKeyboardButton("🔙 Назад", callback_data='payment')]
     ]
