@@ -6,7 +6,7 @@ import pytz
 from telegram.ext import CallbackQueryHandler
 
 MINIAPP_URL = "https://t.me/OSNOVAprivate_bot/formulaprivate"
-WEBAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
+WEBAPP_URL = "https://acqu1red.github.io/tourmalineGG/webapp/"
 
 # ---------- Builders for messages & keyboards ----------
 
