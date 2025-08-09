@@ -2,3 +2,6 @@ python-telegram-bot
 aiogram
 pycryptodome
 pytz
+supabase
+flask
+flask-cors

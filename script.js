@@ -1,518 +1,544 @@
-// Глобальные переменные
-const tg = window.Telegram?.WebApp;
-let supabase;
-let currentUser = null;
+import { SUPABASE_CONFIG, CONFIG, tg } from './config.js';
+
+// Инициализация Supabase
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+
+// Элементы DOM
+const chat = document.getElementById('chat');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const fileInput = document.getElementById('fileInput');
+const attachBtn = document.getElementById('attachBtn');
+
+// Админ-панель элементы
+const adminPanelBtn = document.getElementById('adminPanelBtn');
+const adminPanel = document.getElementById('adminPanel');
+const backToChat = document.getElementById('backToChat');
+const conversationsList = document.getElementById('conversationsList');
+
+// Диалог элементы
+const conversationDialog = document.getElementById('conversationDialog');
+const dialogUsername = document.getElementById('dialogUsername');
+const dialogMeta = document.getElementById('dialogMeta');
+const dialogChat = document.getElementById('dialogChat');
+const dialogMessageInput = document.getElementById('dialogMessageInput');
+const dialogSendBtn = document.getElementById('dialogSendBtn');
+const dialogFileInput = document.getElementById('dialogFileInput');
+const dialogAttachBtn = document.getElementById('dialogAttachBtn');
+const backToAdmin = document.getElementById('backToAdmin');
+
+const userFooter = document.getElementById('userFooter');
+const mainContent = document.getElementById('mainContent');
+
+// Состояние приложения
+let currentConversationId = null;
+let currentView = 'chat'; // 'chat', 'admin', 'dialog'
 let isAdmin = false;
-let currentDialogId = null;
-let currentChatUserId = null;
+let currentUserId = null;
 
-// Список администраторов (жёстко прописан в коде)
-const ADMIN_IDS = [
-    708907063,    // @acqu1red
-    7365307696    // @cas3method
-];
-
-// Инициализация
-document.addEventListener('DOMContentLoaded', async () => {
+// Инициализация приложения
+async function initApp() {
     if (tg) {
         tg.expand();
         tg.enableClosingConfirmation();
-    }
-
-    // Инициализация Supabase
-    if (window.supabase && window.SUPABASE_CONFIG) {
-        try {
-            supabase = window.supabase.createClient(
-                window.SUPABASE_CONFIG.url, 
-                window.SUPABASE_CONFIG.anonKey,
-                {
-                    auth: {
-                        persistSession: false,
-                        autoRefreshToken: false
-                    }
-                }
-            );
-            console.log('✅ Supabase инициализирован');
-            
-            // Тестируем подключение
-            const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
-            if (error) {
-                console.error('❌ Ошибка подключения к Supabase:', error);
-            } else {
-                console.log('✅ Подключение к базе работает, пользователей:', data);
-            }
-        } catch (error) {
-            console.error('❌ Ошибка инициализации Supabase:', error);
-        }
         
-        // Получение данных пользователя из Telegram
-        await initUser();
-    } else {
-        console.warn('⚠️ Supabase или конфигурация недоступны');
-        await initUser();
+        // Получаем данные пользователя
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            currentUserId = user.id;
+            
+            // Создаем или получаем пользователя в базе
+            await createOrGetUser(user);
+            
+            // Проверяем права админа
+            await checkAdminRights();
+        }
     }
+    
+    // Проверяем URL параметры для прямого перехода к диалогу
+    const urlParams = new URLSearchParams(window.location.search);
+    const conversationId = urlParams.get('conversation');
+    if (conversationId && !isAdmin) {
+        // Загружаем конкретный диалог для пользователя
+        loadUserConversation(conversationId);
+    }
+    
+    setupEventListeners();
+}
 
-    // Инициализация обработчиков
-    initEventListeners();
-});
-
-// Инициализация пользователя
-async function initUser() {
+// Создание или получение пользователя
+async function createOrGetUser(userData) {
     try {
-        if (tg?.initDataUnsafe?.user) {
-            const telegramUser = tg.initDataUnsafe.user;
-            currentUser = telegramUser;
+        const { data, error } = await supabaseClient
+            .from('users')
+            .upsert({
+                telegram_id: userData.id,
+                username: userData.username,
+                first_name: userData.first_name,
+                last_name: userData.last_name
+            })
+            .select()
+            .single();
             
-            // Проверка админских прав по жёстко прописанному списку
-            isAdmin = ADMIN_IDS.includes(telegramUser.id);
-            console.log(`Пользователь ${telegramUser.id} (${telegramUser.username}), isAdmin: ${isAdmin}`);
-            
-            if (supabase) {
-                try {
-                    // Создание или обновление пользователя в БД
-                    const { data, error } = await supabase
-                        .from('users')
-                        .upsert({
-                            telegram_id: telegramUser.id,
-                            username: telegramUser.username || null,
-                            first_name: telegramUser.first_name || null,
-                            last_name: telegramUser.last_name || null,
-                            is_admin: isAdmin  // Устанавливаем админские права
-                        })
-                        .select()
-                        .single();
-
-                    if (error) {
-                        console.error('Ошибка при сохранении пользователя:', error);
-                    } else {
-                        console.log('Пользователь успешно сохранён в БД');
-                    }
-                } catch (dbError) {
-                    console.error('Ошибка работы с БД:', dbError);
-                    // Продолжаем работу даже если БД недоступна
-                }
-            }
-
-            // Показываем админскую кнопку для админов
-            if (isAdmin) {
-                document.getElementById('adminButton').style.display = 'block';
-                console.log('Админская панель активирована');
-            }
-        } else {
-            // Для тестирования без Telegram
-            console.log('Режим разработки - используем тестового пользователя');
-            currentUser = { id: 708907063, first_name: 'Test Admin', username: 'acqu1red' };
-            isAdmin = true;
-            document.getElementById('adminButton').style.display = 'block';
-        }
+        if (error) throw error;
+        return data;
     } catch (error) {
-        console.error('Ошибка инициализации пользователя:', error);
-        // Даже при ошибке показываем админку для админов
-        if (currentUser && ADMIN_IDS.includes(currentUser.id)) {
-            isAdmin = true;
-            document.getElementById('adminButton').style.display = 'block';
-        }
+        console.error('Ошибка при создании пользователя:', error);
     }
 }
 
-// Инициализация обработчиков событий
-function initEventListeners() {
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const fileInput = document.getElementById('fileInput');
-    const adminButton = document.getElementById('adminButton');
-    const adminPanel = document.getElementById('adminPanel');
-    const closeAdminPanel = document.getElementById('closeAdminPanel');
-    const adminChatModal = document.getElementById('adminChatModal');
-    const closeAdminChat = document.getElementById('closeAdminChat');
-    const adminMessageInput = document.getElementById('adminMessageInput');
-    const adminSendBtn = document.getElementById('adminSendBtn');
-    const markInProgressBtn = document.getElementById('markInProgressBtn');
-    const markClosedBtn = document.getElementById('markClosedBtn');
+// Проверка прав администратора
+async function checkAdminRights() {
+    if (!currentUserId) return;
+    
+    try {
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('is_admin')
+            .eq('telegram_id', currentUserId)
+            .single();
+            
+        if (error) throw error;
+        
+        isAdmin = data?.is_admin || false;
+        
+        if (isAdmin) {
+            adminPanelBtn.classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке прав админа:', error);
+    }
+}
 
-    // Основной чат
+// Настройка обработчиков событий
+function setupEventListeners() {
+    // Обычный чат
     sendBtn.addEventListener('click', sendMessage);
-    input.addEventListener('keydown', (e) => {
+    messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
     });
-
-    fileInput.addEventListener('change', handleFileUpload);
-
-    // Панель администратора
-    adminButton.addEventListener('click', openAdminPanel);
-    closeAdminPanel.addEventListener('click', () => {
-        adminPanel.style.display = 'none';
-    });
-
-    // Админский чат
-    closeAdminChat.addEventListener('click', () => {
-        adminChatModal.style.display = 'none';
-    });
     
-    adminSendBtn.addEventListener('click', sendAdminMessage);
-    adminMessageInput.addEventListener('keydown', (e) => {
+    attachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileAttach);
+    
+    // Админ-панель
+    adminPanelBtn.addEventListener('click', showAdminPanel);
+    backToChat.addEventListener('click', showChat);
+    backToAdmin.addEventListener('click', showAdminPanel);
+    
+    // Диалог админа
+    dialogSendBtn.addEventListener('click', sendAdminMessage);
+    dialogMessageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendAdminMessage();
         }
     });
-
-    // Контролы диалога
-    markInProgressBtn.addEventListener('click', () => updateDialogStatus('in_progress'));
-    markClosedBtn.addEventListener('click', () => updateDialogStatus('closed'));
+    
+    dialogAttachBtn.addEventListener('click', () => dialogFileInput.click());
+    dialogFileInput.addEventListener('change', handleDialogFileAttach);
 }
 
-// Отправка сообщения пользователем
+// Функции отправки сообщений
 async function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const text = input.value.trim();
-    if (!text) return;
-
-    // Отображаем сообщение локально
-    appendMessage({ text, inbound: false });
-    input.value = '';
-
-    // Если нет пользователя, работаем локально
-    if (!currentUser) {
+    const text = messageInput.value.trim();
+    if (!text || !currentUserId) return;
+    
+    try {
+        // Создаем или получаем диалог
+        const conversationId = await createOrGetConversation();
+        
+        if (!conversationId) {
+            throw new Error('Не удалось создать диалог');
+        }
+        
+        // Добавляем сообщение
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .insert({
+                conversation_id: conversationId,
+                sender_id: currentUserId,
+                content: text,
+                message_type: 'text'
+            })
+            .select()
+            .single();
+            
+        if (error) throw error;
+        
+        // Отображаем сообщение в чате
+        appendMessage({ text, inbound: false });
+        messageInput.value = '';
+        
+        // Имитируем ответ админа (для тестирования)
         setTimeout(() => {
             appendMessage({ 
-                text: 'Спасибо за сообщение! Для полной функциональности откройте через Telegram бота.', 
+                text: 'Спасибо за сообщение! Администратор ответит вам в ближайшее время.', 
                 inbound: true 
             });
         }, 1000);
+        
+    } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error);
+        showError('Не удалось отправить сообщение');
+    }
+}
+
+async function sendAdminMessage() {
+    const text = dialogMessageInput.value.trim();
+    if (!text || !currentConversationId || !isAdmin) return;
+    
+    try {
+        // Добавляем сообщение в базу
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .insert({
+                conversation_id: currentConversationId,
+                sender_id: currentUserId,
+                content: text,
+                message_type: 'text'
+            })
+            .select()
+            .single();
+            
+        if (error) throw error;
+        
+        // Назначаем админа на диалог
+        await supabaseClient
+            .from('conversations')
+            .update({ 
+                admin_id: currentUserId, 
+                status: 'in_progress' 
+            })
+            .eq('id', currentConversationId);
+        
+        // Отображаем сообщение
+        appendDialogMessage({ 
+            text, 
+            isAdmin: true, 
+            timestamp: new Date().toLocaleTimeString() 
+        });
+        
+        dialogMessageInput.value = '';
+        
+        // Отправляем уведомление пользователю (через backend API)
+        await notifyUser(currentConversationId);
+        
+    } catch (error) {
+        console.error('Ошибка при отправке ответа:', error);
+        showError('Не удалось отправить ответ');
+    }
+}
+
+// Создание или получение диалога
+async function createOrGetConversation() {
+    try {
+        // Проверяем существующий открытый диалог
+        const { data: existing, error: existingError } = await supabaseClient
+            .from('conversations')
+            .select('id')
+            .eq('user_id', currentUserId)
+            .eq('status', 'open')
+            .single();
+            
+        if (existing) {
+            return existing.id;
+        }
+        
+        // Создаем новый диалог
+        const { data, error } = await supabaseClient
+            .from('conversations')
+            .insert({
+                user_id: currentUserId,
+                status: 'open'
+            })
+            .select()
+            .single();
+            
+        if (error) throw error;
+        return data.id;
+        
+    } catch (error) {
+        console.error('Ошибка при создании диалога:', error);
+        return null;
+    }
+}
+
+// Загрузка диалогов для админ-панели
+async function loadAdminConversations() {
+    if (!isAdmin) return;
+    
+    try {
+        const { data, error } = await supabaseClient
+            .from('admin_conversations_view')
+            .select('*')
+            .order('last_message_at', { ascending: false });
+            
+        if (error) throw error;
+        
+        renderConversationsList(data);
+        
+    } catch (error) {
+        console.error('Ошибка при загрузке диалогов:', error);
+        conversationsList.innerHTML = '<div class="loading">Ошибка загрузки</div>';
+    }
+}
+
+// Отображение списка диалогов
+function renderConversationsList(conversations) {
+    if (!conversations || conversations.length === 0) {
+        conversationsList.innerHTML = '<div class="loading">Нет активных диалогов</div>';
         return;
     }
+    
+    const html = conversations.map(conv => {
+        const username = conv.username || conv.first_name || `ID: ${conv.user_id}`;
+        const lastMessage = conv.last_message || 'Нет сообщений';
+        const messageCount = conv.message_count || 0;
+        const date = new Date(conv.last_message_at).toLocaleDateString('ru-RU');
+        const time = new Date(conv.last_message_at).toLocaleTimeString('ru-RU', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        return `
+            <div class="conversation-item" data-conversation-id="${conv.id}" data-user-id="${conv.user_id}">
+                <div class="conversation-user">${username}</div>
+                <div class="conversation-meta">
+                    <span>${date} ${time}</span>
+                    <span>Сообщений: ${messageCount}</span>
+                </div>
+                <div class="conversation-preview">${lastMessage}</div>
+            </div>
+        `;
+    }).join('');
+    
+    conversationsList.innerHTML = html;
+    
+    // Добавляем обработчики клика
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const conversationId = item.dataset.conversationId;
+            const userId = item.dataset.userId;
+            openConversationDialog(conversationId, userId);
+        });
+    });
+}
 
+// Открытие диалога с пользователем
+async function openConversationDialog(conversationId, userId) {
+    currentConversationId = conversationId;
+    
     try {
-        if (supabase && currentUser) {
-            console.log('📤 Отправка сообщения от пользователя:', currentUser.id);
+        // Получаем информацию о пользователе
+        const { data: user, error: userError } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('telegram_id', userId)
+            .single();
             
-            // Создаем или находим активный диалог
-            if (!currentDialogId) {
-                console.log('📋 Создание нового диалога...');
-                
-                // Простое создание диалога без RPC функции
-                const { data: dialogData, error: dialogError } = await supabase
-                    .from('dialogs')
-                    .insert({
-                        user_id: currentUser.id,
-                        status: 'open'
-                    })
-                    .select()
-                    .single();
-
-                if (dialogError) {
-                    console.error('❌ Ошибка создания диалога:', dialogError);
-                } else {
-                    currentDialogId = dialogData.id;
-                    console.log('✅ Диалог создан с ID:', currentDialogId);
-                    
-                    // Добавляем первое сообщение
-                    console.log('💬 Добавление первого сообщения...');
-                    const { error: messageError } = await supabase
-                        .from('messages')
-                        .insert({
-                            dialog_id: currentDialogId,
-                            sender_id: currentUser.id,
-                            content: text,
-                            is_from_admin: false
-                        });
-
-                    if (messageError) {
-                        console.error('❌ Ошибка отправки сообщения:', messageError);
-                    } else {
-                        console.log('✅ Сообщение сохранено в БД');
-                    }
-                }
-            } else {
-                console.log('💬 Добавление сообщения к диалогу:', currentDialogId);
-                
-                // Добавляем сообщение к существующему диалогу
-                const { error } = await supabase
-                    .from('messages')
-                    .insert({
-                        dialog_id: currentDialogId,
-                        sender_id: currentUser.id,
-                        content: text,
-                        is_from_admin: false
-                    });
-
-                if (error) {
-                    console.error('❌ Ошибка отправки сообщения:', error);
-                } else {
-                    console.log('✅ Сообщение сохранено в БД');
-                }
-            }
-        } else {
-            console.warn('⚠️ Supabase или пользователь недоступны, работаем локально');
-        }
-
-        // Симуляция ответа админа
-        setTimeout(() => {
-            appendMessage({ 
-                text: 'Спасибо за сообщение! Администратор ответит в ближайшее время.', 
-                inbound: true 
-            });
-        }, 1000);
-
+        if (userError) throw userError;
+        
+        // Получаем сообщения диалога
+        const { data: messages, error: messagesError } = await supabaseClient
+            .from('messages_with_users_view')
+            .select('*')
+            .eq('conversation_id', conversationId)
+            .order('created_at', { ascending: true });
+            
+        if (messagesError) throw messagesError;
+        
+        // Отображаем информацию о пользователе
+        const username = user.username || user.first_name || `ID: ${user.telegram_id}`;
+        dialogUsername.textContent = username;
+        dialogMeta.textContent = `Сообщений: ${messages.length}`;
+        
+        // Отображаем сообщения
+        renderDialogMessages(messages);
+        
+        // Отмечаем сообщения как прочитанные
+        await markMessagesAsRead(conversationId);
+        
+        showConversationDialog();
+        
     } catch (error) {
-        console.error('Ошибка отправки сообщения:', error);
-        // Продолжаем работу локально
+        console.error('Ошибка при открытии диалога:', error);
+        showError('Не удалось загрузить диалог');
     }
 }
 
-// Обработка загрузки файлов
-function handleFileUpload() {
-    const fileInput = document.getElementById('fileInput');
+// Отображение сообщений в диалоге
+function renderDialogMessages(messages) {
+    dialogChat.innerHTML = '';
+    
+    messages.forEach(message => {
+        appendDialogMessage({
+            text: message.content,
+            isAdmin: message.sender_is_admin,
+            timestamp: new Date(message.created_at).toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            })
+        });
+    });
+    
+    dialogChat.scrollTop = dialogChat.scrollHeight;
+}
+
+// Добавление сообщения в диалог
+function appendDialogMessage({ text, isAdmin, timestamp }) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isAdmin ? 'admin' : 'user'}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.textContent = text;
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.style.fontSize = '11px';
+    timeDiv.style.opacity = '0.7';
+    timeDiv.style.marginTop = '4px';
+    timeDiv.textContent = timestamp;
+    
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeDiv);
+    
+    dialogChat.appendChild(messageDiv);
+    dialogChat.scrollTop = dialogChat.scrollHeight;
+}
+
+// Отметка сообщений как прочитанных
+async function markMessagesAsRead(conversationId) {
+    try {
+        await supabaseClient
+            .from('messages')
+            .update({ is_read: true })
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', currentUserId);
+    } catch (error) {
+        console.error('Ошибка при отметке сообщений:', error);
+    }
+}
+
+// Уведомление пользователя
+async function notifyUser(conversationId) {
+    // Здесь должен быть вызов backend API для отправки уведомления через бота
+    console.log('Отправка уведомления пользователю для диалога:', conversationId);
+}
+
+// Навигация между экранами
+function showChat() {
+    currentView = 'chat';
+    adminPanel.classList.remove('active');
+    conversationDialog.classList.remove('active');
+    chat.style.display = 'flex';
+    userFooter.style.display = 'flex';
+    document.querySelector('.conversation-dialog footer').style.display = 'none';
+}
+
+function showAdminPanel() {
+    if (!isAdmin) return;
+    
+    currentView = 'admin';
+    chat.style.display = 'none';
+    conversationDialog.classList.remove('active');
+    adminPanel.classList.add('active');
+    userFooter.style.display = 'none';
+    document.querySelector('.conversation-dialog footer').style.display = 'none';
+    
+    loadAdminConversations();
+}
+
+function showConversationDialog() {
+    if (!isAdmin) return;
+    
+    currentView = 'dialog';
+    chat.style.display = 'none';
+    adminPanel.classList.remove('active');
+    conversationDialog.classList.add('active');
+    userFooter.style.display = 'none';
+    document.querySelector('.conversation-dialog footer').style.display = 'flex';
+}
+
+// Загрузка диалога пользователя по ID
+async function loadUserConversation(conversationId) {
+    try {
+        const { data: messages, error } = await supabaseClient
+            .from('messages_with_users_view')
+            .select('*')
+            .eq('conversation_id', conversationId)
+            .order('created_at', { ascending: true });
+            
+        if (error) throw error;
+        
+        // Отображаем сообщения
+        chat.innerHTML = '';
+        messages.forEach(message => {
+            appendMessage({
+                text: message.content,
+                inbound: message.sender_is_admin
+            });
+        });
+        
+        currentConversationId = conversationId;
+        
+    } catch (error) {
+        console.error('Ошибка при загрузке диалога пользователя:', error);
+    }
+}
+
+// Обработка прикрепления файлов
+function handleFileAttach() {
     if (fileInput.files.length > 0) {
-        const fileName = fileInput.files[0].name;
-        appendMessage({ text: `📎 Файл прикреплён: ${fileName}`, inbound: false });
-        // Здесь можно добавить загрузку файла в Supabase Storage
+        appendMessage({ 
+            text: `📎 Файл прикреплён: ${fileInput.files[0].name}`, 
+            inbound: false 
+        });
     }
 }
 
-// Отображение сообщения в чате
+function handleDialogFileAttach() {
+    if (dialogFileInput.files.length > 0) {
+        appendDialogMessage({ 
+            text: `📎 Файл прикреплён: ${dialogFileInput.files[0].name}`, 
+            isAdmin: true,
+            timestamp: new Date().toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            })
+        });
+    }
+}
+
+// Функции для совместимости с оригинальным script.js
+function el(tag, className, text) {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text) e.textContent = text;
+    return e;
+}
+
 function appendMessage({ text, inbound = false }) {
-    const chat = document.getElementById('chat');
-    const wrap = document.createElement('div');
-    wrap.className = `msg ${inbound ? 'msg-in' : 'msg-out'}`;
-    
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = text;
-    
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = inbound ? 'Администратор • сейчас' : 'Вы • сейчас';
-    
+    const wrap = el('div', `msg ${inbound ? 'msg-in' : 'msg-out'}`);
+    const bubble = el('div', 'bubble', text);
+    const meta = el('div', 'meta', inbound ? 'Администратор • сейчас' : 'Вы • сейчас');
     wrap.appendChild(bubble);
     wrap.appendChild(meta);
     chat.appendChild(wrap);
     chat.scrollTop = chat.scrollHeight;
 }
 
-// === АДМИНСКИЕ ФУНКЦИИ ===
-
-// Открытие панели администратора
-async function openAdminPanel() {
-    if (!isAdmin) return;
-
-    try {
-        if (!supabase) {
-            document.getElementById('dialogsList').innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">База данных недоступна</p>';
-            document.getElementById('adminPanel').style.display = 'block';
-            return;
-        }
-
-        // Простой запрос диалогов без RPC функции
-        const { data: dialogs, error: dialogsError } = await supabase
-            .from('dialogs')
-            .select(`
-                id,
-                user_id,
-                status,
-                created_at,
-                updated_at
-            `)
-            .in('status', ['open', 'in_progress'])
-            .order('updated_at', { ascending: false });
-
-        if (dialogsError) {
-            console.error('Ошибка загрузки диалогов:', dialogsError);
-            document.getElementById('dialogsList').innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">Ошибка загрузки диалогов</p>';
-            document.getElementById('adminPanel').style.display = 'block';
-            return;
-        }
-
-        // Получаем информацию о пользователях
-        const userIds = [...new Set(dialogs.map(d => d.user_id))];
-        const { data: users, error: usersError } = await supabase
-            .from('users')
-            .select('telegram_id, username, first_name, last_name')
-            .in('telegram_id', userIds);
-
-        if (usersError) {
-            console.error('Ошибка загрузки пользователей:', usersError);
-        }
-
-        // Получаем количество сообщений для каждого диалога
-        const dialogsWithStats = await Promise.all(dialogs.map(async (dialog) => {
-            const { count } = await supabase
-                .from('messages')
-                .select('*', { count: 'exact', head: true })
-                .eq('dialog_id', dialog.id);
-
-            const user = users?.find(u => u.telegram_id === dialog.user_id) || {};
-
-            return {
-                dialog_id: dialog.id,
-                user_telegram_id: dialog.user_id,
-                username: user.username,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                status: dialog.status,
-                message_count: count || 0,
-                last_message_at: dialog.updated_at,
-                created_at: dialog.created_at
-            };
-        }));
-
-        const dialogsList = document.getElementById('dialogsList');
-        dialogsList.innerHTML = '';
-
-        if (dialogsWithStats.length === 0) {
-            dialogsList.innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">Нет активных диалогов</p>';
-        } else {
-            dialogsWithStats.forEach(dialog => {
-                const dialogItem = createDialogItem(dialog);
-                dialogsList.appendChild(dialogItem);
-            });
-        }
-
-        document.getElementById('adminPanel').style.display = 'block';
-    } catch (error) {
-        console.error('Ошибка загрузки диалогов:', error);
-        document.getElementById('dialogsList').innerHTML = '<p style="color: #a6a8ad; text-align: center; padding: 40px;">Ошибка загрузки диалогов</p>';
-        document.getElementById('adminPanel').style.display = 'block';
+// Показ ошибок
+function showError(message) {
+    if (tg && tg.showAlert) {
+        tg.showAlert(message);
+    } else {
+        alert(message);
     }
 }
 
-// Создание элемента диалога в списке
-function createDialogItem(dialog) {
-    const item = document.createElement('div');
-    item.className = 'dialog-item';
-    item.onclick = () => openAdminChat(dialog);
-
-    const userName = dialog.username 
-        ? `@${dialog.username}` 
-        : `${dialog.first_name || 'Пользователь'} ${dialog.last_name || ''}`.trim();
-
-    const lastMessageDate = dialog.last_message_at 
-        ? new Date(dialog.last_message_at).toLocaleString('ru-RU')
-        : new Date(dialog.created_at).toLocaleString('ru-RU');
-
-    item.innerHTML = `
-        <div class="dialog-user">${userName}</div>
-        <div class="dialog-meta">
-            <span>${lastMessageDate}</span>
-            <span class="dialog-status ${dialog.status}">${
-                dialog.status === 'open' ? 'Новый' : 
-                dialog.status === 'in_progress' ? 'На рассмотрении' : 'Закрыт'
-            }</span>
-        </div>
-        <div style="color: #a6a8ad; font-size: 12px; margin-top: 4px;">
-            Сообщений: ${dialog.message_count}
-        </div>
-    `;
-
-    return item;
-}
-
-// Открытие чата с пользователем
-async function openAdminChat(dialog) {
-    currentDialogId = dialog.dialog_id;
-    currentChatUserId = dialog.user_telegram_id;
-
-    const userName = dialog.username 
-        ? `@${dialog.username}` 
-        : `${dialog.first_name || 'Пользователь'} ${dialog.last_name || ''}`.trim();
-
-    document.getElementById('chatUserName').textContent = `Диалог с ${userName}`;
-
-    // Загрузка сообщений
-    await loadChatMessages();
-
-    // Скрытие панели и показ чата
-    document.getElementById('adminPanel').style.display = 'none';
-    document.getElementById('adminChatModal').style.display = 'block';
-}
-
-// Загрузка сообщений диалога
-async function loadChatMessages() {
-    try {
-        const { data, error } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('dialog_id', currentDialogId)
-            .order('created_at', { ascending: true });
-
-        if (error) throw error;
-
-        const messagesContainer = document.getElementById('adminChatMessages');
-        messagesContainer.innerHTML = '';
-
-        data.forEach(message => {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `admin-message ${message.is_from_admin ? 'admin' : 'user'}`;
-            messageDiv.textContent = message.content;
-            messagesContainer.appendChild(messageDiv);
-        });
-
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    } catch (error) {
-        console.error('Ошибка загрузки сообщений:', error);
-    }
-}
-
-// Отправка сообщения от админа
-async function sendAdminMessage() {
-    const input = document.getElementById('adminMessageInput');
-    const text = input.value.trim();
-    if (!text || !currentDialogId || !currentUser) return;
-
-    try {
-        const { error } = await supabase
-            .from('messages')
-            .insert({
-                dialog_id: currentDialogId,
-                sender_id: currentUser.id,
-                content: text,
-                is_from_admin: true
-            });
-
-        if (error) throw error;
-
-        // Отображение сообщения
-        const messagesContainer = document.getElementById('adminChatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'admin-message admin';
-        messageDiv.textContent = text;
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        input.value = '';
-    } catch (error) {
-        console.error('Ошибка отправки сообщения:', error);
-    }
-}
-
-// Обновление статуса диалога
-async function updateDialogStatus(status) {
-    if (!currentDialogId) return;
-
-    try {
-        const { error } = await supabase
-            .from('dialogs')
-            .update({ 
-                status,
-                admin_id: currentUser.id,
-                ...(status === 'closed' && { closed_at: new Date().toISOString() })
-            })
-            .eq('id', currentDialogId);
-
-        if (error) throw error;
-
-        if (status === 'closed') {
-            document.getElementById('adminChatModal').style.display = 'none';
-            alert('Диалог завершён');
-        } else {
-            alert('Статус диалога обновлён');
-        }
-    } catch (error) {
-        console.error('Ошибка обновления статуса:', error);
-    }
-}
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', initApp);
