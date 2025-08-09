@@ -24,9 +24,20 @@
 1. Откройте [Supabase Dashboard](https://supabase.com/dashboard)
 2. Выберите ваш проект: `https://uhhsrtmmuwoxsdquimaa.supabase.co`
 3. Перейдите в SQL Editor
-4. Скопируйте и выполните весь код из файла `supabase_schema.sql`
 
-**ВАЖНО:** В конце файла `supabase_schema.sql` найдите строку:
+**Выполните в такой последовательности:**
+
+#### 1.1. Создайте основную схему:
+```sql
+-- Скопируйте и выполните весь код из файла supabase_schema.sql
+```
+
+#### 1.2. Исправьте безопасность:
+```sql
+-- Скопируйте и выполните весь код из файла supabase_security_fix.sql
+```
+
+**ВАЖНО:** В файле `supabase_security_fix.sql` найдите строку:
 ```sql
 INSERT INTO users (telegram_id, username, first_name, is_admin) 
 VALUES (123456789, 'admin_username', 'Администратор', TRUE)
@@ -109,3 +120,8 @@ python bot.py
 ### Уведомления не приходят:
 - Проверьте Bot Token в script.js
 - Убедитесь, что бот запущен и работает
+
+### Появляется предупреждение о безопасности:
+- Это нормально после выполнения `supabase_security_fix.sql`
+- Функции используют `SECURITY INVOKER` для безопасности
+- Представления заменены на безопасные функции

@@ -94,14 +94,11 @@ async function checkAdminRights() {
     
     try {
         const { data, error } = await supabaseClient
-            .from('users')
-            .select('is_admin')
-            .eq('telegram_id', currentUserId)
-            .single();
+            .rpc('is_admin', { user_telegram_id: currentUserId });
             
         if (error) throw error;
         
-        isAdmin = data?.is_admin || false;
+        isAdmin = data || false;
         
         if (isAdmin) {
             adminPanelBtn.classList.remove('hidden');
@@ -274,9 +271,7 @@ async function loadAdminConversations() {
     
     try {
         const { data, error } = await supabaseClient
-            .from('admin_conversations_view')
-            .select('*')
-            .order('last_message_at', { ascending: false });
+            .rpc('get_admin_conversations');
             
         if (error) throw error;
         
@@ -345,10 +340,7 @@ async function openConversationDialog(conversationId, userId) {
         
         // Получаем сообщения диалога
         const { data: messages, error: messagesError } = await supabaseClient
-            .from('messages_with_users_view')
-            .select('*')
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: true });
+            .rpc('get_conversation_messages', { conv_id: conversationId });
             
         if (messagesError) throw messagesError;
         
@@ -515,10 +507,7 @@ function showConversationDialog() {
 async function loadUserConversation(conversationId) {
     try {
         const { data: messages, error } = await supabaseClient
-            .from('messages_with_users_view')
-            .select('*')
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: true });
+            .rpc('get_conversation_messages', { conv_id: conversationId });
             
         if (error) throw error;
         

@@ -40,10 +40,7 @@ const CONFIG = {
             
             // Проверяем права администратора
             const { data, error } = await supabaseClient
-                .from('users')
-                .select('is_admin')
-                .eq('telegram_id', this.currentUserId)
-                .single();
+                .rpc('is_admin', { user_telegram_id: this.currentUserId });
                 
             if (error) {
                 console.error('Ошибка при проверке прав админа:', error);
@@ -51,7 +48,7 @@ const CONFIG = {
                 return;
             }
             
-            this.isAdmin = data?.is_admin || false;
+            this.isAdmin = data || false;
             
         } catch (error) {
             console.error('Ошибка при проверке прав админа:', error);
