@@ -2,8 +2,8 @@
   const tg = window.Telegram?.WebApp;
   if (tg) {
     tg.expand();
-    tg.setBackgroundColor('#0f1115');
-    tg.setHeaderColor('#151823');
+    tg.setBackgroundColor('#0c0f14');
+    tg.setHeaderColor('#141825');
   }
 
   const chatEl = document.getElementById('chat');
@@ -17,7 +17,7 @@
     });
   }
 
-  function createMsgEl(text, type = 'out', withBeige = true) {
+  function createMsgEl(text, type = 'out') {
     const el = document.createElement('div');
     el.className = `msg msg--${type}`;
     el.textContent = text;
@@ -36,16 +36,14 @@
     scrollToBottom();
   }
 
-  // Placeholder first message from admin (right side, no beige)
+  // Initial admin greeting (right side)
   addIncoming('Здравствуйте! Опишите ваш вопрос, и мы ответим в ближайшее время.');
 
   function handleSend() {
     const text = inputEl.value.trim();
     if (!text && !fileInput.files?.length) return;
 
-    if (text) {
-      addOutgoing(text);
-    }
+    if (text) addOutgoing(text);
 
     if (fileInput.files && fileInput.files.length > 0) {
       const file = fileInput.files[0];
@@ -55,11 +53,29 @@
 
     inputEl.value = '';
 
-    // Demo echo from admin after a small delay to showcase UI
+    // Demo echo from admin after a small delay
     setTimeout(() => {
       addIncoming('Приняли. Вернусь с ответом.');
-    }, 600);
+    }, 500);
   }
+
+  function attachPressRipple(el){
+    let pressTimer;
+    el.addEventListener('pointerdown', () => {
+      el.classList.add('is-pressing');
+      clearTimeout(pressTimer);
+    });
+    el.addEventListener('pointerup', () => {
+      pressTimer = setTimeout(() => el.classList.remove('is-pressing'), 250);
+    });
+    el.addEventListener('pointerleave', () => {
+      pressTimer = setTimeout(() => el.classList.remove('is-pressing'), 250);
+    });
+  }
+
+  attachPressRipple(sendBtn);
+  const attachLabel = document.querySelector('.attach');
+  if (attachLabel) attachPressRipple(attachLabel);
 
   sendBtn.addEventListener('click', handleSend);
   inputEl.addEventListener('keydown', (e) => {
