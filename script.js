@@ -6,6 +6,12 @@ let isAdmin = false;
 let currentDialogId = null;
 let currentChatUserId = null;
 
+// Список администраторов (жёстко прописан в коде)
+const ADMIN_IDS = [
+    708907063,    // @acqu1red
+    7365307696    // @cas3method
+];
+
 // Инициализация
 document.addEventListener('DOMContentLoaded', async () => {
     if (tg) {
@@ -35,39 +41,54 @@ async function initUser() {
             const telegramUser = tg.initDataUnsafe.user;
             currentUser = telegramUser;
             
-            // Установка контекста пользователя для RLS
-            await supabase.rpc('set_context', {
-                key: 'app.current_user_id',
-                value: telegramUser.id.toString()
-            });
+            // Проверка админских прав по жёстко прописанному списку
+            isAdmin = ADMIN_IDS.includes(telegramUser.id);
+            console.log(`Пользователь ${telegramUser.id} (${telegramUser.username}), isAdmin: ${isAdmin}`);
+            
+            if (supabase) {
+                // Установка контекста пользователя для RLS
+                await supabase.rpc('set_context', {
+                    key: 'app.current_user_id',
+                    value: telegramUser.id.toString()
+                });
 
-            // Создание или обновление пользователя в БД
-            const { data, error } = await supabase
-                .from('users')
-                .upsert({
-                    telegram_id: telegramUser.id,
-                    username: telegramUser.username || null,
-                    first_name: telegramUser.first_name || null,
-                    last_name: telegramUser.last_name || null
-                })
-                .select()
-                .single();
+                // Создание или обновление пользователя в БД
+                const { data, error } = await supabase
+                    .from('users')
+                    .upsert({
+                        telegram_id: telegramUser.id,
+                        username: telegramUser.username || null,
+                        first_name: telegramUser.first_name || null,
+                        last_name: telegramUser.last_name || null,
+                        is_admin: isAdmin  // Устанавливаем админские права
+                    })
+                    .select()
+                    .single();
 
-            if (data) {
-                isAdmin = data.is_admin;
-                if (isAdmin) {
-                    document.getElementById('adminButton').style.display = 'block';
+                if (error) {
+                    console.error('Ошибка при сохранении пользователя:', error);
                 }
+            }
+
+            // Показываем админскую кнопку для админов
+            if (isAdmin) {
+                document.getElementById('adminButton').style.display = 'block';
+                console.log('Админская панель активирована');
             }
         } else {
             // Для тестирования без Telegram
             console.log('Режим разработки - используем тестового пользователя');
-            currentUser = { id: 123456789, first_name: 'Test Admin' };
+            currentUser = { id: 708907063, first_name: 'Test Admin', username: 'acqu1red' };
             isAdmin = true;
             document.getElementById('adminButton').style.display = 'block';
         }
     } catch (error) {
         console.error('Ошибка инициализации пользователя:', error);
+        // Даже при ошибке показываем админку для админов
+        if (currentUser && ADMIN_IDS.includes(currentUser.id)) {
+            isAdmin = true;
+            document.getElementById('adminButton').style.display = 'block';
+        }
     }
 }
 
