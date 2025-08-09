@@ -1,10 +1,32 @@
 (() => {
   const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.expand();
-    tg.setBackgroundColor('#0c0f14');
-    tg.setHeaderColor('#141825');
+
+  function showFatal(message){
+    const app = document.getElementById('app');
+    if (!app) return;
+    app.innerHTML = `<div style="padding:28px; color:#e9dccb; line-height:1.6">
+      <div style="font-weight:600; margin-bottom:8px">Ошибка</div>
+      <div>${message}</div>
+    </div>`;
   }
+
+  if (!tg) {
+    showFatal('Telegram WebApp API недоступен. Откройте мини‑приложение из Telegram.');
+    return;
+  }
+
+  tg.expand();
+  tg.setBackgroundColor('#0c0f14');
+  tg.setHeaderColor('#141825');
+
+  // Validate initData
+  const initDataUnsafe = tg.initDataUnsafe;
+  if (!initDataUnsafe || !initDataUnsafe.user) {
+    showFatal('Telegram user data not found. Откройте мини‑приложение из Telegram-клиента.');
+    return;
+  }
+
+  const user = initDataUnsafe.user;
 
   const chatEl = document.getElementById('chat');
   const inputEl = document.getElementById('messageInput');
@@ -37,7 +59,7 @@
   }
 
   // Initial admin greeting (right side)
-  addIncoming('Здравствуйте! Опишите ваш вопрос, и мы ответим в ближайшее время.');
+  addIncoming(`Здравствуйте, ${user.first_name || 'пользователь'}! Опишите ваш вопрос, и мы ответим в ближайшее время.`);
 
   function handleSend() {
     const text = inputEl.value.trim();
