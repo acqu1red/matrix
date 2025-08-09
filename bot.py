@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from queue import Queue
 from telegram.ext import ApplicationBuilder
@@ -6,7 +6,6 @@ import pytz
 from telegram.ext import CallbackQueryHandler
 
 MINIAPP_URL = "https://t.me/OSNOVAprivate_bot/formulaprivate"
-WEBAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
 
 # ---------- Builders for messages & keyboards ----------
 
