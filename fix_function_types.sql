@@ -35,7 +35,7 @@ ORDER BY ordinal_position;
 -- Создаем правильную версию функции с BIGINT (без ссылки на is_active)
 CREATE OR REPLACE FUNCTION get_conversation_messages(conv_id BIGINT)
 RETURNS TABLE (
-    id INTEGER,
+    id BIGINT,
     content TEXT,
     sender_id BIGINT,
     sender_is_admin BOOLEAN,

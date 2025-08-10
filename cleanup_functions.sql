@@ -8,6 +8,8 @@ DROP FUNCTION IF EXISTS get_admin_conversations();
 DROP FUNCTION IF EXISTS get_admin_conversations() CASCADE;
 DROP FUNCTION IF EXISTS get_conversation_messages(INTEGER);
 DROP FUNCTION IF EXISTS get_conversation_messages(INTEGER) CASCADE;
+DROP FUNCTION IF EXISTS get_conversation_messages(BIGINT);
+DROP FUNCTION IF EXISTS get_conversation_messages(BIGINT) CASCADE;
 DROP FUNCTION IF EXISTS get_conversations_stats();
 DROP FUNCTION IF EXISTS get_conversations_stats() CASCADE;
 DROP FUNCTION IF EXISTS test_connection();

@@ -35,7 +35,7 @@ ORDER BY ordinal_position;
 -- Создаем безопасную версию функции с проверкой существования колонок
 CREATE OR REPLACE FUNCTION get_conversation_messages(conv_id BIGINT)
 RETURNS TABLE (
-    id INTEGER,
+    id BIGINT,
     content TEXT,
     sender_id BIGINT,
     sender_is_admin BOOLEAN,

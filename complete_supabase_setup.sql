@@ -232,9 +232,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Функция получения сообщений диалога
-CREATE OR REPLACE FUNCTION get_conversation_messages(conv_id INTEGER)
+CREATE OR REPLACE FUNCTION get_conversation_messages(conv_id BIGINT)
 RETURNS TABLE (
-    id INTEGER,
+    id BIGINT,
     content TEXT,
     sender_id BIGINT,
     sender_is_admin BOOLEAN,
@@ -333,9 +333,9 @@ GRANT EXECUTE ON FUNCTION get_admin_conversations() TO anon;
 GRANT EXECUTE ON FUNCTION get_admin_conversations() TO authenticated;
 GRANT EXECUTE ON FUNCTION get_admin_conversations() TO service_role;
 
-GRANT EXECUTE ON FUNCTION get_conversation_messages(INTEGER) TO anon;
-GRANT EXECUTE ON FUNCTION get_conversation_messages(INTEGER) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_conversation_messages(INTEGER) TO service_role;
+GRANT EXECUTE ON FUNCTION get_conversation_messages(BIGINT) TO anon;
+GRANT EXECUTE ON FUNCTION get_conversation_messages(BIGINT) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_conversation_messages(BIGINT) TO service_role;
 
 GRANT EXECUTE ON FUNCTION get_conversations_stats() TO anon;
 GRANT EXECUTE ON FUNCTION get_conversations_stats() TO authenticated;
