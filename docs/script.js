@@ -479,18 +479,17 @@ function filterConversations(conversations, filter) {
             console.log('Фильтр "all": показываем все диалоги');
             break;
         case 'pending':
-            // Показываем только диалоги, на которые админ еще не ответил
+            // Показываем только диалоги, где последнее сообщение от пользователя (НЕ от админа)
             filtered = conversations.filter(conv => {
-                const shouldShow = !conv.admin_id || conv.status === 'open' || conv.status === 'in_progress';
-                console.log(`Диалог ${conv.id}: admin_id=${conv.admin_id}, status=${conv.status}, показываем=${shouldShow}`);
+                // Проверяем, что последнее сообщение не от админа
+                // Для этого нужно проверить, есть ли admin_id и статус диалога
+                const hasAdminResponse = conv.admin_id && conv.status === 'answered';
+                const shouldShow = !hasAdminResponse;
+                
+                console.log(`Диалог ${conv.id}: admin_id=${conv.admin_id}, status=${conv.status}, hasAdminResponse=${hasAdminResponse}, показываем=${shouldShow}`);
                 return shouldShow;
             });
-            console.log('Фильтр "pending": показываем диалоги без ответа админа');
-            break;
-        case 'messages':
-            // Показываем диалоги с наибольшим количеством сообщений
-            filtered = [...conversations].sort((a, b) => (b.message_count || 0) - (a.message_count || 0));
-            console.log('Фильтр "messages": сортируем по количеству сообщений');
+            console.log('Фильтр "pending": показываем диалоги, где последнее сообщение от пользователя');
             break;
         default:
             filtered = conversations;
@@ -758,18 +757,15 @@ function showAdminPanel() {
     setTimeout(() => {
         const filterAll = document.getElementById('filterAll');
         const filterPending = document.getElementById('filterPending');
-        const filterMessages = document.getElementById('filterMessages');
         
-        if (filterAll && filterPending && filterMessages) {
+        if (filterAll && filterPending) {
             // Удаляем старые обработчики, если они есть
             filterAll.removeEventListener('click', () => setFilter('all'));
             filterPending.removeEventListener('click', () => setFilter('pending'));
-            filterMessages.removeEventListener('click', () => setFilter('messages'));
             
             // Добавляем новые обработчики
             filterAll.addEventListener('click', () => setFilter('all'));
             filterPending.addEventListener('click', () => setFilter('pending'));
-            filterMessages.addEventListener('click', () => setFilter('messages'));
         }
     }, 100);
     
