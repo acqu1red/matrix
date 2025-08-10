@@ -86,6 +86,10 @@
     display: flex;
   }
 
+  .step.active .tariff-title-block {
+    animation: tariffTitleGlow 2s ease-in-out infinite alternate, fadeInUp 0.6s ease-out;
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -110,6 +114,119 @@
   .content-block:hover {
     border-color: #d6c7b8;
     box-shadow: 0 12px 40px rgba(214, 199, 184, 0.1);
+  }
+
+  /* Tariff title block */
+  .tariff-title-block {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 3px solid #d6c7b8;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    animation: tariffTitleGlow 2s ease-in-out infinite alternate;
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
+
+  .tariff-title-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(214, 199, 184, 0.1), transparent);
+    animation: tariffTitleShimmer 3s ease-in-out infinite;
+  }
+
+  .tariff-title-block::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(214, 199, 184, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: tariffTitlePulse 4s ease-in-out infinite;
+  }
+
+  @keyframes tariffTitleGlow {
+    0% {
+      box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+      border-color: #d6c7b8;
+    }
+    100% {
+      box-shadow: 0 12px 35px rgba(214, 199, 184, 0.4);
+      border-color: #f0eadf;
+    }
+  }
+
+  @keyframes tariffTitleShimmer {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  @keyframes tariffTitlePulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.6;
+    }
+  }
+
+  .tariff-title-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f0eadf;
+    text-align: center;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    animation: tariffTitleText 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes tariffTitleText {
+    0% {
+      transform: scale(1);
+      color: #f0eadf;
+    }
+    100% {
+      transform: scale(1.02);
+      color: #d6c7b8;
+    }
+  }
+
+  .tariff-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(214, 199, 184, 0.4);
+    animation: tariffBadgeBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes tariffBadgeBounce {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-5px) scale(1.05);
+    }
   }
 
   .content-text {
@@ -531,10 +648,12 @@
         <div class="progress-step"></div>
       </div>
       
+      <div class="tariff-title-block">
+        <div class="tariff-badge">ВЫБРАН</div>
+        <div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на 1 месяц</div>
+      </div>
+      
       <div class="content-block">
-        <div class="content-text">
-          <strong id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на 1 месяц</strong>
-        </div>
         <div class="content-text">
           <em>*если вы из Украины, включите vpn</em><br>
           <em>*при оплате картой — оформляется автосписание каждые 30 дней</em><br>
@@ -575,6 +694,11 @@
         <div class="progress-step completed"></div>
         <div class="progress-step active"></div>
         <div class="progress-step"></div>
+      </div>
+      
+      <div class="tariff-title-block">
+        <div class="tariff-badge">ТОВАР</div>
+        <div class="tariff-title-text" id="productName">Канал ФОРМУЛА / 1 мес.</div>
       </div>
       
       <div class="content-block">
@@ -701,13 +825,16 @@ function initializeApp() {
       document.getElementById('selectedTariffTitle').textContent = 
         `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
       
-      // Update step 3 content
-      document.getElementById('productName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-      document.getElementById('finalPrice').textContent = `${price} RUB`;
-      
-      // Update step 4 content
-      document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-      document.getElementById('confirmPrice').textContent = `${price} RUB`;
+             // Update step 3 content
+       const productNameElements = document.querySelectorAll('#productName');
+       productNameElements.forEach(element => {
+         element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+       });
+       document.getElementById('finalPrice').textContent = `${price} RUB`;
+       
+       // Update step 4 content
+       document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+       document.getElementById('confirmPrice').textContent = `${price} RUB`;
       
       goToStep(2);
     });
