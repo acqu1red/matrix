@@ -1,27 +1,15 @@
 # Инструкция по настройке базы данных
 
-## Шаг 1: Удаление старых таблиц
+## Шаг 1: Полная очистка базы данных
 
-В Supabase SQL Editor выполните:
+В Supabase SQL Editor выполните содержимое файла `cleanup.sql`.
 
-```sql
--- Удаляем все существующие таблицы
-DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS conversations CASCADE;
-DROP TABLE IF EXISTS admins CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
--- Удаляем все функции
-DROP FUNCTION IF EXISTS is_admin(BIGINT);
-DROP FUNCTION IF EXISTS get_admin_conversations();
-DROP FUNCTION IF EXISTS get_conversation_messages(INTEGER);
-DROP FUNCTION IF EXISTS get_conversations_stats();
-DROP FUNCTION IF EXISTS set_current_user(BIGINT);
-DROP FUNCTION IF EXISTS update_updated_at_column();
-
--- Удаляем все представления
-DROP VIEW IF EXISTS conversation_summary;
-```
+Этот скрипт удалит:
+- Все существующие таблицы
+- Все функции (включая старые версии)
+- Все представления
+- Все триггеры
+- Все политики безопасности
 
 ## Шаг 2: Создание новых таблиц
 
@@ -33,10 +21,9 @@ DROP VIEW IF EXISTS conversation_summary;
 
 ## Шаг 4: Добавление администратора
 
-1. Откройте файл `add_admin.sql`
-2. Замените `YOUR_TELEGRAM_ID` на ваш Telegram ID
-3. Замените `'your_username'`, `'Your'`, `'Name'` на ваши данные
-4. Выполните скрипт в Supabase SQL Editor
+Выполните содержимое файла `add_admin.sql` в Supabase SQL Editor.
+
+**Примечание:** В файле уже указан ваш Telegram ID (708907063) и данные пользователя.
 
 ## Шаг 5: Проверка
 
@@ -53,7 +40,7 @@ UNION ALL
 SELECT 'admins' as table_name, COUNT(*) as row_count FROM admins;
 
 -- Проверка функций
-SELECT is_admin(YOUR_TELEGRAM_ID) as is_admin;
+SELECT is_admin(708907063) as is_admin;
 
 -- Проверка диалогов (должно быть пусто)
 SELECT * FROM get_admin_conversations();

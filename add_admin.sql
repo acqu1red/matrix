@@ -3,12 +3,12 @@
 
 -- Добавление пользователя (если его нет)
 INSERT INTO users (telegram_id, username, first_name, last_name) 
-VALUES (YOUR_TELEGRAM_ID, 'your_username', 'Your', 'Name')
+VALUES (708907063, 'acqu1red', 'TOURMALINE', 'GG')
 ON CONFLICT (telegram_id) DO NOTHING;
 
 -- Добавление администратора
 INSERT INTO admins (user_id, role) 
-VALUES (YOUR_TELEGRAM_ID, 'admin')
+VALUES (708907063, 'admin')
 ON CONFLICT (user_id) DO NOTHING;
 
 -- Проверка
@@ -19,4 +19,4 @@ SELECT
     a.role as admin_role
 FROM users u
 LEFT JOIN admins a ON u.telegram_id = a.user_id
-WHERE u.telegram_id = YOUR_TELEGRAM_ID;
+WHERE u.telegram_id = 708907063;

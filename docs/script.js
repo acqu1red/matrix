@@ -1,7 +1,8 @@
 import { SUPABASE_CONFIG, CONFIG, tg } from './config.js';
 
 // Инициализация Supabase
-const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 
 // Элементы DOM
 const chat = document.getElementById('chat');
@@ -30,15 +31,6 @@ const backToAdmin = document.getElementById('backToAdmin');
 const userFooter = document.getElementById('userFooter');
 const mainContent = document.getElementById('mainContent');
 
-// Проверяем наличие критических элементов
-console.log('Проверка DOM элементов:', {
-    chat: !!chat,
-    messageInput: !!messageInput,
-    sendBtn: !!sendBtn,
-    adminPanelBtn: !!adminPanelBtn,
-    adminPanel: !!adminPanel
-});
-
 // Состояние приложения
 let currentConversationId = null;
 let currentView = 'chat'; // 'chat', 'admin', 'dialog'
@@ -49,15 +41,6 @@ let allConversations = []; // Кэш всех диалогов
 
 // Инициализация приложения
 async function initApp() {
-    // Ждем загрузки Supabase
-    if (typeof supabase === 'undefined') {
-        console.log('Supabase еще не загружен, ждем...');
-        setTimeout(initApp, 100);
-        return;
-    }
-    
-    console.log('Supabase загружен, инициализируем приложение...');
-    
     if (tg) {
         tg.expand();
         tg.enableClosingConfirmation();
@@ -66,23 +49,13 @@ async function initApp() {
         const user = tg.initDataUnsafe?.user;
         if (user) {
             currentUserId = user.id;
-            console.log('Пользователь определен:', user);
             
-            try {
-                // Создаем или получаем пользователя в базе
-                await createOrGetUser(user);
-                
-                // Проверяем права админа
-                await checkAdminRights();
-            } catch (error) {
-                console.error('Ошибка при инициализации пользователя:', error);
-                showError('Ошибка инициализации: ' + error.message);
-            }
-        } else {
-            console.log('Пользователь не определен в Telegram WebApp');
+            // Создаем или получаем пользователя в базе
+            await createOrGetUser(user);
+            
+            // Проверяем права админа
+            await checkAdminRights();
         }
-    } else {
-        console.log('Telegram WebApp не доступен');
     }
     
     // Проверяем URL параметры для прямого перехода к диалогу
@@ -99,8 +72,6 @@ async function initApp() {
 // Создание или получение пользователя
 async function createOrGetUser(userData) {
     try {
-        console.log('Создаем или получаем пользователя:', userData);
-        
         const { data, error } = await supabaseClient
             .from('users')
             .upsert({
@@ -112,131 +83,86 @@ async function createOrGetUser(userData) {
             .select()
             .single();
             
-        if (error) {
-            console.error('Ошибка при создании/получении пользователя:', error);
-            throw error;
-        }
-        
-        console.log('Пользователь создан/получен:', data);
+        if (error) throw error;
         return data;
     } catch (error) {
         console.error('Ошибка при создании пользователя:', error);
-        throw error;
     }
 }
 
 // Проверка прав администратора
 async function checkAdminRights() {
-    if (!currentUserId) {
-        console.log('Нет currentUserId для проверки прав админа');
-        return;
-    }
+    if (!currentUserId) return;
     
     try {
-        console.log('Проверяем права админа для пользователя:', currentUserId);
-        
         const { data, error } = await supabaseClient
             .rpc('is_admin', { user_telegram_id: currentUserId });
             
-        if (error) {
-            console.error('Ошибка RPC is_admin:', error);
-            throw error;
-        }
+        if (error) throw error;
         
-        console.log('Результат проверки прав админа:', data);
         isAdmin = data || false;
         
         if (isAdmin) {
-            console.log('Пользователь является администратором');
-            if (adminPanelBtn) {
-                adminPanelBtn.classList.remove('hidden');
-            }
-            const adminFooter = document.getElementById('adminFooter');
-            if (adminFooter) {
-                adminFooter.classList.add('active');
-            }
-        } else {
-            console.log('Пользователь не является администратором');
+            adminPanelBtn.classList.remove('hidden');
+            document.getElementById('adminFooter').classList.add('active');
         }
     } catch (error) {
         console.error('Ошибка при проверке прав админа:', error);
-        isAdmin = false;
     }
 }
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    console.log('Настраиваем обработчики событий...');
-    
     // Обычный чат
-    if (sendBtn) {
-        sendBtn.addEventListener('click', (e) => {
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!sendBtn.disabled) {
+            sendMessage();
+        }
+    });
+    
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!sendBtn.disabled) {
                 sendMessage();
             }
-        });
-    }
+        }
+    });
     
-    if (messageInput) {
-        messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!sendBtn.disabled) {
-                    sendMessage();
-                }
-            }
-        });
-    }
-    
-    if (attachBtn && fileInput) {
-        attachBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', handleFileAttach);
-    }
+    attachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileAttach);
     
     // Админ-панель
-    if (adminPanelBtn) {
-        adminPanelBtn.addEventListener('click', showAdminPanel);
-    }
-    if (backToChat) {
-        backToChat.addEventListener('click', showChat);
-    }
-    if (backToAdmin) {
-        backToAdmin.addEventListener('click', showAdminPanel);
-    }
+    adminPanelBtn.addEventListener('click', showAdminPanel);
+    backToChat.addEventListener('click', showChat);
+    backToAdmin.addEventListener('click', showAdminPanel);
+    
+
     
     // Диалог админа
-    if (dialogSendBtn) {
-        dialogSendBtn.addEventListener('click', (e) => {
+    dialogSendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!dialogSendBtn.disabled) {
+            sendAdminMessage();
+        }
+    });
+    
+    dialogMessageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!dialogSendBtn.disabled) {
                 sendAdminMessage();
             }
-        });
-    }
+        }
+    });
     
-    if (dialogMessageInput) {
-        dialogMessageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!dialogSendBtn.disabled) {
-                    sendAdminMessage();
-                }
-            }
-        });
-    }
-    
-    if (dialogAttachBtn && dialogFileInput) {
-        dialogAttachBtn.addEventListener('click', () => dialogFileInput.click());
-        dialogFileInput.addEventListener('change', handleDialogFileAttach);
-    }
-    
-    console.log('Обработчики событий настроены');
+    dialogAttachBtn.addEventListener('click', () => dialogFileInput.click());
+    dialogFileInput.addEventListener('change', handleDialogFileAttach);
 }
 
 // Установка фильтра
 function setFilter(filter) {
-    console.log('Установка фильтра:', filter);
     currentFilter = filter;
     
     // Обновляем активный класс
@@ -245,8 +171,6 @@ function setFilter(filter) {
     });
     document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
     
-    console.log('Всего диалогов в кэше:', allConversations.length);
-    
     // Перерисовываем список с новым фильтром
     renderConversationsList(allConversations);
 }
@@ -254,18 +178,7 @@ function setFilter(filter) {
 // Функции отправки сообщений
 async function sendMessage() {
     const text = messageInput.value.trim();
-    if (!text) {
-        console.log('Пустое сообщение, не отправляем');
-        return;
-    }
-    
-    if (!currentUserId) {
-        console.error('Нет currentUserId для отправки сообщения');
-        showError('Ошибка: пользователь не определен');
-        return;
-    }
-    
-    console.log('Отправляем сообщение:', text, 'от пользователя:', currentUserId);
+    if (!text || !currentUserId) return;
     
     // Блокируем кнопку и показываем состояние загрузки
     const sendBtn = document.getElementById('sendBtn');
@@ -290,8 +203,6 @@ async function sendMessage() {
             throw new Error('Не удалось создать диалог');
         }
         
-        console.log('Диалог создан/получен:', conversationId);
-        
         // Добавляем сообщение в базу данных
         const { data, error } = await supabaseClient
             .from('messages')
@@ -304,33 +215,22 @@ async function sendMessage() {
             .select()
             .single();
             
-        if (error) {
-            console.error('Ошибка при добавлении сообщения в БД:', error);
-            throw error;
-        }
-        
-        console.log('Сообщение добавлено в БД:', data);
+        if (error) throw error;
         
         // Обновляем статус диалога на 'open' (ожидает ответа админа)
-        const { error: updateError } = await supabaseClient
+        await supabaseClient
             .from('conversations')
             .update({ 
                 status: 'open',
                 admin_id: null // Сбрасываем админа, так как пользователь написал новое сообщение
             })
             .eq('id', conversationId);
-            
-        if (updateError) {
-            console.error('Ошибка при обновлении статуса диалога:', updateError);
-        } else {
-            console.log('Статус диалога обновлен');
-        }
         
         console.log('Сообщение успешно отправлено:', data);
         
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
-        showError('Не удалось отправить сообщение: ' + error.message);
+        showError('Не удалось отправить сообщение');
         
         // Можно добавить визуальную индикацию ошибки
         const lastMessage = chat.lastElementChild;
@@ -426,8 +326,6 @@ async function sendAdminMessage() {
 // Создание или получение диалога
 async function createOrGetConversation() {
     try {
-        console.log('Создаем или получаем диалог для пользователя:', currentUserId);
-        
         // Проверяем существующий открытый диалог
         const { data: existing, error: existingError } = await supabaseClient
             .from('conversations')
@@ -436,18 +334,9 @@ async function createOrGetConversation() {
             .eq('status', 'open')
             .single();
             
-        if (existingError && existingError.code !== 'PGRST116') {
-            // PGRST116 - "не найдено", это нормально
-            console.error('Ошибка при поиске существующего диалога:', existingError);
-            throw existingError;
-        }
-        
         if (existing) {
-            console.log('Найден существующий диалог:', existing.id);
             return existing.id;
         }
-        
-        console.log('Создаем новый диалог...');
         
         // Создаем новый диалог
         const { data, error } = await supabaseClient
@@ -459,12 +348,7 @@ async function createOrGetConversation() {
             .select()
             .single();
             
-        if (error) {
-            console.error('Ошибка при создании нового диалога:', error);
-            throw error;
-        }
-        
-        console.log('Новый диалог создан:', data.id);
+        if (error) throw error;
         return data.id;
         
     } catch (error) {
@@ -581,49 +465,28 @@ async function loadAdminStats() {
 
 // Фильтрация диалогов
 function filterConversations(conversations, filter) {
-    console.log('Фильтрация диалогов:', { conversations: conversations?.length, filter });
-    
     if (!conversations) return [];
     
-    let filtered;
     switch (filter) {
         case 'all':
-            filtered = conversations;
-            console.log('Фильтр "all": показываем все диалоги');
-            break;
+            return conversations;
         case 'pending':
-            // Показываем только диалоги, где последнее сообщение от пользователя (не админа)
-            filtered = conversations.filter(conv => {
-                // Проверяем, есть ли сообщения в диалоге
-                if (!conv.last_message || conv.last_message === 'Нет сообщений') {
-                    return false; // Диалоги без сообщений не показываем
-                }
-                
-                // Проверяем, от кого последнее сообщение
-                // Если last_message_sender_id не равен admin_id, то последнее сообщение от пользователя
-                const lastMessageFromUser = !conv.last_message_sender_is_admin;
-                console.log(`Диалог ${conv.id}: последнее сообщение от пользователя=${lastMessageFromUser}, показываем=${lastMessageFromUser}`);
-                return lastMessageFromUser;
+            // Показываем только диалоги, на которые админ еще не ответил
+            return conversations.filter(conv => {
+                // Если у диалога нет admin_id или статус 'open', или последнее сообщение от пользователя
+                return !conv.admin_id || conv.status === 'open' || conv.status === 'in_progress';
             });
-            console.log('Фильтр "pending": показываем диалоги с последним сообщением от пользователя');
-            break;
+        case 'messages':
+            // Показываем диалоги с наибольшим количеством сообщений
+            return [...conversations].sort((a, b) => (b.message_count || 0) - (a.message_count || 0));
         default:
-            filtered = conversations;
-            console.log('Неизвестный фильтр, показываем все');
+            return conversations;
     }
-    
-    console.log(`Результат фильтрации: ${filtered.length} диалогов из ${conversations.length}`);
-    return filtered;
 }
 
 // Отображение списка диалогов
 function renderConversationsList(conversations) {
     console.log('renderConversationsList вызвана с:', conversations);
-    
-    if (!conversationsList) {
-        console.error('Элемент списка диалогов не найден');
-        return;
-    }
     
     // Сохраняем все диалоги в кэш
     allConversations = conversations || [];
@@ -637,7 +500,7 @@ function renderConversationsList(conversations) {
         return;
     }
     
-    const html = filteredConversations.map(conv => {
+    const html = conversations.map(conv => {
         console.log('Обрабатываем диалог:', conv);
         
         // Используем username из базы данных (уже обработанный в SQL)
@@ -744,11 +607,6 @@ async function openConversationDialog(conversationId, userId) {
 
 // Отображение сообщений в диалоге
 function renderDialogMessages(messages) {
-    if (!dialogChat) {
-        console.error('Элемент диалога не найден');
-        return;
-    }
-    
     dialogChat.innerHTML = '';
     
     messages.forEach(message => {
@@ -767,11 +625,6 @@ function renderDialogMessages(messages) {
 
 // Добавление сообщения в диалог
 function appendDialogMessage({ text, isAdmin, timestamp }) {
-    if (!dialogChat) {
-        console.error('Элемент диалога не найден');
-        return;
-    }
-    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isAdmin ? 'admin' : 'user'}`;
     
@@ -861,18 +714,15 @@ async function notifyUser(conversationId) {
 // Навигация между экранами
 function showChat() {
     currentView = 'chat';
-    if (adminPanel) adminPanel.classList.remove('active');
-    if (conversationDialog) conversationDialog.classList.remove('active');
-    if (chat) chat.style.display = 'flex';
-    if (userFooter) userFooter.style.display = 'flex';
-    
-    const dialogFooter = document.querySelector('.conversation-dialog footer');
-    if (dialogFooter) dialogFooter.style.display = 'none';
+    adminPanel.classList.remove('active');
+    conversationDialog.classList.remove('active');
+    chat.style.display = 'flex';
+    userFooter.style.display = 'flex';
+    document.querySelector('.conversation-dialog footer').style.display = 'none';
     
     // Показываем админ footer только если пользователь админ
     if (isAdmin) {
-        const adminFooter = document.getElementById('adminFooter');
-        if (adminFooter) adminFooter.classList.add('active');
+        document.getElementById('adminFooter').classList.add('active');
     }
 }
 
@@ -880,30 +730,29 @@ function showAdminPanel() {
     if (!isAdmin) return;
     
     currentView = 'admin';
-    if (chat) chat.style.display = 'none';
-    if (conversationDialog) conversationDialog.classList.remove('active');
-    if (adminPanel) adminPanel.classList.add('active');
-    if (userFooter) userFooter.style.display = 'none';
-    
-    const adminFooter = document.getElementById('adminFooter');
-    if (adminFooter) adminFooter.classList.remove('active');
-    
-    const dialogFooter = document.querySelector('.conversation-dialog footer');
-    if (dialogFooter) dialogFooter.style.display = 'none';
+    chat.style.display = 'none';
+    conversationDialog.classList.remove('active');
+    adminPanel.classList.add('active');
+    userFooter.style.display = 'none';
+    document.getElementById('adminFooter').classList.remove('active');
+    document.querySelector('.conversation-dialog footer').style.display = 'none';
     
     // Добавляем обработчики фильтров после показа панели
     setTimeout(() => {
         const filterAll = document.getElementById('filterAll');
         const filterPending = document.getElementById('filterPending');
+        const filterMessages = document.getElementById('filterMessages');
         
-        if (filterAll && filterPending) {
+        if (filterAll && filterPending && filterMessages) {
             // Удаляем старые обработчики, если они есть
             filterAll.removeEventListener('click', () => setFilter('all'));
             filterPending.removeEventListener('click', () => setFilter('pending'));
+            filterMessages.removeEventListener('click', () => setFilter('messages'));
             
             // Добавляем новые обработчики
             filterAll.addEventListener('click', () => setFilter('all'));
             filterPending.addEventListener('click', () => setFilter('pending'));
+            filterMessages.addEventListener('click', () => setFilter('messages'));
         }
     }, 100);
     
@@ -914,16 +763,12 @@ function showConversationDialog() {
     if (!isAdmin) return;
     
     currentView = 'dialog';
-    if (chat) chat.style.display = 'none';
-    if (adminPanel) adminPanel.classList.remove('active');
-    if (conversationDialog) conversationDialog.classList.add('active');
-    if (userFooter) userFooter.style.display = 'none';
-    
-    const adminFooter = document.getElementById('adminFooter');
-    if (adminFooter) adminFooter.classList.remove('active');
-    
-    const dialogFooter = document.querySelector('.conversation-dialog footer');
-    if (dialogFooter) dialogFooter.style.display = 'flex';
+    chat.style.display = 'none';
+    adminPanel.classList.remove('active');
+    conversationDialog.classList.add('active');
+    userFooter.style.display = 'none';
+    document.getElementById('adminFooter').classList.remove('active');
+    document.querySelector('.conversation-dialog footer').style.display = 'flex';
 }
 
 // Загрузка диалога пользователя по ID
@@ -982,11 +827,6 @@ function el(tag, className, text) {
 }
 
 function appendMessage({ text, inbound = false }) {
-    if (!chat) {
-        console.error('Элемент чата не найден');
-        return;
-    }
-    
     const wrap = el('div', `msg ${inbound ? 'msg-in' : 'msg-out'}`);
     const bubble = el('div', 'bubble', text);
     const meta = el('div', 'meta', inbound ? 'Администратор • сейчас' : 'Вы • сейчас');
@@ -998,7 +838,6 @@ function appendMessage({ text, inbound = false }) {
 
 // Показ ошибок
 function showError(message) {
-    console.error('Ошибка:', message);
     if (tg && tg.showAlert) {
         tg.showAlert(message);
     } else {
