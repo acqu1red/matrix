@@ -26,6 +26,7 @@ ADMIN_IDS = [
 
 async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     """Обрабатывает все сообщения - уведомления администраторов и ответы от них"""
+    print("🎯 Функция handle_all_messages вызвана!")
     user = update.effective_user
     message = update.effective_message
     
@@ -312,8 +313,12 @@ async def handle_admin_reply(update: Update, context: CallbackContext, user_id: 
 
 # Main function to start the bot
 def main() -> None:
+    print("🚀 Запуск бота...")
+    print(f"👥 Администраторы: {ADMIN_IDS}")
+    
     application = ApplicationBuilder().token("8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo").build()
 
+    print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("payment", payment))
     application.add_handler(CommandHandler("more_info", more_info))
@@ -323,7 +328,9 @@ def main() -> None:
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
     # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
+    print("✅ Обработчик всех сообщений зарегистрирован")
 
+    print("🔄 Запуск polling...")
     application.run_polling()
 
 
