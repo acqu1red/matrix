@@ -36,6 +36,8 @@ let currentConversationId = null;
 let currentView = 'chat'; // 'chat', 'admin', 'dialog'
 let isAdmin = false;
 let currentUserId = null;
+let currentFilter = 'pending'; // 'all', 'pending', 'messages'
+let allConversations = []; // Кэш всех диалогов
 
 // Инициализация приложения
 async function initApp() {
@@ -136,6 +138,11 @@ function setupEventListeners() {
     backToChat.addEventListener('click', showChat);
     backToAdmin.addEventListener('click', showAdminPanel);
     
+    // Фильтры админ-панели
+    document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
+    document.getElementById('filterPending').addEventListener('click', () => setFilter('pending'));
+    document.getElementById('filterMessages').addEventListener('click', () => setFilter('messages'));
+    
     // Диалог админа
     dialogSendBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -155,6 +162,20 @@ function setupEventListeners() {
     
     dialogAttachBtn.addEventListener('click', () => dialogFileInput.click());
     dialogFileInput.addEventListener('change', handleDialogFileAttach);
+}
+
+// Установка фильтра
+function setFilter(filter) {
+    currentFilter = filter;
+    
+    // Обновляем активный класс
+    document.querySelectorAll('.stat-item.clickable').forEach(item => {
+        item.classList.remove('active');
+    });
+    document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
+    
+    // Перерисовываем список с новым фильтром
+    renderConversationsList(allConversations);
 }
 
 // Функции отправки сообщений
@@ -198,6 +219,15 @@ async function sendMessage() {
             .single();
             
         if (error) throw error;
+        
+        // Обновляем статус диалога на 'open' (ожидает ответа админа)
+        await supabaseClient
+            .from('conversations')
+            .update({ 
+                status: 'open',
+                admin_id: null // Сбрасываем админа, так как пользователь написал новое сообщение
+            })
+            .eq('id', conversationId);
         
         console.log('Сообщение успешно отправлено:', data);
         
@@ -257,12 +287,12 @@ async function sendAdminMessage() {
             
         if (error) throw error;
         
-        // Назначаем админа на диалог
+        // Назначаем админа на диалог и помечаем как отвеченный
         await supabaseClient
             .from('conversations')
             .update({ 
                 admin_id: currentUserId, 
-                status: 'in_progress' 
+                status: 'answered' 
             })
             .eq('id', currentConversationId);
         
@@ -270,6 +300,14 @@ async function sendAdminMessage() {
         
         // Отправляем уведомление пользователю (через backend API)
         await notifyUser(currentConversationId);
+        
+        // Скрываем диалог из списка (если фильтр "Ожидают ответа")
+        if (currentFilter === 'pending') {
+            // Удаляем диалог из кэша
+            allConversations = allConversations.filter(conv => conv.id !== currentConversationId);
+            // Перерисовываем список
+            renderConversationsList(allConversations);
+        }
         
     } catch (error) {
         console.error('Ошибка при отправке ответа:', error);
@@ -428,13 +466,40 @@ async function loadAdminStats() {
     }
 }
 
+// Фильтрация диалогов
+function filterConversations(conversations, filter) {
+    if (!conversations) return [];
+    
+    switch (filter) {
+        case 'all':
+            return conversations;
+        case 'pending':
+            // Показываем только диалоги, на которые админ еще не ответил
+            return conversations.filter(conv => {
+                // Если у диалога нет admin_id или статус 'open', или последнее сообщение от пользователя
+                return !conv.admin_id || conv.status === 'open' || conv.status === 'in_progress';
+            });
+        case 'messages':
+            // Показываем диалоги с наибольшим количеством сообщений
+            return [...conversations].sort((a, b) => (b.message_count || 0) - (a.message_count || 0));
+        default:
+            return conversations;
+    }
+}
+
 // Отображение списка диалогов
 function renderConversationsList(conversations) {
     console.log('renderConversationsList вызвана с:', conversations);
     
-    if (!conversations || conversations.length === 0) {
-        console.log('Нет диалогов для отображения');
-        conversationsList.innerHTML = '<div class="loading">Нет активных диалогов</div>';
+    // Сохраняем все диалоги в кэш
+    allConversations = conversations || [];
+    
+    // Применяем фильтр
+    const filteredConversations = filterConversations(allConversations, currentFilter);
+    
+    if (!filteredConversations || filteredConversations.length === 0) {
+        console.log('Нет диалогов для отображения после фильтрации');
+        conversationsList.innerHTML = '<div class="loading">Нет диалогов по выбранному фильтру</div>';
         return;
     }
     

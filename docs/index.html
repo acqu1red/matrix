@@ -210,6 +210,29 @@
     letter-spacing: 0.5px;
   }
 
+  /* Стили для кликабельных фильтров */
+  .stat-item.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    padding: 8px;
+    margin: -8px;
+  }
+
+  .stat-item.clickable:hover {
+    background: rgba(214, 199, 184, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .stat-item.clickable.active {
+    background: rgba(214, 199, 184, 0.2);
+    border: 2px solid #d6c7b8;
+  }
+
+  .stat-item.clickable:active {
+    transform: translateY(0);
+  }
+
   .conversations-list {
     flex-grow: 1;
     overflow-y: auto;
@@ -739,15 +762,15 @@
     </div>
     <div class="admin-stats" id="adminStats">
       <div class="stats-grid">
-        <div class="stat-item">
+        <div class="stat-item clickable" id="filterAll" data-filter="all">
           <div class="stat-number" id="totalConversations">0</div>
           <div class="stat-label">Всего диалогов</div>
         </div>
-        <div class="stat-item">
+        <div class="stat-item clickable active" id="filterPending" data-filter="pending">
           <div class="stat-number" id="openConversations">0</div>
           <div class="stat-label">Ожидают ответа</div>
         </div>
-        <div class="stat-item">
+        <div class="stat-item clickable" id="filterMessages" data-filter="messages">
           <div class="stat-number" id="totalMessages">0</div>
           <div class="stat-label">Всего сообщений</div>
         </div>
