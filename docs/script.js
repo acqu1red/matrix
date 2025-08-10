@@ -112,11 +112,19 @@ async function checkAdminRights() {
 // Настройка обработчиков событий
 function setupEventListeners() {
     // Обычный чат
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!sendBtn.disabled) {
+            sendMessage();
+        }
+    });
+    
     messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            if (!sendBtn.disabled) {
+                sendMessage();
+            }
         }
     });
     
@@ -129,11 +137,19 @@ function setupEventListeners() {
     backToAdmin.addEventListener('click', showAdminPanel);
     
     // Диалог админа
-    dialogSendBtn.addEventListener('click', sendAdminMessage);
+    dialogSendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!dialogSendBtn.disabled) {
+            sendAdminMessage();
+        }
+    });
+    
     dialogMessageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendAdminMessage();
+            if (!dialogSendBtn.disabled) {
+                sendAdminMessage();
+            }
         }
     });
     
@@ -145,6 +161,17 @@ function setupEventListeners() {
 async function sendMessage() {
     const text = messageInput.value.trim();
     if (!text || !currentUserId) return;
+    
+    // Блокируем кнопку и показываем состояние загрузки
+    const sendBtn = document.getElementById('sendBtn');
+    const originalContent = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+            <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/>
+        </svg>
+    `;
     
     try {
         // Создаем или получаем диалог
@@ -175,12 +202,27 @@ async function sendMessage() {
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
         showError('Не удалось отправить сообщение');
+    } finally {
+        // Восстанавливаем кнопку
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalContent;
     }
 }
 
 async function sendAdminMessage() {
     const text = dialogMessageInput.value.trim();
     if (!text || !currentConversationId || !isAdmin) return;
+    
+    // Блокируем кнопку и показываем состояние загрузки
+    const dialogSendBtn = document.getElementById('dialogSendBtn');
+    const originalContent = dialogSendBtn.innerHTML;
+    dialogSendBtn.disabled = true;
+    dialogSendBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+            <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/>
+        </svg>
+    `;
     
     try {
         // Добавляем сообщение в базу
@@ -221,6 +263,10 @@ async function sendAdminMessage() {
     } catch (error) {
         console.error('Ошибка при отправке ответа:', error);
         showError('Не удалось отправить ответ');
+    } finally {
+        // Восстанавливаем кнопку
+        dialogSendBtn.disabled = false;
+        dialogSendBtn.innerHTML = originalContent;
     }
 }
 

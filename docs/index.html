@@ -480,6 +480,38 @@
     100% { transform: rotate(360deg); }
   }
 
+  /* Стили для кнопок отправки */
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  button:disabled:hover {
+    background-color: transparent;
+    transform: none !important;
+  }
+
+  /* Анимация для спиннера */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Улучшенные стили для кнопок в диалоге */
+  .conversation-dialog footer button {
+    transition: all 0.2s ease;
+  }
+
+  .conversation-dialog footer button:active:not(:disabled) {
+    transform: scale(0.9);
+  }
+
+  .conversation-dialog footer button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   /* Hide admin panel button for non-admins */
   .admin-panel-btn.hidden {
     display: none;
@@ -589,12 +621,12 @@
       <input type="file" id="dialogFileInput" />
       <input type="text" id="dialogMessageInput" placeholder="Ответить пользователю..." autocomplete="off" />
       <button id="dialogAttachBtn" title="Прикрепить файл" aria-label="Прикрепить файл">
-        <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
           <path d="M16.5 6.5L7.25 15.75a3.75 3.75 0 0 1-5.3-5.3l10.06-10.07a5 5 0 1 1 7.07 7.07L11 17.07a2 2 0 0 1-2.83-2.83l7.14-7.14"/>
         </svg>
       </button>
       <button id="dialogSendBtn" title="Отправить сообщение" aria-label="Отправить сообщение">
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width: 20px; height: 20px;">
           <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
         </svg>
       </button>
@@ -612,7 +644,7 @@
     </svg>
   </button>
   <button id="sendBtn" title="Отправить сообщение" aria-label="Отправить сообщение">
-    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width: 20px; height: 20px;">
       <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
     </svg>
   </button>
