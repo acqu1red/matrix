@@ -481,10 +481,10 @@
   .input-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
     border-radius: 30px;
-    padding: 12px 16px;
+    padding: 10px 12px;
     border: 2px solid #333;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -515,13 +515,13 @@
 
   .input-container input[type="text"] {
     flex-grow: 1;
-    padding: 14px 20px;
+    padding: 12px 16px;
     border: none;
     outline: none;
     font-size: 1rem;
     background: transparent;
     color: #f0eadf;
-    border-radius: 25px;
+    border-radius: 20px;
     font-weight: 500;
     transition: all 0.3s ease;
     position: relative;
@@ -551,23 +551,20 @@
   .button-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     position: relative;
     z-index: 2;
+    flex-shrink: 0;
   }
 
-  .button-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+
 
   .action-btn {
     background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
     border: 2px solid #444;
     color: #d6c7b8;
     cursor: pointer;
-    padding: 12px;
+    padding: 10px;
     border-radius: 50%;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
@@ -576,6 +573,7 @@
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
   }
 
   .action-btn::before {
@@ -623,8 +621,8 @@
   }
 
   .action-btn svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     position: relative;
     z-index: 1;
     transition: transform 0.3s ease;
