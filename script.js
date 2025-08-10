@@ -320,7 +320,9 @@ async function loadAdminConversations() {
                 })));
                 return;
             }
-            throw error;
+            // Если нет диалогов вообще - показываем пустое состояние
+            conversationsList.innerHTML = '<div class="loading">Нет активных диалогов</div>';
+            return;
         }
         
         console.log('Диалоги загружены:', data);

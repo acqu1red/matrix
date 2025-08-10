@@ -53,23 +53,12 @@ GRANT EXECUTE ON FUNCTION test_connection() TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_conversations_simple() TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION check_tables() TO anon, authenticated;
 
--- Тестовые данные (если таблицы пустые)
+-- Только админ (замените 708907063 на ваш Telegram ID)
 INSERT INTO users (telegram_id, username, first_name, is_admin) 
-VALUES 
-  (708907063, 'admin', 'Администратор', TRUE),
-  (123456789, 'user1', 'Пользователь 1', FALSE)
-ON CONFLICT (telegram_id) DO UPDATE SET is_admin = EXCLUDED.is_admin;
+VALUES (708907063, 'admin', 'Администратор', TRUE)
+ON CONFLICT (telegram_id) DO UPDATE SET is_admin = TRUE;
 
-INSERT INTO conversations (user_id, status) 
-VALUES (123456789, 'open')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO messages (conversation_id, sender_id, content) 
-SELECT 
-  c.id,
-  c.user_id,
-  'Тестовое сообщение от пользователя'
-FROM conversations c
-WHERE c.user_id = 123456789
-LIMIT 1
-ON CONFLICT DO NOTHING;
+-- Удаляем тестовые данные если они есть
+DELETE FROM messages WHERE sender_id = 123456789;
+DELETE FROM conversations WHERE user_id = 123456789;
+DELETE FROM users WHERE telegram_id = 123456789;
