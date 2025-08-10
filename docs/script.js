@@ -167,11 +167,15 @@ async function sendMessage() {
     const originalContent = sendBtn.innerHTML;
     sendBtn.disabled = true;
     sendBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="animation: spin 1s linear infinite;">
-            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
-            <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/>
+        <svg viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
     `;
+    
+    // Сразу отображаем сообщение для мгновенной обратной связи
+    appendMessage({ text, inbound: false });
+    messageInput.value = '';
     
     try {
         // Создаем или получаем диалог
@@ -181,7 +185,7 @@ async function sendMessage() {
             throw new Error('Не удалось создать диалог');
         }
         
-        // Добавляем сообщение
+        // Добавляем сообщение в базу данных
         const { data, error } = await supabaseClient
             .from('messages')
             .insert({
@@ -195,13 +199,18 @@ async function sendMessage() {
             
         if (error) throw error;
         
-        // Отображаем сообщение в чате
-        appendMessage({ text, inbound: false });
-        messageInput.value = '';
+        console.log('Сообщение успешно отправлено:', data);
         
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
         showError('Не удалось отправить сообщение');
+        
+        // Можно добавить визуальную индикацию ошибки
+        const lastMessage = chat.lastElementChild;
+        if (lastMessage) {
+            lastMessage.style.opacity = '0.7';
+            lastMessage.style.borderLeft = '3px solid #ff4444';
+        }
     } finally {
         // Восстанавливаем кнопку
         sendBtn.disabled = false;
@@ -218,11 +227,20 @@ async function sendAdminMessage() {
     const originalContent = dialogSendBtn.innerHTML;
     dialogSendBtn.disabled = true;
     dialogSendBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="animation: spin 1s linear infinite;">
-            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
-            <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/>
+        <svg viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
     `;
+    
+    // Сразу отображаем сообщение для мгновенной обратной связи
+    appendDialogMessage({ 
+        text, 
+        isAdmin: true, 
+        timestamp: new Date().toLocaleTimeString() 
+    });
+    
+    dialogMessageInput.value = '';
     
     try {
         // Добавляем сообщение в базу
@@ -248,14 +266,7 @@ async function sendAdminMessage() {
             })
             .eq('id', currentConversationId);
         
-        // Отображаем сообщение
-        appendDialogMessage({ 
-            text, 
-            isAdmin: true, 
-            timestamp: new Date().toLocaleTimeString() 
-        });
-        
-        dialogMessageInput.value = '';
+        console.log('Ответ админа успешно отправлен:', data);
         
         // Отправляем уведомление пользователю (через backend API)
         await notifyUser(currentConversationId);
@@ -263,6 +274,13 @@ async function sendAdminMessage() {
     } catch (error) {
         console.error('Ошибка при отправке ответа:', error);
         showError('Не удалось отправить ответ');
+        
+        // Визуальная индикация ошибки
+        const lastMessage = dialogChat.lastElementChild;
+        if (lastMessage) {
+            lastMessage.style.opacity = '0.7';
+            lastMessage.style.borderLeft = '3px solid #ff4444';
+        }
     } finally {
         // Восстанавливаем кнопку
         dialogSendBtn.disabled = false;

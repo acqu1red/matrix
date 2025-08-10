@@ -386,7 +386,133 @@
   }
 
   /* Footer styles */
-  footer {
+  .message-footer {
+    background: #1f1f1f;
+    padding: 16px 20px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.8);
+    flex-shrink: 0;
+    border-top: 1px solid #333;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #252525;
+    border-radius: 25px;
+    padding: 8px;
+    border: 1px solid #333;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .input-container:focus-within {
+    border-color: #d6c7b8;
+    box-shadow: 0 0 15px rgba(214, 199, 184, 0.2);
+  }
+
+  .input-container input[type="text"] {
+    flex-grow: 1;
+    padding: 12px 16px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: transparent;
+    color: #f0eadf;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .input-container input[type="text"]::placeholder {
+    color: #a6a8ad;
+    opacity: 0.7;
+  }
+
+  .button-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .action-btn {
+    background: none;
+    border: none;
+    color: #d6c7b8;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(214, 199, 184, 0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+
+  .action-btn:hover::before {
+    width: 100%;
+    height: 100%;
+  }
+
+  .action-btn:hover {
+    color: #f0eadf;
+    transform: scale(1.1);
+  }
+
+  .action-btn:active {
+    transform: scale(0.95);
+  }
+
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .action-btn:disabled:hover {
+    color: #d6c7b8;
+    transform: none !important;
+  }
+
+  .action-btn svg {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .send-btn {
+    background: linear-gradient(135deg, #d6c7b8, #f0eadf);
+    color: #121212;
+  }
+
+  .send-btn:hover {
+    background: linear-gradient(135deg, #f0eadf, #d6c7b8);
+    color: #121212;
+  }
+
+  .attach-btn {
+    color: #a6a8ad;
+  }
+
+  .attach-btn:hover {
+    color: #d6c7b8;
+  }
+
+  /* Legacy footer styles for compatibility */
+  footer:not(.message-footer) {
     background: #1f1f1f;
     padding: 12px 18px;
     display: flex;
@@ -395,7 +521,8 @@
     box-shadow: 0 -1px 6px rgba(0,0,0,0.7);
     flex-shrink: 0;
   }
-  footer input[type="text"] {
+
+  footer:not(.message-footer) input[type="text"] {
     flex-grow: 1;
     padding: 14px 18px;
     border-radius: 30px;
@@ -408,12 +535,13 @@
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
     font-weight: 500;
   }
-  footer input[type="text"]:focus {
+
+  footer:not(.message-footer) input[type="text"]:focus {
     border-color: #f0eadf;
     box-shadow: 0 0 12px #f0eadfcc;
   }
 
-  button {
+  footer:not(.message-footer) button {
     background: none;
     border: none;
     color: #f0eadf;
@@ -425,22 +553,14 @@
     align-items: center;
     justify-content: center;
   }
-  button:hover {
+
+  footer:not(.message-footer) button:hover {
     background-color: #d6c7b844;
     transform: scale(1.15);
   }
-  button:active {
-    transform: scale(0.95);
-  }
 
-  #attachBtn svg {
-    width: 20px;
-    height: 20px;
-    transform: translateY(2px);
-  }
-  #sendBtn svg {
-    width: 20px;
-    height: 20px;
+  footer:not(.message-footer) button:active {
+    transform: scale(0.95);
   }
 
   main::-webkit-scrollbar, .conversations-list::-webkit-scrollbar {
@@ -496,6 +616,36 @@
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  /* Улучшенная анимация для кнопок */
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes bounce {
+    0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+    40%, 43% { transform: translate3d(0,-8px,0); }
+    70% { transform: translate3d(0,-4px,0); }
+    90% { transform: translate3d(0,-2px,0); }
+  }
+
+  /* Анимация для успешной отправки */
+  .message-sent {
+    animation: bounce 0.6s ease-out;
+  }
+
+  /* Анимация для ошибки */
+  .message-error {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
   }
 
   /* Улучшенные стили для кнопок в диалоге */
@@ -617,37 +767,45 @@
       <button class="back-btn" id="backToAdmin">← К списку</button>
     </div>
     <div class="chat" id="dialogChat"></div>
-    <footer>
-      <input type="file" id="dialogFileInput" />
-      <input type="text" id="dialogMessageInput" placeholder="Ответить пользователю..." autocomplete="off" />
-      <button id="dialogAttachBtn" title="Прикрепить файл" aria-label="Прикрепить файл">
-        <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
-          <path d="M16.5 6.5L7.25 15.75a3.75 3.75 0 0 1-5.3-5.3l10.06-10.07a5 5 0 1 1 7.07 7.07L11 17.07a2 2 0 0 1-2.83-2.83l7.14-7.14"/>
-        </svg>
-      </button>
-      <button id="dialogSendBtn" title="Отправить сообщение" aria-label="Отправить сообщение">
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width: 20px; height: 20px;">
-          <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-        </svg>
-      </button>
+    <footer class="message-footer">
+      <div class="input-container">
+        <input type="file" id="dialogFileInput" />
+        <input type="text" id="dialogMessageInput" placeholder="Ответить пользователю..." autocomplete="off" />
+        <div class="button-group">
+          <button id="dialogAttachBtn" class="action-btn attach-btn" title="Прикрепить файл" aria-label="Прикрепить файл">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <button id="dialogSendBtn" class="action-btn send-btn" title="Отправить сообщение" aria-label="Отправить сообщение">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </footer>
   </div>
 </main>
 
 <!-- Обычный footer для пользователей -->
-<footer id="userFooter">
-  <input type="file" id="fileInput" />
-  <input type="text" id="messageInput" placeholder="Напишите сообщение..." autocomplete="off" />
-  <button id="attachBtn" title="Прикрепить файл" aria-label="Прикрепить файл">
-    <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M16.5 6.5L7.25 15.75a3.75 3.75 0 0 1-5.3-5.3l10.06-10.07a5 5 0 1 1 7.07 7.07L11 17.07a2 2 0 0 1-2.83-2.83l7.14-7.14"/>
-    </svg>
-  </button>
-  <button id="sendBtn" title="Отправить сообщение" aria-label="Отправить сообщение">
-    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" style="width: 20px; height: 20px;">
-      <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-    </svg>
-  </button>
+<footer id="userFooter" class="message-footer">
+  <div class="input-container">
+    <input type="file" id="fileInput" />
+    <input type="text" id="messageInput" placeholder="Напишите сообщение..." autocomplete="off" />
+    <div class="button-group">
+      <button id="attachBtn" class="action-btn attach-btn" title="Прикрепить файл" aria-label="Прикрепить файл">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
+      <button id="sendBtn" class="action-btn send-btn" title="Отправить сообщение" aria-label="Отправить сообщение">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 </footer>
 
 <!-- Админ footer для кнопки панели администратора -->
