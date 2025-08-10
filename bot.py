@@ -43,15 +43,10 @@ async def save_message_to_db(user, message):
         result = supabase.table('users').upsert(user_data).execute()
         
         # Получаем или создаем диалог
-        conversation_result = supabase.table('conversations').select('id, status, admin_id').eq('user_id', user.id).execute()
+        conversation_result = supabase.table('conversations').select('id').eq('user_id', user.id).execute()
         
         if conversation_result.data:
             conversation_id = conversation_result.data[0]['id']
-            # Обновляем статус диалога на 'open' (ожидает ответа админа)
-            supabase.table('conversations').update({
-                'status': 'open',
-                'admin_id': None  # Сбрасываем админа, так как пользователь написал новое сообщение
-            }).eq('id', conversation_id).execute()
         else:
             # Создаем новый диалог
             conversation_data = {
