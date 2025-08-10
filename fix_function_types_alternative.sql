@@ -1,5 +1,5 @@
 -- =====================================================
--- ИСПРАВЛЕНИЕ КОНФЛИКТА ТИПОВ В ФУНКЦИИ get_conversation_messages
+-- АЛЬТЕРНАТИВНОЕ ИСПРАВЛЕНИЕ ФУНКЦИИ get_conversation_messages
 -- =====================================================
 
 -- Удаляем все существующие версии функции get_conversation_messages
@@ -32,7 +32,7 @@ FROM information_schema.columns
 WHERE table_name = 'admins' AND table_schema = 'public'
 ORDER BY ordinal_position;
 
--- Создаем правильную версию функции с BIGINT (без ссылки на is_active)
+-- Создаем безопасную версию функции с проверкой существования колонок
 CREATE OR REPLACE FUNCTION get_conversation_messages(conv_id BIGINT)
 RETURNS TABLE (
     id INTEGER,
@@ -43,20 +43,47 @@ RETURNS TABLE (
     is_read BOOLEAN,
     created_at TIMESTAMP WITH TIME ZONE
 ) AS $$
+DECLARE
+    has_is_active BOOLEAN;
 BEGIN
-    RETURN QUERY
-    SELECT 
-        m.id,
-        m.content,
-        m.sender_id,
-        a.telegram_id IS NOT NULL as sender_is_admin,
-        m.message_type,
-        m.is_read,
-        m.created_at
-    FROM messages m
-    LEFT JOIN admins a ON m.sender_id = a.telegram_id
-    WHERE m.conversation_id = conv_id
-    ORDER BY m.created_at ASC;
+    -- Проверяем, есть ли колонка is_active в таблице admins
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'admins' 
+        AND column_name = 'is_active' 
+        AND table_schema = 'public'
+    ) INTO has_is_active;
+    
+    -- Возвращаем результат в зависимости от структуры таблицы
+    IF has_is_active THEN
+        RETURN QUERY
+        SELECT 
+            m.id,
+            m.content,
+            m.sender_id,
+            a.telegram_id IS NOT NULL as sender_is_admin,
+            m.message_type,
+            m.is_read,
+            m.created_at
+        FROM messages m
+        LEFT JOIN admins a ON m.sender_id = a.telegram_id AND a.is_active = true
+        WHERE m.conversation_id = conv_id
+        ORDER BY m.created_at ASC;
+    ELSE
+        RETURN QUERY
+        SELECT 
+            m.id,
+            m.content,
+            m.sender_id,
+            a.telegram_id IS NOT NULL as sender_is_admin,
+            m.message_type,
+            m.is_read,
+            m.created_at
+        FROM messages m
+        LEFT JOIN admins a ON m.sender_id = a.telegram_id
+        WHERE m.conversation_id = conv_id
+        ORDER BY m.created_at ASC;
+    END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -115,4 +142,4 @@ BEGIN
     END IF;
 END $$;
 
-SELECT 'Исправление завершено!' as status;
+SELECT 'Альтернативное исправление завершено!' as status;
