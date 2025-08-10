@@ -31,6 +31,8 @@ ADMIN_IDS = [
 async def save_message_to_db(user, message):
     """Сохраняет сообщение в базе данных"""
     try:
+        print(f"💾 Сохраняем сообщение от пользователя {user.id}")
+        
         # Создаем или получаем пользователя
         user_data = {
             'telegram_id': user.id,
@@ -41,12 +43,14 @@ async def save_message_to_db(user, message):
         
         # Вставляем или обновляем пользователя
         result = supabase.table('users').upsert(user_data).execute()
+        print(f"✅ Пользователь {user.id} сохранен/обновлен в БД")
         
         # Получаем или создаем диалог
         conversation_result = supabase.table('conversations').select('id').eq('user_id', user.id).execute()
         
         if conversation_result.data:
             conversation_id = conversation_result.data[0]['id']
+            print(f"✅ Найден существующий диалог {conversation_id} для пользователя {user.id}")
         else:
             # Создаем новый диалог
             conversation_data = {
@@ -55,6 +59,7 @@ async def save_message_to_db(user, message):
             }
             conversation_result = supabase.table('conversations').insert(conversation_data).execute()
             conversation_id = conversation_result.data[0]['id']
+            print(f"✅ Создан новый диалог {conversation_id} для пользователя {user.id}")
         
         # Определяем тип сообщения
         message_type = 'text'
@@ -88,6 +93,7 @@ async def save_message_to_db(user, message):
         }
         
         supabase.table('messages').insert(message_data).execute()
+        print(f"✅ Сообщение сохранено в диалоге {conversation_id}")
         
     except Exception as e:
         print(f"Ошибка сохранения в БД: {e}")
@@ -201,7 +207,21 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         ]
         markup = InlineKeyboardMarkup(keyboard)
         
-        # Отправляем уведомление всем администраторам по username
+        # Отправляем уведомление всем администраторам по ID
+        for admin_id in ADMIN_IDS:
+            try:
+                print(f"📤 Отправляем уведомление администратору {admin_id}")
+                await context.bot.send_message(
+                    chat_id=admin_id,
+                    text=message_text,
+                    parse_mode='HTML',
+                    reply_markup=markup
+                )
+                print(f"✅ Уведомление успешно отправлено администратору {admin_id}")
+            except Exception as e:
+                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
+        
+        # Также пробуем отправить по username (как fallback)
         for admin_username in ADMIN_USERNAMES:
             try:
                 print(f"📤 Отправляем уведомление администратору @{admin_username}")
@@ -259,8 +279,11 @@ async def admin_messages(update: Update, context: CallbackContext) -> None:
         return
     
     try:
+        print(f"🔍 Администратор {user.id} запрашивает сообщения")
+        
         # Получаем последние диалоги с сообщениями
         result = supabase.rpc('get_admin_conversations').execute()
+        print(f"📊 Получено {len(result.data) if result.data else 0} диалогов")
         
         if not result.data:
             await update.effective_message.reply_text(
