@@ -265,6 +265,9 @@ async function loadAdminConversations() {
     try {
         console.log('Загружаем диалоги для админа...');
         
+        // Загружаем статистику
+        await loadAdminStats();
+        
         // Сначала попробуем простой запрос к таблице
         const { data: testData, error: testError } = await supabaseClient
             .from('users')
@@ -304,12 +307,13 @@ async function loadAdminConversations() {
                 console.log('Используем простые диалоги');
                 renderConversationsList(simpleData.map(conv => ({
                     ...conv,
-                    username: 'Пользователь',
-                    first_name: 'Пользователь',
+                    username: `Пользователь #${conv.user_id}`,
+                    first_name: `Пользователь #${conv.user_id}`,
                     last_name: null,
                     last_message_at: conv.created_at,
                     message_count: 0,
-                    last_message: 'Нет сообщений'
+                    last_message: 'Нет сообщений',
+                    status: 'open'
                 })));
                 return;
             }
@@ -327,6 +331,28 @@ async function loadAdminConversations() {
     }
 }
 
+// Загрузка статистики для админ-панели
+async function loadAdminStats() {
+    try {
+        const { data, error } = await supabaseClient
+            .rpc('get_conversations_stats');
+            
+        if (error) {
+            console.error('Ошибка при загрузке статистики:', error);
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            const stats = data[0];
+            document.getElementById('totalConversations').textContent = stats.total_conversations || 0;
+            document.getElementById('openConversations').textContent = stats.open_conversations || 0;
+            document.getElementById('totalMessages').textContent = stats.total_messages || 0;
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке статистики:', error);
+    }
+}
+
 // Отображение списка диалогов
 function renderConversationsList(conversations) {
     if (!conversations || conversations.length === 0) {
@@ -335,8 +361,9 @@ function renderConversationsList(conversations) {
     }
     
     const html = conversations.map(conv => {
-        const username = conv.username || conv.first_name || `ID: ${conv.user_id}`;
-        const lastMessage = conv.last_message || 'Нет сообщений';
+        // Используем username из базы данных (уже обработанный в SQL)
+        const username = conv.username;
+        const lastMessage = conv.last_message;
         const messageCount = conv.message_count || 0;
         const date = new Date(conv.last_message_at).toLocaleDateString('ru-RU');
         const time = new Date(conv.last_message_at).toLocaleTimeString('ru-RU', { 
@@ -344,12 +371,26 @@ function renderConversationsList(conversations) {
             minute: '2-digit' 
         });
         
+        // Создаем аватар с первой буквой имени
+        const avatarText = username.charAt(0).toUpperCase();
+        
+        // Определяем статус диалога
+        const statusClass = conv.status === 'open' ? 'pending' : 
+                           conv.status === 'in_progress' ? '' : 'closed';
+        
         return `
             <div class="conversation-item" data-conversation-id="${conv.id}" data-user-id="${conv.user_id}">
-                <div class="conversation-user">${username}</div>
+                <div class="conversation-status ${statusClass}"></div>
+                <div class="conversation-header">
+                    <div class="conversation-user">
+                        <div class="user-avatar">${avatarText}</div>
+                        ${username}
+                    </div>
+                    <div class="conversation-time">${date} ${time}</div>
+                </div>
                 <div class="conversation-meta">
-                    <span>${date} ${time}</span>
-                    <span>Сообщений: ${messageCount}</span>
+                    <span>ID: ${conv.user_id}</span>
+                    <span class="message-count">${messageCount} сообщений</span>
                 </div>
                 <div class="conversation-preview">${lastMessage}</div>
             </div>
@@ -389,7 +430,7 @@ async function openConversationDialog(conversationId, userId) {
         if (messagesError) throw messagesError;
         
         // Отображаем информацию о пользователе
-        const username = user.username || user.first_name || `ID: ${user.telegram_id}`;
+        const username = user.username || user.first_name || `Пользователь #${user.telegram_id}`;
         dialogUsername.textContent = username;
         dialogMeta.textContent = `Сообщений: ${messages.length}`;
         

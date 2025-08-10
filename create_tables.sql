@@ -144,17 +144,20 @@ BEGIN
     SELECT 
         c.id,
         c.user_id,
-        u.username,
+        COALESCE(u.username, u.first_name, CONCAT('Пользователь #', u.telegram_id)) as username,
         u.first_name,
         u.last_name,
         c.status,
-        c.last_message_at,
+        COALESCE(c.last_message_at, c.created_at) as last_message_at,
         c.created_at,
         (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) as message_count,
-        (SELECT content FROM messages m WHERE m.conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message
+        COALESCE(
+            (SELECT content FROM messages m WHERE m.conversation_id = c.id ORDER BY created_at DESC LIMIT 1),
+            'Нет сообщений'
+        ) as last_message
     FROM conversations c
     JOIN users u ON c.user_id = u.telegram_id
-    ORDER BY c.last_message_at DESC;
+    ORDER BY COALESCE(c.last_message_at, c.created_at) DESC;
 END;
 $$;
 
