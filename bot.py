@@ -8,6 +8,7 @@ from supabase import create_client, Client
 import asyncio
 
 MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/payment.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -98,6 +99,11 @@ async def save_message_to_db(user, message):
 async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     """Обрабатывает все сообщения - уведомления администраторов и ответы от них"""
     print("🎯 Функция handle_all_messages вызвана!")
+    
+    # Проверяем, является ли это данными от miniapp
+    if update.message and update.message.web_app_data:
+        await handle_webapp_data(update, context)
+        return
     user = update.effective_user
     message = update.effective_message
     
@@ -312,9 +318,9 @@ def build_start_content():
         "<b>⬇️ Ниже — кнопка. Жмешь — и проходишь туда, где люди не ноют, а ебут этот мир в обе щеки.</b>"
     )
     keyboard = [
-        [InlineKeyboardButton("💳 Оплатить доступ", callback_data='payment')],
+        [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=MINIAPP_URL))]
+        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
     ]
     return text, InlineKeyboardMarkup(keyboard)
 
@@ -374,7 +380,7 @@ def build_checkout_content(duration_label: str):
     )
     keyboard = [
         [InlineKeyboardButton("💳 Карта (любая валюта)", callback_data='noop')],
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=MINIAPP_URL))],
+        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
         [InlineKeyboardButton("📄 Договор оферты", callback_data='noop')],
         [InlineKeyboardButton("🔙 Назад", callback_data='payment')]
     ]
@@ -408,19 +414,8 @@ async def button(update: Update, context: CallbackContext) -> None:
     await query.answer()
     data = query.data
 
-    if data == 'payment':
-        text, markup = build_payment_content()
-        await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
-    elif data == 'more_info':
+    if data == 'more_info':
         text, markup = build_more_info_content()
-        await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
-    elif data in ('pay_1_month', 'pay_6_months', 'pay_12_months'):
-        duration_map = {
-            'pay_1_month': '1 месяц',
-            'pay_6_months': '6 месяцев',
-            'pay_12_months': '12 месяцев',
-        }
-        text, markup = build_checkout_content(duration_map[data])
         await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
     elif data == 'back':
         text, markup = build_start_content()
@@ -438,6 +433,59 @@ async def button(update: Update, context: CallbackContext) -> None:
         await admin_messages(update, context)
     else:
         return
+
+async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
+    """Обрабатывает данные от miniapp"""
+    try:
+        webapp_data = update.message.web_app_data.data
+        user = update.effective_user
+        
+        print(f"📱 Получены данные от miniapp: {webapp_data}")
+        
+        # Парсим JSON данные
+        import json
+        payment_data = json.loads(webapp_data)
+        
+        # Формируем сообщение для администраторов
+        admin_message = f"💳 <b>Новая заявка на оплату!</b>\n\n"
+        admin_message += f"👤 <b>Пользователь:</b> {user.first_name}"
+        if user.username:
+            admin_message += f" (@{user.username})"
+        admin_message += f"\n🆔 <b>ID:</b> {user.id}\n"
+        admin_message += f"📧 <b>Email:</b> {payment_data.get('email', 'Не указан')}\n"
+        admin_message += f"💵 <b>Тариф:</b> {payment_data.get('tariff', 'Не указан')}\n"
+        admin_message += f"🏦 <b>Банк:</b> {payment_data.get('bank', 'Не указан')}\n"
+        admin_message += f"💰 <b>Сумма:</b> {payment_data.get('price', 'Не указана')} RUB\n"
+        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n\n"
+        admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}"
+        
+        # Отправляем уведомление всем администраторам
+        for admin_id in ADMIN_IDS:
+            try:
+                await context.bot.send_message(
+                    chat_id=admin_id,
+                    text=admin_message,
+                    parse_mode='HTML'
+                )
+            except Exception as e:
+                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
+        
+        # Отправляем подтверждение пользователю
+        await update.message.reply_text(
+            "✅ <b>Заявка на оплату принята!</b>\n\n"
+            "Мы получили вашу заявку и обработаем её в ближайшее время.\n"
+            "Наш менеджер свяжется с вами для завершения оплаты.",
+            parse_mode='HTML'
+        )
+        
+    except Exception as e:
+        print(f"❌ Ошибка обработки данных miniapp: {e}")
+        await update.message.reply_text(
+            "❌ <b>Ошибка обработки заявки</b>\n\n"
+            "Пожалуйста, попробуйте еще раз или обратитесь в поддержку.",
+            parse_mode='HTML'
+        )
+
 
 async def handle_admin_reply(update: Update, context: CallbackContext, user_id: str) -> None:
     """Обрабатывает нажатие кнопки 'Ответить долбаебу' администратором"""

@@ -945,7 +945,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
         const userInfo = user.username ? `@${user.username}` : `ID: ${userId}`;
         
         const message = {
-            text: `❓ <b>Вопрос на ответ от пользователя!</b>\n\n👤 <b>Пользователь:</b> ${userName}\n📝 <b>Сообщение:</b> ${messageText.substring(0, 100)}${messageText.length > 100 ? '...' : ''}\n\n💬 <b>Пользователь задал дополнительный вопрос!</b>`,
+            text: `💻 <b>Долбаеб интересуется:</b>\n\n👤 <b>Зовут пидараса:</b> ${userName}\n📝 <b>Сообщение:</b> ${messageText.substring(0, 100)}${messageText.length > 100 ? '...' : ''}\n\n💬 <b>Пользователь задал дополнительный вопрос!</b>`,
             parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [[
