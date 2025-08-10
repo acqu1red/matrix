@@ -246,6 +246,30 @@ async function sendMessage() {
         
         console.log('Сообщение успешно отправлено:', data);
         
+        // Отправляем уведомление администраторам через webhook API
+        try {
+            const webhookResponse = await fetch('http://localhost:5000/webhook/notify_admins', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: currentUserId,
+                    message_content: text,
+                    conversation_id: conversationId
+                })
+            });
+            
+            const webhookResult = await webhookResponse.json();
+            if (webhookResult.success) {
+                console.log('✅ Уведомление администраторам отправлено:', webhookResult);
+            } else {
+                console.error('❌ Ошибка отправки уведомления администраторам:', webhookResult);
+            }
+        } catch (webhookError) {
+            console.error('❌ Ошибка webhook API:', webhookError);
+        }
+        
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
         showError('Не удалось отправить сообщение');

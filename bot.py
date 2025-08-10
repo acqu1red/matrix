@@ -6,6 +6,9 @@ import pytz
 from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
+import threading
+from flask import Flask, request, jsonify
+import aiohttp
 
 MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
 
@@ -26,7 +29,211 @@ ADMIN_IDS = [
     7365307696,
 ]
 
+# Flask приложение для webhook API
+webhook_app = Flask(__name__)
+
 # ---------- Admin notification functions ----------
+
+async def notify_admins_about_web_request(bot, user_id, message_content, conversation_id):
+    """Отправляет уведомление администраторам о новом запросе через веб-приложение"""
+    try:
+        # Получаем информацию о пользователе
+        user_result = supabase.table('users').select('*').eq('telegram_id', user_id).execute()
+        
+        if not user_result.data:
+            print(f"❌ Пользователь {user_id} не найден в базе данных")
+            return
+        
+        user_info = user_result.data[0]
+        
+        # Формируем информацию о пользователе
+        user_info_text = f"👤 <b>Пользователь:</b>\n"
+        user_info_text += f"ID: {user_id}\n"
+        user_info_text += f"Имя: {user_info.get('first_name', 'Не указано')}\n"
+        user_info_text += f"Фамилия: {user_info.get('last_name', 'Не указана')}\n"
+        user_info_text += f"Username: @{user_info.get('username', 'Не указан')}\n"
+        
+        # Формируем текст уведомления
+        notification_text = f"🌐 <b>Новый запрос через веб-приложение!</b>\n\n{user_info_text}\n"
+        notification_text += f"💬 <b>Сообщение:</b>\n{message_content}\n\n"
+        notification_text += f"⚠️ <b>Требуется ответ!</b>"
+        
+        # Создаем инлайн-кнопку для ответа
+        keyboard = [
+            [InlineKeyboardButton("Ответить пользователю", callback_data=f'reply_to_{user_id}')]
+        ]
+        markup = InlineKeyboardMarkup(keyboard)
+        
+        # Отправляем уведомление всем администраторам
+        for admin_username in ADMIN_USERNAMES:
+            try:
+                print(f"📤 Отправляем уведомление о веб-запросе администратору @{admin_username}")
+                await bot.send_message(
+                    chat_id=f"@{admin_username}",
+                    text=notification_text,
+                    parse_mode='HTML',
+                    reply_markup=markup
+                )
+                print(f"✅ Уведомление о веб-запросе успешно отправлено администратору @{admin_username}")
+            except Exception as e:
+                print(f"❌ Ошибка отправки уведомления о веб-запросе администратору @{admin_username}: {e}")
+                # Попробуем отправить без @
+                try:
+                    print(f"📤 Пробуем отправить без @ администратору {admin_username}")
+                    await bot.send_message(
+                        chat_id=admin_username,
+                        text=notification_text,
+                        parse_mode='HTML',
+                        reply_markup=markup
+                    )
+                    print(f"✅ Уведомление о веб-запросе успешно отправлено администратору {admin_username}")
+                except Exception as e2:
+                    print(f"❌ Ошибка отправки уведомления о веб-запросе администратору {admin_username}: {e2}")
+        
+        print(f"📨 Уведомления о веб-запросе от пользователя {user_id} отправлены администраторам")
+        
+    except Exception as e:
+        print(f"❌ Ошибка отправки уведомлений о веб-запросе: {e}")
+
+# ---------- Webhook API functions ----------
+
+async def send_telegram_message_async(bot, chat_id, text, reply_markup=None):
+    """Отправляет сообщение через Telegram Bot API асинхронно"""
+    try:
+        message_data = {
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "HTML"
+        }
+        
+        if reply_markup:
+            message_data["reply_markup"] = reply_markup
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"https://api.telegram.org/bot{bot.token}/sendMessage", json=message_data) as response:
+                return await response.json()
+    except Exception as e:
+        print(f"❌ Ошибка отправки сообщения через API: {e}")
+        return {"ok": False, "error": str(e)}
+
+async def notify_admins_webhook(bot, user_id, message_content, conversation_id):
+    """Отправляет уведомление администраторам через webhook (асинхронная версия)"""
+    try:
+        # Получаем информацию о пользователе
+        user_result = supabase.table('users').select('*').eq('telegram_id', user_id).execute()
+        
+        if not user_result.data:
+            print(f"❌ Пользователь {user_id} не найден в базе данных")
+            return {"success": False, "error": "User not found"}
+        
+        user_info = user_result.data[0]
+        
+        # Формируем информацию о пользователе
+        user_info_text = f"👤 <b>Пользователь:</b>\n"
+        user_info_text += f"ID: {user_id}\n"
+        user_info_text += f"Имя: {user_info.get('first_name', 'Не указано')}\n"
+        user_info_text += f"Фамилия: {user_info.get('last_name', 'Не указана')}\n"
+        user_info_text += f"Username: @{user_info.get('username', 'Не указан')}\n"
+        
+        # Формируем текст уведомления
+        notification_text = f"🌐 <b>Новый запрос через веб-приложение!</b>\n\n{user_info_text}\n"
+        notification_text += f"💬 <b>Сообщение:</b>\n{message_content}\n\n"
+        notification_text += f"⚠️ <b>Требуется ответ!</b>"
+        
+        # Создаем инлайн-кнопку для ответа
+        keyboard = {
+            "inline_keyboard": [[
+                {
+                    "text": "Ответить пользователю",
+                    "callback_data": f"reply_to_{user_id}"
+                }
+            ]]
+        }
+        
+        # Отправляем уведомление всем администраторам
+        success_count = 0
+        for admin_username in ADMIN_USERNAMES:
+            try:
+                print(f"📤 Отправляем уведомление о веб-запросе администратору @{admin_username}")
+                result = await send_telegram_message_async(bot, f"@{admin_username}", notification_text, keyboard)
+                
+                if result.get('ok'):
+                    print(f"✅ Уведомление о веб-запросе успешно отправлено администратору @{admin_username}")
+                    success_count += 1
+                else:
+                    print(f"❌ Ошибка отправки уведомления администратору @{admin_username}: {result}")
+                    
+            except Exception as e:
+                print(f"❌ Ошибка отправки уведомления о веб-запросе администратору @{admin_username}: {e}")
+                # Попробуем отправить без @
+                try:
+                    print(f"📤 Пробуем отправить без @ администратору {admin_username}")
+                    result = await send_telegram_message_async(bot, admin_username, notification_text, keyboard)
+                    
+                    if result.get('ok'):
+                        print(f"✅ Уведомление о веб-запросе успешно отправлено администратору {admin_username}")
+                        success_count += 1
+                    else:
+                        print(f"❌ Ошибка отправки уведомления администратору {admin_username}: {result}")
+                        
+                except Exception as e2:
+                    print(f"❌ Ошибка отправки уведомления о веб-запросе администратору {admin_username}: {e2}")
+        
+        print(f"📨 Уведомления о веб-запросе от пользователя {user_id} отправлены администраторам ({success_count}/{len(ADMIN_USERNAMES)})")
+        
+        return {"success": True, "notifications_sent": success_count}
+        
+    except Exception as e:
+        print(f"❌ Ошибка отправки уведомлений о веб-запросе: {e}")
+        return {"success": False, "error": str(e)}
+
+# Глобальная переменная для хранения экземпляра бота
+bot_instance = None
+
+@webhook_app.route('/webhook/notify_admins', methods=['POST'])
+def webhook_notify_admins():
+    """Webhook для уведомления администраторов о новых запросах"""
+    global bot_instance
+    
+    if not bot_instance:
+        return jsonify({"success": False, "error": "Bot not initialized"}), 500
+    
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+        
+        user_id = data.get('user_id')
+        message_content = data.get('message_content')
+        conversation_id = data.get('conversation_id')
+        
+        if not all([user_id, message_content, conversation_id]):
+            return jsonify({"success": False, "error": "Missing required fields"}), 400
+        
+        # Запускаем асинхронную функцию
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(
+            notify_admins_webhook(bot_instance, user_id, message_content, conversation_id)
+        )
+        loop.close()
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ Ошибка обработки webhook: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@webhook_app.route('/health', methods=['GET'])
+def health_check():
+    """Проверка здоровья сервера"""
+    return jsonify({"status": "healthy", "service": "webhook_api"})
+
+def run_webhook_server():
+    """Запускает webhook сервер в отдельном потоке"""
+    print("🌐 Запуск Webhook API сервера на порту 5000...")
+    webhook_app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
 async def save_message_to_db(user, message):
     """Сохраняет сообщение в базе данных"""
@@ -388,6 +595,36 @@ async def start(update: Update, context: CallbackContext) -> None:
     text, markup = build_start_content()
     await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
 
+# Обработчик для тестирования уведомлений о веб-запросах
+async def test_web_notification(update: Update, context: CallbackContext) -> None:
+    """Тестирует отправку уведомлений о веб-запросах"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text(
+            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
+            parse_mode='HTML'
+        )
+        return
+    
+    # Тестовые данные
+    test_user_id = 123456789  # Замените на реальный ID пользователя для тестирования
+    test_message = "Это тестовое сообщение через веб-приложение"
+    test_conversation_id = 1
+    
+    try:
+        await notify_admins_about_web_request(context.bot, test_user_id, test_message, test_conversation_id)
+        await update.effective_message.reply_text(
+            "✅ <b>Тестовое уведомление о веб-запросе отправлено!</b>",
+            parse_mode='HTML'
+        )
+    except Exception as e:
+        await update.effective_message.reply_text(
+            f"❌ <b>Ошибка отправки тестового уведомления:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
 
 # Define the payment command handler
 async def payment(update: Update, context: CallbackContext) -> None:
@@ -467,11 +704,14 @@ async def handle_admin_reply(update: Update, context: CallbackContext, user_id: 
 
 # Main function to start the bot
 def main() -> None:
-    print("🚀 Запуск бота...")
+    global bot_instance
+    
+    print("🚀 Запуск бота и webhook API...")
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
     application = ApplicationBuilder().token("8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo").build()
+    bot_instance = application.bot
 
     print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))
@@ -479,12 +719,18 @@ def main() -> None:
     application.add_handler(CommandHandler("more_info", more_info))
     application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CommandHandler("messages", admin_messages))
+    application.add_handler(CommandHandler("test_web", test_web_notification))
     application.add_handler(CallbackQueryHandler(button))
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
     # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
     print("✅ Обработчик всех сообщений зарегистрирован")
+
+    # Запускаем webhook сервер в отдельном потоке
+    webhook_thread = threading.Thread(target=run_webhook_server, daemon=True)
+    webhook_thread.start()
+    print("🌐 Webhook API сервер запущен в отдельном потоке")
 
     print("🔄 Запуск polling...")
     application.run_polling()
