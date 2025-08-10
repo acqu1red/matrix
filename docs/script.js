@@ -616,6 +616,8 @@ function renderConversationsList(conversations) {
 async function openConversationDialog(conversationId, userId) {
     currentConversationId = conversationId;
     
+    console.log('Открытие диалога:', { conversationId, userId });
+    
     try {
         // Получаем информацию о пользователе
         const { data: user, error: userError } = await supabaseClient
@@ -624,21 +626,77 @@ async function openConversationDialog(conversationId, userId) {
             .eq('telegram_id', userId)
             .single();
             
-        if (userError) throw userError;
+        if (userError) {
+            console.error('Ошибка получения пользователя:', userError);
+            throw userError;
+        }
+        
+        console.log('Пользователь найден:', user);
         
         // Получаем сообщения диалога
-        const { data: messages, error: messagesError } = await supabaseClient
-            .rpc('get_conversation_messages', { conv_id: conversationId });
+        let messages = null;
+        let messagesError = null;
+        
+        try {
+            const result = await supabaseClient
+                .rpc('get_conversation_messages', { conv_id: parseInt(conversationId) });
+            messages = result.data;
+            messagesError = result.error;
+        } catch (rpcError) {
+            console.error('Ошибка RPC get_conversation_messages:', rpcError);
             
-        if (messagesError) throw messagesError;
+            // Пробуем альтернативный способ - прямой запрос к таблице
+            console.log('Пробуем альтернативный способ получения сообщений...');
+            const { data: altMessages, error: altError } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .eq('conversation_id', conversationId)
+                .order('created_at', { ascending: true });
+                
+            if (altError) {
+                console.error('Ошибка альтернативного запроса:', altError);
+                throw altError;
+            }
+            
+            // Преобразуем данные в нужный формат
+            messages = altMessages.map(msg => ({
+                id: msg.id,
+                content: msg.content,
+                sender_id: msg.sender_id,
+                sender_is_admin: false, // Будем определять отдельно
+                message_type: msg.message_type,
+                is_read: msg.is_read,
+                created_at: msg.created_at
+            }));
+            
+            // Определяем, какие сообщения от админов
+            const adminIds = await getAdminIds();
+            messages.forEach(msg => {
+                msg.sender_is_admin = adminIds.includes(msg.sender_id);
+            });
+            
+            console.log('Сообщения получены альтернативным способом:', messages);
+        }
+        
+        if (messagesError) {
+            console.error('Ошибка RPC get_conversation_messages:', messagesError);
+            throw messagesError;
+        }
+        
+        console.log('Сообщения получены:', messages);
         
         // Отображаем информацию о пользователе
         const username = user.username || user.first_name || `Пользователь #${user.telegram_id}`;
         dialogUsername.textContent = username;
-        dialogMeta.textContent = `Сообщений: ${messages.length}`;
+        dialogMeta.textContent = `Сообщений: ${messages ? messages.length : 0}`;
         
         // Отображаем сообщения
-        renderDialogMessages(messages);
+        if (messages && messages.length > 0) {
+            renderDialogMessages(messages);
+        } else {
+            console.log('Сообщений в диалоге нет');
+            renderDialogMessages([]);
+        }
         
         // Отмечаем сообщения как прочитанные
         await markMessagesAsRead(conversationId);
@@ -654,6 +712,18 @@ async function openConversationDialog(conversationId, userId) {
 // Отображение сообщений в диалоге
 function renderDialogMessages(messages) {
     dialogChat.innerHTML = '';
+    
+    if (!messages || messages.length === 0) {
+        // Показываем сообщение о том, что диалог пуст
+        const emptyMessage = document.createElement('div');
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.padding = '20px';
+        emptyMessage.style.color = '#a6a8ad';
+        emptyMessage.style.fontStyle = 'italic';
+        emptyMessage.textContent = 'Сообщений в диалоге пока нет';
+        dialogChat.appendChild(emptyMessage);
+        return;
+    }
     
     messages.forEach(message => {
         appendDialogMessage({
@@ -688,6 +758,26 @@ function appendDialogMessage({ text, isAdmin, timestamp }) {
     
     dialogChat.appendChild(messageDiv);
     dialogChat.scrollTop = dialogChat.scrollHeight;
+}
+
+// Получение списка ID администраторов
+async function getAdminIds() {
+    try {
+        const { data: admins, error } = await supabaseClient
+            .from('admins')
+            .select('telegram_id')
+            .eq('is_active', true);
+            
+        if (error) {
+            console.error('Ошибка получения админов:', error);
+            return [];
+        }
+        
+        return admins.map(admin => admin.telegram_id);
+    } catch (error) {
+        console.error('Ошибка получения админов:', error);
+        return [];
+    }
 }
 
 // Отметка сообщений как прочитанных
