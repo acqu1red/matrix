@@ -112,11 +112,19 @@ async function checkAdminRights() {
 // Настройка обработчиков событий
 function setupEventListeners() {
     // Обычный чат
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!sendBtn.disabled) {
+            sendMessage();
+        }
+    });
+    
     messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            if (!sendBtn.disabled) {
+                sendMessage();
+            }
         }
     });
     
@@ -129,11 +137,19 @@ function setupEventListeners() {
     backToAdmin.addEventListener('click', showAdminPanel);
     
     // Диалог админа
-    dialogSendBtn.addEventListener('click', sendAdminMessage);
+    dialogSendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!dialogSendBtn.disabled) {
+            sendAdminMessage();
+        }
+    });
+    
     dialogMessageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendAdminMessage();
+            if (!dialogSendBtn.disabled) {
+                sendAdminMessage();
+            }
         }
     });
     
@@ -146,6 +162,21 @@ async function sendMessage() {
     const text = messageInput.value.trim();
     if (!text || !currentUserId) return;
     
+    // Блокируем кнопку и показываем состояние загрузки
+    const sendBtn = document.getElementById('sendBtn');
+    const originalContent = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+    `;
+    
+    // Сразу отображаем сообщение для мгновенной обратной связи
+    appendMessage({ text, inbound: false });
+    messageInput.value = '';
+    
     try {
         // Создаем или получаем диалог
         const conversationId = await createOrGetConversation();
@@ -154,7 +185,7 @@ async function sendMessage() {
             throw new Error('Не удалось создать диалог');
         }
         
-        // Добавляем сообщение
+        // Добавляем сообщение в базу данных
         const { data, error } = await supabaseClient
             .from('messages')
             .insert({
@@ -168,19 +199,48 @@ async function sendMessage() {
             
         if (error) throw error;
         
-        // Отображаем сообщение в чате
-        appendMessage({ text, inbound: false });
-        messageInput.value = '';
+        console.log('Сообщение успешно отправлено:', data);
         
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
         showError('Не удалось отправить сообщение');
+        
+        // Можно добавить визуальную индикацию ошибки
+        const lastMessage = chat.lastElementChild;
+        if (lastMessage) {
+            lastMessage.style.opacity = '0.7';
+            lastMessage.style.borderLeft = '3px solid #ff4444';
+        }
+    } finally {
+        // Восстанавливаем кнопку
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = originalContent;
     }
 }
 
 async function sendAdminMessage() {
     const text = dialogMessageInput.value.trim();
     if (!text || !currentConversationId || !isAdmin) return;
+    
+    // Блокируем кнопку и показываем состояние загрузки
+    const dialogSendBtn = document.getElementById('dialogSendBtn');
+    const originalContent = dialogSendBtn.innerHTML;
+    dialogSendBtn.disabled = true;
+    dialogSendBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+    `;
+    
+    // Сразу отображаем сообщение для мгновенной обратной связи
+    appendDialogMessage({ 
+        text, 
+        isAdmin: true, 
+        timestamp: new Date().toLocaleTimeString() 
+    });
+    
+    dialogMessageInput.value = '';
     
     try {
         // Добавляем сообщение в базу
@@ -206,14 +266,7 @@ async function sendAdminMessage() {
             })
             .eq('id', currentConversationId);
         
-        // Отображаем сообщение
-        appendDialogMessage({ 
-            text, 
-            isAdmin: true, 
-            timestamp: new Date().toLocaleTimeString() 
-        });
-        
-        dialogMessageInput.value = '';
+        console.log('Ответ админа успешно отправлен:', data);
         
         // Отправляем уведомление пользователю (через backend API)
         await notifyUser(currentConversationId);
@@ -221,6 +274,17 @@ async function sendAdminMessage() {
     } catch (error) {
         console.error('Ошибка при отправке ответа:', error);
         showError('Не удалось отправить ответ');
+        
+        // Визуальная индикация ошибки
+        const lastMessage = dialogChat.lastElementChild;
+        if (lastMessage) {
+            lastMessage.style.opacity = '0.7';
+            lastMessage.style.borderLeft = '3px solid #ff4444';
+        }
+    } finally {
+        // Восстанавливаем кнопку
+        dialogSendBtn.disabled = false;
+        dialogSendBtn.innerHTML = originalContent;
     }
 }
 
@@ -329,6 +393,9 @@ async function loadAdminConversations() {
         if (data && data.length > 0) {
             console.log('Первый диалог:', data[0]);
             console.log('Поля первого диалога:', Object.keys(data[0]));
+            console.log('Username первого диалога:', data[0].username);
+            console.log('Message count первого диалога:', data[0].message_count);
+            console.log('Last message первого диалога:', data[0].last_message);
         }
         
         renderConversationsList(data);
@@ -391,6 +458,9 @@ function renderConversationsList(conversations) {
         const statusClass = conv.status === 'open' ? 'pending' : 
                            conv.status === 'in_progress' ? '' : 'closed';
         
+        // Формируем текст для предварительного просмотра
+        const previewText = messageCount > 0 ? `${messageCount} сообщений` : 'Нет сообщений';
+        
         console.log('Данные для отображения:', {
             username,
             lastMessage,
@@ -398,7 +468,8 @@ function renderConversationsList(conversations) {
             date,
             time,
             avatarText,
-            statusClass
+            statusClass,
+            previewText
         });
         
         return `
@@ -415,7 +486,7 @@ function renderConversationsList(conversations) {
                     <span>ID: ${conv.user_id}</span>
                     <span class="message-count">${messageCount} сообщений</span>
                 </div>
-                <div class="conversation-preview">${lastMessage}</div>
+                <div class="conversation-preview">${previewText}</div>
             </div>
         `;
     }).join('');
