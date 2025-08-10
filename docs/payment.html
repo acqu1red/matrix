@@ -936,8 +936,7 @@ function processPayment() {
     return;
   }
   
-  // Here you would typically send the payment data to your backend
-  // For now, we'll just show a success message
+  // Prepare payment data
   const paymentData = {
     tariff: paymentState.selectedTariff,
     paymentMethod: paymentState.selectedPaymentMethod,
@@ -952,13 +951,13 @@ function processPayment() {
   // Send data to Telegram bot
   tg.sendData(JSON.stringify(paymentData));
   
-  // Show success message
-  tg.showAlert('Оплата успешно обработана! Мы свяжемся с вами в ближайшее время.');
+  // Show processing message
+  tg.showAlert('Обрабатываем вашу заявку...');
   
-  // Close the WebApp
+  // Close the WebApp after a short delay
   setTimeout(() => {
     tg.close();
-  }, 2000);
+  }, 1500);
 }
 
 // Handle back button

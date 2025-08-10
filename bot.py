@@ -6,13 +6,16 @@ import pytz
 from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
+import aiohttp
 import json
-import uuid
-import time
-from lava_integration import lava_api
 
 MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/payment.html"
+
+# Lava Top API configuration
+LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
+LAVA_TOP_BASE_URL = "https://api.lava.top"
+LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -435,12 +438,57 @@ async def button(update: Update, context: CallbackContext) -> None:
     elif data == 'admin_refresh':
         # Обновление списка сообщений
         await admin_messages(update, context)
-    elif data.startswith('check_payment_'):
-        # Проверка статуса платежа
-        order_id = data.split('_', 2)[2]
-        await check_payment_status(update, context, order_id)
     else:
         return
+
+async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
+    """Создает платеж в Lava Top и возвращает URL для оплаты"""
+    try:
+        # Конвертируем цену из рублей в евро (примерный курс)
+        rub_to_eur_rate = 0.009  # 1 RUB ≈ 0.009 EUR
+        price_rub = payment_data.get('price', 1500)
+        price_eur = round(price_rub * rub_to_eur_rate, 2)
+        
+        # Формируем данные для создания платежа
+        payment_request = {
+            "amount": price_eur,
+            "currency": "EUR",
+            "order_id": f"formula_{user_id}_{int(asyncio.get_event_loop().time())}",
+            "hook_url": "https://your-webhook-url.com/lava-webhook",  # Замените на ваш webhook
+            "success_url": "https://t.me/acqu1red",
+            "fail_url": "https://t.me/acqu1red",
+            "metadata": {
+                "user_id": user_id,
+                "tariff": payment_data.get('tariff'),
+                "email": payment_data.get('email'),
+                "bank": payment_data.get('bank'),
+                "product": "Формула Успеха"
+            }
+        }
+        
+        # Отправляем запрос к Lava Top API
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                "Authorization": f"Bearer {LAVA_TOP_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            
+            async with session.post(
+                f"{LAVA_TOP_BASE_URL}/business/invoice/create",
+                headers=headers,
+                json=payment_request
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    return result.get('data', {}).get('url', LAVA_TOP_PRODUCT_URL)
+                else:
+                    print(f"❌ Ошибка Lava Top API: {response.status}")
+                    return LAVA_TOP_PRODUCT_URL
+                    
+    except Exception as e:
+        print(f"❌ Ошибка создания платежа Lava Top: {e}")
+        return LAVA_TOP_PRODUCT_URL
+
 
 async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
     """Обрабатывает данные от miniapp"""
@@ -453,66 +501,21 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         # Парсим JSON данные
         payment_data = json.loads(webapp_data)
         
-        # Создаем уникальный ID заказа
-        order_id = f"formula_{user.id}_{int(time.time())}"
-        
-        # Получаем данные о платеже
-        tariff = payment_data.get('tariff', '1_month')
-        price = payment_data.get('price', 1500)
-        email = payment_data.get('email', 'Не указан')
-        bank = payment_data.get('bank', 'Не указан')
-        
-        # Формируем описание платежа
-        tariff_names = {
-            '1_month': '1 месяц',
-            '6_months': '6 месяцев',
-            '12_months': '12 месяцев'
-        }
-        description = f"Подписка на канал ФОРМУЛА - {tariff_names.get(tariff, tariff)}"
-        
-        # Создаем платеж через Lava Top
-        payment_result = lava_api.create_payment(
-            amount=price,
-            order_id=order_id,
-            description=description
-        )
-        
-        if "error" in payment_result:
-            print(f"❌ Ошибка создания платежа: {payment_result['error']}")
-            await update.message.reply_text(
-                "❌ <b>Ошибка создания платежа</b>\n\n"
-                "Пожалуйста, попробуйте еще раз или обратитесь в поддержку.",
-                parse_mode='HTML'
-            )
-            return
-        
-        # Сохраняем информацию о платеже
-        payment_info = {
-            "payment_id": payment_result.get("payment_id"),
-            "order_id": order_id,
-            "user_id": user.id,
-            "tariff": tariff,
-            "price": price,
-            "email": email,
-            "bank": bank,
-            "status": "pending"
-        }
-        
-        # Сохраняем в контексте для отслеживания
-        context.user_data['current_payment'] = payment_info
+        # Создаем платеж в Lava Top
+        payment_url = await create_lava_top_payment(payment_data, user.id)
         
         # Формируем сообщение для администраторов
-        admin_message = f"💳 <b>Новый платеж через Lava Top!</b>\n\n"
+        admin_message = f"💳 <b>Новая заявка на оплату!</b>\n\n"
         admin_message += f"👤 <b>Пользователь:</b> {user.first_name}"
         if user.username:
             admin_message += f" (@{user.username})"
         admin_message += f"\n🆔 <b>ID:</b> {user.id}\n"
-        admin_message += f"📧 <b>Email:</b> {email}\n"
-        admin_message += f"💵 <b>Тариф:</b> {tariff_names.get(tariff, tariff)}\n"
-        admin_message += f"🏦 <b>Банк:</b> {bank}\n"
-        admin_message += f"💰 <b>Сумма:</b> {price} RUB\n"
-        admin_message += f"🆔 <b>Order ID:</b> {order_id}\n"
-        admin_message += f"💳 <b>Payment ID:</b> {payment_result.get('payment_id', 'Не получен')}\n\n"
+        admin_message += f"📧 <b>Email:</b> {payment_data.get('email', 'Не указан')}\n"
+        admin_message += f"💵 <b>Тариф:</b> {payment_data.get('tariff', 'Не указан')}\n"
+        admin_message += f"🏦 <b>Банк:</b> {payment_data.get('bank', 'Не указан')}\n"
+        admin_message += f"💰 <b>Сумма:</b> {payment_data.get('price', 'Не указана')} RUB\n"
+        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n"
+        admin_message += f"🔗 <b>Ссылка на оплату:</b> {payment_url}\n\n"
         admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}"
         
         # Отправляем уведомление всем администраторам
@@ -526,137 +529,29 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
             except Exception as e:
                 print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
         
-        # Отправляем ссылку на оплату пользователю
-        payment_url = payment_result.get("payment_url")
-        if payment_url:
-            keyboard = [
-                [InlineKeyboardButton("💳 Оплатить", url=payment_url)],
-                [InlineKeyboardButton("📊 Статус платежа", callback_data=f'check_payment_{order_id}')],
-                [InlineKeyboardButton("💬 Поддержка", url="https://t.me/acqu1red")]
-            ]
-            markup = InlineKeyboardMarkup(keyboard)
-            
-            await update.message.reply_text(
-                "✅ <b>Платеж создан успешно!</b>\n\n"
-                f"💵 <b>Сумма:</b> {price} RUB\n"
-                f"📦 <b>Тариф:</b> {tariff_names.get(tariff, tariff)}\n"
-                f"🆔 <b>Order ID:</b> {order_id}\n\n"
-                "Нажмите кнопку ниже для перехода к оплате:",
-                parse_mode='HTML',
-                reply_markup=markup
-            )
-        else:
-            await update.message.reply_text(
-                "❌ <b>Ошибка получения ссылки на оплату</b>\n\n"
-                "Пожалуйста, обратитесь в поддержку.",
-                parse_mode='HTML'
-            )
+        # Отправляем пользователю ссылку на оплату
+        payment_message = f"💳 <b>Переход к оплате</b>\n\n"
+        payment_message += f"Тариф: <b>{payment_data.get('tariff', 'Не указан')}</b>\n"
+        payment_message += f"Сумма: <b>{payment_data.get('price', 'Не указана')} RUB</b>\n\n"
+        payment_message += "Нажмите кнопку ниже для перехода к оплате:"
+        
+        # Создаем клавиатуру с кнопкой оплаты
+        keyboard = [
+            [InlineKeyboardButton("💳 Перейти к оплате", url=payment_url)]
+        ]
+        markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(
+            payment_message,
+            parse_mode='HTML',
+            reply_markup=markup
+        )
         
     except Exception as e:
         print(f"❌ Ошибка обработки данных miniapp: {e}")
         await update.message.reply_text(
             "❌ <b>Ошибка обработки заявки</b>\n\n"
             "Пожалуйста, попробуйте еще раз или обратитесь в поддержку.",
-            parse_mode='HTML'
-        )
-
-
-async def check_payment_status(update: Update, context: CallbackContext, order_id: str) -> None:
-    """Проверяет статус платежа"""
-    query = update.callback_query
-    await query.answer()
-    
-    try:
-        # Получаем информацию о платеже из контекста
-        payment_info = context.user_data.get('current_payment')
-        
-        if not payment_info or payment_info.get('order_id') != order_id:
-            await query.edit_message_text(
-                "❌ <b>Платеж не найден</b>\n\n"
-                "Пожалуйста, создайте новый платеж.",
-                parse_mode='HTML'
-            )
-            return
-        
-        payment_id = payment_info.get('payment_id')
-        if not payment_id:
-            await query.edit_message_text(
-                "❌ <b>ID платежа не найден</b>\n\n"
-                "Пожалуйста, обратитесь в поддержку.",
-                parse_mode='HTML'
-            )
-            return
-        
-        # Проверяем статус через Lava Top API
-        status_result = lava_api.get_payment_status(payment_id)
-        
-        if "error" in status_result:
-            await query.edit_message_text(
-                "❌ <b>Ошибка проверки статуса</b>\n\n"
-                f"Ошибка: {status_result['error']}\n"
-                "Пожалуйста, попробуйте позже.",
-                parse_mode='HTML'
-            )
-            return
-        
-        status = status_result.get('status', 'unknown')
-        amount = status_result.get('amount', payment_info.get('price', 'Неизвестно'))
-        
-        status_messages = {
-            'pending': '⏳ Ожидает оплаты',
-            'paid': '✅ Оплачен',
-            'failed': '❌ Ошибка оплаты',
-            'expired': '⏰ Время истекло',
-            'cancelled': '🚫 Отменен'
-        }
-        
-        status_text = status_messages.get(status, f'❓ Статус: {status}')
-        
-        keyboard = []
-        if status == 'pending':
-            keyboard.append([InlineKeyboardButton("🔄 Обновить", callback_data=f'check_payment_{order_id}')])
-        keyboard.append([InlineKeyboardButton("💬 Поддержка", url="https://t.me/acqu1red")])
-        
-        markup = InlineKeyboardMarkup(keyboard) if keyboard else None
-        
-        await query.edit_message_text(
-            f"📊 <b>Статус платежа</b>\n\n"
-            f"🆔 <b>Order ID:</b> {order_id}\n"
-            f"💳 <b>Payment ID:</b> {payment_id}\n"
-            f"💰 <b>Сумма:</b> {amount} RUB\n"
-            f"📊 <b>Статус:</b> {status_text}\n\n"
-            f"⏰ <b>Время проверки:</b> {update.effective_message.date.strftime('%d.%m.%Y %H:%M:%S')}",
-            parse_mode='HTML',
-            reply_markup=markup
-        )
-        
-        # Если платеж оплачен, уведомляем администраторов
-        if status == 'paid':
-            admin_message = f"✅ <b>Платеж успешно оплачен!</b>\n\n"
-            admin_message += f"🆔 <b>Order ID:</b> {order_id}\n"
-            admin_message += f"💳 <b>Payment ID:</b> {payment_id}\n"
-            admin_message += f"💰 <b>Сумма:</b> {amount} RUB\n"
-            admin_message += f"👤 <b>Пользователь:</b> {update.effective_user.first_name}"
-            if update.effective_user.username:
-                admin_message += f" (@{update.effective_user.username})"
-            admin_message += f"\n🆔 <b>User ID:</b> {update.effective_user.id}\n\n"
-            admin_message += f"⏰ <b>Время оплаты:</b> {update.effective_message.date.strftime('%d.%m.%Y %H:%M:%S')}"
-            
-            for admin_id in ADMIN_IDS:
-                try:
-                    await context.bot.send_message(
-                        chat_id=admin_id,
-                        text=admin_message,
-                        parse_mode='HTML'
-                    )
-                except Exception as e:
-                    print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
-        
-    except Exception as e:
-        print(f"❌ Ошибка проверки статуса платежа: {e}")
-        await query.edit_message_text(
-            "❌ <b>Ошибка проверки статуса</b>\n\n"
-            "Пожалуйста, попробуйте позже или обратитесь в поддержку.",
             parse_mode='HTML'
         )
 
