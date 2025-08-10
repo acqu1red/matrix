@@ -16,8 +16,8 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Список ID администраторов (замените на реальные ID)
 ADMIN_IDS = [
-    123456789,  # Замените на реальные ID администраторов
-    987654321,
+    708907063,  # Замените на реальные ID администраторов
+    7365307696,
 ]
 
 # ---------- Admin notification functions ----------
@@ -29,8 +29,26 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     message = update.effective_message
     
+    # Определяем тип сообщения для отладки
+    message_type = "текст"
+    if message.photo:
+        message_type = "фото"
+    elif message.video:
+        message_type = "видео"
+    elif message.voice:
+        message_type = "голосовое"
+    elif message.document:
+        message_type = "документ"
+    elif message.sticker:
+        message_type = "стикер"
+    elif message.audio:
+        message_type = "аудио"
+    
+    print(f"🔍 Получено {message_type} сообщение от пользователя {user.id} ({user.first_name}): {message.text or '[медиа]'}")
+    
     # Если это администратор и он в режиме ответа
     if user.id in ADMIN_IDS and context.user_data.get('waiting_for_reply') and context.user_data.get('replying_to'):
+        print(f"👨‍💼 Администратор {user.id} отправляет ответ пользователю {context.user_data['replying_to']}")
         target_user_id = context.user_data['replying_to']
         
         try:
@@ -60,6 +78,8 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     
     # Если это обычный пользователь (не администратор), отправляем уведомление администраторам
     if user.id not in ADMIN_IDS:
+        print(f"📨 Отправляем уведомление администраторам о сообщении от пользователя {user.id}")
+        
         # Формируем информацию о пользователе
         user_info = f"👤 <b>Пользователь:</b>\n"
         user_info += f"ID: {user.id}\n"
@@ -67,9 +87,33 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         user_info += f"Фамилия: {user.last_name or 'Не указана'}\n"
         user_info += f"Username: @{user.username or 'Не указан'}\n"
         
+        # Определяем тип сообщения
+        message_type = "Текст"
+        message_content = message.text or ""
+        
+        if message.photo:
+            message_type = "Фото"
+            message_content = f"[Фото] {message.caption or 'Без подписи'}"
+        elif message.video:
+            message_type = "Видео"
+            message_content = f"[Видео] {message.caption or 'Без подписи'}"
+        elif message.voice:
+            message_type = "Голосовое сообщение"
+            message_content = "[Голосовое сообщение]"
+        elif message.document:
+            message_type = "Документ"
+            message_content = f"[Документ] {message.document.file_name or 'Без названия'}"
+        elif message.sticker:
+            message_type = "Стикер"
+            message_content = f"[Стикер] {message.sticker.emoji or 'Без эмодзи'}"
+        elif message.audio:
+            message_type = "Аудио"
+            message_content = f"[Аудио] {message.audio.title or 'Без названия'}"
+        
         # Формируем текст сообщения
         message_text = f"📨 <b>Новое сообщение от пользователя!</b>\n\n{user_info}\n"
-        message_text += f"💬 <b>Сообщение:</b>\n{message.text or '[Медиа-сообщение]'}\n\n"
+        message_text += f"💬 <b>Тип сообщения:</b> {message_type}\n"
+        message_text += f"💬 <b>Содержание:</b>\n{message_content}\n\n"
         message_text += f"⚠️ <b>Требуется ответ!</b>"
         
         # Создаем инлайн-кнопку для ответа
@@ -81,14 +125,18 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         # Отправляем уведомление всем администраторам
         for admin_id in ADMIN_IDS:
             try:
+                print(f"📤 Отправляем уведомление администратору {admin_id}")
                 await context.bot.send_message(
                     chat_id=admin_id,
                     text=message_text,
                     parse_mode='HTML',
                     reply_markup=markup
                 )
+                print(f"✅ Уведомление успешно отправлено администратору {admin_id}")
             except Exception as e:
-                print(f"Ошибка отправки уведомления администратору {admin_id}: {e}")
+                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
+    else:
+        print(f"👨‍💼 Сообщение от администратора {user.id} - уведомления не отправляем")
 
 async def cancel_reply(update: Update, context: CallbackContext) -> None:
     """Отменяет режим ответа администратора"""
@@ -273,7 +321,8 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button))
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_all_messages))
+    # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
 
     application.run_polling()
 
