@@ -138,10 +138,20 @@ function setupEventListeners() {
     backToChat.addEventListener('click', showChat);
     backToAdmin.addEventListener('click', showAdminPanel);
     
-    // Фильтры админ-панели
-    document.getElementById('filterAll').addEventListener('click', () => setFilter('all'));
-    document.getElementById('filterPending').addEventListener('click', () => setFilter('pending'));
-    document.getElementById('filterMessages').addEventListener('click', () => setFilter('messages'));
+    // Делегирование событий для фильтров (работает независимо от времени загрузки)
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#filterAll')) {
+            console.log('Клик по filterAll');
+            setFilter('all');
+        } else if (e.target.closest('#filterPending')) {
+            console.log('Клик по filterPending');
+            setFilter('pending');
+        } else if (e.target.closest('#filterMessages')) {
+            console.log('Клик по filterMessages');
+            setFilter('messages');
+        }
+    });
+
     
     // Диалог админа
     dialogSendBtn.addEventListener('click', (e) => {
@@ -166,13 +176,18 @@ function setupEventListeners() {
 
 // Установка фильтра
 function setFilter(filter) {
+    console.log('setFilter вызвана с фильтром:', filter);
     currentFilter = filter;
     
     // Обновляем активный класс
     document.querySelectorAll('.stat-item.clickable').forEach(item => {
         item.classList.remove('active');
     });
-    document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
+    const activeElement = document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
+    if (activeElement) {
+        activeElement.classList.add('active');
+        console.log('Активный элемент обновлен:', activeElement.id);
+    }
     
     // Перерисовываем список с новым фильтром
     renderConversationsList(allConversations);
@@ -739,6 +754,25 @@ function showAdminPanel() {
     userFooter.style.display = 'none';
     document.getElementById('adminFooter').classList.remove('active');
     document.querySelector('.conversation-dialog footer').style.display = 'none';
+    
+    // Добавляем обработчики фильтров после того, как панель стала видимой
+    setTimeout(() => {
+        const filterAll = document.getElementById('filterAll');
+        const filterPending = document.getElementById('filterPending');
+        const filterMessages = document.getElementById('filterMessages');
+        
+        // Удаляем старые обработчики, если они есть
+        filterAll?.removeEventListener('click', () => setFilter('all'));
+        filterPending?.removeEventListener('click', () => setFilter('pending'));
+        filterMessages?.removeEventListener('click', () => setFilter('messages'));
+        
+        // Добавляем новые обработчики
+        filterAll?.addEventListener('click', () => setFilter('all'));
+        filterPending?.addEventListener('click', () => setFilter('pending'));
+        filterMessages?.addEventListener('click', () => setFilter('messages'));
+        
+        console.log('Обработчики фильтров добавлены');
+    }, 100);
     
     loadAdminConversations();
 }
