@@ -479,17 +479,20 @@ function filterConversations(conversations, filter) {
             console.log('Фильтр "all": показываем все диалоги');
             break;
         case 'pending':
-            // Показываем только диалоги, где последнее сообщение от пользователя (НЕ от админа)
+            // Показываем только диалоги, где последнее сообщение от пользователя (не админа)
             filtered = conversations.filter(conv => {
-                // Проверяем, что последнее сообщение не от админа
-                // Для этого нужно проверить, есть ли admin_id и статус диалога
-                const hasAdminResponse = conv.admin_id && conv.status === 'answered';
-                const shouldShow = !hasAdminResponse;
+                // Проверяем, есть ли сообщения в диалоге
+                if (!conv.last_message || conv.last_message === 'Нет сообщений') {
+                    return false; // Диалоги без сообщений не показываем
+                }
                 
-                console.log(`Диалог ${conv.id}: admin_id=${conv.admin_id}, status=${conv.status}, hasAdminResponse=${hasAdminResponse}, показываем=${shouldShow}`);
-                return shouldShow;
+                // Проверяем, от кого последнее сообщение
+                // Если last_message_sender_id не равен admin_id, то последнее сообщение от пользователя
+                const lastMessageFromUser = !conv.last_message_sender_is_admin;
+                console.log(`Диалог ${conv.id}: последнее сообщение от пользователя=${lastMessageFromUser}, показываем=${lastMessageFromUser}`);
+                return lastMessageFromUser;
             });
-            console.log('Фильтр "pending": показываем диалоги, где последнее сообщение от пользователя');
+            console.log('Фильтр "pending": показываем диалоги с последним сообщением от пользователя');
             break;
         default:
             filtered = conversations;

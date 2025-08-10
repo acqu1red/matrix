@@ -134,7 +134,8 @@ RETURNS TABLE (
     last_message_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE,
     message_count BIGINT,
-    last_message TEXT
+    last_message TEXT,
+    last_message_sender_is_admin BOOLEAN
 ) 
 SECURITY INVOKER
 LANGUAGE plpgsql
@@ -154,7 +155,14 @@ BEGIN
         COALESCE(
             (SELECT content FROM messages m WHERE m.conversation_id = c.id ORDER BY created_at DESC LIMIT 1),
             'Нет сообщений'
-        ) as last_message
+        ) as last_message,
+        COALESCE(
+            (SELECT u2.is_admin FROM messages m2 
+             JOIN users u2 ON m2.sender_id = u2.telegram_id 
+             WHERE m2.conversation_id = c.id 
+             ORDER BY m2.created_at DESC LIMIT 1),
+            FALSE
+        ) as last_message_sender_is_admin
     FROM conversations c
     JOIN users u ON c.user_id = u.telegram_id
     ORDER BY COALESCE(c.last_message_at, c.created_at) DESC;
