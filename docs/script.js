@@ -375,6 +375,9 @@ async function loadAdminConversations() {
         if (data && data.length > 0) {
             console.log('Первый диалог:', data[0]);
             console.log('Поля первого диалога:', Object.keys(data[0]));
+            console.log('Username первого диалога:', data[0].username);
+            console.log('Message count первого диалога:', data[0].message_count);
+            console.log('Last message первого диалога:', data[0].last_message);
         }
         
         renderConversationsList(data);
@@ -437,6 +440,9 @@ function renderConversationsList(conversations) {
         const statusClass = conv.status === 'open' ? 'pending' : 
                            conv.status === 'in_progress' ? '' : 'closed';
         
+        // Формируем текст для предварительного просмотра
+        const previewText = messageCount > 0 ? `${messageCount} сообщений` : 'Нет сообщений';
+        
         console.log('Данные для отображения:', {
             username,
             lastMessage,
@@ -444,7 +450,8 @@ function renderConversationsList(conversations) {
             date,
             time,
             avatarText,
-            statusClass
+            statusClass,
+            previewText
         });
         
         return `
@@ -461,7 +468,7 @@ function renderConversationsList(conversations) {
                     <span>ID: ${conv.user_id}</span>
                     <span class="message-count">${messageCount} сообщений</span>
                 </div>
-                <div class="conversation-preview">${lastMessage}</div>
+                <div class="conversation-preview">${previewText}</div>
             </div>
         `;
     }).join('');
