@@ -501,9 +501,6 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         # Парсим JSON данные
         payment_data = json.loads(webapp_data)
         
-        # Создаем платеж в Lava Top
-        payment_url = await create_lava_top_payment(payment_data, user.id)
-        
         # Формируем сообщение для администраторов
         admin_message = f"💳 <b>Новая заявка на оплату!</b>\n\n"
         admin_message += f"👤 <b>Пользователь:</b> {user.first_name}"
@@ -514,9 +511,9 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         admin_message += f"💵 <b>Тариф:</b> {payment_data.get('tariff', 'Не указан')}\n"
         admin_message += f"🏦 <b>Банк:</b> {payment_data.get('bank', 'Не указан')}\n"
         admin_message += f"💰 <b>Сумма:</b> {payment_data.get('price', 'Не указана')} RUB\n"
-        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n"
-        admin_message += f"🔗 <b>Ссылка на оплату:</b> {payment_url}\n\n"
-        admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}"
+        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n\n"
+        admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}\n\n"
+        admin_message += "ℹ️ Пользователь перенаправлен на Lava Top для оплаты"
         
         # Отправляем уведомление всем администраторам
         for admin_id in ADMIN_IDS:
@@ -529,22 +526,12 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
             except Exception as e:
                 print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
         
-        # Отправляем пользователю ссылку на оплату
-        payment_message = f"💳 <b>Переход к оплате</b>\n\n"
-        payment_message += f"Тариф: <b>{payment_data.get('tariff', 'Не указан')}</b>\n"
-        payment_message += f"Сумма: <b>{payment_data.get('price', 'Не указана')} RUB</b>\n\n"
-        payment_message += "Нажмите кнопку ниже для перехода к оплате:"
-        
-        # Создаем клавиатуру с кнопкой оплаты
-        keyboard = [
-            [InlineKeyboardButton("💳 Перейти к оплате", url=payment_url)]
-        ]
-        markup = InlineKeyboardMarkup(keyboard)
-        
+        # Отправляем подтверждение пользователю
         await update.message.reply_text(
-            payment_message,
-            parse_mode='HTML',
-            reply_markup=markup
+            "✅ <b>Заявка принята!</b>\n\n"
+            "Вы были перенаправлены на страницу оплаты Lava Top.\n"
+            "После успешной оплаты вы получите доступ к закрытому каналу.",
+            parse_mode='HTML'
         )
         
     except Exception as e:

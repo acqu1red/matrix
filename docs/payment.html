@@ -951,13 +951,24 @@ function processPayment() {
   // Send data to Telegram bot
   tg.sendData(JSON.stringify(paymentData));
   
-  // Show processing message
-  tg.showAlert('Обрабатываем вашу заявку...');
+  // Build Lava Top URL with parameters
+  const lavaTopUrl = 'https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09';
+  const urlWithParams = new URL(lavaTopUrl);
   
-  // Close the WebApp after a short delay
+  // Add tariff information to URL parameters
+  urlWithParams.searchParams.set('currency', 'EUR');
+  urlWithParams.searchParams.set('tariff', paymentState.selectedTariff);
+  urlWithParams.searchParams.set('price_rub', paymentState.prices[paymentState.selectedTariff]);
+  urlWithParams.searchParams.set('email', paymentState.userEmail);
+  urlWithParams.searchParams.set('user_id', paymentData.userId);
+  
+  // Show success message and redirect
+  tg.showAlert('Перенаправляем на страницу оплаты...');
+  
+  // Open Lava Top payment page
   setTimeout(() => {
-    tg.close();
-  }, 1500);
+    tg.openTelegramLink(urlWithParams.toString());
+  }, 1000);
 }
 
 // Handle back button
