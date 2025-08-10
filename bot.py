@@ -16,14 +16,14 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Список username администраторов
 ADMIN_USERNAMES = [
-    "acqu1red",
-    "cashm3thod",
+    "acqu1red",  # Работающий администратор
+    # "cashm3thod",  # Не работает
 ]
 
 # Список ID администраторов (для проверки прав)
 ADMIN_IDS = [
-    708907063,  # Замените на реальные ID администраторов
-    7365307696,
+    708907063,  # Работающий администратор
+    # 7365307696,  # Не работает - не начал диалог с ботом
 ]
 
 # ---------- Admin notification functions ----------
