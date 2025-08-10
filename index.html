@@ -67,20 +67,19 @@
 
   /* Admin panel button */
   .admin-panel-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
     background: linear-gradient(135deg, #d6c7b8, #f0eadf);
     color: #121212;
     border: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 12px;
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(214, 199, 184, 0.3);
     animation: pulse 2s infinite;
+    width: 100%;
+    margin: 0 16px;
   }
   
   .admin-panel-btn:hover {
@@ -96,6 +95,19 @@
     0% { box-shadow: 0 2px 8px rgba(214, 199, 184, 0.3); }
     50% { box-shadow: 0 2px 8px rgba(214, 199, 184, 0.6); }
     100% { box-shadow: 0 2px 8px rgba(214, 199, 184, 0.3); }
+  }
+
+  /* Admin footer area */
+  .admin-footer {
+    display: none;
+    background: #1f1f1f;
+    padding: 16px 0;
+    border-top: 1px solid #333;
+    flex-shrink: 0;
+  }
+
+  .admin-footer.active {
+    display: block;
   }
 
   /* Main content area */
@@ -207,7 +219,7 @@
     padding: 14px 20px;
     border-radius: 16px 16px 16px 6px;
     max-width: 70%;
-    box-shadow: 0 5px 15px rgb(240 234 223 / 0.45);
+    box-shadow: 0 5px 15px rgb(240 234 223 / 0.45), 0 0 20px rgba(240, 234, 223, 0.3);
     font-size: 1rem;
     line-height: 1.4;
     animation: slideInLeft 0.3s ease forwards;
@@ -234,9 +246,19 @@
   .msg .bubble { max-width: 82%; padding: 10px 12px; border-radius: 14px; }
   .msg .meta { font-size: 12px; color: #a6a8ad; }
   .msg-out { justify-items: start; }
-  .msg-out .bubble { background: rgba(240, 234, 223, 0.12); color: #f0eadf; border: 1px solid rgba(240, 234, 223, 0.35); }
+  .msg-out .bubble { 
+    background: #f0eadf; 
+    color: #121212; 
+    border: none;
+    box-shadow: 0 5px 15px rgb(240 234 223 / 0.45), 0 0 20px rgba(240, 234, 223, 0.3);
+  }
   .msg-in { justify-items: end; }
-  .msg-in .bubble { background: transparent; border: 2px solid #d6c7b8; color: #f0eadf; }
+  .msg-in .bubble { 
+    background: transparent; 
+    border: 2px solid #d6c7b8; 
+    color: #f0eadf;
+    box-shadow: none;
+  }
 
   @keyframes slideInLeft {
     from {
@@ -400,7 +422,7 @@
 <body>
 <header>
   <h1>
-    Администратор канала
+    Чат поддержки - Формула
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
@@ -412,17 +434,8 @@
       role="img"
     >
       <polygon points="12 1.5 16.5 8.5 23 9.5 18.5 15 19.5 22.5 12 18.5 4.5 22.5 5.5 15 1 9.5 7.5 8.5" />
-      <path
-        d="M8 12.5l3 3 5-6"
-        stroke="#121212"
-        stroke-width="2.5"
-        style="transform-origin: center; transform-box: fill-box; transform: scale(0.84) translate(2.0px, 0.8px);"
-      />
     </svg>
   </h1>
-  <button class="admin-panel-btn hidden" id="adminPanelBtn">
-    👤 Панель администратора
-  </button>
 </header>
 
 <main id="mainContent">
@@ -484,6 +497,13 @@
     </svg>
   </button>
 </footer>
+
+<!-- Админ footer для кнопки панели администратора -->
+<div class="admin-footer" id="adminFooter">
+  <button class="admin-panel-btn hidden" id="adminPanelBtn">
+    👤 Панель администратора
+  </button>
+</div>
 
 <script type="module" src="script.js"></script>
 </body>

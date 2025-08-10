@@ -102,6 +102,7 @@ async function checkAdminRights() {
         
         if (isAdmin) {
             adminPanelBtn.classList.remove('hidden');
+            document.getElementById('adminFooter').classList.add('active');
         }
     } catch (error) {
         console.error('Ошибка при проверке прав админа:', error);
@@ -528,6 +529,11 @@ function showChat() {
     chat.style.display = 'flex';
     userFooter.style.display = 'flex';
     document.querySelector('.conversation-dialog footer').style.display = 'none';
+    
+    // Показываем админ footer только если пользователь админ
+    if (isAdmin) {
+        document.getElementById('adminFooter').classList.add('active');
+    }
 }
 
 function showAdminPanel() {
@@ -538,6 +544,7 @@ function showAdminPanel() {
     conversationDialog.classList.remove('active');
     adminPanel.classList.add('active');
     userFooter.style.display = 'none';
+    document.getElementById('adminFooter').classList.remove('active');
     document.querySelector('.conversation-dialog footer').style.display = 'none';
     
     loadAdminConversations();
@@ -551,6 +558,7 @@ function showConversationDialog() {
     adminPanel.classList.remove('active');
     conversationDialog.classList.add('active');
     userFooter.style.display = 'none';
+    document.getElementById('adminFooter').classList.remove('active');
     document.querySelector('.conversation-dialog footer').style.display = 'flex';
 }
 
