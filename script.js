@@ -299,6 +299,7 @@ async function loadAdminConversations() {
             .rpc('get_admin_conversations');
             
         console.log('RPC результат:', { data, error });
+        console.log('Данные диалогов:', data);
         
         if (error) {
             console.error('RPC ошибка:', error);
@@ -323,6 +324,13 @@ async function loadAdminConversations() {
         }
         
         console.log('Диалоги загружены:', data);
+        
+        // Проверяем структуру данных
+        if (data && data.length > 0) {
+            console.log('Первый диалог:', data[0]);
+            console.log('Поля первого диалога:', Object.keys(data[0]));
+        }
+        
         renderConversationsList(data);
         
     } catch (error) {
@@ -355,15 +363,20 @@ async function loadAdminStats() {
 
 // Отображение списка диалогов
 function renderConversationsList(conversations) {
+    console.log('renderConversationsList вызвана с:', conversations);
+    
     if (!conversations || conversations.length === 0) {
+        console.log('Нет диалогов для отображения');
         conversationsList.innerHTML = '<div class="loading">Нет активных диалогов</div>';
         return;
     }
     
     const html = conversations.map(conv => {
+        console.log('Обрабатываем диалог:', conv);
+        
         // Используем username из базы данных (уже обработанный в SQL)
-        const username = conv.username;
-        const lastMessage = conv.last_message;
+        const username = conv.username || 'Неизвестный пользователь';
+        const lastMessage = conv.last_message || 'Нет сообщений';
         const messageCount = conv.message_count || 0;
         const date = new Date(conv.last_message_at).toLocaleDateString('ru-RU');
         const time = new Date(conv.last_message_at).toLocaleTimeString('ru-RU', { 
@@ -377,6 +390,16 @@ function renderConversationsList(conversations) {
         // Определяем статус диалога
         const statusClass = conv.status === 'open' ? 'pending' : 
                            conv.status === 'in_progress' ? '' : 'closed';
+        
+        console.log('Данные для отображения:', {
+            username,
+            lastMessage,
+            messageCount,
+            date,
+            time,
+            avatarText,
+            statusClass
+        });
         
         return `
             <div class="conversation-item" data-conversation-id="${conv.id}" data-user-id="${conv.user_id}">
@@ -397,6 +420,7 @@ function renderConversationsList(conversations) {
         `;
     }).join('');
     
+    console.log('Сгенерированный HTML:', html);
     conversationsList.innerHTML = html;
     
     // Добавляем обработчики клика
