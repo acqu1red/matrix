@@ -639,7 +639,7 @@ async function openConversationDialog(conversationId, userId) {
         
         try {
             const result = await supabaseClient
-                .rpc('get_conversation_messages', { conv_id: parseInt(conversationId) });
+                .rpc('get_conversation_messages', { conv_id: conversationId });
             messages = result.data;
             messagesError = result.error;
         } catch (error) {
@@ -656,7 +656,7 @@ async function openConversationDialog(conversationId, userId) {
                 const { data: altMessages, error: altError } = await supabaseClient
                     .from('messages')
                     .select('*')
-                    .eq('conversation_id', parseInt(conversationId))
+                    .eq('conversation_id', conversationId)
                     .order('created_at', { ascending: true });
                 
                 if (altError) {
