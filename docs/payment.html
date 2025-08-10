@@ -515,6 +515,18 @@
     transform: translateY(0);
   }
 
+  /* Link button styles */
+  .btn[href] {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn[href]:hover {
+    text-decoration: none;
+  }
+
   /* Progress indicator */
   .progress-bar {
     display: flex;
@@ -768,7 +780,7 @@
       </div>
 
       <div class="button-group">
-        <button class="btn btn-primary" onclick="processPayment()">Оплатить</button>
+        <button class="btn btn-primary" onclick="generatePaymentLink()">Оплатить</button>
         <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
       </div>
     </div>
@@ -928,7 +940,7 @@ function updateProgressBar(step) {
   });
 }
 
-function processPayment() {
+function generatePaymentLink() {
   // Validate all required fields
   if (!paymentState.selectedTariff || !paymentState.selectedPaymentMethod || 
       !paymentState.selectedBank || !paymentState.userEmail) {
@@ -962,13 +974,36 @@ function processPayment() {
   urlWithParams.searchParams.set('email', paymentState.userEmail);
   urlWithParams.searchParams.set('user_id', paymentData.userId);
   
-  // Show success message and redirect
-  tg.showAlert('Перенаправляем на страницу оплаты...');
+  // Replace the button with a link button
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <a href="${urlWithParams.toString()}" target="_blank" class="btn btn-primary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+      💳 Перейти к оплате
+    </a>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
   
-  // Open Lava Top payment page
-  setTimeout(() => {
-    tg.openTelegramLink(urlWithParams.toString());
-  }, 1000);
+  // Show success message
+  const successMessage = document.createElement('div');
+  successMessage.className = 'content-block';
+  successMessage.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+  successMessage.style.borderColor = '#4CAF50';
+  successMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ✅ <strong>Данные подтверждены!</strong><br>
+      Нажмите кнопку "Перейти к оплате" для завершения покупки
+    </div>
+  `;
+  
+  // Insert success message before button group
+  const step4 = document.getElementById('step4');
+  const existingSuccess = step4.querySelector('.success-message');
+  if (existingSuccess) {
+    existingSuccess.remove();
+  }
+  
+  successMessage.classList.add('success-message');
+  buttonGroup.parentNode.insertBefore(successMessage, buttonGroup);
 }
 
 // Handle back button
