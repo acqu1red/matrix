@@ -14,7 +14,13 @@ SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Список ID администраторов (замените на реальные ID)
+# Список username администраторов
+ADMIN_USERNAMES = [
+    "acqu1red",
+    "cashm3thod",
+]
+
+# Список ID администраторов (для проверки прав)
 ADMIN_IDS = [
     708907063,  # Замените на реальные ID администраторов
     7365307696,
@@ -78,7 +84,7 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         return
     
     # Если это обычный пользователь (не администратор), отправляем уведомление администраторам
-    if user.id not in ADMIN_IDS:
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
         print(f"📨 Отправляем уведомление администраторам о сообщении от пользователя {user.id}")
         
         # Формируем информацию о пользователе
@@ -123,19 +129,31 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         ]
         markup = InlineKeyboardMarkup(keyboard)
         
-        # Отправляем уведомление всем администраторам
-        for admin_id in ADMIN_IDS:
+        # Отправляем уведомление всем администраторам по username
+        for admin_username in ADMIN_USERNAMES:
             try:
-                print(f"📤 Отправляем уведомление администратору {admin_id}")
+                print(f"📤 Отправляем уведомление администратору @{admin_username}")
                 await context.bot.send_message(
-                    chat_id=admin_id,
+                    chat_id=f"@{admin_username}",
                     text=message_text,
                     parse_mode='HTML',
                     reply_markup=markup
                 )
-                print(f"✅ Уведомление успешно отправлено администратору {admin_id}")
+                print(f"✅ Уведомление успешно отправлено администратору @{admin_username}")
             except Exception as e:
-                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
+                print(f"❌ Ошибка отправки уведомления администратору @{admin_username}: {e}")
+                # Попробуем отправить без @
+                try:
+                    print(f"📤 Пробуем отправить без @ администратору {admin_username}")
+                    await context.bot.send_message(
+                        chat_id=admin_username,
+                        text=message_text,
+                        parse_mode='HTML',
+                        reply_markup=markup
+                    )
+                    print(f"✅ Уведомление успешно отправлено администратору {admin_username}")
+                except Exception as e2:
+                    print(f"❌ Ошибка отправки уведомления администратору {admin_username}: {e2}")
     else:
         print(f"👨‍💼 Сообщение от администратора {user.id} - уведомления не отправляем")
 
@@ -144,7 +162,7 @@ async def cancel_reply(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     
     # Проверяем, является ли пользователь администратором
-    if user.id not in ADMIN_IDS:
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
         return
     
     # Очищаем состояние
@@ -291,7 +309,7 @@ async def handle_admin_reply(update: Update, context: CallbackContext, user_id: 
     admin_user = update.effective_user
     
     # Проверяем, является ли пользователь администратором
-    if admin_user.id not in ADMIN_IDS:
+    if admin_user.id not in ADMIN_IDS and (admin_user.username is None or admin_user.username not in ADMIN_USERNAMES):
         await query.answer("У вас нет прав для выполнения этого действия!")
         return
     
@@ -314,7 +332,8 @@ async def handle_admin_reply(update: Update, context: CallbackContext, user_id: 
 # Main function to start the bot
 def main() -> None:
     print("🚀 Запуск бота...")
-    print(f"👥 Администраторы: {ADMIN_IDS}")
+    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
+    print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
     application = ApplicationBuilder().token("8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo").build()
 
