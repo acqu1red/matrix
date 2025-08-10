@@ -1,238 +1,78 @@
--- Полный код для создания всех таблиц с нуля
--- Выполните в Supabase SQL Editor
-
-SET search_path TO public;
-CREATE EXTENSION IF NOT EXISTS "pgcrypt";
+-- Создание таблиц для Telegram бота с максимально открытой политикой
 
 -- Таблица пользователей
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
     telegram_id BIGINT UNIQUE NOT NULL,
     username VARCHAR(255),
     first_name VARCHAR(255),
     last_name VARCHAR(255),
-    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_active BOOLEAN DEFAULT TRUE,
+    is_admin BOOLEAN DEFAULT FALSE,
+    subscription_status VARCHAR(50) DEFAULT 'free',
+    subscription_expires_at TIMESTAMP WITH TIME ZONE
 );
 
--- Таблица диалогов/чатов
-CREATE TABLE conversations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id BIGINT NOT NULL REFERENCES users(telegram_id),
-    admin_id BIGINT REFERENCES users(telegram_id),
-    status VARCHAR(50) DEFAULT 'open', -- open, closed, pending
-    last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+-- Таблица диалогов
+CREATE TABLE IF NOT EXISTS conversations (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'open',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Таблица сообщений
-CREATE TABLE messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    sender_id BIGINT NOT NULL REFERENCES users(telegram_id),
-    content TEXT NOT NULL,
-    message_type VARCHAR(50) DEFAULT 'text', -- text, file, image
-    file_url TEXT,
-    file_name TEXT,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender_id BIGINT NOT NULL,
+    content TEXT,
+    message_type VARCHAR(50) DEFAULT 'text',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_from_admin BOOLEAN DEFAULT FALSE
+);
+
+-- Таблица платежей
+CREATE TABLE IF NOT EXISTS payments (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'RUB',
+    payment_method VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'pending',
+    subscription_duration INTEGER, -- в месяцах
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Таблица администраторов (для дополнительной безопасности)
+CREATE TABLE IF NOT EXISTS admins (
+    id SERIAL PRIMARY KEY,
+    telegram_id BIGINT UNIQUE NOT NULL,
+    username VARCHAR(255),
+    role VARCHAR(50) DEFAULT 'admin',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 -- Индексы для оптимизации
-CREATE INDEX idx_conversations_user_id ON conversations(user_id);
-CREATE INDEX idx_conversations_admin_id ON conversations(admin_id);
-CREATE INDEX idx_conversations_status ON conversations(status);
-CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
-CREATE INDEX idx_messages_created_at ON messages(created_at);
-CREATE INDEX idx_users_telegram_id ON users(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
+CREATE INDEX IF NOT EXISTS idx_admins_telegram_id ON admins(telegram_id);
 
--- Функция для обновления updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+-- Вставка администраторов
+INSERT INTO admins (telegram_id, username, role) VALUES 
+(708907063, 'admin1', 'admin'),
+(7365307696, 'admin2', 'admin')
+ON CONFLICT (telegram_id) DO NOTHING;
 
--- Триггеры для автообновления updated_at
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON conversations
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Функция для обновления last_message_at в conversations
-CREATE OR REPLACE FUNCTION update_conversation_last_message()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE conversations 
-    SET last_message_at = NEW.created_at
-    WHERE id = NEW.conversation_id;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Триггер для обновления времени последнего сообщения
-CREATE TRIGGER update_last_message_trigger AFTER INSERT ON messages
-    FOR EACH ROW EXECUTE FUNCTION update_conversation_last_message();
-
--- RLS (Row Level Security) политики
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-
--- Политики для users - любой может читать, создавать и обновлять
-CREATE POLICY "users_select_policy" ON users
-    FOR SELECT TO anon, authenticated USING (true);
-
-CREATE POLICY "users_insert_policy" ON users
-    FOR INSERT TO anon, authenticated WITH CHECK (true);
-
-CREATE POLICY "users_update_policy" ON users
-    FOR UPDATE TO anon, authenticated USING (true);
-
--- Политики для conversations - любой может читать, создавать и обновлять
-CREATE POLICY "conversations_select_policy" ON conversations
-    FOR SELECT TO anon, authenticated USING (true);
-
-CREATE POLICY "conversations_insert_policy" ON conversations
-    FOR INSERT TO anon, authenticated WITH CHECK (true);
-
-CREATE POLICY "conversations_update_policy" ON conversations
-    FOR UPDATE TO anon, authenticated USING (true);
-
--- Политики для messages - любой может читать, создавать и обновлять
-CREATE POLICY "messages_select_policy" ON messages
-    FOR SELECT TO anon, authenticated USING (true);
-
-CREATE POLICY "messages_insert_policy" ON messages
-    FOR INSERT TO anon, authenticated WITH CHECK (true);
-
-CREATE POLICY "messages_update_policy" ON messages
-    FOR UPDATE TO anon, authenticated USING (true);
-
--- Права на таблицы
-GRANT SELECT, INSERT, UPDATE ON users TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE ON conversations TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE ON messages TO anon, authenticated;
-
--- Права на sequence (если используется BIGSERIAL)
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
-
--- Функция для получения диалогов администратором
-CREATE OR REPLACE FUNCTION get_admin_conversations()
-RETURNS TABLE (
-    id UUID,
-    user_id BIGINT,
-    username VARCHAR(255),
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    status VARCHAR(50),
-    last_message_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE,
-    message_count BIGINT,
-    last_message TEXT
-) 
-SECURITY INVOKER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        c.id,
-        c.user_id,
-        COALESCE(u.username, u.first_name, CONCAT('Пользователь #', u.telegram_id)) as username,
-        u.first_name,
-        u.last_name,
-        c.status,
-        COALESCE(c.last_message_at, c.created_at) as last_message_at,
-        c.created_at,
-        (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) as message_count,
-        COALESCE(
-            (SELECT content FROM messages m WHERE m.conversation_id = c.id ORDER BY created_at DESC LIMIT 1),
-            'Нет сообщений'
-        ) as last_message
-    FROM conversations c
-    JOIN users u ON c.user_id = u.telegram_id
-    ORDER BY COALESCE(c.last_message_at, c.created_at) DESC;
-END;
-$$;
-
--- Функция для получения сообщений с информацией о пользователях
-CREATE OR REPLACE FUNCTION get_conversation_messages(conv_id UUID)
-RETURNS TABLE (
-    id UUID,
-    conversation_id UUID,
-    sender_id BIGINT,
-    sender_username VARCHAR(255),
-    sender_first_name VARCHAR(255),
-    sender_is_admin BOOLEAN,
-    content TEXT,
-    message_type VARCHAR(50),
-    file_url TEXT,
-    file_name TEXT,
-    is_read BOOLEAN,
-    created_at TIMESTAMP WITH TIME ZONE
-)
-SECURITY INVOKER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        m.id,
-        m.conversation_id,
-        m.sender_id,
-        u.username as sender_username,
-        u.first_name as sender_first_name,
-        u.is_admin as sender_is_admin,
-        m.content,
-        m.message_type,
-        m.file_url,
-        m.file_name,
-        m.is_read,
-        m.created_at
-    FROM messages m
-    JOIN users u ON m.sender_id = u.telegram_id
-    WHERE m.conversation_id = conv_id
-    ORDER BY m.created_at ASC;
-END;
-$$;
-
--- Функция для проверки прав администратора
-CREATE OR REPLACE FUNCTION is_admin(user_telegram_id BIGINT)
-RETURNS BOOLEAN
-SECURITY INVOKER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    admin_status BOOLEAN := FALSE;
-BEGIN
-    SELECT is_admin INTO admin_status
-    FROM users 
-    WHERE telegram_id = user_telegram_id;
-    
-    RETURN COALESCE(admin_status, FALSE);
-END;
-$$;
-
--- Предоставляем права на выполнение функций для анонимного пользователя
-GRANT EXECUTE ON FUNCTION get_admin_conversations() TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION get_conversation_messages(UUID) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION is_admin(BIGINT) TO anon, authenticated;
-
--- Вставка администратора (замените 708907063 на ваш Telegram ID)
-INSERT INTO users (telegram_id, username, first_name, is_admin) 
-VALUES (708907063, 'admin', 'Администратор', TRUE)
-ON CONFLICT (telegram_id) DO UPDATE SET is_admin = TRUE;
-
--- Проверяем создание таблиц
-SELECT 'Tables created successfully!' as status;
-SELECT 'users' as table_name, COUNT(*) as row_count FROM users
-UNION ALL
-SELECT 'conversations' as table_name, COUNT(*) as row_count FROM conversations
-UNION ALL
-SELECT 'messages' as table_name, COUNT(*) as row_count FROM messages;
+-- Обновление пользователей-администраторов
+UPDATE users SET is_admin = TRUE WHERE telegram_id IN (708907063, 7365307696);
