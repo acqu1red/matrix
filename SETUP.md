@@ -25,25 +25,19 @@
 2. Выберите ваш проект: `https://uhhsrtmmuwoxsdquimaa.supabase.co`
 3. Перейдите в SQL Editor
 
-**Выполните в такой последовательности:**
+**Выполните один файл:**
 
-#### 1.1. Создайте основную схему:
 ```sql
--- Скопируйте и выполните весь код из файла supabase_schema.sql
+-- Скопируйте и выполните весь код из файла create_tables.sql
 ```
 
-#### 1.2. Исправьте безопасность:
-```sql
--- Скопируйте и выполните весь код из файла supabase_security_fix.sql
-```
-
-**ВАЖНО:** В файле `supabase_security_fix.sql` найдите строку:
+**ВАЖНО:** В файле `create_tables.sql` найдите строку:
 ```sql
 INSERT INTO users (telegram_id, username, first_name, is_admin) 
-VALUES (123456789, 'admin_username', 'Администратор', TRUE)
+VALUES (708907063, 'admin', 'Администратор', TRUE)
 ```
 
-Замените `123456789` на ваш Telegram ID, а `admin_username` на ваш username.
+Замените `708907063` на ваш Telegram ID.
 
 ### Шаг 2: Получение вашего Telegram ID
 
@@ -122,6 +116,5 @@ python bot.py
 - Убедитесь, что бот запущен и работает
 
 ### Появляется предупреждение о безопасности:
-- Это нормально после выполнения `supabase_security_fix.sql`
-- Функции используют `SECURITY INVOKER` для безопасности
-- Представления заменены на безопасные функции
+- Это нормально - функции используют `SECURITY INVOKER` для безопасности
+- Все политики уже настроены в `create_tables.sql`
