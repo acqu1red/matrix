@@ -747,6 +747,8 @@ function showChat() {
 function showAdminPanel() {
     if (!isAdmin) return;
     
+    console.log('showAdminPanel вызвана');
+    
     currentView = 'admin';
     chat.style.display = 'none';
     conversationDialog.classList.remove('active');
@@ -755,23 +757,44 @@ function showAdminPanel() {
     document.getElementById('adminFooter').classList.remove('active');
     document.querySelector('.conversation-dialog footer').style.display = 'none';
     
-    // Добавляем обработчики фильтров после того, как панель стала видимой
+    // Проверяем, что элементы фильтров существуют
     setTimeout(() => {
         const filterAll = document.getElementById('filterAll');
         const filterPending = document.getElementById('filterPending');
         const filterMessages = document.getElementById('filterMessages');
         
-        // Удаляем старые обработчики, если они есть
-        filterAll?.removeEventListener('click', () => setFilter('all'));
-        filterPending?.removeEventListener('click', () => setFilter('pending'));
-        filterMessages?.removeEventListener('click', () => setFilter('messages'));
+        console.log('Элементы фильтров:', {
+            filterAll: !!filterAll,
+            filterPending: !!filterPending,
+            filterMessages: !!filterMessages
+        });
         
-        // Добавляем новые обработчики
-        filterAll?.addEventListener('click', () => setFilter('all'));
-        filterPending?.addEventListener('click', () => setFilter('pending'));
-        filterMessages?.addEventListener('click', () => setFilter('messages'));
-        
-        console.log('Обработчики фильтров добавлены');
+        if (filterAll && filterPending && filterMessages) {
+            console.log('Все элементы фильтров найдены, добавляем обработчики');
+            
+            // Удаляем старые обработчики, если они есть
+            filterAll.removeEventListener('click', () => setFilter('all'));
+            filterPending.removeEventListener('click', () => setFilter('pending'));
+            filterMessages.removeEventListener('click', () => setFilter('messages'));
+            
+            // Добавляем новые обработчики
+            filterAll.addEventListener('click', () => {
+                console.log('Клик по filterAll (прямой обработчик)');
+                setFilter('all');
+            });
+            filterPending.addEventListener('click', () => {
+                console.log('Клик по filterPending (прямой обработчик)');
+                setFilter('pending');
+            });
+            filterMessages.addEventListener('click', () => {
+                console.log('Клик по filterMessages (прямой обработчик)');
+                setFilter('messages');
+            });
+            
+            console.log('Прямые обработчики фильтров добавлены');
+        } else {
+            console.error('Не все элементы фильтров найдены!');
+        }
     }, 100);
     
     loadAdminConversations();

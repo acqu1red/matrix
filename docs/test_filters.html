@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест фильтров</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #f0eadf;
+            padding: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 16px;
+            background: #1f1f1f;
+            border: 2px solid transparent;
+        }
+        
+        .stat-item.clickable:hover {
+            background: rgba(214, 199, 184, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .stat-item.clickable.active {
+            background: rgba(214, 199, 184, 0.2);
+            border: 2px solid #d6c7b8;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #d6c7b8;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #a6a8ad;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        #log {
+            background: #1f1f1f;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест фильтров админ-панели</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-item clickable" id="filterAll" data-filter="all">
+            <div class="stat-number">10</div>
+            <div class="stat-label">Всего диалогов</div>
+        </div>
+        <div class="stat-item clickable active" id="filterPending" data-filter="pending">
+            <div class="stat-number">5</div>
+            <div class="stat-label">Ожидают ответа</div>
+        </div>
+        <div class="stat-item clickable" id="filterMessages" data-filter="messages">
+            <div class="stat-number">25</div>
+            <div class="stat-label">Всего сообщений</div>
+        </div>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        function log(message) {
+            const logElement = document.getElementById('log');
+            logElement.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function setFilter(filter) {
+            log('setFilter вызвана с фильтром: ' + filter);
+            
+            // Обновляем активный класс
+            document.querySelectorAll('.stat-item.clickable').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const activeElement = document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
+            if (activeElement) {
+                activeElement.classList.add('active');
+                log('Активный элемент обновлен: ' + activeElement.id);
+            }
+        }
+        
+        // Делегирование событий для фильтров
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#filterAll')) {
+                log('Клик по filterAll');
+                setFilter('all');
+            } else if (e.target.closest('#filterPending')) {
+                log('Клик по filterPending');
+                setFilter('pending');
+            } else if (e.target.closest('#filterMessages')) {
+                log('Клик по filterMessages');
+                setFilter('messages');
+            }
+        });
+        
+        log('Скрипт загружен, обработчики добавлены');
+    </script>
+</body>
+</html>
