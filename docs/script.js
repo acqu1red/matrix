@@ -39,6 +39,14 @@ let currentUserId = null;
 let currentFilter = 'pending'; // 'all', 'pending', 'messages'
 let allConversations = []; // Кэш всех диалогов
 
+// Новые переменные для пагинации
+let messagePage = 0;
+let messagesPerPage = 20;
+let hasMoreMessages = true;
+let isLoadingMessages = false;
+let allMessages = []; // Кэш всех сообщений для текущего диалога
+let isScrolledToBottom = true;
+
 // Инициализация приложения
 async function initApp() {
     if (tg) {
@@ -67,6 +75,10 @@ async function initApp() {
     }
     
     setupEventListeners();
+    setupScrollTracking();
+    
+    // Запускаем автоматическое обновление сообщений
+    startMessagePolling();
 }
 
 // Создание или получение пользователя
@@ -210,7 +222,11 @@ async function sendMessage() {
     inputContainer.classList.add('loading-shimmer');
     
     // Сразу отображаем сообщение для мгновенной обратной связи
-    appendMessage({ text, inbound: false });
+    const timestamp = new Date().toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    appendMessage({ text, inbound: false, timestamp });
     messageInput.value = '';
     
     try {
@@ -246,29 +262,15 @@ async function sendMessage() {
         
         console.log('Сообщение успешно отправлено:', data);
         
-        // Отправляем уведомление администраторам через webhook API
-        try {
-            const webhookResponse = await fetch('http://localhost:5000/webhook/notify_admins', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: currentUserId,
-                    message_content: text,
-                    conversation_id: conversationId
-                })
-            });
-            
-            const webhookResult = await webhookResponse.json();
-            if (webhookResult.success) {
-                console.log('✅ Уведомление администраторам отправлено:', webhookResult);
-            } else {
-                console.error('❌ Ошибка отправки уведомления администраторам:', webhookResult);
-            }
-        } catch (webhookError) {
-            console.error('❌ Ошибка webhook API:', webhookError);
-        }
+        // Добавляем сообщение в кэш
+        const newMessage = {
+            id: data.id,
+            content: text,
+            sender_id: currentUserId,
+            message_type: 'text',
+            created_at: new Date().toISOString()
+        };
+        allMessages.push(newMessage);
         
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
@@ -909,25 +911,412 @@ function showConversationDialog() {
 // Загрузка диалога пользователя по ID
 async function loadUserConversation(conversationId) {
     try {
-        const { data: messages, error } = await supabaseClient
-            .rpc('get_conversation_messages', { conv_id: conversationId });
-            
-        if (error) throw error;
+        // Сбрасываем состояние пагинации
+        messagePage = 0;
+        hasMoreMessages = true;
+        allMessages = [];
         
-        // Отображаем сообщения
-        chat.innerHTML = '';
-        messages.forEach(message => {
-            appendMessage({
-                text: message.content,
-                inbound: message.sender_is_admin
-            });
-        });
+        // Загружаем первые сообщения
+        await loadMessagesWithPagination(conversationId);
         
         currentConversationId = conversationId;
         
     } catch (error) {
         console.error('Ошибка при загрузке диалога пользователя:', error);
     }
+}
+
+// Загрузка сообщений с пагинацией
+async function loadMessagesWithPagination(conversationId, loadMore = false) {
+    if (isLoadingMessages) return;
+    
+    isLoadingMessages = true;
+    
+    try {
+        // Показываем индикатор загрузки
+        if (loadMore) {
+            showLoadMoreIndicator();
+        }
+        
+        // Получаем сообщения с пагинацией
+        const { data: messages, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .eq('conversation_id', conversationId)
+            .order('created_at', { ascending: false })
+            .range(messagePage * messagesPerPage, (messagePage + 1) * messagesPerPage - 1);
+            
+        if (error) throw error;
+        
+        // Проверяем, есть ли еще сообщения
+        hasMoreMessages = messages.length === messagesPerPage;
+        
+        // Добавляем новые сообщения в кэш
+        if (loadMore) {
+            // При загрузке "еще" добавляем в начало
+            allMessages = [...messages.reverse(), ...allMessages];
+        } else {
+            // При первой загрузке или обновлении
+            allMessages = messages.reverse();
+        }
+        
+        // Отображаем сообщения
+        if (loadMore) {
+            // При загрузке "еще" добавляем в начало чата
+            prependMessages(messages.reverse());
+        } else {
+            // При первой загрузке заменяем все
+            renderMessages(allMessages);
+        }
+        
+        // Обновляем счетчик страниц
+        if (loadMore) {
+            messagePage++;
+        }
+        
+        // Показываем/скрываем кнопки навигации
+        updateNavigationButtons();
+        
+    } catch (error) {
+        console.error('Ошибка при загрузке сообщений:', error);
+        showError('Не удалось загрузить сообщения');
+    } finally {
+        isLoadingMessages = false;
+        hideLoadMoreIndicator();
+    }
+}
+
+// Загрузка новых сообщений (для обновления)
+async function loadNewMessages(conversationId) {
+    if (!allMessages.length) return;
+    
+    try {
+        const lastMessageTime = allMessages[allMessages.length - 1].created_at;
+        
+        const { data: newMessages, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .eq('conversation_id', conversationId)
+            .gt('created_at', lastMessageTime)
+            .order('created_at', { ascending: true });
+            
+        if (error) throw error;
+        
+        if (newMessages.length > 0) {
+            // Добавляем новые сообщения в конец
+            allMessages = [...allMessages, ...newMessages];
+            
+            // Отображаем новые сообщения
+            appendNewMessages(newMessages);
+            
+            // Прокручиваем к новым сообщениям, если пользователь был внизу
+            if (isScrolledToBottom) {
+                scrollToBottom();
+            } else {
+                // Показываем индикатор новых сообщений
+                showNewMessagesIndicator(newMessages.length);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при загрузке новых сообщений:', error);
+    }
+}
+
+// Отображение сообщений
+function renderMessages(messages) {
+    chat.innerHTML = '';
+    
+    // Добавляем кнопку "Загрузить еще" если есть старые сообщения
+    if (hasMoreMessages) {
+        addLoadMoreButton();
+    }
+    
+    let currentDate = null;
+    
+    messages.forEach(message => {
+        const messageDate = new Date(message.created_at).toDateString();
+        
+        // Добавляем разделитель даты, если дата изменилась
+        if (currentDate !== messageDate) {
+            addDateSeparator(new Date(message.created_at));
+            currentDate = messageDate;
+        }
+        
+        appendMessage({
+            text: message.content,
+            inbound: message.sender_id !== currentUserId,
+            timestamp: new Date(message.created_at).toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            })
+        });
+    });
+    
+    // Прокручиваем вниз
+    scrollToBottom();
+}
+
+// Добавление разделителя даты
+function addDateSeparator(date) {
+    const separator = document.createElement('div');
+    separator.className = 'date-separator';
+    
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    let dateText;
+    if (date.toDateString() === today.toDateString()) {
+        dateText = 'Сегодня';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        dateText = 'Вчера';
+    } else {
+        dateText = date.toLocaleDateString('ru-RU', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+    }
+    
+    separator.innerHTML = `<span>${dateText}</span>`;
+    chat.appendChild(separator);
+}
+
+// Добавление сообщений в начало чата
+function prependMessages(messages) {
+    const loadMoreBtn = chat.querySelector('.load-more-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.remove();
+    }
+    
+    // Сохраняем текущую позицию прокрутки
+    const scrollHeight = chat.scrollHeight;
+    const scrollTop = chat.scrollTop;
+    
+    let currentDate = null;
+    
+    // Добавляем сообщения в начало
+    messages.forEach(message => {
+        const messageDate = new Date(message.created_at).toDateString();
+        
+        // Добавляем разделитель даты, если дата изменилась
+        if (currentDate !== messageDate) {
+            const separator = createDateSeparatorElement(new Date(message.created_at));
+            chat.insertBefore(separator, chat.firstChild);
+            currentDate = messageDate;
+        }
+        
+        const messageElement = createMessageElement({
+            text: message.content,
+            inbound: message.sender_id !== currentUserId,
+            timestamp: new Date(message.created_at).toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            })
+        });
+        
+        chat.insertBefore(messageElement, chat.firstChild);
+    });
+    
+    // Добавляем кнопку "Загрузить еще" если есть еще сообщения
+    if (hasMoreMessages) {
+        addLoadMoreButton();
+    }
+    
+    // Восстанавливаем позицию прокрутки
+    const newScrollHeight = chat.scrollHeight;
+    chat.scrollTop = scrollTop + (newScrollHeight - scrollHeight);
+}
+
+// Создание элемента разделителя даты
+function createDateSeparatorElement(date) {
+    const separator = document.createElement('div');
+    separator.className = 'date-separator';
+    
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    let dateText;
+    if (date.toDateString() === today.toDateString()) {
+        dateText = 'Сегодня';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        dateText = 'Вчера';
+    } else {
+        dateText = date.toLocaleDateString('ru-RU', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+    }
+    
+    separator.innerHTML = `<span>${dateText}</span>`;
+    return separator;
+}
+
+// Добавление новых сообщений в конец
+function appendNewMessages(messages) {
+    messages.forEach(message => {
+        appendMessage({
+            text: message.content,
+            inbound: message.sender_id !== currentUserId,
+            timestamp: new Date(message.created_at).toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            })
+        });
+    });
+}
+
+// Создание элемента сообщения
+function createMessageElement({ text, inbound, timestamp }) {
+    const wrap = el('div', `msg ${inbound ? 'msg-in' : 'msg-out'}`);
+    const bubble = el('div', 'bubble', text);
+    const meta = el('div', 'meta', `${inbound ? 'Администратор' : 'Вы'} • ${timestamp}`);
+    wrap.appendChild(bubble);
+    wrap.appendChild(meta);
+    return wrap;
+}
+
+// Добавление кнопки "Загрузить еще"
+function addLoadMoreButton() {
+    const loadMoreBtn = document.createElement('div');
+    loadMoreBtn.className = 'load-more-btn';
+    loadMoreBtn.innerHTML = `
+        <button onclick="loadMoreMessages()" class="load-more-button">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+            </svg>
+            Загрузить еще сообщения
+        </button>
+    `;
+    chat.insertBefore(loadMoreBtn, chat.firstChild);
+}
+
+// Функция загрузки дополнительных сообщений
+async function loadMoreMessages() {
+    if (currentConversationId) {
+        await loadMessagesWithPagination(currentConversationId, true);
+    }
+}
+
+// Показать индикатор загрузки
+function showLoadMoreIndicator() {
+    const existingIndicator = chat.querySelector('.loading-indicator');
+    if (!existingIndicator) {
+        const indicator = document.createElement('div');
+        indicator.className = 'loading-indicator';
+        indicator.innerHTML = `
+            <div class="loading-spinner">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
+                </svg>
+            </div>
+            <span>Загрузка сообщений...</span>
+        `;
+        chat.insertBefore(indicator, chat.firstChild);
+    }
+}
+
+// Скрыть индикатор загрузки
+function hideLoadMoreIndicator() {
+    const indicator = chat.querySelector('.loading-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+// Обновление кнопок навигации
+function updateNavigationButtons() {
+    const loadMoreBtn = chat.querySelector('.load-more-btn');
+    if (loadMoreBtn) {
+        const button = loadMoreBtn.querySelector('button');
+        if (hasMoreMessages) {
+            button.disabled = false;
+            button.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                    <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                </svg>
+                Загрузить еще сообщения
+            `;
+        } else {
+            button.disabled = true;
+            button.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                    <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                </svg>
+                Больше сообщений нет
+            `;
+        }
+    }
+}
+
+// Прокрутка вниз
+function scrollToBottom() {
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// Отслеживание прокрутки
+function setupScrollTracking() {
+    chat.addEventListener('scroll', () => {
+        const { scrollTop, scrollHeight, clientHeight } = chat;
+        isScrolledToBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    });
+}
+
+// Автоматическое обновление сообщений
+let messagePollingInterval = null;
+
+function startMessagePolling() {
+    // Останавливаем предыдущий интервал, если он есть
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+    }
+    
+    // Запускаем новый интервал
+    messagePollingInterval = setInterval(async () => {
+        if (currentConversationId && currentView === 'chat') {
+            await loadNewMessages(currentConversationId);
+        }
+    }, 3000); // Проверяем каждые 3 секунды
+}
+
+function stopMessagePolling() {
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+        messagePollingInterval = null;
+    }
+}
+
+// Функция для показа индикатора новых сообщений
+function showNewMessagesIndicator(count) {
+    // Удаляем существующий индикатор
+    const existingIndicator = document.querySelector('.new-messages-indicator');
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+    
+    // Создаем новый индикатор
+    const indicator = document.createElement('div');
+    indicator.className = 'new-messages-indicator';
+    indicator.innerHTML = `💬 ${count} новое сообщение${count > 1 ? 'я' : ''}`;
+    
+    // Добавляем обработчик клика
+    indicator.addEventListener('click', () => {
+        scrollToBottom();
+        indicator.remove();
+    });
+    
+    document.body.appendChild(indicator);
+    
+    // Автоматически скрываем через 5 секунд
+    setTimeout(() => {
+        if (indicator.parentNode) {
+            indicator.remove();
+        }
+    }, 5000);
 }
 
 // Обработка прикрепления файлов
@@ -961,14 +1350,25 @@ function el(tag, className, text) {
     return e;
 }
 
-function appendMessage({ text, inbound = false }) {
+function appendMessage({ text, inbound = false, timestamp = null }) {
     const wrap = el('div', `msg ${inbound ? 'msg-in' : 'msg-out'}`);
     const bubble = el('div', 'bubble', text);
-    const meta = el('div', 'meta', inbound ? 'Администратор • сейчас' : 'Вы • сейчас');
+    
+    // Используем переданное время или текущее
+    const timeText = timestamp || new Date().toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    const meta = el('div', 'meta', `${inbound ? 'Администратор' : 'Вы'} • ${timeText}`);
+    
     wrap.appendChild(bubble);
     wrap.appendChild(meta);
     chat.appendChild(wrap);
-    chat.scrollTop = chat.scrollHeight;
+    
+    // Прокручиваем вниз только если пользователь был внизу
+    if (isScrolledToBottom) {
+        chat.scrollTop = chat.scrollHeight;
+    }
 }
 
 // Показ ошибок
