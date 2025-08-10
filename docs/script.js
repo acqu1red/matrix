@@ -138,19 +138,6 @@ function setupEventListeners() {
     backToChat.addEventListener('click', showChat);
     backToAdmin.addEventListener('click', showAdminPanel);
     
-    // Делегирование событий для фильтров (работает независимо от времени загрузки)
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('#filterAll')) {
-            console.log('Клик по filterAll');
-            setFilter('all');
-        } else if (e.target.closest('#filterPending')) {
-            console.log('Клик по filterPending');
-            setFilter('pending');
-        } else if (e.target.closest('#filterMessages')) {
-            console.log('Клик по filterMessages');
-            setFilter('messages');
-        }
-    });
 
     
     // Диалог админа
@@ -176,18 +163,13 @@ function setupEventListeners() {
 
 // Установка фильтра
 function setFilter(filter) {
-    console.log('setFilter вызвана с фильтром:', filter);
     currentFilter = filter;
     
     // Обновляем активный класс
     document.querySelectorAll('.stat-item.clickable').forEach(item => {
         item.classList.remove('active');
     });
-    const activeElement = document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
-    if (activeElement) {
-        activeElement.classList.add('active');
-        console.log('Активный элемент обновлен:', activeElement.id);
-    }
+    document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
     
     // Перерисовываем список с новым фильтром
     renderConversationsList(allConversations);
@@ -747,8 +729,6 @@ function showChat() {
 function showAdminPanel() {
     if (!isAdmin) return;
     
-    console.log('showAdminPanel вызвана');
-    
     currentView = 'admin';
     chat.style.display = 'none';
     conversationDialog.classList.remove('active');
@@ -757,43 +737,22 @@ function showAdminPanel() {
     document.getElementById('adminFooter').classList.remove('active');
     document.querySelector('.conversation-dialog footer').style.display = 'none';
     
-    // Проверяем, что элементы фильтров существуют
+    // Добавляем обработчики фильтров после показа панели
     setTimeout(() => {
         const filterAll = document.getElementById('filterAll');
         const filterPending = document.getElementById('filterPending');
         const filterMessages = document.getElementById('filterMessages');
         
-        console.log('Элементы фильтров:', {
-            filterAll: !!filterAll,
-            filterPending: !!filterPending,
-            filterMessages: !!filterMessages
-        });
-        
         if (filterAll && filterPending && filterMessages) {
-            console.log('Все элементы фильтров найдены, добавляем обработчики');
-            
             // Удаляем старые обработчики, если они есть
             filterAll.removeEventListener('click', () => setFilter('all'));
             filterPending.removeEventListener('click', () => setFilter('pending'));
             filterMessages.removeEventListener('click', () => setFilter('messages'));
             
             // Добавляем новые обработчики
-            filterAll.addEventListener('click', () => {
-                console.log('Клик по filterAll (прямой обработчик)');
-                setFilter('all');
-            });
-            filterPending.addEventListener('click', () => {
-                console.log('Клик по filterPending (прямой обработчик)');
-                setFilter('pending');
-            });
-            filterMessages.addEventListener('click', () => {
-                console.log('Клик по filterMessages (прямой обработчик)');
-                setFilter('messages');
-            });
-            
-            console.log('Прямые обработчики фильтров добавлены');
-        } else {
-            console.error('Не все элементы фильтров найдены!');
+            filterAll.addEventListener('click', () => setFilter('all'));
+            filterPending.addEventListener('click', () => setFilter('pending'));
+            filterMessages.addEventListener('click', () => setFilter('messages'));
         }
     }, 100);
     
