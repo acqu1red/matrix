@@ -172,14 +172,6 @@ async function sendMessage() {
         appendMessage({ text, inbound: false });
         messageInput.value = '';
         
-        // Имитируем ответ админа (для тестирования)
-        setTimeout(() => {
-            appendMessage({ 
-                text: 'Спасибо за сообщение! Администратор ответит вам в ближайшее время.', 
-                inbound: true 
-            });
-        }, 1000);
-        
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
         showError('Не удалось отправить сообщение');
