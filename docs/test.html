@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест GitHub Pages</title>
+    <style>
+        body {
+            background: #121212;
+            color: #f0eadf;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #d6c7b8, #f0eadf);
+            color: #121212;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест GitHub Pages - Обновления работают!</h1>
+    <p>Если вы видите эту страницу, значит GitHub Pages обновился.</p>
+    
+    <button class="test-button">
+        <svg class="test-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+        Тестовая кнопка отправки
+    </button>
+    
+    <button class="test-button">
+        <svg class="test-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+        Тестовая кнопка прикрепления
+    </button>
+    
+    <p>Время последнего обновления: <span id="timestamp"></span></p>
+    
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('ru-RU');
+    </script>
+</body>
+</html>
