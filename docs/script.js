@@ -69,9 +69,14 @@ async function initApp() {
     // Проверяем URL параметры для прямого перехода к диалогу
     const urlParams = new URLSearchParams(window.location.search);
     const conversationId = urlParams.get('conversation');
+    const adminConversationId = urlParams.get('admin_conversation');
+    
     if (conversationId && !isAdmin) {
         // Загружаем конкретный диалог для пользователя
         loadUserConversation(conversationId);
+    } else if (adminConversationId && isAdmin) {
+        // Загружаем диалог для администратора
+        loadAdminConversationDirect(adminConversationId);
     }
     
     setupEventListeners();
@@ -271,6 +276,9 @@ async function sendMessage() {
             created_at: new Date().toISOString()
         };
         allMessages.push(newMessage);
+        
+        // Проверяем, нужно ли отправить уведомление администраторам
+        await checkAndNotifyAdmins(conversationId, text, currentUserId);
         
     } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
@@ -848,6 +856,220 @@ async function notifyUser(conversationId) {
     }
 }
 
+// Уведомление администраторов о новом сообщении пользователя
+async function notifyAdminsNewMessage(conversationId, messageText, userId) {
+    try {
+        // ID администраторов из bot.py
+        const adminIds = [708907063, 7365307696];
+        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
+        
+        // Получаем информацию о пользователе
+        const { data: user, error: userError } = await supabaseClient
+            .from('users')
+            .select('first_name, last_name, username')
+            .eq('telegram_id', userId)
+            .single();
+            
+        if (userError) {
+            console.error('Ошибка при получении информации о пользователе:', userError);
+            return;
+        }
+        
+        const userName = user.first_name || user.username || `Пользователь #${userId}`;
+        const userInfo = user.username ? `@${user.username}` : `ID: ${userId}`;
+        
+        const message = {
+            text: `📨 <b>Новое сообщение от пользователя!</b>\n\n👤 <b>Пользователь:</b> ${userName}\n📝 <b>Сообщение:</b> ${messageText.substring(0, 100)}${messageText.length > 100 ? '...' : ''}\n\n⚠️ <b>Требуется ответ!</b>`,
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [[
+                    {
+                        text: '💬 Ответить',
+                        web_app: {
+                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                        }
+                    }
+                ]]
+            }
+        };
+        
+        // Отправляем уведомление всем администраторам
+        for (const adminId of adminIds) {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...message,
+                        chat_id: adminId
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Уведомление отправлено администратору ${adminId}`);
+                } else {
+                    console.error(`Ошибка отправки уведомления администратору ${adminId}:`, response.status);
+                }
+            } catch (error) {
+                console.error(`Ошибка при отправке уведомления администратору ${adminId}:`, error);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при отправке уведомлений администраторам:', error);
+    }
+}
+
+// Уведомление администраторов о вопросе на ответ
+async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId) {
+    try {
+        // ID администраторов из bot.py
+        const adminIds = [708907063, 7365307696];
+        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
+        
+        // Получаем информацию о пользователе
+        const { data: user, error: userError } = await supabaseClient
+            .from('users')
+            .select('first_name, last_name, username')
+            .eq('telegram_id', userId)
+            .single();
+            
+        if (userError) {
+            console.error('Ошибка при получении информации о пользователе:', userError);
+            return;
+        }
+        
+        const userName = user.first_name || user.username || `Пользователь #${userId}`;
+        const userInfo = user.username ? `@${user.username}` : `ID: ${userId}`;
+        
+        const message = {
+            text: `❓ <b>Вопрос на ответ от пользователя!</b>\n\n👤 <b>Пользователь:</b> ${userName}\n📝 <b>Сообщение:</b> ${messageText.substring(0, 100)}${messageText.length > 100 ? '...' : ''}\n\n💬 <b>Пользователь задал дополнительный вопрос!</b>`,
+            parse_mode: 'HTML',
+            reply_markup: {
+                inline_keyboard: [[
+                    {
+                        text: '💬 Ответить',
+                        web_app: {
+                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                        }
+                    }
+                ]]
+            }
+        };
+        
+        // Отправляем уведомление всем администраторам
+        for (const adminId of adminIds) {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...message,
+                        chat_id: adminId
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`Уведомление о вопросе отправлено администратору ${adminId}`);
+                } else {
+                    console.error(`Ошибка отправки уведомления администратору ${adminId}:`, response.status);
+                }
+            } catch (error) {
+                console.error(`Ошибка при отправке уведомления администратору ${adminId}:`, error);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при отправке уведомлений администраторам:', error);
+    }
+}
+
+// Проверка и отправка уведомлений администраторам
+async function checkAndNotifyAdmins(conversationId, messageText, userId) {
+    try {
+        // Получаем информацию о диалоге
+        const { data: conversation, error: convError } = await supabaseClient
+            .from('conversations')
+            .select('admin_id, status')
+            .eq('id', conversationId)
+            .single();
+            
+        if (convError) {
+            console.error('Ошибка при получении информации о диалоге:', convError);
+            return;
+        }
+        
+        // Получаем последние сообщения диалога для определения типа уведомления
+        const { data: messages, error: msgError } = await supabaseClient
+            .from('messages')
+            .select('sender_id, created_at')
+            .eq('conversation_id', conversationId)
+            .order('created_at', { ascending: false })
+            .limit(5);
+            
+        if (msgError) {
+            console.error('Ошибка при получении сообщений:', msgError);
+            return;
+        }
+        
+        // Проверяем, есть ли ответ администратора перед этим сообщением
+        let isFollowUpQuestion = false;
+        
+        if (messages.length > 1) {
+            // Ищем последнее сообщение администратора перед текущим
+            for (let i = 1; i < messages.length; i++) {
+                const message = messages[i];
+                // Проверяем, является ли отправитель администратором
+                const isAdmin = await checkIfUserIsAdmin(message.sender_id);
+                
+                if (isAdmin) {
+                    // Если нашли сообщение администратора, то это вопрос на ответ
+                    isFollowUpQuestion = true;
+                    break;
+                } else if (message.sender_id === userId) {
+                    // Если нашли сообщение от того же пользователя, продолжаем поиск
+                    continue;
+                } else {
+                    // Если нашли сообщение от другого пользователя, это не вопрос на ответ
+                    break;
+                }
+            }
+        }
+        
+        // Отправляем соответствующее уведомление
+        if (isFollowUpQuestion) {
+            await notifyAdminsFollowUpQuestion(conversationId, messageText, userId);
+        } else {
+            await notifyAdminsNewMessage(conversationId, messageText, userId);
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при проверке типа уведомления:', error);
+    }
+}
+
+// Проверка, является ли пользователь администратором
+async function checkIfUserIsAdmin(userId) {
+    try {
+        const { data, error } = await supabaseClient
+            .rpc('is_admin', { user_telegram_id: userId });
+            
+        if (error) {
+            console.error('Ошибка при проверке прав администратора:', error);
+            return false;
+        }
+        
+        return data || false;
+    } catch (error) {
+        console.error('Ошибка при проверке прав администратора:', error);
+        return false;
+    }
+}
+
 // Навигация между экранами
 function showChat() {
     currentView = 'chat';
@@ -923,6 +1145,29 @@ async function loadUserConversation(conversationId) {
         
     } catch (error) {
         console.error('Ошибка при загрузке диалога пользователя:', error);
+    }
+}
+
+// Прямая загрузка диалога для администратора
+async function loadAdminConversationDirect(conversationId) {
+    try {
+        // Получаем информацию о пользователе в диалоге
+        const { data: conversation, error: convError } = await supabaseClient
+            .from('conversations')
+            .select('user_id')
+            .eq('id', conversationId)
+            .single();
+            
+        if (convError) {
+            console.error('Ошибка при получении диалога:', convError);
+            return;
+        }
+        
+        // Открываем диалог с пользователем
+        await openConversationDialog(conversationId, conversation.user_id);
+        
+    } catch (error) {
+        console.error('Ошибка при загрузке диалога администратора:', error);
     }
 }
 
