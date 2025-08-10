@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters
 from queue import Queue
 from telegram.ext import ApplicationBuilder
 import pytz
@@ -13,6 +13,99 @@ MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Список ID администраторов (замените на реальные ID)
+ADMIN_IDS = [
+    123456789,  # Замените на реальные ID администраторов
+    987654321,
+]
+
+# ---------- Admin notification functions ----------
+
+
+
+async def handle_all_messages(update: Update, context: CallbackContext) -> None:
+    """Обрабатывает все сообщения - уведомления администраторов и ответы от них"""
+    user = update.effective_user
+    message = update.effective_message
+    
+    # Если это администратор и он в режиме ответа
+    if user.id in ADMIN_IDS and context.user_data.get('waiting_for_reply') and context.user_data.get('replying_to'):
+        target_user_id = context.user_data['replying_to']
+        
+        try:
+            # Отправляем ответ пользователю
+            await context.bot.send_message(
+                chat_id=target_user_id,
+                text=f"💬 <b>Ответ от администратора:</b>\n\n{message.text}",
+                parse_mode='HTML'
+            )
+            
+            # Подтверждаем отправку администратору
+            await update.effective_message.reply_text(
+                f"✅ <b>Ответ отправлен пользователю {target_user_id}</b>",
+                parse_mode='HTML'
+            )
+            
+            # Очищаем состояние
+            context.user_data.pop('waiting_for_reply', None)
+            context.user_data.pop('replying_to', None)
+            
+        except Exception as e:
+            await update.effective_message.reply_text(
+                f"❌ <b>Ошибка отправки ответа:</b> {str(e)}",
+                parse_mode='HTML'
+            )
+        return
+    
+    # Если это обычный пользователь (не администратор), отправляем уведомление администраторам
+    if user.id not in ADMIN_IDS:
+        # Формируем информацию о пользователе
+        user_info = f"👤 <b>Пользователь:</b>\n"
+        user_info += f"ID: {user.id}\n"
+        user_info += f"Имя: {user.first_name or 'Не указано'}\n"
+        user_info += f"Фамилия: {user.last_name or 'Не указана'}\n"
+        user_info += f"Username: @{user.username or 'Не указан'}\n"
+        
+        # Формируем текст сообщения
+        message_text = f"📨 <b>Новое сообщение от пользователя!</b>\n\n{user_info}\n"
+        message_text += f"💬 <b>Сообщение:</b>\n{message.text or '[Медиа-сообщение]'}\n\n"
+        message_text += f"⚠️ <b>Требуется ответ!</b>"
+        
+        # Создаем инлайн-кнопку для ответа
+        keyboard = [
+            [InlineKeyboardButton("Ответить долбаебу", callback_data=f'reply_to_{user.id}')]
+        ]
+        markup = InlineKeyboardMarkup(keyboard)
+        
+        # Отправляем уведомление всем администраторам
+        for admin_id in ADMIN_IDS:
+            try:
+                await context.bot.send_message(
+                    chat_id=admin_id,
+                    text=message_text,
+                    parse_mode='HTML',
+                    reply_markup=markup
+                )
+            except Exception as e:
+                print(f"Ошибка отправки уведомления администратору {admin_id}: {e}")
+
+async def cancel_reply(update: Update, context: CallbackContext) -> None:
+    """Отменяет режим ответа администратора"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS:
+        return
+    
+    # Очищаем состояние
+    context.user_data.pop('waiting_for_reply', None)
+    context.user_data.pop('replying_to', None)
+    
+    await update.effective_message.reply_text(
+        "❌ <b>Режим ответа отменен</b>",
+        parse_mode='HTML'
+    )
 
 # ---------- Builders for messages & keyboards ----------
 
@@ -136,8 +229,35 @@ async def button(update: Update, context: CallbackContext) -> None:
     elif data == 'back':
         text, markup = build_start_content()
         await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
+    elif data.startswith('reply_to_'):
+        # Обработка кнопки "Ответить долбаебу"
+        user_id = data.split('_')[2]  # Получаем ID пользователя
+        await handle_admin_reply(update, context, user_id)
     else:
         return
+
+async def handle_admin_reply(update: Update, context: CallbackContext, user_id: str) -> None:
+    """Обрабатывает нажатие кнопки 'Ответить долбаебу' администратором"""
+    query = update.callback_query
+    admin_user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if admin_user.id not in ADMIN_IDS:
+        await query.answer("У вас нет прав для выполнения этого действия!")
+        return
+    
+    # Сохраняем информацию о том, что администратор хочет ответить пользователю
+    context.user_data['replying_to'] = user_id
+    
+    # Отправляем сообщение администратору с инструкциями
+    reply_text = f"💬 <b>Ответ пользователю {user_id}</b>\n\n"
+    reply_text += "Напишите ваш ответ. Он будет отправлен пользователю.\n"
+    reply_text += "Для отмены напишите /cancel"
+    
+    await query.edit_message_text(text=reply_text, parse_mode='HTML')
+    
+    # Устанавливаем состояние ожидания ответа администратора
+    context.user_data['waiting_for_reply'] = True
 
 
 # ---------- App bootstrap ----------
@@ -149,7 +269,11 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("payment", payment))
     application.add_handler(CommandHandler("more_info", more_info))
+    application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CallbackQueryHandler(button))
+    
+    # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_all_messages))
 
     application.run_polling()
 
