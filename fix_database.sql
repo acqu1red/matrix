@@ -96,9 +96,9 @@ END $$;
 -- 8. Проверяем результат
 SELECT 
     'Администраторы:' as info,
-    u.telegram_id,
+    u.telegram_id::text,
     u.username,
-    u.is_admin
+    u.is_admin::text
 FROM users u
 WHERE u.telegram_id IN (708907063, 7365307696)
 
@@ -107,6 +107,6 @@ UNION ALL
 SELECT 
     'Функция создана:' as info,
     CASE WHEN EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'get_admin_conversations') 
-         THEN 1 ELSE 0 END,
-    0,
-    0;
+         THEN '1' ELSE '0' END,
+    'N/A',
+    'N/A';
