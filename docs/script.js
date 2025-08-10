@@ -99,30 +99,34 @@ async function checkAdminRights() {
     
     console.log('checkAdminRights: проверяем права для userId:', currentUserId);
     
-    try {
-        const { data, error } = await supabaseClient
-            .rpc('is_admin', { user_telegram_id: currentUserId });
-            
-        if (error) {
-            console.error('Ошибка RPC is_admin:', error);
-            throw error;
+    // Список ID администраторов (должен совпадать с ботом)
+    const adminIds = [708907063, 7365307696];
+    
+    // Простая проверка по ID
+    isAdmin = adminIds.includes(currentUserId);
+    console.log('checkAdminRights: isAdmin установлен в:', isAdmin);
+    
+    if (isAdmin) {
+        adminPanelBtn.classList.remove('hidden');
+        document.getElementById('adminFooter').classList.add('active');
+        console.log('checkAdminRights: админ-панель активирована');
+    } else {
+        console.log('checkAdminRights: пользователь не админ');
+        
+        // Попробуем RPC как fallback
+        try {
+            const { data, error } = await supabaseClient
+                .rpc('is_admin', { user_telegram_id: currentUserId });
+                
+            if (!error && data) {
+                isAdmin = true;
+                adminPanelBtn.classList.remove('hidden');
+                document.getElementById('adminFooter').classList.add('active');
+                console.log('checkAdminRights: админ-панель активирована через RPC');
+            }
+        } catch (rpcError) {
+            console.error('Ошибка RPC is_admin:', rpcError);
         }
-        
-        console.log('checkAdminRights: результат RPC:', data);
-        
-        isAdmin = data || false;
-        console.log('checkAdminRights: isAdmin установлен в:', isAdmin);
-        
-        if (isAdmin) {
-            adminPanelBtn.classList.remove('hidden');
-            document.getElementById('adminFooter').classList.add('active');
-            console.log('checkAdminRights: админ-панель активирована');
-        } else {
-            console.log('checkAdminRights: пользователь не админ');
-        }
-    } catch (error) {
-        console.error('Ошибка при проверке прав админа:', error);
-        isAdmin = false;
     }
 }
 
@@ -234,6 +238,7 @@ async function sendMessage() {
     messageInput.value = '';
     
     try {
+        console.log('sendMessage: создаем или получаем диалог...');
         // Создаем или получаем диалог
         const conversationId = await createOrGetConversation();
         
@@ -241,7 +246,10 @@ async function sendMessage() {
             throw new Error('Не удалось создать диалог');
         }
         
+        console.log('sendMessage: диалог получен, ID:', conversationId);
+        
         // Добавляем сообщение в базу данных
+        console.log('sendMessage: добавляем сообщение в БД...');
         const { data, error } = await supabaseClient
             .from('messages')
             .insert({
@@ -253,7 +261,10 @@ async function sendMessage() {
             .select()
             .single();
             
-        if (error) throw error;
+        if (error) {
+            console.error('sendMessage: ошибка вставки сообщения:', error);
+            throw error;
+        }
         
         // Обновляем статус диалога на 'open' (ожидает ответа админа)
         await supabaseClient
@@ -392,6 +403,8 @@ async function sendAdminMessage() {
 // Создание или получение диалога
 async function createOrGetConversation() {
     try {
+        console.log('createOrGetConversation: проверяем существующий диалог для userId:', currentUserId);
+        
         // Проверяем существующий открытый диалог
         const { data: existing, error: existingError } = await supabaseClient
             .from('conversations')
@@ -400,9 +413,17 @@ async function createOrGetConversation() {
             .eq('status', 'open')
             .single();
             
+        if (existingError && existingError.code !== 'PGRST116') {
+            console.error('createOrGetConversation: ошибка поиска диалога:', existingError);
+            throw existingError;
+        }
+        
         if (existing) {
+            console.log('createOrGetConversation: найден существующий диалог, ID:', existing.id);
             return existing.id;
         }
+        
+        console.log('createOrGetConversation: создаем новый диалог...');
         
         // Создаем новый диалог
         const { data, error } = await supabaseClient
@@ -414,7 +435,12 @@ async function createOrGetConversation() {
             .select()
             .single();
             
-        if (error) throw error;
+        if (error) {
+            console.error('createOrGetConversation: ошибка создания диалога:', error);
+            throw error;
+        }
+        
+        console.log('createOrGetConversation: новый диалог создан, ID:', data.id);
         return data.id;
         
     } catch (error) {
