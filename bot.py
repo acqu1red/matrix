@@ -28,6 +28,71 @@ ADMIN_IDS = [
 
 # ---------- Admin notification functions ----------
 
+async def save_message_to_db(user, message):
+    """Сохраняет сообщение в базе данных"""
+    try:
+        # Создаем или получаем пользователя
+        user_data = {
+            'telegram_id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name
+        }
+        
+        # Вставляем или обновляем пользователя
+        result = supabase.table('users').upsert(user_data).execute()
+        
+        # Получаем или создаем диалог
+        conversation_result = supabase.table('conversations').select('id').eq('user_id', user.id).execute()
+        
+        if conversation_result.data:
+            conversation_id = conversation_result.data[0]['id']
+        else:
+            # Создаем новый диалог
+            conversation_data = {
+                'user_id': user.id,
+                'status': 'open'
+            }
+            conversation_result = supabase.table('conversations').insert(conversation_data).execute()
+            conversation_id = conversation_result.data[0]['id']
+        
+        # Определяем тип сообщения
+        message_type = 'text'
+        content = message.text or ''
+        
+        if message.photo:
+            message_type = 'image'
+            content = message.caption or '[Фото]'
+        elif message.video:
+            message_type = 'video'
+            content = message.caption or '[Видео]'
+        elif message.voice:
+            message_type = 'voice'
+            content = '[Голосовое сообщение]'
+        elif message.document:
+            message_type = 'file'
+            content = f'[Документ] {message.document.file_name or "Без названия"}'
+        elif message.sticker:
+            message_type = 'sticker'
+            content = f'[Стикер] {message.sticker.emoji or "Без эмодзи"}'
+        elif message.audio:
+            message_type = 'audio'
+            content = f'[Аудио] {message.audio.title or "Без названия"}'
+        
+        # Сохраняем сообщение
+        message_data = {
+            'conversation_id': conversation_id,
+            'sender_id': user.id,
+            'content': content,
+            'message_type': message_type
+        }
+        
+        supabase.table('messages').insert(message_data).execute()
+        
+    except Exception as e:
+        print(f"Ошибка сохранения в БД: {e}")
+        raise e
+
 
 
 async def handle_all_messages(update: Update, context: CallbackContext) -> None:
@@ -54,7 +119,7 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     print(f"🔍 Получено {message_type} сообщение от пользователя {user.id} ({user.first_name}): {message.text or '[медиа]'}")
     
     # Если это администратор и он в режиме ответа
-    if user.id in ADMIN_IDS and context.user_data.get('waiting_for_reply') and context.user_data.get('replying_to'):
+    if (user.id in ADMIN_IDS or (user.username and user.username in ADMIN_USERNAMES)) and context.user_data.get('waiting_for_reply') and context.user_data.get('replying_to'):
         print(f"👨‍💼 Администратор {user.id} отправляет ответ пользователю {context.user_data['replying_to']}")
         target_user_id = context.user_data['replying_to']
         
@@ -82,6 +147,13 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
                 parse_mode='HTML'
             )
         return
+    
+    # Сохраняем сообщение в базе данных
+    try:
+        await save_message_to_db(user, message)
+        print(f"💾 Сообщение сохранено в БД для пользователя {user.id}")
+    except Exception as e:
+        print(f"❌ Ошибка сохранения сообщения в БД: {e}")
     
     # Если это обычный пользователь (не администратор), отправляем уведомление администраторам
     if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
@@ -173,6 +245,63 @@ async def cancel_reply(update: Update, context: CallbackContext) -> None:
         "❌ <b>Режим ответа отменен</b>",
         parse_mode='HTML'
     )
+
+async def admin_messages(update: Update, context: CallbackContext) -> None:
+    """Показывает администратору новые сообщения от пользователей"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text(
+            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
+            parse_mode='HTML'
+        )
+        return
+    
+    try:
+        # Получаем последние диалоги с сообщениями
+        result = supabase.rpc('get_admin_conversations').execute()
+        
+        if not result.data:
+            await update.effective_message.reply_text(
+                "📭 <b>Новых сообщений нет</b>",
+                parse_mode='HTML'
+            )
+            return
+        
+        # Формируем список диалогов
+        conversations_text = "📨 <b>Последние сообщения от пользователей:</b>\n\n"
+        
+        for i, conv in enumerate(result.data[:10], 1):  # Показываем первые 10
+            user_name = conv.get('username', f'Пользователь #{conv["user_id"]}')
+            last_message = conv.get('last_message', 'Нет сообщений')[:50] + '...' if len(conv.get('last_message', '')) > 50 else conv.get('last_message', 'Нет сообщений')
+            message_count = conv.get('message_count', 0)
+            
+            conversations_text += f"{i}. <b>{user_name}</b> (ID: {conv['user_id']})\n"
+            conversations_text += f"   💬 {last_message}\n"
+            conversations_text += f"   📊 Сообщений: {message_count}\n\n"
+        
+        # Создаем кнопки для ответа
+        keyboard = []
+        for i, conv in enumerate(result.data[:5], 1):  # Кнопки для первых 5
+            keyboard.append([InlineKeyboardButton(f"Ответить {i}", callback_data=f'admin_reply_{conv["user_id"]}')])
+        
+        keyboard.append([InlineKeyboardButton("🔄 Обновить", callback_data='admin_refresh')])
+        
+        markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.effective_message.reply_text(
+            conversations_text,
+            parse_mode='HTML',
+            reply_markup=markup
+        )
+        
+    except Exception as e:
+        print(f"Ошибка получения сообщений: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Ошибка получения сообщений:</b> {str(e)}",
+            parse_mode='HTML'
+        )
 
 # ---------- Builders for messages & keyboards ----------
 
@@ -300,6 +429,13 @@ async def button(update: Update, context: CallbackContext) -> None:
         # Обработка кнопки "Ответить долбаебу"
         user_id = data.split('_')[2]  # Получаем ID пользователя
         await handle_admin_reply(update, context, user_id)
+    elif data.startswith('admin_reply_'):
+        # Обработка кнопки "Ответить" из админ-панели
+        user_id = data.split('_')[2]  # Получаем ID пользователя
+        await handle_admin_reply(update, context, user_id)
+    elif data == 'admin_refresh':
+        # Обновление списка сообщений
+        await admin_messages(update, context)
     else:
         return
 
@@ -342,6 +478,7 @@ def main() -> None:
     application.add_handler(CommandHandler("payment", payment))
     application.add_handler(CommandHandler("more_info", more_info))
     application.add_handler(CommandHandler("cancel", cancel_reply))
+    application.add_handler(CommandHandler("messages", admin_messages))
     application.add_handler(CallbackQueryHandler(button))
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
