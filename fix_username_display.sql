@@ -28,7 +28,7 @@ BEGIN
         CASE 
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             WHEN u.first_name IS NOT NULL AND u.first_name != '' THEN u.first_name
-            ELSE CONCAT('Пользователь #', u.telegram_id)
+            ELSE CONCAT('Пользователь #', u.telegram_id)::VARCHAR(255)
         END as username,
         u.first_name,
         u.last_name,
@@ -75,7 +75,7 @@ BEGIN
         CASE 
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             WHEN u.first_name IS NOT NULL AND u.first_name != '' THEN u.first_name
-            ELSE CONCAT('Пользователь #', u.telegram_id)
+            ELSE CONCAT('Пользователь #', u.telegram_id)::VARCHAR(255)
         END as sender_username,
         u.first_name as sender_first_name,
         u.is_admin as sender_is_admin,
@@ -119,7 +119,7 @@ BEGIN
         CASE 
             WHEN u.username IS NOT NULL AND u.username != '' THEN u.username
             WHEN u.first_name IS NOT NULL AND u.first_name != '' THEN u.first_name
-            ELSE CONCAT('Пользователь #', u.telegram_id)
+            ELSE CONCAT('Пользователь #', u.telegram_id)::VARCHAR(255)
         END as display_name
     FROM users u
     ORDER BY u.created_at DESC

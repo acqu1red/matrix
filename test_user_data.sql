@@ -14,7 +14,7 @@ SELECT
     CASE 
         WHEN username IS NOT NULL AND username != '' THEN username
         WHEN first_name IS NOT NULL AND first_name != '' THEN first_name
-        ELSE CONCAT('Пользователь #', telegram_id)
+        ELSE CONCAT('Пользователь #', telegram_id)::VARCHAR(255)
     END as display_name
 FROM users
 ORDER BY created_at DESC
