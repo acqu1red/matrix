@@ -500,7 +500,7 @@ function renderConversationsList(conversations) {
         return;
     }
     
-    const html = conversations.map(conv => {
+    const html = filteredConversations.map(conv => {
         console.log('Обрабатываем диалог:', conv);
         
         // Используем username из базы данных (уже обработанный в SQL)
