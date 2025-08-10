@@ -163,6 +163,7 @@ function setupEventListeners() {
 
 // Установка фильтра
 function setFilter(filter) {
+    console.log('Установка фильтра:', filter);
     currentFilter = filter;
     
     // Обновляем активный класс
@@ -170,6 +171,8 @@ function setFilter(filter) {
         item.classList.remove('active');
     });
     document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`).classList.add('active');
+    
+    console.log('Всего диалогов в кэше:', allConversations.length);
     
     // Перерисовываем список с новым фильтром
     renderConversationsList(allConversations);
@@ -465,23 +468,37 @@ async function loadAdminStats() {
 
 // Фильтрация диалогов
 function filterConversations(conversations, filter) {
+    console.log('Фильтрация диалогов:', { conversations: conversations?.length, filter });
+    
     if (!conversations) return [];
     
+    let filtered;
     switch (filter) {
         case 'all':
-            return conversations;
+            filtered = conversations;
+            console.log('Фильтр "all": показываем все диалоги');
+            break;
         case 'pending':
             // Показываем только диалоги, на которые админ еще не ответил
-            return conversations.filter(conv => {
-                // Если у диалога нет admin_id или статус 'open', или последнее сообщение от пользователя
-                return !conv.admin_id || conv.status === 'open' || conv.status === 'in_progress';
+            filtered = conversations.filter(conv => {
+                const shouldShow = !conv.admin_id || conv.status === 'open' || conv.status === 'in_progress';
+                console.log(`Диалог ${conv.id}: admin_id=${conv.admin_id}, status=${conv.status}, показываем=${shouldShow}`);
+                return shouldShow;
             });
+            console.log('Фильтр "pending": показываем диалоги без ответа админа');
+            break;
         case 'messages':
             // Показываем диалоги с наибольшим количеством сообщений
-            return [...conversations].sort((a, b) => (b.message_count || 0) - (a.message_count || 0));
+            filtered = [...conversations].sort((a, b) => (b.message_count || 0) - (a.message_count || 0));
+            console.log('Фильтр "messages": сортируем по количеству сообщений');
+            break;
         default:
-            return conversations;
+            filtered = conversations;
+            console.log('Неизвестный фильтр, показываем все');
     }
+    
+    console.log(`Результат фильтрации: ${filtered.length} диалогов из ${conversations.length}`);
+    return filtered;
 }
 
 // Отображение списка диалогов
@@ -500,7 +517,7 @@ function renderConversationsList(conversations) {
         return;
     }
     
-    const html = conversations.map(conv => {
+    const html = filteredConversations.map(conv => {
         console.log('Обрабатываем диалог:', conv);
         
         // Используем username из базы данных (уже обработанный в SQL)
