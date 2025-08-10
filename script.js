@@ -270,16 +270,65 @@ async function loadAdminConversations() {
     if (!isAdmin) return;
     
     try {
+        console.log('Загружаем диалоги для админа...');
+        
+        // Сначала попробуем простой запрос к таблице
+        const { data: testData, error: testError } = await supabaseClient
+            .from('users')
+            .select('*')
+            .limit(1);
+            
+        console.log('Тест подключения:', { testData, testError });
+        
+        // Сначала тестируем простую функцию
+        const { data: testRpc, error: testRpcError } = await supabaseClient
+            .rpc('test_connection');
+            
+        console.log('Тест RPC:', { testRpc, testRpcError });
+        
+        // Проверяем таблицы
+        const { data: tableCheck, error: tableError } = await supabaseClient
+            .rpc('check_tables');
+            
+        console.log('Проверка таблиц:', { tableCheck, tableError });
+        
+        // Пробуем простую функцию диалогов
+        const { data: simpleData, error: simpleError } = await supabaseClient
+            .rpc('get_conversations_simple');
+            
+        console.log('Простые диалоги:', { simpleData, simpleError });
+        
+        // Теперь пробуем основную RPC
         const { data, error } = await supabaseClient
             .rpc('get_admin_conversations');
             
-        if (error) throw error;
+        console.log('RPC результат:', { data, error });
         
+        if (error) {
+            console.error('RPC ошибка:', error);
+            // Показываем простые диалоги если основная функция не работает
+            if (simpleData && simpleData.length > 0) {
+                console.log('Используем простые диалоги');
+                renderConversationsList(simpleData.map(conv => ({
+                    ...conv,
+                    username: 'Пользователь',
+                    first_name: 'Пользователь',
+                    last_name: null,
+                    last_message_at: conv.created_at,
+                    message_count: 0,
+                    last_message: 'Нет сообщений'
+                })));
+                return;
+            }
+            throw error;
+        }
+        
+        console.log('Диалоги загружены:', data);
         renderConversationsList(data);
         
     } catch (error) {
         console.error('Ошибка при загрузке диалогов:', error);
-        conversationsList.innerHTML = '<div class="loading">Ошибка загрузки</div>';
+        conversationsList.innerHTML = '<div class="loading">Ошибка загрузки: ' + error.message + '</div>';
     }
 }
 
