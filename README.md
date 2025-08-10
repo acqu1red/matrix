@@ -31,7 +31,8 @@ python bot.py
 ├── cleanup.sql              # Очистка данных
 ├── SETUP_INSTRUCTIONS.md    # Подробные инструкции
 ├── QUICK_SETUP.md           # Быстрая настройка
-├── docs/                    # Веб-интерфейс
+├── index.html              # Перенаправление на docs/index.html
+├── docs/                   # Веб-интерфейс
 │   ├── index.html          # Главная страница
 │   ├── script.js           # JavaScript логика
 │   └── config.js           # Конфигурация
