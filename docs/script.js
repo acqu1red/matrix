@@ -182,14 +182,32 @@ async function sendMessage() {
     
     // Блокируем кнопку и показываем состояние загрузки
     const sendBtn = document.getElementById('sendBtn');
-    const originalContent = sendBtn.innerHTML;
+    const attachBtn = document.getElementById('attachBtn');
+    const originalSendContent = sendBtn.innerHTML;
+    const originalAttachContent = attachBtn.innerHTML;
+    
+    // Блокируем обе кнопки
     sendBtn.disabled = true;
+    attachBtn.disabled = true;
+    
+    // Красивая анимация загрузки для кнопки отправки
     sendBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="loading-spinner">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
             <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
     `;
+    
+    // Анимация для кнопки прикрепления
+    attachBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-pulse">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+    `;
+    
+    // Добавляем класс для анимации поля ввода
+    const inputContainer = messageInput.closest('.input-container');
+    inputContainer.classList.add('loading-shimmer');
     
     // Сразу отображаем сообщение для мгновенной обратной связи
     appendMessage({ text, inbound: false });
@@ -239,9 +257,14 @@ async function sendMessage() {
             lastMessage.style.borderLeft = '3px solid #ff4444';
         }
     } finally {
-        // Восстанавливаем кнопку
+        // Восстанавливаем кнопки
         sendBtn.disabled = false;
-        sendBtn.innerHTML = originalContent;
+        attachBtn.disabled = false;
+        sendBtn.innerHTML = originalSendContent;
+        attachBtn.innerHTML = originalAttachContent;
+        
+        // Убираем анимацию с поля ввода
+        inputContainer.classList.remove('loading-shimmer');
     }
 }
 
@@ -249,16 +272,34 @@ async function sendAdminMessage() {
     const text = dialogMessageInput.value.trim();
     if (!text || !currentConversationId || !isAdmin) return;
     
-    // Блокируем кнопку и показываем состояние загрузки
+    // Блокируем кнопки и показываем состояние загрузки
     const dialogSendBtn = document.getElementById('dialogSendBtn');
-    const originalContent = dialogSendBtn.innerHTML;
+    const dialogAttachBtn = document.getElementById('dialogAttachBtn');
+    const originalSendContent = dialogSendBtn.innerHTML;
+    const originalAttachContent = dialogAttachBtn.innerHTML;
+    
+    // Блокируем обе кнопки
     dialogSendBtn.disabled = true;
+    dialogAttachBtn.disabled = true;
+    
+    // Красивая анимация загрузки для кнопки отправки
     dialogSendBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="loading-spinner">
             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
             <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
     `;
+    
+    // Анимация для кнопки прикрепления
+    dialogAttachBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="loading-pulse">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+    `;
+    
+    // Добавляем класс для анимации поля ввода
+    const inputContainer = dialogMessageInput.closest('.input-container');
+    inputContainer.classList.add('loading-shimmer');
     
     // Сразу отображаем сообщение для мгновенной обратной связи
     appendDialogMessage({ 
@@ -317,9 +358,14 @@ async function sendAdminMessage() {
             lastMessage.style.borderLeft = '3px solid #ff4444';
         }
     } finally {
-        // Восстанавливаем кнопку
+        // Восстанавливаем кнопки
         dialogSendBtn.disabled = false;
-        dialogSendBtn.innerHTML = originalContent;
+        dialogAttachBtn.disabled = false;
+        dialogSendBtn.innerHTML = originalSendContent;
+        dialogAttachBtn.innerHTML = originalAttachContent;
+        
+        // Убираем анимацию с поля ввода
+        inputContainer.classList.remove('loading-shimmer');
     }
 }
 
