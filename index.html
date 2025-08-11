@@ -120,6 +120,11 @@
             if (payment || type === 'payment') {
                 targetUrl = 'docs/payment.html';
                 redirectText = 'Перенаправляем на страницу оплаты...';
+                // Быстрое перенаправление для оплаты
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 300);
+                return;
             } else if (support || type === 'support') {
                 targetUrl = 'docs/';
                 redirectText = 'Перенаправляем на страницу поддержки...';
@@ -141,7 +146,7 @@
             // Добавляем небольшую задержку для показа анимации
             setTimeout(() => {
                 window.location.href = targetUrl;
-            }, 1500);
+            }, 800);
         }
 
         // Запускаем перенаправление при загрузке страницы

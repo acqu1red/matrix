@@ -11,7 +11,7 @@ import json
 from channel_manager import channel_manager
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=payment"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
 
 # Lava Top API configuration
 LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"

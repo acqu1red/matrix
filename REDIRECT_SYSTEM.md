@@ -36,13 +36,13 @@ PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 
 # Стало
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=payment"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
 ```
 
 ### Кнопки в боте:
 
 1. **"💻 Поддержка"** → `https://acqu1red.github.io/formulaprivate/?type=support`
-2. **"💳 Оплатить доступ"** → `https://acqu1red.github.io/formulaprivate/?type=payment`
+2. **"💳 Оплатить доступ"** → `https://acqu1red.github.io/formulaprivate/docs/payment.html`
 
 ## 🔗 Уведомления
 
@@ -77,16 +77,17 @@ web_app: {
 ## ⚡ Преимущества
 
 1. **Мгновенный доступ** - пользователь сразу попадает на нужную страницу
-2. **Красивый UX** - анимация загрузки вместо пустого экрана
-3. **Гибкость** - поддержка множества параметров
-4. **Обратная совместимость** - старые URL продолжают работать
-5. **SEO-friendly** - каждая страница имеет свой URL
+2. **Быстрое перенаправление** - оплата открывается за 0.3 секунды
+3. **Красивый UX** - анимация загрузки для поддержки
+4. **Гибкость** - поддержка множества параметров
+5. **Обратная совместимость** - старые URL продолжают работать
+6. **SEO-friendly** - каждая страница имеет свой URL
 
 ## 🧪 Тестирование
 
 ### Проверьте следующие URL:
 
-1. **Оплата**: https://acqu1red.github.io/formulaprivate/?type=payment
+1. **Оплата**: https://acqu1red.github.io/formulaprivate/docs/payment.html
 2. **Поддержка**: https://acqu1red.github.io/formulaprivate/?type=support
 3. **Админ-панель**: https://acqu1red.github.io/formulaprivate/?admin_conversation=123
 4. **Диалог**: https://acqu1red.github.io/formulaprivate/?conversation=456
