@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: lava-webhook
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python lava_webhook.py
+    envVars:
+      - key: LAVA_WEBHOOK_SECRET
+        generateValue: true
+      - key: TELEGRAM_BOT_TOKEN
+        value: 8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo
+      - key: SUPABASE_URL
+        value: https://uhhsrtmmuwoxsdquimaa.supabase.co
+      - key: SUPABASE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8

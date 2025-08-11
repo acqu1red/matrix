@@ -6,6 +6,7 @@ Webhook handler for Lava Top payments
 import json
 import hmac
 import hashlib
+import os
 from flask import Flask, request, jsonify
 import requests
 from datetime import datetime, timedelta
@@ -15,17 +16,17 @@ from email_service import email_service
 app = Flask(__name__)
 
 # Lava Top webhook secret (получите в настройках Lava Top)
-LAVA_WEBHOOK_SECRET = "your_webhook_secret_here"
+LAVA_WEBHOOK_SECRET = os.getenv('LAVA_WEBHOOK_SECRET', 'your_webhook_secret_here')
 
 # Telegram bot token
-TELEGRAM_BOT_TOKEN = "8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo"
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo')
 
 # Admin chat IDs
 ADMIN_IDS = [708907063, 7365307696]
 
 # Supabase configuration
-SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def verify_webhook_signature(payload, signature):
@@ -98,13 +99,16 @@ def lava_webhook():
             message += f"🏦 <b>Банк:</b> {bank}\n\n"
             message += "🎉 Подписка создана, приглашение отправлено на email!"
             
-            # Отправляем уведомление пользователю
+            # Отправляем уведомление пользователю с ссылкой-приглашением
             if user_id:
+                invite_link = "https://t.me/+6SQb4RwwAmZlMWQ6"
                 send_telegram_message(user_id, 
-                    "🎉 <b>Оплата прошла успешно!</b>\n\n"
-                    "Ваша подписка активирована!\n"
-                    "Проверьте email - там приглашение в закрытый канал.\n\n"
-                    "С уважением, команда Формулы Успеха"
+                    f"🎉 <b>Оплата прошла успешно!</b>\n\n"
+                    f"Ваша подписка активирована!\n"
+                    f"Вот ваша ссылка для доступа к закрытому каналу:\n\n"
+                    f"🔗 <a href='{invite_link}'>Присоединиться к каналу</a>\n\n"
+                    f"📧 Также проверьте email - там подробная информация.\n\n"
+                    f"С уважением, команда Формулы Успеха"
                 )
                 
         elif payment_status == 'failed':
@@ -136,9 +140,13 @@ def lava_webhook():
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
     """Создает подписку в базе данных"""
     try:
-        # Конвертируем цену обратно в рубли
-        eur_to_rub_rate = 111.0  # 1 EUR ≈ 111 RUB
-        price_rub = int(float(amount) * eur_to_rub_rate)
+        # Определяем цены в зависимости от валюты
+        if currency == 'RUB':
+            price_rub = int(float(amount))
+            price_eur = round(float(amount) / 111.0, 2)  # 1 EUR ≈ 111 RUB
+        else:  # EUR
+            price_eur = float(amount)
+            price_rub = int(float(amount) * 111.0)
         
         # Вычисляем дату окончания подписки
         end_date = datetime.now()
@@ -155,7 +163,7 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
             'email': email,
             'tariff': tariff,
             'price_rub': price_rub,
-            'price_eur': float(amount),
+            'price_eur': price_eur,
             'payment_status': 'completed',
             'subscription_status': 'active',
             'end_date': end_date.isoformat(),
