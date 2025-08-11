@@ -5,6 +5,7 @@ Telegram Bot with Webhook support for Railway deployment
 
 import os
 import logging
+import json
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, ChatMemberHandler
 from datetime import datetime, timedelta
