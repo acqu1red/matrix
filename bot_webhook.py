@@ -60,6 +60,7 @@ def lava_webhook():
         print(f"📋 Content-Type: {request.content_type}")
         print(f"📋 Content-Length: {request.content_length}")
         
+        # Временно отключаем аутентификацию для тестирования
         # Проверка Basic аутентификации
         auth_header = request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Basic '):
