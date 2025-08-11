@@ -915,6 +915,9 @@ def check_pending_payments():
         # Получаем ожидающие платежи из базы данных
         result = supabase.table('pending_payments').select('*').eq('status', 'pending').execute()
         
+        print(f"🔍 Запрос к pending_payments выполнен")
+        print(f"📋 Результат: {result.data}")
+        
         if not result.data:
             print("✅ Нет ожидающих платежей")
             return
