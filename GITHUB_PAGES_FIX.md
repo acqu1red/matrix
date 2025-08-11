@@ -46,7 +46,7 @@ const html = filteredConversations.map(conv => {
 
 ## 📁 Структура файлов
 ```
-bo3333/
+formulaprivate/
 ├── docs/                    # GitHub Pages (веб-приложение)
 │   ├── index.html          # Главная страница
 │   ├── script.js           # JavaScript логика
@@ -63,6 +63,6 @@ bo3333/
 
 ## 🔗 Ссылка
 Веб-приложение теперь доступно по адресу:
-`https://acqu1red.github.io/tourmalineGG/`
+`https://acqu1red.github.io/formulaprivate/`
 
 Теперь miniapp должен открываться без ошибок!

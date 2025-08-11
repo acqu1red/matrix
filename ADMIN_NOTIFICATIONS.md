@@ -95,7 +95,7 @@ const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessag
                 {
                     text: '💬 Ответить',
                     web_app: {
-                        url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                        url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
                     }
                 }
             ]]
@@ -108,7 +108,7 @@ const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessag
 
 При нажатии кнопки "💬 Ответить" администратор переходит к диалогу через URL параметр:
 ```
-https://acqu1red.github.io/tourmalineGG/?admin_conversation=123
+https://acqu1red.github.io/formulaprivate/?admin_conversation=123
 ```
 
 ## Использование

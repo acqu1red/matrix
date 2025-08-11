@@ -33,7 +33,7 @@
 ## 📁 Текущая структура репозитория
 
 ```
-bo3333/
+formulaprivate/
 ├── docs/                    # Веб-приложение (GitHub Pages)
 │   ├── index.html          # Главная страница
 │   ├── script.js           # JavaScript логика

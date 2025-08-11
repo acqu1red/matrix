@@ -829,7 +829,7 @@ async function notifyUser(conversationId) {
                     {
                         text: '👀 Посмотреть ответ',
                         web_app: {
-                            url: `https://acqu1red.github.io/tourmalineGG/?conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/formulaprivate/?conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -886,7 +886,7 @@ async function notifyAdminsNewMessage(conversationId, messageText, userId) {
                     {
                         text: '💬 Ответить',
                         web_app: {
-                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -952,7 +952,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
                     {
                         text: '💬 Ответить',
                         web_app: {
-                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
                         }
                     }
                 ]]
