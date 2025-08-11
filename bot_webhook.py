@@ -13,6 +13,14 @@ from supabase import create_client, Client
 from channel_manager import ChannelManager
 from flask import Flask, request, jsonify
 
+# Импортируем функцию отправки email
+try:
+    from email_invitation import send_email_invitation
+except ImportError:
+    def send_email_invitation(email, tariff, subscription_id):
+        print(f"📧 Email отправка отключена: {email}, тариф: {tariff}")
+        return True
+
 # Создаем Flask приложение для health check
 app = Flask(__name__)
 
@@ -100,9 +108,12 @@ def lava_webhook():
             if user_id:
                 send_success_message_to_user(user_id, tariff, subscription_id)
             else:
-                # Если user_id нет, отправляем сообщение администраторам
-                print("⚠️ user_id не найден, отправляем уведомление администраторам")
-                send_admin_notification("unknown", email, tariff, amount, currency, order_id)
+                # Если user_id нет, отправляем приглашение на email
+                print("⚠️ user_id не найден, отправляем приглашение на email")
+                if email:
+                    send_email_invitation(email, tariff, subscription_id)
+                else:
+                    print("❌ Email тоже не найден")
             
             # Отправляем уведомление администраторам
             send_admin_notification(user_id or "unknown", email, tariff, amount, currency, order_id)
