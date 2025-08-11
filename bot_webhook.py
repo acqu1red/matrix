@@ -133,18 +133,7 @@ ADMIN_USERNAMES = ['your_admin_username']  # Замените на реальн�
 # Supabase конфигурация
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.co')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
-
-print(f"🔗 Supabase URL: {SUPABASE_URL}")
-print(f"🔑 Supabase Key: {SUPABASE_KEY[:20]}...")
-
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# Проверяем подключение к Supabase
-try:
-    test_result = supabase.table('user_messages').select('count').limit(1).execute()
-    print("✅ Подключение к Supabase успешно")
-except Exception as e:
-    print(f"❌ Ошибка подключения к Supabase: {e}")
 
 # Инициализация менеджера каналов
 channel_manager = ChannelManager()
@@ -271,12 +260,6 @@ def check_and_remove_expired_subscriptions():
         
         # Проверяем существование таблицы
         try:
-            print("🔍 Проверяем доступ к таблице subscriptions...")
-            
-            # Сначала попробуем простой запрос для проверки таблицы
-            test_result = supabase.table('subscriptions').select('count').execute()
-            print(f"✅ Таблица subscriptions доступна: {test_result}")
-            
             # Получаем истекшие подписки
             current_time = datetime.utcnow().isoformat()
             result = supabase.table('subscriptions').select('*').eq('status', 'active').lt('end_date', current_time).execute()
