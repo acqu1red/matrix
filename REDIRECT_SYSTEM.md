@@ -36,13 +36,13 @@ PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 
 # Стало
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 ```
 
 ### Кнопки в боте:
 
 1. **"💻 Поддержка"** → `https://acqu1red.github.io/formulaprivate/?type=support`
-2. **"💳 Оплатить доступ"** → `https://acqu1red.github.io/formulaprivate/docs/payment.html`
+2. **"💳 Оплатить доступ"** → `https://acqu1red.github.io/formulaprivate/payment.html`
 
 ## 🔗 Уведомления
 
@@ -87,7 +87,7 @@ web_app: {
 
 ### Проверьте следующие URL:
 
-1. **Оплата**: https://acqu1red.github.io/formulaprivate/docs/payment.html
+1. **Оплата**: https://acqu1red.github.io/formulaprivate/payment.html
 2. **Поддержка**: https://acqu1red.github.io/formulaprivate/?type=support
 3. **Админ-панель**: https://acqu1red.github.io/formulaprivate/?admin_conversation=123
 4. **Диалог**: https://acqu1red.github.io/formulaprivate/?conversation=456

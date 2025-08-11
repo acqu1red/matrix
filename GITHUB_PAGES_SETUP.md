@@ -35,9 +35,10 @@
 
 ```
 formulaprivate/
-├── docs/                    # GitHub Pages (веб-приложение)
-│   ├── index.html          # Главная страница
-│   ├── payment.html        # Платежная страница
+├── index.html              # Система перенаправления
+├── payment.html            # Платежная страница (корень)
+├── docs/                   # GitHub Pages (веб-приложение)
+│   ├── index.html          # Главная страница поддержки
 │   ├── script.js           # JavaScript логика
 │   ├── config.js           # Конфигурация
 │   └── .nojekyll           # Отключение Jekyll
