@@ -43,14 +43,44 @@ def telegram_webhook():
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
-        # Получаем данные от Lava Top
-        data = request.get_json()
+        print("📥 Получен webhook от Lava Top")
         
-        # Здесь будет логика обработки платежа
-        logging.info(f"Получен webhook от Lava Top: {data}")
+        # Получаем данные
+        data = request.get_json()
+        print(f"📋 Данные платежа: {data}")
+        
+        # Проверяем статус платежа
+        payment_status = data.get('status')
+        order_id = data.get('order_id')
+        amount = data.get('amount')
+        currency = data.get('currency')
+        metadata = data.get('metadata', {})
+        
+        user_id = metadata.get('user_id')
+        tariff = metadata.get('tariff')
+        email = metadata.get('email')
+        
+        print(f"💰 Статус: {payment_status}, Заказ: {order_id}, Сумма: {amount} {currency}")
+        print(f"👤 Пользователь: {user_id}, Тариф: {tariff}, Email: {email}")
+        
+        if payment_status == 'success':
+            # Создаем подписку в базе данных
+            subscription_id = create_subscription(user_id, email, tariff, amount, currency, order_id, metadata)
+            
+            # Отправляем сообщение пользователю
+            if user_id:
+                send_success_message_to_user(user_id, tariff, subscription_id)
+            
+            # Отправляем уведомление администраторам
+            send_admin_notification(user_id, email, tariff, amount, currency, order_id)
+            
+            print("✅ Платеж обработан успешно")
+        else:
+            print(f"❌ Платеж не прошел: {payment_status}")
         
         return jsonify({"status": "ok"})
     except Exception as e:
+        print(f"❌ Ошибка обработки Lava Top webhook: {e}")
         logging.error(f"Ошибка обработки Lava Top webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -81,6 +111,108 @@ channel_manager = ChannelManager()
 # Lava Top конфигурация
 LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
 LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
+
+def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
+    """Создает подписку в базе данных"""
+    try:
+        # Определяем длительность подписки
+        tariff_durations = {
+            '1month': 30,
+            '3months': 90,
+            '6months': 180,
+            '12months': 365
+        }
+        
+        duration_days = tariff_durations.get(tariff, 30)
+        end_date = datetime.utcnow() + timedelta(days=duration_days)
+        
+        subscription_data = {
+            'user_id': str(user_id),
+            'email': email,
+            'tariff': tariff,
+            'amount': amount,
+            'currency': currency,
+            'order_id': order_id,
+            'start_date': datetime.utcnow().isoformat(),
+            'end_date': end_date.isoformat(),
+            'status': 'active',
+            'metadata': metadata
+        }
+        
+        result = supabase.table('subscriptions').insert(subscription_data).execute()
+        print(f"✅ Подписка создана: {result}")
+        return result.data[0]['id'] if result.data else None
+        
+    except Exception as e:
+        print(f"❌ Ошибка создания подписки: {e}")
+        return None
+
+def send_success_message_to_user(user_id, tariff, subscription_id):
+    """Отправляет сообщение об успешной оплате пользователю"""
+    try:
+        # Формируем сообщение
+        message = f"""
+🎉 <b>Оплата прошла успешно!</b>
+
+Ваша подписка активирована!
+Тариф: {tariff}
+
+🔗 <b>Присоединяйтесь к закрытому каналу:</b>
+https://t.me/+your_channel_invite_link
+
+⏰ Подписка активна до: {datetime.utcnow() + timedelta(days=30)}
+
+С уважением, команда Формулы Успеха
+"""
+        
+        # Отправляем сообщение через Telegram Bot API
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {
+            "chat_id": user_id,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            print(f"✅ Сообщение отправлено пользователю {user_id}")
+        else:
+            print(f"❌ Ошибка отправки сообщения: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ Ошибка отправки сообщения пользователю: {e}")
+
+def send_admin_notification(user_id, email, tariff, amount, currency, order_id):
+    """Отправляет уведомление администраторам"""
+    try:
+        message = f"""
+💰 <b>Новый успешный платеж!</b>
+
+👤 Пользователь: {user_id}
+📧 Email: {email}
+📦 Тариф: {tariff}
+💵 Сумма: {amount} {currency}
+🆔 Заказ: {order_id}
+⏰ Время: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}
+"""
+        
+        # Отправляем уведомление всем администраторам
+        for admin_id in ADMIN_IDS:
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+            data = {
+                "chat_id": admin_id,
+                "text": message,
+                "parse_mode": "HTML"
+            }
+            
+            response = requests.post(url, json=data)
+            if response.status_code == 200:
+                print(f"✅ Уведомление отправлено администратору {admin_id}")
+            else:
+                print(f"❌ Ошибка отправки уведомления администратору {admin_id}")
+                
+    except Exception as e:
+        print(f"❌ Ошибка отправки уведомления администраторам: {e}")
 
 async def save_message_to_db(user, message):
     """Сохраняет сообщение пользователя в базу данных"""
