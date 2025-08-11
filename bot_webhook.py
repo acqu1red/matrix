@@ -39,14 +39,27 @@ def telegram_webhook():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Lava Top
-@app.route('/lava-webhook', methods=['POST'])
+@app.route('/lava-webhook', methods=['GET', 'POST', 'PUT'])
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
-        print("📥 Получен webhook от Lava Top")
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
+        print("=" * 50)
         print(f"📋 Headers: {dict(request.headers)}")
         print(f"📋 Method: {request.method}")
         print(f"📋 URL: {request.url}")
+        print(f"📋 Content-Type: {request.content_type}")
+        print(f"📋 Content-Length: {request.content_length}")
+        
+        # Если это GET запрос (тестирование)
+        if request.method == 'GET':
+            print("🔍 GET запрос - тестирование endpoint")
+            return jsonify({
+                "status": "ok",
+                "message": "Lava Top webhook endpoint работает",
+                "method": "GET"
+            })
         
         # Получаем данные
         data = request.get_json()
@@ -86,9 +99,13 @@ def lava_webhook():
             # Отправляем сообщение пользователю
             if user_id:
                 send_success_message_to_user(user_id, tariff, subscription_id)
+            else:
+                # Если user_id нет, отправляем сообщение администраторам
+                print("⚠️ user_id не найден, отправляем уведомление администраторам")
+                send_admin_notification("unknown", email, tariff, amount, currency, order_id)
             
             # Отправляем уведомление администраторам
-            send_admin_notification(user_id, email, tariff, amount, currency, order_id)
+            send_admin_notification(user_id or "unknown", email, tariff, amount, currency, order_id)
             
             print("✅ Платеж обработан успешно")
         else:
