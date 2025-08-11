@@ -78,24 +78,20 @@ def lava_webhook():
             print("❌ API key не найден в заголовках")
             return jsonify({"status": "error", "message": "API key required"}), 401
         
-        # Принимаем GET и POST запросы от Lava Top
-        if request.method not in ['GET', 'POST']:
+        # Поддерживаем GET и POST запросы
+        if request.method == 'GET':
+            print("🔍 GET запрос от Lava Top - обрабатываем как webhook")
+        elif request.method != 'POST':
             return jsonify({"status": "error", "message": "Only GET and POST methods allowed"}), 405
         
-        # Если это GET запрос от Lava Top, обрабатываем как обычный webhook
-        if request.method == 'GET':
-            print("📥 GET запрос от Lava Top - обрабатываем как webhook")
-            # Получаем данные из query parameters
-            data = request.args.to_dict()
-            print(f"📋 Данные из GET запроса: {data}")
-        else:
-            # Получаем данные из POST запроса
-            data = request.get_json()
-            if not data:
-                data = request.form.to_dict()
-            print(f"📋 Данные из POST запроса: {data}")
+        # Получаем данные
+        data = request.get_json()
+        print(f"📋 Данные платежа: {data}")
         
-
+        # Если данных нет, пробуем получить из form data
+        if not data:
+            data = request.form.to_dict()
+            print(f"📋 Данные из form: {data}")
         
         # Проверяем статус платежа
         payment_status = data.get('status')
@@ -124,24 +120,28 @@ def lava_webhook():
             subscription_id = create_subscription(user_id, email, tariff, amount, currency, order_id, metadata)
             
             # Отправляем сообщения везде
-            print("📤 Отправляем уведомления...")
+            print(f"📤 Отправка уведомлений пользователю...")
             
-            # 1. Отправляем сообщение в Telegram (если есть user_id)
+            # Отправляем в Telegram если есть user_id
             if user_id:
                 print(f"📱 Отправляем сообщение в Telegram пользователю {user_id}")
                 send_success_message_to_user(user_id, tariff, subscription_id)
             else:
-                print("⚠️ user_id не найден для Telegram")
+                print("⚠️ user_id не найден в данных платежа")
             
-            # 2. Отправляем email (если есть email)
+            # Отправляем на email если есть email
             if email:
-                print(f"📧 Отправляем email на {email}")
+                print(f"📧 Отправляем приглашение на email {email}")
                 send_email_invitation(email, tariff, subscription_id)
             else:
-                print("⚠️ email не найден")
+                print("⚠️ Email не найден в данных платежа")
             
-            # 3. Отправляем уведомление администраторам
-            print("👨‍💼 Отправляем уведомление администраторам")
+            # Если нет ни user_id, ни email, логируем проблему
+            if not user_id and not email:
+                print("❌ КРИТИЧЕСКАЯ ОШИБКА: Нет ни user_id, ни email для отправки уведомления!")
+                print(f"📋 Все данные платежа: {data}")
+            
+            # Отправляем уведомление администраторам
             send_admin_notification(user_id or "unknown", email, tariff, amount, currency, order_id)
             
             print("✅ Платеж обработан успешно")
