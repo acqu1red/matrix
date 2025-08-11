@@ -595,18 +595,70 @@ async def handle_payment_selection(update: Update, context: CallbackContext, pay
 
 async def handle_lava_payment(update: Update, context: CallbackContext):
     """Обрабатывает нажатие кнопки оплаты через Lava Top"""
-    query = update.callback_query
-    
-    # Отправляем пользователя на страницу оплаты Lava Top
-    payment_url = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"
-    
-    await query.edit_message_text(
-        f"💳 <b>Оплата через Lava Top</b>\n\n"
-        f"Для оплаты перейдите по ссылке:\n"
-        f"🔗 {payment_url}\n\n"
-        f"После успешной оплаты вы получите доступ к закрытому каналу.",
-        parse_mode='HTML'
-    )
+    try:
+        user = update.effective_user
+        print(f"💳 Пользователь {user.id} нажал кнопку оплаты")
+        
+        # Получаем данные о выбранном тарифе
+        tariff = context.user_data.get('selected_tariff', 'Подписка на 30 дней')
+        amount = context.user_data.get('selected_amount', 50)
+        
+        # Создаем заказ в Lava Top
+        order_id = f"order_{user.id}_{int(datetime.now().timestamp())}"
+        
+        # Сохраняем данные для webhook
+        metadata = {
+            'user_id': str(user.id),
+            'tariff': tariff,
+            'email': user.email if hasattr(user, 'email') else None
+        }
+        
+        # Сохраняем ожидающий платеж в базу данных
+        pending_payment = {
+            'order_id': order_id,
+            'user_id': str(user.id),
+            'tariff': tariff,
+            'amount': amount,
+            'currency': 'RUB',
+            'status': 'pending',
+            'created_at': datetime.utcnow().isoformat(),
+            'metadata': metadata
+        }
+        
+        try:
+            supabase.table('pending_payments').insert(pending_payment).execute()
+            print(f"✅ Ожидающий платеж сохранен: {order_id}")
+        except Exception as e:
+            print(f"⚠️ Ошибка сохранения платежа в БД: {e}")
+        
+        # URL для оплаты
+        payment_url = f"https://app.lava.top/ru/products/{os.getenv('LAVA_SHOP_ID')}/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB&order_id={order_id}&metadata={json.dumps(metadata)}"
+        
+        # Отправляем сообщение с ссылкой на оплату
+        message = f"""
+💳 <b>Оплата через Lava Top</b>
+
+Тариф: {tariff}
+Сумма: {amount} ₽
+Заказ: {order_id}
+
+🔗 <a href="{payment_url}">Перейти к оплате</a>
+
+После оплаты вы получите приглашение в закрытый канал.
+Проверка статуса происходит автоматически.
+"""
+        
+        await update.callback_query.edit_message_text(
+            text=message,
+            parse_mode='HTML',
+            disable_web_page_preview=True
+        )
+        
+    except Exception as e:
+        print(f"❌ Ошибка обработки оплаты: {e}")
+        await update.callback_query.edit_message_text(
+            text="❌ Произошла ошибка при создании платежа. Попробуйте позже."
+        )
 
 def build_start_content():
     """Создает контент для команды /start"""
@@ -747,6 +799,146 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
             parse_mode='HTML'
         )
 
+# Добавляем функцию для проверки платежей через API
+def check_payment_status(order_id):
+    """Проверяет статус платежа через API Lava Top"""
+    try:
+        print(f"🔍 Проверяем статус платежа: {order_id}")
+        
+        # API Lava Top для проверки статуса
+        api_url = f"https://api.lava.top/business/invoice/status"
+        
+        headers = {
+            "Authorization": f"Bearer {os.getenv('LAVA_SECRET_KEY')}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "shop_id": os.getenv('LAVA_SHOP_ID'),
+            "order_id": order_id
+        }
+        
+        response = requests.post(api_url, json=data, headers=headers)
+        print(f"📋 Ответ API: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            status = result.get('status')
+            print(f"💰 Статус платежа: {status}")
+            return status == 'success', result
+        else:
+            print(f"❌ Ошибка API: {response.status_code}")
+            return False, None
+            
+    except Exception as e:
+        print(f"❌ Ошибка проверки платежа: {e}")
+        return False, None
+
+def process_successful_payment(payment_data):
+    """Обрабатывает успешный платеж"""
+    try:
+        print("🎉 Обработка успешного платежа!")
+        
+        # Извлекаем данные
+        order_id = payment_data.get('order_id')
+        amount = payment_data.get('amount')
+        currency = payment_data.get('currency')
+        metadata = payment_data.get('metadata', {})
+        
+        # Если metadata это строка, пробуем распарсить JSON
+        if isinstance(metadata, str):
+            try:
+                import json
+                metadata = json.loads(metadata)
+            except:
+                metadata = {}
+        
+        user_id = metadata.get('user_id')
+        tariff = metadata.get('tariff', 'Подписка на 30 дней')
+        email = metadata.get('email')
+        
+        print(f"💰 Заказ: {order_id}, Сумма: {amount} {currency}")
+        print(f"👤 Пользователь: {user_id}, Тариф: {tariff}, Email: {email}")
+        
+        # Создаем подписку в базе данных
+        subscription_id = create_subscription(user_id, email, tariff, amount, currency, order_id, metadata)
+        
+        # Отправляем сообщения везде одновременно
+        print(f"📤 Отправка уведомлений пользователю...")
+        
+        # Всегда отправляем в Telegram (если есть user_id)
+        if user_id:
+            print(f"📱 Отправляем сообщение в Telegram пользователю {user_id}")
+            send_success_message_to_user(user_id, tariff, subscription_id)
+        else:
+            print("⚠️ user_id не найден - пропускаем отправку в Telegram")
+        
+        # Всегда отправляем на email (если есть email)
+        if email:
+            print(f"📧 Отправляем приглашение на email {email}")
+            send_email_invitation(email, tariff, subscription_id)
+        else:
+            print("⚠️ Email не найден - пропускаем отправку на email")
+        
+        # Логируем результат отправки
+        sent_to = []
+        if user_id:
+            sent_to.append("Telegram")
+        if email:
+            sent_to.append("Email")
+        
+        if sent_to:
+            print(f"✅ Уведомления отправлены: {', '.join(sent_to)}")
+        else:
+            print("❌ КРИТИЧЕСКАЯ ОШИБКА: Нет ни user_id, ни email для отправки уведомления!")
+            print(f"📋 Все данные платежа: {payment_data}")
+        
+        # Отправляем уведомление администраторам
+        send_admin_notification(user_id or "unknown", email, tariff, amount, currency, order_id)
+        
+        print("✅ Платеж обработан успешно")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Ошибка обработки платежа: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        return False
+
+# Добавляем функцию для периодической проверки платежей
+def check_pending_payments():
+    """Проверяет все ожидающие платежи"""
+    try:
+        print("🔍 Проверка ожидающих платежей...")
+        
+        # Получаем ожидающие платежи из базы данных
+        result = supabase.table('pending_payments').select('*').eq('status', 'pending').execute()
+        
+        if not result.data:
+            print("✅ Нет ожидающих платежей")
+            return
+        
+        print(f"📋 Найдено {len(result.data)} ожидающих платежей")
+        
+        for payment in result.data:
+            order_id = payment.get('order_id')
+            if order_id:
+                # Проверяем статус платежа
+                is_success, payment_data = check_payment_status(order_id)
+                
+                if is_success:
+                    print(f"✅ Платеж {order_id} успешен!")
+                    # Обрабатываем успешный платеж
+                    if process_successful_payment(payment_data):
+                        # Удаляем из ожидающих
+                        supabase.table('pending_payments').delete().eq('order_id', order_id).execute()
+                        print(f"✅ Платеж {order_id} обработан и удален из ожидающих")
+                else:
+                    print(f"⏳ Платеж {order_id} еще в обработке")
+        
+    except Exception as e:
+        print(f"❌ Ошибка проверки платежей: {e}")
+
 def main() -> None:
     """Основная функция запуска бота"""
     print("🚀 Запуск бота с webhook...")
@@ -794,7 +986,7 @@ def main() -> None:
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
     
-    # Запускаем автоматическую проверку подписок каждые 6 часов
+    # Запускаем автоматическую проверку подписок и платежей
     import threading
     import time
     
@@ -807,10 +999,24 @@ def main() -> None:
                 print(f"❌ Ошибка в проверке подписок: {e}")
                 time.sleep(60)  # 1 минута при ошибке
     
+    def payment_checker():
+        while True:
+            try:
+                check_pending_payments()
+                time.sleep(30)  # Проверяем каждые 30 секунд
+            except Exception as e:
+                print(f"❌ Ошибка в проверке платежей: {e}")
+                time.sleep(60)  # 1 минута при ошибке
+    
     # Запускаем проверку подписок в отдельном потоке
-    checker_thread = threading.Thread(target=subscription_checker, daemon=True)
-    checker_thread.start()
+    subscription_thread = threading.Thread(target=subscription_checker, daemon=True)
+    subscription_thread.start()
     print("🔄 Автоматическая проверка подписок запущена")
+    
+    # Запускаем проверку платежей в отдельном потоке
+    payment_thread = threading.Thread(target=payment_checker, daemon=True)
+    payment_thread.start()
+    print("🔄 Автоматическая проверка платежей запущена")
     
     print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
