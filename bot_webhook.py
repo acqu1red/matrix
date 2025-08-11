@@ -185,7 +185,9 @@ WEBHOOK_URL = os.getenv('WEBHOOK_URL', '')  # Будет установлен Ra
 WEBHOOK_PATH = '/webhook'
 
 # Администраторы
-ADMIN_IDS = [708907063, 7365307696]
+# Получаем ADMIN_IDS из переменных окружения или используем значения по умолчанию
+admin_ids_str = os.getenv('ADMIN_IDS', '708907063,7365307696')
+ADMIN_IDS = [int(id.strip()) for id in admin_ids_str.split(',') if id.strip()]
 ADMIN_USERNAMES = ['your_admin_username']  # Замените на реальные username
 
 # Supabase конфигурация
