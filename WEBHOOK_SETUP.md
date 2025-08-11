@@ -6,20 +6,36 @@ Webhook - это способ для Lava Top автоматически уве�
 
 ## 🚀 Варианты развертывания Webhook
 
-### Вариант 1: Render.com (Рекомендуемый)
+### Вариант 1: Использовать ветку webhook (Рекомендуемый)
 
-1. **Создайте аккаунт на [Render.com](https://render.com)**
-2. **Создайте новый Web Service**
-3. **Подключите ваш GitHub репозиторий**
-4. **Настройте переменные окружения:**
+1. **Перейдите на [Railway.app](https://railway.app)**
+2. **Создайте новый проект**
+3. **Подключите GitHub репозиторий:** `acqu1red/tourmalineGG`
+4. **Выберите ветку:** `webhook`
+5. **Настройте переменные окружения:**
    ```
    LAVA_WEBHOOK_SECRET=your_secret_here
    TELEGRAM_BOT_TOKEN=8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo
    SUPABASE_URL=https://uhhsrtmmuwoxsdquimaa.supabase.co
    SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8
    ```
-5. **Укажите команду запуска:** `python lava_webhook.py`
-6. **Получите URL:** `https://your-app-name.onrender.com`
+6. **Получите URL:** `https://your-app-name.railway.app`
+
+### Вариант 2: Render.com
+
+1. **Создайте аккаунт на [Render.com](https://render.com)**
+2. **Создайте новый Web Service**
+3. **Подключите ваш GitHub репозиторий:** `acqu1red/tourmalineGG`
+4. **Выберите ветку:** `webhook`
+5. **Настройте переменные окружения:**
+   ```
+   LAVA_WEBHOOK_SECRET=your_secret_here
+   TELEGRAM_BOT_TOKEN=8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo
+   SUPABASE_URL=https://uhhsrtmmuwoxsdquimaa.supabase.co
+   SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8
+   ```
+6. **Укажите команду запуска:** `python lava_webhook.py`
+7. **Получите URL:** `https://your-app-name.onrender.com`
 
 ### Вариант 2: Railway.app
 
