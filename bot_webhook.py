@@ -87,6 +87,16 @@ def lava_webhook():
                 "method": "GET"
             })
         
+        # Если это POST запрос (тестирование)
+        if request.method == 'POST':
+            print("🔍 POST запрос - тестирование endpoint")
+            return jsonify({
+                "status": "ok",
+                "message": "Lava Top webhook endpoint работает",
+                "method": "POST",
+                "data_received": request.get_json() if request.is_json else request.form.to_dict()
+            })
+        
         # Получаем данные
         data = request.get_json()
         print(f"📋 Данные платежа: {data}")
