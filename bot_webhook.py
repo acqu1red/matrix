@@ -258,33 +258,41 @@ def check_and_remove_expired_subscriptions():
     try:
         print("🔍 Проверка истекших подписок...")
         
-        # Получаем истекшие подписки
-        current_time = datetime.utcnow().isoformat()
-        result = supabase.table('subscriptions').select('*').eq('status', 'active').lt('end_date', current_time).execute()
-        
-        if not result.data:
-            print("✅ Нет истекших подписок")
-            return
-        
-        print(f"📋 Найдено {len(result.data)} истекших подписок")
-        
-        for subscription in result.data:
-            user_id = subscription['user_id']
-            tariff = subscription['tariff']
+        # Проверяем существование таблицы
+        try:
+            # Получаем истекшие подписки
+            current_time = datetime.utcnow().isoformat()
+            result = supabase.table('subscriptions').select('*').eq('status', 'active').lt('end_date', current_time).execute()
             
-            # Исключаем пользователя из канала
-            remove_user_from_channel(user_id)
+            if not result.data:
+                print("✅ Нет истекших подписок")
+                return
             
-            # Отправляем уведомление пользователю
-            send_expired_subscription_message(user_id, tariff)
+            print(f"📋 Найдено {len(result.data)} истекших подписок")
             
-            # Обновляем статус подписки
-            supabase.table('subscriptions').update({'status': 'expired'}).eq('id', subscription['id']).execute()
-            
-            print(f"✅ Пользователь {user_id} исключен из канала")
+            for subscription in result.data:
+                user_id = subscription['user_id']
+                tariff = subscription['tariff']
+                
+                # Исключаем пользователя из канала
+                remove_user_from_channel(user_id)
+                
+                # Отправляем уведомление пользователю
+                send_expired_subscription_message(user_id, tariff)
+                
+                # Обновляем статус подписки
+                supabase.table('subscriptions').update({'status': 'expired'}).eq('id', subscription['id']).execute()
+                
+                print(f"✅ Пользователь {user_id} исключен из канала")
+                
+        except Exception as table_error:
+            print(f"❌ Ошибка доступа к таблице subscriptions: {table_error}")
+            print("📋 Возможно, таблица не существует. Создайте её с помощью SQL скрипта.")
             
     except Exception as e:
         print(f"❌ Ошибка проверки истекших подписок: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
 
 def remove_user_from_channel(user_id):
     """Исключает пользователя из канала (без черного списка)"""
@@ -710,8 +718,21 @@ def main() -> None:
     webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
     if webhook_url:
         print(f"🌐 Настройка webhook: {webhook_url}/webhook")
-        # Устанавливаем webhook URL
-        application.bot.set_webhook(url=f"{webhook_url}/webhook")
+        # Устанавливаем webhook URL через requests (синхронно)
+        webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+        webhook_data = {
+            "url": f"{webhook_url}/webhook",
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'telegram_webhook_secret_2024')
+        }
+        
+        try:
+            response = requests.post(webhook_setup_url, json=webhook_data)
+            if response.status_code == 200:
+                print("✅ Webhook успешно установлен")
+            else:
+                print(f"❌ Ошибка установки webhook: {response.text}")
+        except Exception as e:
+            print(f"❌ Ошибка установки webhook: {e}")
     
     # Запускаем автоматическую проверку подписок каждые 6 часов
     import threading
