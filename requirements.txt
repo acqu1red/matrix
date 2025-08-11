@@ -4,4 +4,3 @@ pytz
 aiohttp
 flask
 requests
-smtplib
