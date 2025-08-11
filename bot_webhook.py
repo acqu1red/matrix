@@ -11,7 +11,48 @@ from datetime import datetime, timedelta
 import requests
 from supabase import create_client, Client
 from channel_manager import ChannelManager
-# WebAppInfo не используется в текущей версии
+from flask import Flask, request, jsonify
+
+# Создаем Flask приложение для health check
+app = Flask(__name__)
+
+# Health check endpoint для Railway
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
+
+# Webhook endpoint для Telegram
+@app.route('/webhook', methods=['POST'])
+def telegram_webhook():
+    """Обрабатывает webhook от Telegram"""
+    try:
+        # Получаем данные от Telegram
+        data = request.get_json()
+        
+        # Передаем данные в обработчик бота
+        if hasattr(app, 'telegram_app'):
+            app.telegram_app.process_update(Update.de_json(data, app.telegram_app.bot))
+        
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        logging.error(f"Ошибка обработки webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Webhook endpoint для Lava Top
+@app.route('/lava-webhook', methods=['POST'])
+def lava_webhook():
+    """Обрабатывает webhook от Lava Top"""
+    try:
+        # Получаем данные от Lava Top
+        data = request.get_json()
+        
+        # Здесь будет логика обработки платежа
+        logging.info(f"Получен webhook от Lava Top: {data}")
+        
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        logging.error(f"Ошибка обработки Lava Top webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Настройка логирования
 logging.basicConfig(
@@ -370,6 +411,7 @@ def main() -> None:
     
     # Создаем приложение
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    app.telegram_app = application # Привязываем приложение к Flask
     
     print("📝 Регистрация обработчиков...")
     
@@ -388,18 +430,17 @@ def main() -> None:
     
     print("✅ Обработчики зарегистрированы")
     
-    # Настраиваем webhook
-    if WEBHOOK_URL:
-        print(f"🌐 Настройка webhook: {WEBHOOK_URL}{WEBHOOK_PATH}")
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=int(os.getenv('PORT', 8080)),
-            webhook_url=f"{WEBHOOK_URL}{WEBHOOK_PATH}",
-            secret_token=os.getenv('WEBHOOK_SECRET', 'your_webhook_secret')
-        )
-    else:
-        print("🔄 Запуск в режиме polling...")
-        application.run_polling()
+    # Настраиваем webhook URL для Railway
+    webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
+    if webhook_url:
+        print(f"🌐 Настройка webhook: {webhook_url}/webhook")
+        # Устанавливаем webhook URL
+        application.bot.set_webhook(url=f"{webhook_url}/webhook")
+    
+    print("🚀 Запуск Flask приложения...")
+    # Запускаем Flask приложение
+    port = int(os.getenv('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
 if __name__ == '__main__':
     main()

@@ -33,6 +33,9 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 LAVA_SHOP_ID=1b9f3e05-86aa-4102-9648-268f0f586bb1
 LAVA_SECRET_KEY=whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
 LAVA_WEBHOOK_SECRET=lava_webhook_secret_2024_secure_key
+
+# Railway URL (добавится автоматически после деплоя)
+RAILWAY_STATIC_URL=https://formulaprivate-production.up.railway.app
 ```
 
 ## 🔧 Настройка в Lava Top Dashboard
