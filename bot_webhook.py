@@ -47,7 +47,7 @@ def telegram_webhook():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Lava Top
-@app.route('/lava-webhook', methods=['GET', 'POST', 'PUT'])
+@app.route('/lava-webhook', methods=['POST'])
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
@@ -75,27 +75,12 @@ def lava_webhook():
                 print("❌ Неверный API key")
                 return jsonify({"status": "error", "message": "Unauthorized"}), 401
         else:
-            print("⚠️ API key не найден в заголовках")
-            # Временно разрешаем без аутентификации для тестирования
+            print("❌ API key не найден в заголовках")
+            return jsonify({"status": "error", "message": "API key required"}), 401
         
-        # Если это GET запрос (тестирование)
-        if request.method == 'GET':
-            print("🔍 GET запрос - тестирование endpoint")
-            return jsonify({
-                "status": "ok",
-                "message": "Lava Top webhook endpoint работает",
-                "method": "GET"
-            })
-        
-        # Если это POST запрос (тестирование)
-        if request.method == 'POST':
-            print("🔍 POST запрос - тестирование endpoint")
-            return jsonify({
-                "status": "ok",
-                "message": "Lava Top webhook endpoint работает",
-                "method": "POST",
-                "data_received": request.get_json() if request.is_json else request.form.to_dict()
-            })
+        # Только POST запросы для обработки платежей
+        if request.method != 'POST':
+            return jsonify({"status": "error", "message": "Only POST method allowed"}), 405
         
         # Получаем данные
         data = request.get_json()
@@ -158,17 +143,7 @@ def lava_webhook():
         logging.error(f"Ошибка обработки Lava Top webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Тестовый endpoint для проверки webhook
-@app.route('/test-lava-webhook', methods=['GET', 'POST'])
-def test_lava_webhook():
-    """Тестовый endpoint для проверки webhook"""
-    return jsonify({
-        "status": "ok",
-        "message": "Lava Top webhook endpoint работает",
-        "method": request.method,
-        "headers": dict(request.headers),
-        "data": request.get_json() if request.is_json else request.form.to_dict()
-    })
+
 
 # Настройка логирования
 logging.basicConfig(
