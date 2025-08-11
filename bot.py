@@ -3,11 +3,12 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandle
 from queue import Queue
 from telegram.ext import ApplicationBuilder
 import pytz
-from telegram.ext import CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, ChatMemberHandler
 from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
+from channel_manager import channel_manager
 
 MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/payment.html"
@@ -15,7 +16,7 @@ PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/payment.html"
 # Lava Top API configuration
 LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
 LAVA_TOP_BASE_URL = "https://api.lava.top"
-LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09"
+LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/f4bef337-a1be-4497-8ccd-1e2dfa719f95?currency=EUR"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -543,6 +544,33 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         )
 
 
+async def check_expired_subscriptions(update: Update, context: CallbackContext) -> None:
+    """Проверяет и удаляет пользователей с истекшей подпиской"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text("У вас нет прав для выполнения этого действия!")
+        return
+    
+    try:
+        # Запускаем проверку истекших подписок
+        await channel_manager.remove_expired_users(context)
+        
+        await update.effective_message.reply_text(
+            "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
+            "Все пользователи с истекшей подпиской удалены из канала.",
+            parse_mode='HTML'
+        )
+        
+    except Exception as e:
+        print(f"Ошибка проверки истекших подписок: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Ошибка проверки подписок:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
+
 async def handle_admin_reply(update: Update, context: CallbackContext, user_id: str) -> None:
     """Обрабатывает нажатие кнопки 'Ответить долбаебу' администратором"""
     query = update.callback_query
@@ -583,7 +611,12 @@ def main() -> None:
     application.add_handler(CommandHandler("more_info", more_info))
     application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CommandHandler("messages", admin_messages))
+    application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
     application.add_handler(CallbackQueryHandler(button))
+    
+    # Обработчик для управления каналом (принятие заявок, удаление пользователей)
+    application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
+    print("✅ Обработчик управления каналом зарегистрирован")
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
     # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
