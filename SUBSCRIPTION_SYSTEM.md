@@ -192,7 +192,7 @@ SELECT * FROM get_expired_subscriptions();
 ### Продление подписки
 ```sql
 -- Продлить подписку
-SELECT extend_subscription(user_id, '1_month', 1500, 13.50);
+SELECT extend_subscription(user_id, '1_month', 50, 0.45);
 ```
 
 ### Статистика

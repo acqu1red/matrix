@@ -16,7 +16,7 @@ PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/tourmalineGG/payment.html"
 # Lava Top API configuration
 LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
 LAVA_TOP_BASE_URL = "https://api.lava.top"
-LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/f4bef337-a1be-4497-8ccd-1e2dfa719f95?currency=EUR"
+LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -452,8 +452,8 @@ async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
         
         # Формируем данные для создания платежа
         payment_request = {
-            "amount": price_eur,
-            "currency": "EUR",
+            "amount": price_rub,  # Используем цену в рублях
+            "currency": "RUB",    # Изменяем валюту на RUB
             "order_id": f"formula_{user_id}_{int(asyncio.get_event_loop().time())}",
             "hook_url": "https://your-webhook-url.com/lava-webhook",  # Замените на ваш webhook
             "success_url": "https://t.me/acqu1red",

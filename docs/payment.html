@@ -618,10 +618,10 @@
       </div>
 
       <div class="tariff-grid">
-        <div class="tariff-option" data-tariff="1_month" data-price="1500">
+        <div class="tariff-option" data-tariff="1_month" data-price="50">
           <div class="tariff-header">
             <div class="tariff-name">1 месяц</div>
-            <div class="tariff-price">1500 ₽</div>
+            <div class="tariff-price">50 ₽</div>
           </div>
           <div class="tariff-description">Базовый доступ к закрытому каналу</div>
         </div>
@@ -734,7 +734,7 @@
         
         <div class="content-text">
           <strong>Стоимость</strong><br>
-          <span id="finalPrice">1500 RUB</span>
+          <span id="finalPrice">50 RUB</span>
         </div>
       </div>
 
@@ -775,7 +775,7 @@
         
         <div class="summary-item">
           <span class="summary-label">Стоимость</span>
-          <span class="summary-value" id="confirmPrice">1500 RUB</span>
+          <span class="summary-value" id="confirmPrice">50 RUB</span>
         </div>
       </div>
 
@@ -801,7 +801,7 @@ let paymentState = {
   selectedBank: null,
   userEmail: '',
   prices: {
-    '1_month': 1500,
+            '1_month': 50,
     '6_months': 8000,
     '12_months': 10000
   },
@@ -968,7 +968,7 @@ function generatePaymentLink() {
   const urlWithParams = new URL(lavaTopUrl);
   
   // Add tariff information to URL parameters
-  urlWithParams.searchParams.set('currency', 'EUR');
+  urlWithParams.searchParams.set('currency', 'RUB');
   urlWithParams.searchParams.set('tariff', paymentState.selectedTariff);
   urlWithParams.searchParams.set('price_rub', paymentState.prices[paymentState.selectedTariff]);
   urlWithParams.searchParams.set('email', paymentState.userEmail);
