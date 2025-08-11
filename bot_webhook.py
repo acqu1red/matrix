@@ -44,10 +44,18 @@ def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
         print("📥 Получен webhook от Lava Top")
+        print(f"📋 Headers: {dict(request.headers)}")
+        print(f"📋 Method: {request.method}")
+        print(f"📋 URL: {request.url}")
         
         # Получаем данные
         data = request.get_json()
         print(f"📋 Данные платежа: {data}")
+        
+        # Если данных нет, пробуем получить из form data
+        if not data:
+            data = request.form.to_dict()
+            print(f"📋 Данные из form: {data}")
         
         # Проверяем статус платежа
         payment_status = data.get('status')
@@ -55,6 +63,14 @@ def lava_webhook():
         amount = data.get('amount')
         currency = data.get('currency')
         metadata = data.get('metadata', {})
+        
+        # Если metadata это строка, пробуем распарсить JSON
+        if isinstance(metadata, str):
+            try:
+                import json
+                metadata = json.loads(metadata)
+            except:
+                metadata = {}
         
         user_id = metadata.get('user_id')
         tariff = metadata.get('tariff')
@@ -81,8 +97,22 @@ def lava_webhook():
         return jsonify({"status": "ok"})
     except Exception as e:
         print(f"❌ Ошибка обработки Lava Top webhook: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
         logging.error(f"Ошибка обработки Lava Top webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# Тестовый endpoint для проверки webhook
+@app.route('/test-lava-webhook', methods=['GET', 'POST'])
+def test_lava_webhook():
+    """Тестовый endpoint для проверки webhook"""
+    return jsonify({
+        "status": "ok",
+        "message": "Lava Top webhook endpoint работает",
+        "method": request.method,
+        "headers": dict(request.headers),
+        "data": request.get_json() if request.is_json else request.form.to_dict()
+    })
 
 # Настройка логирования
 logging.basicConfig(
@@ -150,6 +180,8 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
 def send_success_message_to_user(user_id, tariff, subscription_id):
     """Отправляет сообщение об успешной оплате пользователю"""
     try:
+        print(f"📤 Отправка сообщения пользователю {user_id}")
+        
         # Формируем сообщение
         message = f"""
 🎉 <b>Оплата прошла успешно!</b>
@@ -173,7 +205,12 @@ https://t.me/+6SQb4RwwAmZlMWQ6
             "parse_mode": "HTML"
         }
         
+        print(f"📤 Отправляем запрос: {url}")
+        print(f"📤 Данные: {data}")
+        
         response = requests.post(url, json=data)
+        print(f"📤 Ответ: {response.status_code} - {response.text}")
+        
         if response.status_code == 200:
             print(f"✅ Сообщение отправлено пользователю {user_id}")
         else:
@@ -181,6 +218,8 @@ https://t.me/+6SQb4RwwAmZlMWQ6
             
     except Exception as e:
         print(f"❌ Ошибка отправки сообщения пользователю: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
 
 def send_admin_notification(user_id, email, tariff, amount, currency, order_id):
     """Отправляет уведомление администраторам"""
