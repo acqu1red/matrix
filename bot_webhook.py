@@ -60,6 +60,23 @@ def lava_webhook():
         print(f"📋 Content-Type: {request.content_type}")
         print(f"📋 Content-Length: {request.content_length}")
         
+        # Проверка Basic аутентификации
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Basic '):
+            import base64
+            try:
+                credentials = base64.b64decode(auth_header[6:]).decode('utf-8')
+                username, password = credentials.split(':', 1)
+                print(f"🔐 Аутентификация: {username}")
+                
+                # Проверяем учетные данные
+                if username != 'webhook' or password != 'lava_webhook_2024':
+                    print("❌ Неверные учетные данные")
+                    return jsonify({"status": "error", "message": "Unauthorized"}), 401
+            except Exception as e:
+                print(f"❌ Ошибка аутентификации: {e}")
+                return jsonify({"status": "error", "message": "Invalid authentication"}), 401
+        
         # Если это GET запрос (тестирование)
         if request.method == 'GET':
             print("🔍 GET запрос - тестирование endpoint")
