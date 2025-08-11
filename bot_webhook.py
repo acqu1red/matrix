@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import requests
 from supabase import create_client, Client
 from channel_manager import ChannelManager
-from telegram.web_app import WebAppInfo
+# WebAppInfo не используется в текущей версии
 
 # Настройка логирования
 logging.basicConfig(
@@ -178,6 +178,8 @@ async def button(update: Update, context: CallbackContext) -> None:
         await handle_admin_reply(update, context, user_id)
     elif query.data.startswith('payment_'):
         await handle_payment_selection(update, context, query.data)
+    elif query.data == 'lava_payment':
+        await handle_lava_payment(update, context)
     elif query.data == 'more_info':
         content = build_more_info_content()
         await query.edit_message_text(content['text'], parse_mode='HTML', reply_markup=content['reply_markup'])
@@ -204,6 +206,21 @@ async def handle_payment_selection(update: Update, context: CallbackContext, pay
         checkout_content['text'],
         parse_mode='HTML',
         reply_markup=checkout_content['reply_markup']
+    )
+
+async def handle_lava_payment(update: Update, context: CallbackContext):
+    """Обрабатывает нажатие кнопки оплаты через Lava Top"""
+    query = update.callback_query
+    
+    # Отправляем пользователя на страницу оплаты Lava Top
+    payment_url = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"
+    
+    await query.edit_message_text(
+        f"💳 <b>Оплата через Lava Top</b>\n\n"
+        f"Для оплаты перейдите по ссылке:\n"
+        f"🔗 {payment_url}\n\n"
+        f"После успешной оплаты вы получите доступ к закрытому каналу.",
+        parse_mode='HTML'
     )
 
 def build_start_content():
@@ -294,7 +311,7 @@ def build_checkout_content(duration_label: str):
 """
     
     keyboard = [
-        [InlineKeyboardButton("💳 Оплатить через Lava Top", web_app=WebAppInfo(url="https://your-payment-url.com"))],
+        [InlineKeyboardButton("💳 Оплатить через Lava Top", callback_data="lava_payment")],
         [InlineKeyboardButton("🔙 Назад к тарифам", callback_data="payment_menu")]
     ]
     
