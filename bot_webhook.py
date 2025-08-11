@@ -5,7 +5,7 @@ Telegram Bot with Webhook support for Railway deployment
 
 import os
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, ChatMemberHandler
 from datetime import datetime, timedelta
 import requests
@@ -158,11 +158,11 @@ def send_success_message_to_user(user_id, tariff, subscription_id):
 Тариф: {tariff}
 
 🔗 <b>Присоединяйтесь к закрытому каналу:</b>
-https://t.me/+your_channel_invite_link
+https://t.me/+6SQb4RwwAmZlMWQ6
 
 ⏰ Подписка активна до: {datetime.utcnow() + timedelta(days=30)}
 
-С уважением, команда Формулы Успеха
+С уважением, канал Формула.
 """
         
         # Отправляем сообщение через Telegram Bot API
@@ -213,6 +213,111 @@ def send_admin_notification(user_id, email, tariff, amount, currency, order_id):
                 
     except Exception as e:
         print(f"❌ Ошибка отправки уведомления администраторам: {e}")
+
+def check_and_remove_expired_subscriptions():
+    """Проверяет и удаляет пользователей с истекшей подпиской"""
+    try:
+        print("🔍 Проверка истекших подписок...")
+        
+        # Получаем истекшие подписки
+        current_time = datetime.utcnow().isoformat()
+        result = supabase.table('subscriptions').select('*').eq('status', 'active').lt('end_date', current_time).execute()
+        
+        if not result.data:
+            print("✅ Нет истекших подписок")
+            return
+        
+        print(f"📋 Найдено {len(result.data)} истекших подписок")
+        
+        for subscription in result.data:
+            user_id = subscription['user_id']
+            tariff = subscription['tariff']
+            
+            # Исключаем пользователя из канала
+            remove_user_from_channel(user_id)
+            
+            # Отправляем уведомление пользователю
+            send_expired_subscription_message(user_id, tariff)
+            
+            # Обновляем статус подписки
+            supabase.table('subscriptions').update({'status': 'expired'}).eq('id', subscription['id']).execute()
+            
+            print(f"✅ Пользователь {user_id} исключен из канала")
+            
+    except Exception as e:
+        print(f"❌ Ошибка проверки истекших подписок: {e}")
+
+def remove_user_from_channel(user_id):
+    """Исключает пользователя из канала (без черного списка)"""
+    try:
+        # ID вашего канала (замените на реальный)
+        channel_id = "@formula_channel"  # или -100xxxxxxxxx
+        
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/unbanChatMember"
+        data = {
+            "chat_id": channel_id,
+            "user_id": user_id,
+            "only_if_banned": False
+        }
+        
+        # Сначала разбаниваем (если был забанен)
+        response = requests.post(url, json=data)
+        
+        # Затем исключаем из канала
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/banChatMember"
+        data = {
+            "chat_id": channel_id,
+            "user_id": user_id,
+            "until_date": int((datetime.utcnow() + timedelta(seconds=30)).timestamp()),
+            "revoke_messages": False
+        }
+        
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            print(f"✅ Пользователь {user_id} исключен из канала")
+        else:
+            print(f"❌ Ошибка исключения пользователя {user_id}: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ Ошибка исключения пользователя из канала: {e}")
+
+def send_expired_subscription_message(user_id, tariff):
+    """Отправляет сообщение об окончании подписки"""
+    try:
+        message = f"""
+⏰ <b>Ваша подписка закончилась</b>
+
+К сожалению, срок действия вашей подписки истек.
+Тариф: {tariff}
+
+Но не расстраивайтесь! Вы можете продлить подписку в любой момент и снова получить доступ к эксклюзивному контенту.
+
+Нажмите кнопку ниже, чтобы продлить подписку:
+"""
+        
+        # Создаем inline кнопку с Mini App
+        keyboard = [
+            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"))]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Отправляем сообщение
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {
+            "chat_id": user_id,
+            "text": message,
+            "parse_mode": "HTML",
+            "reply_markup": reply_markup.to_dict()
+        }
+        
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            print(f"✅ Сообщение об окончании подписки отправлено пользователю {user_id}")
+        else:
+            print(f"❌ Ошибка отправки сообщения: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ Ошибка отправки сообщения об окончании подписки: {e}")
 
 async def save_message_to_db(user, message):
     """Сохраняет сообщение пользователя в базу данных"""
@@ -568,6 +673,24 @@ def main() -> None:
         print(f"🌐 Настройка webhook: {webhook_url}/webhook")
         # Устанавливаем webhook URL
         application.bot.set_webhook(url=f"{webhook_url}/webhook")
+    
+    # Запускаем автоматическую проверку подписок каждые 6 часов
+    import threading
+    import time
+    
+    def subscription_checker():
+        while True:
+            try:
+                check_and_remove_expired_subscriptions()
+                time.sleep(6 * 60 * 60)  # 6 часов
+            except Exception as e:
+                print(f"❌ Ошибка в проверке подписок: {e}")
+                time.sleep(60)  # 1 минута при ошибке
+    
+    # Запускаем проверку подписок в отдельном потоке
+    checker_thread = threading.Thread(target=subscription_checker, daemon=True)
+    checker_thread.start()
+    print("🔄 Автоматическая проверка подписок запущена")
     
     print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
