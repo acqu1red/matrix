@@ -57,17 +57,24 @@ def send_telegram_message(chat_id, message):
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
+        print("📥 Получен webhook от Lava Top")
+        
         # Получаем данные
         payload = request.get_data()
         signature = request.headers.get('X-Signature')
         
+        print(f"📋 Payload: {payload}")
+        print(f"🔐 Signature: {signature}")
+        
         # Проверяем подпись (если настроена)
         if LAVA_WEBHOOK_SECRET != "your_webhook_secret_here":
             if not verify_webhook_signature(payload, signature):
+                print("❌ Неверная подпись webhook")
                 return jsonify({"error": "Invalid signature"}), 400
         
         # Парсим данные
         data = json.loads(payload)
+        print(f"📊 Parsed data: {data}")
         
         # Извлекаем информацию о платеже
         payment_status = data.get('status')
@@ -224,4 +231,4 @@ def health_check():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
