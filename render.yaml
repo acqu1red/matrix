@@ -8,7 +8,7 @@ services:
       - key: LAVA_WEBHOOK_SECRET
         generateValue: true
       - key: TELEGRAM_BOT_TOKEN
-        value: 8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo
+        value: 7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
       - key: SUPABASE_URL
         value: https://uhhsrtmmuwoxsdquimaa.supabase.co
       - key: SUPABASE_KEY

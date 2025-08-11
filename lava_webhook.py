@@ -19,7 +19,7 @@ app = Flask(__name__)
 LAVA_WEBHOOK_SECRET = os.getenv('LAVA_WEBHOOK_SECRET', 'your_webhook_secret_here')
 
 # Telegram bot token
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
 
 # Admin chat IDs
 ADMIN_IDS = [708907063, 7365307696]

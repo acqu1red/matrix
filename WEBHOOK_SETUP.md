@@ -39,7 +39,7 @@ git push -u origin main
 6. **Добавьте переменные окружения:**
    ```
    LAVA_WEBHOOK_SECRET=your_secret_here
-   TELEGRAM_BOT_TOKEN=8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo
+   TELEGRAM_BOT_TOKEN=7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
    ```
 7. **Получите URL:** `https://your-app-name.railway.app`
 
@@ -51,7 +51,7 @@ git push -u origin main
 4. **Настройте переменные окружения:**
    ```
    LAVA_WEBHOOK_SECRET=your_secret_here
-   TELEGRAM_BOT_TOKEN=8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo
+   TELEGRAM_BOT_TOKEN=7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
    ```
 5. **Команда запуска:** `python lava_webhook.py`
 6. **Получите URL:** `https://your-app-name.onrender.com`
