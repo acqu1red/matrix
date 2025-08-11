@@ -60,23 +60,23 @@ def lava_webhook():
         print(f"📋 Content-Type: {request.content_type}")
         print(f"📋 Content-Length: {request.content_length}")
         
-        # Временно отключаем аутентификацию для тестирования
-        # Проверка Basic аутентификации
-        auth_header = request.headers.get('Authorization')
-        if auth_header and auth_header.startswith('Basic '):
-            import base64
-            try:
-                credentials = base64.b64decode(auth_header[6:]).decode('utf-8')
-                username, password = credentials.split(':', 1)
-                print(f"🔐 Аутентификация: {username}")
-                
-                # Проверяем учетные данные
-                if username != 'webhook' or password != 'lava_webhook_2024':
-                    print("❌ Неверные учетные данные")
-                    return jsonify({"status": "error", "message": "Unauthorized"}), 401
-            except Exception as e:
-                print(f"❌ Ошибка аутентификации: {e}")
-                return jsonify({"status": "error", "message": "Invalid authentication"}), 401
+        # Проверка API key аутентификации
+        api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
+        if api_key_header:
+            # Убираем 'Bearer ' если есть
+            if api_key_header.startswith('Bearer '):
+                api_key_header = api_key_header[7:]
+            
+            print(f"🔐 API Key получен: {api_key_header[:10]}...")
+            
+            # Проверяем API key
+            expected_api_key = 'lava_webhook_secret_2024_secure_key'
+            if api_key_header != expected_api_key:
+                print("❌ Неверный API key")
+                return jsonify({"status": "error", "message": "Unauthorized"}), 401
+        else:
+            print("⚠️ API key не найден в заголовках")
+            # Временно разрешаем без аутентификации для тестирования
         
         # Если это GET запрос (тестирование)
         if request.method == 'GET':
