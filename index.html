@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Формула Успеха - Закрытый канал</title>
+    <title>Формула Успеха - Перенаправление</title>
     <style>
         * {
             margin: 0;
@@ -21,14 +21,14 @@
             color: #333;
         }
 
-        .container {
+        .loading-container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 600px;
+            max-width: 400px;
             width: 90%;
         }
 
@@ -46,157 +46,113 @@
             font-weight: bold;
         }
 
-        h1 {
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h2 {
             color: #333;
             margin-bottom: 10px;
-            font-size: 2.5rem;
-            font-weight: 700;
         }
 
-        .subtitle {
+        p {
             color: #666;
-            font-size: 1.2rem;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .feature {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .feature:hover {
-            transform: translateY(-5px);
-        }
-
-        .feature h3 {
-            margin-bottom: 10px;
-            font-size: 1.3rem;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .pricing {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 30px 0;
-        }
-
-        .pricing h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .price-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .price-item:last-child {
-            border-bottom: none;
-        }
-
-        .price {
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .footer {
-            margin-top: 30px;
-            color: #666;
+        .redirect-info {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
             font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
+            color: #667eea;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="loading-container">
         <div class="logo">ФУ</div>
-        <h1>Формула Успеха</h1>
-        <p class="subtitle">Закрытый канал с эксклюзивным контентом</p>
-        
-        <div class="features">
-            <div class="feature">
-                <h3>🎯 Эксклюзивный контент</h3>
-                <p>Доступ к закрытым материалам и стратегиям</p>
-            </div>
-            <div class="feature">
-                <h3>💡 Экспертные знания</h3>
-                <p>Проверенные методики и практические советы</p>
-            </div>
-            <div class="feature">
-                <h3>🚀 Быстрый результат</h3>
-                <p>Пошаговые инструкции для достижения целей</p>
-            </div>
-        </div>
-
-        <div class="pricing">
-            <h3>💰 Тарифы доступа</h3>
-            <div class="price-item">
-                <span>1 месяц</span>
-                <span class="price">50 ₽</span>
-            </div>
-            <div class="price-item">
-                <span>6 месяцев</span>
-                <span class="price">8000 ₽</span>
-            </div>
-            <div class="price-item">
-                <span>12 месяцев</span>
-                <span class="price">10000 ₽</span>
-            </div>
-        </div>
-
-        <a href="https://t.me/acqu1red" class="cta-button">💬 Написать в Telegram</a>
-        <a href="docs/" class="cta-button">📱 Открыть Miniapp</a>
-
-        <div class="footer">
-            <p>© 2024 Формула Успеха. Все права защищены.</p>
-            <p>Создано с ❤️ для вашего успеха</p>
+        <h2>Перенаправление...</h2>
+        <div class="spinner"></div>
+        <p>Пожалуйста, подождите</p>
+        <div class="redirect-info" id="redirectInfo">
+            Определяем направление...
         </div>
     </div>
+
+    <script>
+        // Функция для получения параметров URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Функция для перенаправления
+        function redirectToPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectInfo = document.getElementById('redirectInfo');
+            
+            // Проверяем различные параметры для определения направления
+            const payment = getUrlParameter('payment');
+            const support = getUrlParameter('support');
+            const admin = getUrlParameter('admin_conversation');
+            const conversation = getUrlParameter('conversation');
+            const type = getUrlParameter('type');
+            
+            let targetUrl = '';
+            let redirectText = '';
+            
+            // Определяем направление перенаправления
+            if (payment || type === 'payment') {
+                targetUrl = 'docs/payment.html';
+                redirectText = 'Перенаправляем на страницу оплаты...';
+            } else if (support || type === 'support') {
+                targetUrl = 'docs/';
+                redirectText = 'Перенаправляем на страницу поддержки...';
+            } else if (admin) {
+                targetUrl = `docs/?admin_conversation=${admin}`;
+                redirectText = 'Открываем админ-панель...';
+            } else if (conversation) {
+                targetUrl = `docs/?conversation=${conversation}`;
+                redirectText = 'Открываем диалог...';
+            } else {
+                // По умолчанию - страница поддержки
+                targetUrl = 'docs/';
+                redirectText = 'Перенаправляем на главную страницу...';
+            }
+            
+            // Обновляем текст
+            redirectInfo.textContent = redirectText;
+            
+            // Добавляем небольшую задержку для показа анимации
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 1500);
+        }
+
+        // Запускаем перенаправление при загрузке страницы
+        document.addEventListener('DOMContentLoaded', redirectToPage);
+        
+        // Также запускаем сразу (на случай, если DOM уже загружен)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', redirectToPage);
+        } else {
+            redirectToPage();
+        }
+    </script>
 </body>
 </html>
