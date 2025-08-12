@@ -911,26 +911,15 @@ function generatePaymentLink() {
   
   console.log('Payment data:', paymentData);
   
-  // Send data to Telegram bot
+  // Send data to Telegram bot - бот создаст инвойс через API
   tg.sendData(JSON.stringify(paymentData));
   
-  // Build Lava Top URL with parameters
-  const lavaTopUrl = 'https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc';
-  const urlWithParams = new URL(lavaTopUrl);
-  
-  // Add tariff information to URL parameters
-  urlWithParams.searchParams.set('currency', 'RUB');
-  urlWithParams.searchParams.set('tariff', paymentState.selectedTariff);
-  urlWithParams.searchParams.set('price_rub', paymentState.prices[paymentState.selectedTariff]);
-  urlWithParams.searchParams.set('email', paymentState.userEmail);
-  urlWithParams.searchParams.set('user_id', paymentData.userId);
-  
-  // Replace the button with a link button
+  // Replace the button with a loading state
   const buttonGroup = document.querySelector('#step4 .button-group');
   buttonGroup.innerHTML = `
-    <a href="${urlWithParams.toString()}" target="_blank" class="btn btn-primary" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
-      💳 Перейти к оплате
-    </a>
+    <button class="btn btn-primary" disabled style="opacity: 0.7;">
+      ⏳ Создание платежа...
+    </button>
     <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
   `;
   
@@ -941,8 +930,8 @@ function generatePaymentLink() {
   successMessage.style.borderColor = '#4CAF50';
   successMessage.innerHTML = `
     <div class="content-text" style="color: white; text-align: center;">
-      ✅ <strong>Данные подтверждены!</strong><br>
-      Нажмите кнопку "Перейти к оплате" для завершения покупки
+      ✅ <strong>Данные отправлены!</strong><br>
+      Бот создает платежную ссылку с вашими данными...
     </div>
   `;
   
