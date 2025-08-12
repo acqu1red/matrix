@@ -913,8 +913,16 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
+  // Debug: показываем состояние paymentState
+  console.log('PaymentState при генерации ссылки:', paymentState);
+  console.log('selectedTariff:', paymentState.selectedTariff);
+  console.log('userEmail:', paymentState.userEmail);
+  
   // Validate required fields
   if (!paymentState.selectedTariff || !paymentState.userEmail) {
+    console.error('Валидация не прошла:');
+    console.error('- selectedTariff:', paymentState.selectedTariff);
+    console.error('- userEmail:', paymentState.userEmail);
     alert('Пожалуйста, заполните все обязательные поля');
     return;
   }

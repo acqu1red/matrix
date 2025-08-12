@@ -879,15 +879,23 @@ function initializeApp() {
   document.getElementById('userEmail').addEventListener('input', function() {
     paymentState.userEmail = this.value;
     document.getElementById('confirmEmail').textContent = this.value || 'Не указан';
+    console.log('Email обновлен:', paymentState.userEmail);
   });
 
   // Next button validation
   document.getElementById('nextBtn').addEventListener('click', function() {
     const email = document.getElementById('userEmail').value;
+    console.log('Email при нажатии "Далее":', email);
+    console.log('paymentState.userEmail:', paymentState.userEmail);
+    
     if (!email || !email.includes('@')) {
       alert('Пожалуйста, введите корректный email');
       return;
     }
+    
+    // Убеждаемся, что email сохранен в paymentState
+    paymentState.userEmail = email;
+    console.log('Email сохранен в paymentState:', paymentState.userEmail);
     
     goToStep(4);
   });
@@ -921,8 +929,16 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
+  // Debug: показываем состояние paymentState
+  console.log('PaymentState при генерации ссылки:', paymentState);
+  console.log('selectedTariff:', paymentState.selectedTariff);
+  console.log('userEmail:', paymentState.userEmail);
+  
   // Validate required fields
   if (!paymentState.selectedTariff || !paymentState.userEmail) {
+    console.error('Валидация не прошла:');
+    console.error('- selectedTariff:', paymentState.selectedTariff);
+    console.error('- userEmail:', paymentState.userEmail);
     alert('Пожалуйста, заполните все обязательные поля');
     return;
   }
