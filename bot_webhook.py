@@ -464,7 +464,8 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     message = update.message
     
     # Проверяем, является ли это данными от Mini Apps
-    if hasattr(message, 'web_app_data') and message.web_app_data:
+    if hasattr(message, 'web_app_data') and message.web_app_data and message.web_app_data.data:
+        print(f"📱 Обнаружены данные от Mini Apps: {message.web_app_data.data}")
         await handle_web_app_data(update, context)
         return
     
@@ -581,7 +582,21 @@ async def button(update: Update, context: CallbackContext) -> None:
     elif query.data.startswith('payment_'):
         await handle_payment_selection(update, context, query.data)
     elif query.data == 'lava_payment':
-        await handle_lava_payment(update, context)
+        # Вместо создания статической ссылки, отправляем сообщение о Mini Apps
+        await query.edit_message_text(
+            "💳 <b>Оплата подписки</b>\n\n"
+            "Для оплаты используйте Mini Apps:\n"
+            "1. Нажмите кнопку '💳 Оплатить' ниже\n"
+            "2. Введите ваш email\n"
+            "3. Подтвердите данные\n"
+            "4. Перейдите к оплате\n\n"
+            "Бот автоматически создаст платежную ссылку с вашими данными.",
+            parse_mode='HTML',
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("💳 Оплатить", web_app=WebAppInfo(url="https://formulaprivate-production.up.railway.app/payment.html"))],
+                [InlineKeyboardButton("🔙 Назад", callback_data="payment_menu")]
+            ])
+        )
     elif query.data == 'more_info':
         content = build_more_info_content()
         await query.edit_message_text(content['text'], parse_mode='HTML', reply_markup=content['reply_markup'])
@@ -938,6 +953,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     
     print("✅ Обработчики зарегистрированы")
     
