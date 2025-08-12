@@ -703,13 +703,7 @@
           <span id="productName">Канал ФОРМУЛА / 1 мес.</span>
         </div>
         
-        <div class="form-group">
-          <label class="form-label">Метод оплаты</label>
-          <div class="content-text" style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #e9ecef;">
-            <strong>💳 Банк РФ/Зарубежный банк</strong><br>
-            <em>Любая банковская карта</em>
-          </div>
-        </div>
+
         
         <div class="form-group">
           <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
@@ -747,10 +741,7 @@
           <span class="summary-value" id="confirmProductName">Канал ФОРМУЛА / 1 мес.</span>
         </div>
         
-        <div class="summary-item">
-          <span class="summary-label">Метод оплаты</span>
-          <span class="summary-value" id="confirmPaymentMethod">Банк РФ</span>
-        </div>
+
         
         <div class="summary-item">
           <span class="summary-label">Ваш E-mail</span>
@@ -798,10 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-  // Автоматически устанавливаем метод оплаты при загрузке
-  paymentState.selectedBank = 'russian';
-  paymentState.selectedPaymentMethod = 'card';
-  document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
+
   // Tariff selection
   document.querySelectorAll('.tariff-option').forEach(option => {
     option.addEventListener('click', function() {
@@ -869,10 +857,6 @@ function initializeApp() {
 
   // Next button validation
   document.getElementById('nextBtn').addEventListener('click', function() {
-    // Автоматически устанавливаем метод оплаты
-    paymentState.selectedBank = 'russian';
-    paymentState.selectedPaymentMethod = 'card';
-    
     const email = document.getElementById('userEmail').value;
     if (!email || !email.includes('@')) {
       alert('Пожалуйста, введите корректный email');
@@ -911,14 +895,6 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
-  // Автоматически устанавливаем значения если не выбраны
-  if (!paymentState.selectedBank) {
-    paymentState.selectedBank = 'russian';
-  }
-  if (!paymentState.selectedPaymentMethod) {
-    paymentState.selectedPaymentMethod = 'card';
-  }
-  
   // Validate required fields
   if (!paymentState.selectedTariff || !paymentState.userEmail) {
     alert('Пожалуйста, заполните все обязательные поля');
@@ -928,8 +904,6 @@ function generatePaymentLink() {
   // Prepare payment data
   const paymentData = {
     tariff: paymentState.selectedTariff,
-    paymentMethod: paymentState.selectedPaymentMethod,
-    bank: paymentState.selectedBank,
     email: paymentState.userEmail,
     price: paymentState.prices[paymentState.selectedTariff],
     userId: tg.initDataUnsafe?.user?.id || 'unknown'
