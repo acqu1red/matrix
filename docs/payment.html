@@ -708,6 +708,14 @@
 
         
         <div class="form-group">
+          <label class="form-label">Метод оплаты</label>
+          <div class="content-text" style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <strong>💳 Банк РФ/Зарубежный банк</strong><br>
+            <em>Любая банковская карта</em>
+          </div>
+        </div>
+        
+        <div class="form-group">
           <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
           <input type="email" class="form-input" id="userEmail" placeholder="example@email.com" required>
         </div>
@@ -746,6 +754,11 @@
 
         
         <div class="summary-item">
+          <span class="summary-label">Метод оплаты</span>
+          <span class="summary-value" id="confirmPaymentMethod">Банк РФ/Зарубежный банк</span>
+        </div>
+        
+        <div class="summary-item">
           <span class="summary-label">Ваш E-mail</span>
           <span class="summary-value" id="confirmEmail">example@email.com</span>
         </div>
@@ -774,8 +787,8 @@ tg.expand();
 let paymentState = {
   currentStep: 1,
   selectedTariff: null,
-  selectedPaymentMethod: null,
-  selectedBank: null,
+  selectedPaymentMethod: 'card',
+  selectedBank: 'russian',
   userEmail: '',
   prices: {
     '1_month': 50
@@ -791,9 +804,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-  // Автоматически устанавливаем тариф при загрузке (у нас только один тариф)
-  paymentState.selectedTariff = '1_month';
-  console.log('Автоматически установлен тариф:', paymentState.selectedTariff);
 
   // Tariff selection
   document.querySelectorAll('.tariff-option').forEach(option => {
@@ -850,10 +860,22 @@ function initializeApp() {
     });
   });
 
-  // Bank selection - автоматически выбираем единственный вариант
-  paymentState.selectedBank = 'russian';
-  paymentState.selectedPaymentMethod = 'card';
-  document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
+  // Bank selection
+  document.querySelectorAll('.bank-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const bank = this.dataset.bank;
+      
+      paymentState.selectedBank = bank;
+      
+      // Update UI
+      document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('selected'));
+      this.classList.add('selected');
+      
+      // Update confirmation
+      document.getElementById('confirmPaymentMethod').textContent = 
+        bank === 'russian' ? 'Банк РФ' : 'Иностранный банк';
+    });
+  });
 
   // Email input
   document.getElementById('userEmail').addEventListener('input', function() {
@@ -901,30 +923,28 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
-  // Debug: показываем состояние paymentState
-  console.log('PaymentState при генерации ссылки:', paymentState);
-  console.log('selectedTariff:', paymentState.selectedTariff);
-  console.log('userEmail:', paymentState.userEmail);
-  
   // Validate required fields
-  if (!paymentState.selectedTariff || !paymentState.userEmail || !paymentState.selectedBank || !paymentState.selectedPaymentMethod) {
-    console.error('Валидация не прошла:');
-    console.error('- selectedTariff:', paymentState.selectedTariff);
-    console.error('- userEmail:', paymentState.userEmail);
-    console.error('- selectedBank:', paymentState.selectedBank);
-    console.error('- selectedPaymentMethod:', paymentState.selectedPaymentMethod);
+  if (!paymentState.selectedTariff || !paymentState.userEmail) {
     alert('Пожалуйста, заполните все обязательные поля');
     return;
+  }
+  
+  // Автоматически устанавливаем метод оплаты если не выбран
+  if (!paymentState.selectedPaymentMethod) {
+    paymentState.selectedPaymentMethod = 'card';
+  }
+  if (!paymentState.selectedBank) {
+    paymentState.selectedBank = 'russian';
   }
   
   // Prepare payment data
   const paymentData = {
     tariff: paymentState.selectedTariff,
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank,
     email: paymentState.userEmail,
     price: paymentState.prices[paymentState.selectedTariff],
-    userId: tg.initDataUnsafe?.user?.id || 'unknown',
-    paymentMethod: paymentState.selectedPaymentMethod,
-    bank: paymentState.selectedBank
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
   };
   
   console.log('Payment data:', paymentData);

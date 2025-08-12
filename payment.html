@@ -706,6 +706,14 @@
 
         
         <div class="form-group">
+          <label class="form-label">Метод оплаты</label>
+          <div class="content-text" style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <strong>💳 Банк РФ/Зарубежный банк</strong><br>
+            <em>Любая банковская карта</em>
+          </div>
+        </div>
+        
+        <div class="form-group">
           <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
           <input type="email" class="form-input" id="userEmail" placeholder="example@email.com" required>
         </div>
@@ -744,6 +752,11 @@
 
         
         <div class="summary-item">
+          <span class="summary-label">Метод оплаты</span>
+          <span class="summary-value" id="confirmPaymentMethod">Банк РФ/Зарубежный банк</span>
+        </div>
+        
+        <div class="summary-item">
           <span class="summary-label">Ваш E-mail</span>
           <span class="summary-value" id="confirmEmail">example@email.com</span>
         </div>
@@ -772,8 +785,8 @@ tg.expand();
 let paymentState = {
   currentStep: 1,
   selectedTariff: null,
-  selectedPaymentMethod: null,
-  selectedBank: null,
+  selectedPaymentMethod: 'card',
+  selectedBank: 'russian',
   userEmail: '',
   prices: {
     '1_month': 50
@@ -789,11 +802,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-  // Автоматически устанавливаем тариф при загрузке (у нас только один тариф)
-  paymentState.selectedTariff = '1_month';
-  console.log('Автоматически установлен тариф:', paymentState.selectedTariff);
 
-  // Tariff selection - автоматически выбираем единственный тариф
+  // Tariff selection
   document.querySelectorAll('.tariff-option').forEach(option => {
     option.addEventListener('click', function() {
       const tariff = this.dataset.tariff;
@@ -812,43 +822,20 @@ function initializeApp() {
       document.getElementById('selectedTariffTitle').textContent = 
         `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
       
-      // Update step 3 content
-      const productNameElements = document.querySelectorAll('#productName');
-      productNameElements.forEach(element => {
-        element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-      });
-      document.getElementById('finalPrice').textContent = `${price} RUB`;
-      
-      // Update step 4 content
-      document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-      document.getElementById('confirmPrice').textContent = `${price} RUB`;
+             // Update step 3 content
+       const productNameElements = document.querySelectorAll('#productName');
+       productNameElements.forEach(element => {
+         element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+       });
+       document.getElementById('finalPrice').textContent = `${price} RUB`;
+       
+       // Update step 4 content
+       document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+       document.getElementById('confirmPrice').textContent = `${price} RUB`;
       
       goToStep(2);
     });
   });
-  
-  // Автоматически выбираем единственный тариф и переходим к шагу 2
-  const singleTariff = document.querySelector('.tariff-option');
-  if (singleTariff) {
-    singleTariff.style.borderColor = '#d6c7b8';
-    const tariff = singleTariff.dataset.tariff;
-    const price = singleTariff.dataset.price;
-    
-    // Update step 2 content
-    document.getElementById('selectedTariffTitle').textContent = 
-      `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
-    
-    // Update step 3 content
-    const productNameElements = document.querySelectorAll('#productName');
-    productNameElements.forEach(element => {
-      element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-    });
-    document.getElementById('finalPrice').textContent = `${price} RUB`;
-    
-    // Update step 4 content
-    document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-    document.getElementById('confirmPrice').textContent = `${price} RUB`;
-  }
 
   // Payment method selection
   document.querySelectorAll('.payment-method').forEach(method => {
@@ -873,30 +860,21 @@ function initializeApp() {
 
   // Bank selection - автоматически выбираем единственный вариант
   paymentState.selectedBank = 'russian';
-  paymentState.selectedPaymentMethod = 'card';
   document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
 
   // Email input
   document.getElementById('userEmail').addEventListener('input', function() {
     paymentState.userEmail = this.value;
     document.getElementById('confirmEmail').textContent = this.value || 'Не указан';
-    console.log('Email обновлен:', paymentState.userEmail);
   });
 
   // Next button validation
   document.getElementById('nextBtn').addEventListener('click', function() {
     const email = document.getElementById('userEmail').value;
-    console.log('Email при нажатии "Далее":', email);
-    console.log('paymentState.userEmail:', paymentState.userEmail);
-    
     if (!email || !email.includes('@')) {
       alert('Пожалуйста, введите корректный email');
       return;
     }
-    
-    // Убеждаемся, что email сохранен в paymentState
-    paymentState.userEmail = email;
-    console.log('Email сохранен в paymentState:', paymentState.userEmail);
     
     goToStep(4);
   });
@@ -930,30 +908,28 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
-  // Debug: показываем состояние paymentState
-  console.log('PaymentState при генерации ссылки:', paymentState);
-  console.log('selectedTariff:', paymentState.selectedTariff);
-  console.log('userEmail:', paymentState.userEmail);
-  
   // Validate required fields
-  if (!paymentState.selectedTariff || !paymentState.userEmail || !paymentState.selectedBank || !paymentState.selectedPaymentMethod) {
-    console.error('Валидация не прошла:');
-    console.error('- selectedTariff:', paymentState.selectedTariff);
-    console.error('- userEmail:', paymentState.userEmail);
-    console.error('- selectedBank:', paymentState.selectedBank);
-    console.error('- selectedPaymentMethod:', paymentState.selectedPaymentMethod);
+  if (!paymentState.selectedTariff || !paymentState.userEmail) {
     alert('Пожалуйста, заполните все обязательные поля');
     return;
+  }
+  
+  // Автоматически устанавливаем метод оплаты если не выбран
+  if (!paymentState.selectedPaymentMethod) {
+    paymentState.selectedPaymentMethod = 'card';
+  }
+  if (!paymentState.selectedBank) {
+    paymentState.selectedBank = 'russian';
   }
   
   // Prepare payment data
   const paymentData = {
     tariff: paymentState.selectedTariff,
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank,
     email: paymentState.userEmail,
     price: paymentState.prices[paymentState.selectedTariff],
-    userId: tg.initDataUnsafe?.user?.id || 'unknown',
-    paymentMethod: paymentState.selectedPaymentMethod,
-    bank: paymentState.selectedBank
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
   };
   
   console.log('Payment data:', paymentData);
@@ -1055,9 +1031,7 @@ function closeAndSendData() {
     tariff: paymentState.selectedTariff,
     email: paymentState.userEmail,
     price: paymentState.prices[paymentState.selectedTariff],
-    userId: tg.initDataUnsafe?.user?.id || 'unknown',
-    paymentMethod: paymentState.selectedPaymentMethod,
-    bank: paymentState.selectedBank
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
   };
   
   console.log('Закрываем Mini Apps и отправляем данные:', paymentData);
