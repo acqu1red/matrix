@@ -705,8 +705,9 @@
         
         <div class="form-group">
           <label class="form-label">Метод оплаты</label>
-          <div class="bank-options">
-            <div class="bank-option selected" data-bank="russian">Банк РФ/Зарубежный банк</div>
+          <div class="content-text" style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <strong>💳 Банк РФ/Зарубежный банк</strong><br>
+            <em>Любая банковская карта</em>
           </div>
         </div>
         
@@ -797,6 +798,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+  // Автоматически устанавливаем метод оплаты при загрузке
+  paymentState.selectedBank = 'russian';
+  paymentState.selectedPaymentMethod = 'card';
+  document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
   // Tariff selection
   document.querySelectorAll('.tariff-option').forEach(option => {
     option.addEventListener('click', function() {
