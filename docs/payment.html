@@ -791,6 +791,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+  // Автоматически устанавливаем тариф при загрузке (у нас только один тариф)
+  paymentState.selectedTariff = '1_month';
+  console.log('Автоматически установлен тариф:', paymentState.selectedTariff);
 
   // Tariff selection
   document.querySelectorAll('.tariff-option').forEach(option => {

@@ -789,8 +789,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+  // Автоматически устанавливаем тариф при загрузке (у нас только один тариф)
+  paymentState.selectedTariff = '1_month';
+  console.log('Автоматически установлен тариф:', paymentState.selectedTariff);
 
-  // Tariff selection
+  // Tariff selection - автоматически выбираем единственный тариф
   document.querySelectorAll('.tariff-option').forEach(option => {
     option.addEventListener('click', function() {
       const tariff = this.dataset.tariff;
@@ -809,20 +812,43 @@ function initializeApp() {
       document.getElementById('selectedTariffTitle').textContent = 
         `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
       
-             // Update step 3 content
-       const productNameElements = document.querySelectorAll('#productName');
-       productNameElements.forEach(element => {
-         element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-       });
-       document.getElementById('finalPrice').textContent = `${price} RUB`;
-       
-       // Update step 4 content
-       document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
-       document.getElementById('confirmPrice').textContent = `${price} RUB`;
+      // Update step 3 content
+      const productNameElements = document.querySelectorAll('#productName');
+      productNameElements.forEach(element => {
+        element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+      });
+      document.getElementById('finalPrice').textContent = `${price} RUB`;
+      
+      // Update step 4 content
+      document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+      document.getElementById('confirmPrice').textContent = `${price} RUB`;
       
       goToStep(2);
     });
   });
+  
+  // Автоматически выбираем единственный тариф и переходим к шагу 2
+  const singleTariff = document.querySelector('.tariff-option');
+  if (singleTariff) {
+    singleTariff.style.borderColor = '#d6c7b8';
+    const tariff = singleTariff.dataset.tariff;
+    const price = singleTariff.dataset.price;
+    
+    // Update step 2 content
+    document.getElementById('selectedTariffTitle').textContent = 
+      `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
+    
+    // Update step 3 content
+    const productNameElements = document.querySelectorAll('#productName');
+    productNameElements.forEach(element => {
+      element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+    });
+    document.getElementById('finalPrice').textContent = `${price} RUB`;
+    
+    // Update step 4 content
+    document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+    document.getElementById('confirmPrice').textContent = `${price} RUB`;
+  }
 
   // Payment method selection
   document.querySelectorAll('.payment-method').forEach(method => {
