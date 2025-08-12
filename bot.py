@@ -16,7 +16,7 @@ PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 # Lava Top API configuration
 LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
 LAVA_TOP_BASE_URL = "https://api.lava.top"
-LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"
+LAVA_TOP_PRODUCT_URL = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"

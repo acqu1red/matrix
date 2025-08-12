@@ -412,7 +412,7 @@ def send_expired_subscription_message(user_id, tariff):
         
         # Создаем inline кнопку с Mini App
         keyboard = [
-            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"))]
+            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"))]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         

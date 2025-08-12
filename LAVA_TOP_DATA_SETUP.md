@@ -4,7 +4,7 @@
 
 ✅ **API Key:** `whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav`  
 ✅ **Shop ID:** `1b9f3e05-86aa-4102-9648-268f0f586bb1`  
-✅ **Product ID:** `7357f3c8-bd27-462d-831a-a1eefe4ccd09`  
+✅ **Product ID:** `ec7a210d-4d2d-4615-b688-4bce41d527f6`  
 
 ## 🔍 Где получить недостающие данные
 
