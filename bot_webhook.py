@@ -73,7 +73,7 @@ def lava_webhook():
             print(f"🔐 API Key получен: {api_key_header[:10]}...")
             
             # Проверяем API key
-            expected_api_key = 'lava_webhook_secret_2024_secure_key'
+            expected_api_key = 'LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z'
             if api_key_header != expected_api_key:
                 print(f"❌ Неверный API key. Ожидалось: {expected_api_key}, Получено: {api_key_header}")
                 return jsonify({"status": "error", "message": "Unauthorized"}), 401
@@ -115,9 +115,12 @@ def lava_webhook():
             except:
                 metadata = {}
         
-        user_id = metadata.get('user_id')
+        # Пытаемся получить user_id из разных источников
+        user_id = metadata.get('user_id') or metadata.get('telegram_id')
         tariff = metadata.get('tariff')
         email = metadata.get('email')
+        
+        print(f"🔍 Извлеченные данные из metadata: user_id={user_id}, email={email}, tariff={tariff}")
         
         # Преобразуем user_id в число для Telegram API
         if user_id:
@@ -608,7 +611,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     user = update.effective_user
     
     try:
-        # Создаем инвойс через Lava Top API
+        # Создаем инвойс через Lava Top API с передачей данных пользователя
         invoice_data = {
             "shop_id": LAVA_SHOP_ID,
             "amount": 5000,  # 50 рублей в копейках
@@ -619,8 +622,11 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
             "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
             "metadata": {
                 "user_id": str(user.id),
+                "telegram_id": str(user.id),
                 "tariff": "Подписка на 1 месяц",
-                "email": user.email if hasattr(user, 'email') else None
+                "email": user.email if hasattr(user, 'email') else None,
+                "username": user.username if user.username else None,
+                "first_name": user.first_name if user.first_name else None
             }
         }
         
@@ -849,7 +855,7 @@ def main() -> None:
         webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
         webhook_data = {
             "url": f"{webhook_url}/webhook",
-            "secret_token": os.getenv('WEBHOOK_SECRET', 'telegram_webhook_secret_2024')
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
         }
         
         try:

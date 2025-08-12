@@ -9,8 +9,8 @@
 - **Product URL:** https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB
 
 ### 🔑 Что нужно создать:
-- **Webhook Secret:** `lava_webhook_secret_2024_secure_key` (создайте любую случайную строку)
-- **Telegram Webhook Secret:** `telegram_webhook_secret_2024` (создайте любую случайную строку)
+- **Webhook Secret:** `LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z` (создайте любую случайную строку)
+- **Telegram Webhook Secret:** `Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c` (создайте любую случайную строку)
 
 ## 🚨 Важно: Secret Key НЕ нужен!
 
@@ -23,7 +23,7 @@
 ```env
 # Telegram Bot
 TELEGRAM_BOT_TOKEN=7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
-WEBHOOK_SECRET=telegram_webhook_secret_2024
+WEBHOOK_SECRET=Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c
 
 # Supabase Database
 SUPABASE_URL=https://uhhsrtmmuwoxsdquimaa.supabase.co
@@ -32,7 +32,7 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 # Lava Top Payment System
 LAVA_SHOP_ID=1b9f3e05-86aa-4102-9648-268f0f586bb1
 LAVA_SECRET_KEY=whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
-LAVA_WEBHOOK_SECRET=lava_webhook_secret_2024_secure_key
+LAVA_WEBHOOK_SECRET=LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z
 
 # Railway URL (добавится автоматически после деплоя)
 RAILWAY_STATIC_URL=https://formulaprivate-production.up.railway.app
@@ -50,7 +50,7 @@ RAILWAY_STATIC_URL=https://formulaprivate-production.up.railway.app
 URL: https://your-app-name.railway.app/lava-webhook
 Метод: POST
 События: payment.success
-Secret: lava_webhook_secret_2024_secure_key
+Secret: LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z
 ```
 
 ## 🎯 Что будет происходить после оплаты
