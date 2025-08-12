@@ -47,7 +47,7 @@ def telegram_webhook():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Lava Top
-@app.route('/lava-webhook', methods=['GET', 'POST'])
+@app.route('/lava-webhook', methods=['GET'])
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
@@ -57,8 +57,7 @@ def lava_webhook():
         print(f"📋 Headers: {dict(request.headers)}")
         print(f"📋 Method: {request.method}")
         print(f"📋 URL: {request.url}")
-        print(f"📋 Content-Type: {request.content_type}")
-        print(f"📋 Content-Length: {request.content_length}")
+        print(f"📋 Query параметры: {request.args.to_dict()}")
         
         # Проверка API key аутентификации
         api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
@@ -78,21 +77,10 @@ def lava_webhook():
             print("❌ API key не найден в заголовках")
             return jsonify({"status": "error", "message": "API key required"}), 401
         
-        # Обрабатываем GET и POST запросы
-        if request.method == 'GET':
-            # GET запрос - получаем данные из query параметров
-            print("🔍 GET запрос - получаем данные из query параметров")
-            data = request.args.to_dict()
-            print(f"📋 GET данные: {data}")
-        elif request.method == 'POST':
-            # POST запрос - получаем данные из body
-            print("🔍 POST запрос - получаем данные из body")
-            data = request.get_json()
-            if not data:
-                data = request.form.to_dict()
-            print(f"📋 POST данные: {data}")
-        else:
-            return jsonify({"status": "error", "message": "Only GET and POST methods allowed"}), 405
+        # Получаем данные из GET запроса
+        print("🔍 GET запрос - получаем данные из query параметров")
+        data = request.args.to_dict()
+        print(f"📋 GET данные: {data}")
         
         # Получаем данные
         data = request.get_json()
