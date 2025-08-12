@@ -873,6 +873,7 @@ function initializeApp() {
 
   // Bank selection - автоматически выбираем единственный вариант
   paymentState.selectedBank = 'russian';
+  paymentState.selectedPaymentMethod = 'card';
   document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
 
   // Email input
@@ -935,10 +936,12 @@ function generatePaymentLink() {
   console.log('userEmail:', paymentState.userEmail);
   
   // Validate required fields
-  if (!paymentState.selectedTariff || !paymentState.userEmail) {
+  if (!paymentState.selectedTariff || !paymentState.userEmail || !paymentState.selectedBank || !paymentState.selectedPaymentMethod) {
     console.error('Валидация не прошла:');
     console.error('- selectedTariff:', paymentState.selectedTariff);
     console.error('- userEmail:', paymentState.userEmail);
+    console.error('- selectedBank:', paymentState.selectedBank);
+    console.error('- selectedPaymentMethod:', paymentState.selectedPaymentMethod);
     alert('Пожалуйста, заполните все обязательные поля');
     return;
   }
@@ -948,7 +951,9 @@ function generatePaymentLink() {
     tariff: paymentState.selectedTariff,
     email: paymentState.userEmail,
     price: paymentState.prices[paymentState.selectedTariff],
-    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+    userId: tg.initDataUnsafe?.user?.id || 'unknown',
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank
   };
   
   console.log('Payment data:', paymentData);
@@ -1050,7 +1055,9 @@ function closeAndSendData() {
     tariff: paymentState.selectedTariff,
     email: paymentState.userEmail,
     price: paymentState.prices[paymentState.selectedTariff],
-    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+    userId: tg.initDataUnsafe?.user?.id || 'unknown',
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank
   };
   
   console.log('Закрываем Mini Apps и отправляем данные:', paymentData);
