@@ -879,10 +879,9 @@ function initializeApp() {
 
   // Next button validation
   document.getElementById('nextBtn').addEventListener('click', function() {
-    if (!paymentState.selectedBank) {
-      alert('Пожалуйста, выберите метод оплаты');
-      return;
-    }
+    // Автоматически устанавливаем метод оплаты
+    paymentState.selectedBank = 'russian';
+    paymentState.selectedPaymentMethod = 'card';
     
     const email = document.getElementById('userEmail').value;
     if (!email || !email.includes('@')) {
@@ -922,9 +921,16 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
-  // Validate all required fields
-  if (!paymentState.selectedTariff || !paymentState.selectedPaymentMethod || 
-      !paymentState.selectedBank || !paymentState.userEmail) {
+  // Автоматически устанавливаем значения если не выбраны
+  if (!paymentState.selectedBank) {
+    paymentState.selectedBank = 'russian';
+  }
+  if (!paymentState.selectedPaymentMethod) {
+    paymentState.selectedPaymentMethod = 'card';
+  }
+  
+  // Validate required fields
+  if (!paymentState.selectedTariff || !paymentState.userEmail) {
     alert('Пожалуйста, заполните все обязательные поля');
     return;
   }
