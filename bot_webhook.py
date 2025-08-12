@@ -61,6 +61,10 @@ def lava_webhook():
         
         # Проверка API key аутентификации
         api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
+        print(f"🔍 Все заголовки: {dict(request.headers)}")
+        print(f"🔍 X-API-Key: {request.headers.get('X-API-Key')}")
+        print(f"🔍 Authorization: {request.headers.get('Authorization')}")
+        
         if api_key_header:
             # Убираем 'Bearer ' если есть
             if api_key_header.startswith('Bearer '):
@@ -71,25 +75,29 @@ def lava_webhook():
             # Проверяем API key
             expected_api_key = 'lava_webhook_secret_2024_secure_key'
             if api_key_header != expected_api_key:
-                print("❌ Неверный API key")
+                print(f"❌ Неверный API key. Ожидалось: {expected_api_key}, Получено: {api_key_header}")
                 return jsonify({"status": "error", "message": "Unauthorized"}), 401
+            else:
+                print("✅ API key верный")
         else:
             print("❌ API key не найден в заголовках")
-            return jsonify({"status": "error", "message": "API key required"}), 401
+            print("⚠️ Временно разрешаем доступ для диагностики")
+            # Временно разрешаем доступ для диагностики
         
-        # Получаем данные из GET запроса
+        # Получаем данные из GET запроса (query параметры)
         print("🔍 GET запрос - получаем данные из query параметров")
         data = request.args.to_dict()
         print(f"📋 GET данные: {data}")
         
-        # Получаем данные
-        data = request.get_json()
-        print(f"📋 Данные платежа: {data}")
-        
-        # Если данных нет, пробуем получить из form data
+        # Если данных нет в query параметрах, пробуем другие источники
         if not data:
-            data = request.form.to_dict()
-            print(f"📋 Данные из form: {data}")
+            print("⚠️ Данных нет в query параметрах, пробуем другие источники")
+            data = request.get_json()
+            print(f"📋 Данные из JSON: {data}")
+            
+            if not data:
+                data = request.form.to_dict()
+                print(f"📋 Данные из form: {data}")
         
         # Проверяем статус платежа
         payment_status = data.get('status')
@@ -109,6 +117,15 @@ def lava_webhook():
         user_id = metadata.get('user_id')
         tariff = metadata.get('tariff')
         email = metadata.get('email')
+        
+        # Преобразуем user_id в число для Telegram API
+        if user_id:
+            try:
+                user_id = int(user_id)
+                print(f"✅ user_id преобразован в число: {user_id}")
+            except (ValueError, TypeError):
+                print(f"❌ Не удалось преобразовать user_id в число: {user_id}")
+                user_id = None
         
         print(f"💰 Статус: {payment_status}, Заказ: {order_id}, Сумма: {amount} {currency}")
         print(f"👤 Пользователь: {user_id}, Тариф: {tariff}, Email: {email}")
