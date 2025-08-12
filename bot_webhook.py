@@ -466,6 +466,8 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     print(f"📨 Получено сообщение от пользователя {user.id}")
     print(f"📋 Тип сообщения: {type(message)}")
     print(f"📋 Атрибуты сообщения: {dir(message)}")
+    print(f"📋 Текст сообщения: {getattr(message, 'text', 'НЕТ ТЕКСТА')}")
+    print(f"📋 web_app_data: {getattr(message, 'web_app_data', 'НЕТ WEB_APP_DATA')}")
     
     # Проверяем, является ли это данными от Mini Apps
     if hasattr(message, 'web_app_data'):
@@ -484,11 +486,26 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         try:
             import json
             data = json.loads(message.text)
+            print(f"📱 Попытка парсинга JSON: {data}")
+            
+            # Проверяем тестовые данные
+            if isinstance(data, dict) and data.get('test'):
+                print(f"📱 Получены тестовые данные: {data}")
+                await message.reply_text(
+                    f"✅ <b>Тестовые данные получены!</b>\n\n"
+                    f"📋 Данные: {data}\n"
+                    f"⏰ Время: {data.get('timestamp', 'не указано')}",
+                    parse_mode='HTML'
+                )
+                return
+            
+            # Проверяем данные платежа
             if isinstance(data, dict) and 'tariff' in data and 'email' in data:
                 print(f"📱 Обнаружены JSON данные в обычном сообщении: {data}")
                 await handle_web_app_data_from_text(update, context, data)
                 return
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"📱 Ошибка парсинга JSON: {e}")
             pass  # Это не JSON данные
     
     # Сохраняем сообщение в базу данных
