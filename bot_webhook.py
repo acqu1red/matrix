@@ -479,6 +479,18 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     else:
         print(f"📱 web_app_data не найден")
     
+    # Проверяем, является ли это JSON данными от Mini Apps в обычном сообщении
+    if hasattr(message, 'text') and message.text:
+        try:
+            import json
+            data = json.loads(message.text)
+            if isinstance(data, dict) and 'tariff' in data and 'email' in data:
+                print(f"📱 Обнаружены JSON данные в обычном сообщении: {data}")
+                await handle_web_app_data_from_text(update, context, data)
+                return
+        except (json.JSONDecodeError, TypeError):
+            pass  # Это не JSON данные
+    
     # Сохраняем сообщение в базу данных
     await save_message_to_db(user, message)
     
@@ -716,6 +728,88 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
             
     except Exception as e:
         print(f"❌ Ошибка обработки данных Mini Apps: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+    
+    # Fallback - отправляем сообщение об ошибке
+    await message.reply_text(
+        "❌ Произошла ошибка при создании платежа. Попробуйте еще раз или обратитесь в поддержку."
+    )
+
+async def handle_web_app_data_from_text(update: Update, context: CallbackContext, payment_data: dict):
+    """Обрабатывает данные от Mini Apps, полученные через обычное сообщение"""
+    user = update.effective_user
+    message = update.message
+    
+    try:
+        print(f"📱 Обрабатываем данные из текста: {payment_data}")
+        
+        # Извлекаем данные
+        email = payment_data.get('email')
+        tariff = payment_data.get('tariff')
+        price = payment_data.get('price')
+        user_id = payment_data.get('userId')
+        
+        # Создаем инвойс через Lava Top API
+        invoice_data = {
+            "shop_id": LAVA_SHOP_ID,
+            "amount": int(price * 100),  # Конвертируем в копейки
+            "currency": "RUB",
+            "order_id": f"order_{user.id}_{int(datetime.now().timestamp())}",
+            "hook_url": f"https://formulaprivate-production.up.railway.app/lava-webhook",
+            "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "metadata": {
+                "user_id": str(user.id),
+                "telegram_id": str(user.id),
+                "tariff": tariff,
+                "email": email,
+                "username": user.username if user.username else None,
+                "first_name": user.first_name if user.first_name else None
+            }
+        }
+        
+        print(f"📤 Создаем инвойс с данными: {invoice_data}")
+        
+        # Отправляем запрос к Lava Top API
+        api_url = "https://api.lava.top/business/invoice/create"
+        headers = {
+            "Authorization": f"Bearer {LAVA_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(api_url, json=invoice_data, headers=headers)
+        print(f"📡 Ответ API: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            payment_url = result.get('data', {}).get('url')
+            
+            if payment_url:
+                print(f"✅ Инвойс создан успешно: {payment_url}")
+                
+                # Отправляем сообщение с кнопкой оплаты
+                keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                
+                await message.reply_text(
+                    f"💳 <b>Оплата подписки</b>\n\n"
+                    f"✅ Ваши данные получены:\n"
+                    f"📧 Email: {email}\n"
+                    f"💳 Тариф: {tariff}\n"
+                    f"💰 Сумма: {price}₽\n\n"
+                    f"Нажмите кнопку ниже для перехода к оплате:",
+                    parse_mode='HTML',
+                    reply_markup=reply_markup
+                )
+                return
+            else:
+                print(f"❌ URL не найден в ответе: {result}")
+        else:
+            print(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
+            
+    except Exception as e:
+        print(f"❌ Ошибка обработки данных из текста: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
     
