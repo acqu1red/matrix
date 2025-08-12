@@ -208,6 +208,7 @@ channel_manager = ChannelManager()
 # Lava Top конфигурация
 LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
 LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
+LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', 'ec7a210d-4d2d-4615-b688-4bce41d527f6')
 
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
     """Создает подписку в базе данных"""
@@ -605,7 +606,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     query = update.callback_query
     
     # Отправляем пользователя на страницу оплаты Lava Top
-    payment_url = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/7357f3c8-bd27-462d-831a-a1eefe4ccd09?currency=RUB"
+    payment_url = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"
     
     await query.edit_message_text(
         f"💳 <b>Оплата через Lava Top</b>\n\n"
