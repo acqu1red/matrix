@@ -912,7 +912,42 @@ function generatePaymentLink() {
   console.log('Payment data:', paymentData);
   
   // Send data to Telegram bot - бот создаст инвойс через API
-  tg.sendData(JSON.stringify(paymentData));
+  try {
+    console.log('Отправляем данные в бот:', paymentData);
+    tg.sendData(JSON.stringify(paymentData));
+    console.log('Данные отправлены успешно');
+  } catch (error) {
+    console.error('Ошибка отправки данных:', error);
+    // Fallback - показываем ошибку пользователю
+    const buttonGroup = document.querySelector('#step4 .button-group');
+    buttonGroup.innerHTML = `
+      <button class="btn btn-primary" onclick="retryPayment()">
+        🔄 Попробовать снова
+      </button>
+      <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+    `;
+    
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'content-block';
+    errorMessage.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+    errorMessage.style.borderColor = '#ff6b6b';
+    errorMessage.innerHTML = `
+      <div class="content-text" style="color: white; text-align: center;">
+        ❌ <strong>Ошибка отправки данных!</strong><br>
+        Попробуйте еще раз или обратитесь в поддержку.
+      </div>
+    `;
+    
+    const step4 = document.getElementById('step4');
+    const existingError = step4.querySelector('.error-message');
+    if (existingError) {
+      existingError.remove();
+    }
+    
+    errorMessage.classList.add('error-message');
+    buttonGroup.parentNode.insertBefore(errorMessage, buttonGroup);
+    return;
+  }
   
   // Replace the button with a loading state
   const buttonGroup = document.querySelector('#step4 .button-group');
@@ -952,6 +987,11 @@ window.addEventListener('popstate', function() {
     goToStep(paymentState.currentStep - 1);
   }
 });
+
+// Retry payment function
+function retryPayment() {
+  generatePaymentLink();
+}
 </script>
 </body>
 </html>

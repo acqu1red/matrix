@@ -463,11 +463,21 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     message = update.message
     
+    print(f"📨 Получено сообщение от пользователя {user.id}")
+    print(f"📋 Тип сообщения: {type(message)}")
+    print(f"📋 Атрибуты сообщения: {dir(message)}")
+    
     # Проверяем, является ли это данными от Mini Apps
-    if hasattr(message, 'web_app_data') and message.web_app_data and message.web_app_data.data:
-        print(f"📱 Обнаружены данные от Mini Apps: {message.web_app_data.data}")
-        await handle_web_app_data(update, context)
-        return
+    if hasattr(message, 'web_app_data'):
+        print(f"📱 web_app_data найден: {message.web_app_data}")
+        if message.web_app_data and hasattr(message.web_app_data, 'data') and message.web_app_data.data:
+            print(f"📱 Обнаружены данные от Mini Apps: {message.web_app_data.data}")
+            await handle_web_app_data(update, context)
+            return
+        else:
+            print(f"📱 web_app_data пустой или без data")
+    else:
+        print(f"📱 web_app_data не найден")
     
     # Сохраняем сообщение в базу данных
     await save_message_to_db(user, message)
@@ -952,8 +962,10 @@ def main() -> None:
     # Регистрируем обработчики кнопок и сообщений
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
-    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
+    
+    # Обработчик для web_app_data должен быть первым
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
     
     print("✅ Обработчики зарегистрированы")
     
