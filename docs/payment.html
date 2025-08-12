@@ -923,18 +923,18 @@ function updateProgressBar(step) {
 }
 
 function generatePaymentLink() {
-  // Validate required fields
-  if (!paymentState.selectedTariff || !paymentState.userEmail) {
-    alert('Пожалуйста, заполните все обязательные поля');
-    return;
-  }
-  
   // Автоматически устанавливаем метод оплаты если не выбран
   if (!paymentState.selectedPaymentMethod) {
     paymentState.selectedPaymentMethod = 'card';
   }
   if (!paymentState.selectedBank) {
     paymentState.selectedBank = 'russian';
+  }
+  
+  // Validate required fields
+  if (!paymentState.selectedTariff || !paymentState.userEmail) {
+    alert('Пожалуйста, заполните все обязательные поля');
+    return;
   }
   
   // Prepare payment data
