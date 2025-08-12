@@ -623,23 +623,7 @@
             <div class="tariff-name">1 месяц</div>
             <div class="tariff-price">50 ₽</div>
           </div>
-          <div class="tariff-description">Базовый доступ к закрытому каналу</div>
-        </div>
-        
-        <div class="tariff-option" data-tariff="6_months" data-price="8000">
-          <div class="tariff-header">
-            <div class="tariff-name">6 месяцев</div>
-            <div class="tariff-price">8000 ₽</div>
-          </div>
-          <div class="tariff-description">Экономия 1000 ₽ + доступ к крипто-оплате</div>
-        </div>
-        
-        <div class="tariff-option" data-tariff="12_months" data-price="10000">
-          <div class="tariff-header">
-            <div class="tariff-name">12 месяцев</div>
-            <div class="tariff-price">10000 ₽</div>
-          </div>
-          <div class="tariff-description">Максимальная экономия 8000 ₽ + все бонусы</div>
+          <div class="tariff-description">Доступ к закрытому каналу</div>
         </div>
       </div>
 
@@ -722,8 +706,7 @@
         <div class="form-group">
           <label class="form-label">Метод оплаты</label>
           <div class="bank-options">
-            <div class="bank-option" data-bank="russian">Банк РФ</div>
-            <div class="bank-option" data-bank="foreign">Иностранный банк</div>
+            <div class="bank-option selected" data-bank="russian">Банк РФ/Зарубежный банк</div>
           </div>
         </div>
         
@@ -801,14 +784,10 @@ let paymentState = {
   selectedBank: null,
   userEmail: '',
   prices: {
-            '1_month': 50,
-    '6_months': 8000,
-    '12_months': 10000
+    '1_month': 50
   },
   tariffNames: {
-    '1_month': '1 месяц',
-    '6_months': '6 месяцев', 
-    '12_months': '12 месяцев'
+    '1_month': '1 месяц'
   }
 };
 
@@ -873,22 +852,9 @@ function initializeApp() {
     });
   });
 
-  // Bank selection
-  document.querySelectorAll('.bank-option').forEach(option => {
-    option.addEventListener('click', function() {
-      const bank = this.dataset.bank;
-      
-      paymentState.selectedBank = bank;
-      
-      // Update UI
-      document.querySelectorAll('.bank-option').forEach(opt => opt.classList.remove('selected'));
-      this.classList.add('selected');
-      
-      // Update confirmation
-      document.getElementById('confirmPaymentMethod').textContent = 
-        bank === 'russian' ? 'Банк РФ' : 'Иностранный банк';
-    });
-  });
+  // Bank selection - автоматически выбираем единственный вариант
+  paymentState.selectedBank = 'russian';
+  document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
 
   // Email input
   document.getElementById('userEmail').addEventListener('input', function() {

@@ -611,7 +611,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
         # Создаем инвойс через Lava Top API
         invoice_data = {
             "shop_id": LAVA_SHOP_ID,
-            "amount": 1500,  # Сумма в копейках
+            "amount": 5000,  # 50 рублей в копейках
             "currency": "RUB",
             "order_id": f"order_{user.id}_{int(datetime.now().timestamp())}",
             "hook_url": f"https://formulaprivate-production.up.railway.app/lava-webhook",
@@ -619,7 +619,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
             "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
             "metadata": {
                 "user_id": str(user.id),
-                "tariff": "Подписка на 30 дней",
+                "tariff": "Подписка на 1 месяц",
                 "email": user.email if hasattr(user, 'email') else None
             }
         }
@@ -705,19 +705,15 @@ def build_start_content():
 def build_payment_content():
     """Создает контент для меню оплаты"""
     text = """
-💳 <b>Выберите тариф подписки:</b>
+💳 <b>Подписка на закрытый канал:</b>
 
-• 1 месяц - 1000₽
-• 3 месяца - 2500₽ (экономия 500₽)
-• 6 месяцев - 4500₽ (экономия 1500₽)
-• 12 месяцев - 8000₽ (экономия 4000₽)
+• 1 месяц - 50₽
+
+Получите доступ к эксклюзивному контенту и сообществу.
 """
     
     keyboard = [
-        [InlineKeyboardButton("1 месяц - 1000₽", callback_data="payment_1month")],
-        [InlineKeyboardButton("3 месяца - 2500₽", callback_data="payment_3months")],
-        [InlineKeyboardButton("6 месяцев - 4500₽", callback_data="payment_6months")],
-        [InlineKeyboardButton("12 месяцев - 8000₽", callback_data="payment_12months")],
+        [InlineKeyboardButton("💳 Оплатить 50₽", callback_data="payment_1month")],
         [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
     ]
     
