@@ -209,7 +209,7 @@ channel_manager = ChannelManager()
 # Lava Top конфигурация
 LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
 LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
-LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', 'ec7a210d-4d2d-4615-b688-4bce41d527f6')
+LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', '302ecdcd-1581-45ad-8353-a168f347b8cc')
 
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
     """Создает подписку в базе данных"""
@@ -413,7 +413,7 @@ def send_expired_subscription_message(user_id, tariff):
         
         # Создаем inline кнопку с Mini App
         keyboard = [
-            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"))]
+            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"))]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
