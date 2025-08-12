@@ -47,7 +47,7 @@ def telegram_webhook():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Lava Top
-@app.route('/lava-webhook', methods=['GET'])
+@app.route('/lava-webhook', methods=['POST'])
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
@@ -57,7 +57,8 @@ def lava_webhook():
         print(f"📋 Headers: {dict(request.headers)}")
         print(f"📋 Method: {request.method}")
         print(f"📋 URL: {request.url}")
-        print(f"📋 Query параметры: {request.args.to_dict()}")
+        print(f"📋 Content-Type: {request.content_type}")
+        print(f"📋 Content-Length: {request.content_length}")
         
         # Проверка API key аутентификации
         api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
@@ -84,20 +85,16 @@ def lava_webhook():
             print("⚠️ Временно разрешаем доступ для диагностики")
             # Временно разрешаем доступ для диагностики
         
-        # Получаем данные из GET запроса (query параметры)
-        print("🔍 GET запрос - получаем данные из query параметров")
-        data = request.args.to_dict()
-        print(f"📋 GET данные: {data}")
+        # Получаем данные из POST запроса
+        print("🔍 POST запрос - получаем данные из body")
+        data = request.get_json()
+        print(f"📋 POST данные из JSON: {data}")
         
-        # Если данных нет в query параметрах, пробуем другие источники
+        # Если данных нет в JSON, пробуем form data
         if not data:
-            print("⚠️ Данных нет в query параметрах, пробуем другие источники")
-            data = request.get_json()
-            print(f"📋 Данные из JSON: {data}")
-            
-            if not data:
-                data = request.form.to_dict()
-                print(f"📋 Данные из form: {data}")
+            print("⚠️ Данных нет в JSON, пробуем form data")
+            data = request.form.to_dict()
+            print(f"📋 POST данные из form: {data}")
         
         # Проверяем статус платежа
         payment_status = data.get('status')
