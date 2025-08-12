@@ -6,7 +6,7 @@
 - **API Key:** `whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav`
 - **Shop ID:** `1b9f3e05-86aa-4102-9648-268f0f586bb1`
 - **Product ID:** `ec7a210d-4d2d-4615-b688-4bce41d527f6`
-- **Product URL:** https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB
+- **Product URL:** https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB
 
 ### 🔑 Что нужно создать:
 - **Webhook Secret:** `lava_webhook_secret_2024_secure_key` (создайте любую случайную строку)

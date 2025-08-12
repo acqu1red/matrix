@@ -412,7 +412,7 @@ def send_expired_subscription_message(user_id, tariff):
         
         # Создаем inline кнопку с Mini App
         keyboard = [
-            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"))]
+            [InlineKeyboardButton("💳 Продлить подписку", web_app=WebAppInfo(url="https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"))]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -606,7 +606,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     query = update.callback_query
     
     # Отправляем пользователя на страницу оплаты Lava Top
-    payment_url = "https://app.lava.top/ru/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"
+    payment_url = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"
     
     await query.edit_message_text(
         f"💳 <b>Оплата через Lava Top</b>\n\n"
