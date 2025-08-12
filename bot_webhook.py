@@ -605,17 +605,79 @@ async def handle_payment_selection(update: Update, context: CallbackContext, pay
 async def handle_lava_payment(update: Update, context: CallbackContext):
     """Обрабатывает нажатие кнопки оплаты через Lava Top"""
     query = update.callback_query
+    user = update.effective_user
     
-    # Отправляем пользователя на страницу оплаты Lava Top
-    payment_url = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/ec7a210d-4d2d-4615-b688-4bce41d527f6?currency=RUB"
-    
-    await query.edit_message_text(
-        f"💳 <b>Оплата через Lava Top</b>\n\n"
-        f"Для оплаты перейдите по ссылке:\n"
-        f"🔗 {payment_url}\n\n"
-        f"После успешной оплаты вы получите доступ к закрытому каналу.",
-        parse_mode='HTML'
-    )
+    try:
+        # Создаем инвойс через Lava Top API
+        invoice_data = {
+            "shop_id": LAVA_SHOP_ID,
+            "amount": 1500,  # Сумма в копейках
+            "currency": "RUB",
+            "order_id": f"order_{user.id}_{int(datetime.now().timestamp())}",
+            "hook_url": f"https://formulaprivate-production.up.railway.app/lava-webhook",
+            "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "metadata": {
+                "user_id": str(user.id),
+                "tariff": "Подписка на 30 дней",
+                "email": user.email if hasattr(user, 'email') else None
+            }
+        }
+        
+        # Отправляем запрос к Lava Top API
+        api_url = "https://api.lava.top/business/invoice/create"
+        headers = {
+            "Authorization": f"Bearer {LAVA_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(api_url, json=invoice_data, headers=headers)
+        
+        if response.status_code == 200:
+            result = response.json()
+            payment_url = result.get('data', {}).get('url')
+            
+            if payment_url:
+                await query.edit_message_text(
+                    f"💳 <b>Оплата через Lava Top</b>\n\n"
+                    f"Для оплаты перейдите по ссылке:\n"
+                    f"🔗 {payment_url}\n\n"
+                    f"После успешной оплаты вы получите доступ к закрытому каналу.",
+                    parse_mode='HTML'
+                )
+            else:
+                # Fallback на статическую ссылку
+                payment_url = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
+                await query.edit_message_text(
+                    f"💳 <b>Оплата через Lava Top</b>\n\n"
+                    f"Для оплаты перейдите по ссылке:\n"
+                    f"🔗 {payment_url}\n\n"
+                    f"После успешной оплаты вы получите доступ к закрытому каналу.",
+                    parse_mode='HTML'
+                )
+        else:
+            print(f"❌ Ошибка создания инвойса: {response.text}")
+            # Fallback на статическую ссылку
+            payment_url = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
+            await query.edit_message_text(
+                f"💳 <b>Оплата через Lava Top</b>\n\n"
+                f"Для оплаты перейдите по ссылке:\n"
+                f"🔗 {payment_url}\n\n"
+                f"После успешной оплаты вы получите доступ к закрытому каналу.",
+                parse_mode='HTML'
+            )
+            
+    except Exception as e:
+        print(f"❌ Ошибка создания платежа: {e}")
+        # Fallback на статическую ссылку
+        payment_url = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
+        await query.edit_message_text(
+            f"💳 <b>Оплата через Lava Top</b>\n\n"
+            f"Для оплаты перейдите по ссылке:\n"
+            f"🔗 {payment_url}\n\n"
+            f"После успешной оплаты вы получите доступ к закрытому каналу.",
+            parse_mode='HTML'
+        )
 
 def build_start_content():
     """Создает контент для команды /start"""
