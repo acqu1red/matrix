@@ -1,522 +1,1203 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата подписки</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Оплата — Мини-приложение</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            padding: 20px;
-            min-height: 100vh;
-        }
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    background: #121212;
+    font-family: 'Inter', sans-serif;
+    color: #f0eadf;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
 
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+  /* Header styles */
+  header {
+    background: #1f1f1f;
+    padding: 16px 0;
+    text-align: center;
+    position: relative;
+    border: 2px solid #d6c7b8;
+    border-radius: 12px;
+    margin: 12px 16px 8px 16px;
+    flex-shrink: 0;
+  }
+  
+  header h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: #f0eadf;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
 
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+  header svg {
+    width: 30px;
+    height: 30px;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+  }
 
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--tg-theme-text-color, #000000);
-        }
+  /* Main content area */
+  main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 16px;
+  }
 
-        .header p {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #999999);
-        }
+  /* Step container */
+  .step-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 20px 0;
+  }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+  .step {
+    display: none;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeInUp 0.4s ease-out;
+  }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--tg-theme-text-color, #000000);
-        }
+  .step.active {
+    display: flex;
+  }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--tg-theme-button-color, #2481cc);
-            border-radius: 8px;
-            font-size: 16px;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            transition: border-color 0.3s ease;
-        }
+  .step.active .tariff-title-block {
+    animation: tariffTitleGlow 2s ease-in-out infinite alternate, fadeInUp 0.6s ease-out;
+  }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--tg-theme-button-color, #2481cc);
-        }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-        .tariff-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+  /* Content blocks */
+  .content-block {
+    background: linear-gradient(135deg, #1f1f1f 0%, #1a1a1a 100%);
+    border: 2px solid #333;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  }
 
-        .tariff-option {
-            padding: 16px;
-            border: 2px solid var(--tg-theme-button-color, #2481cc);
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: var(--tg-theme-bg-color, #ffffff);
-        }
+  .content-block:hover {
+    border-color: #d6c7b8;
+    box-shadow: 0 12px 40px rgba(214, 199, 184, 0.1);
+  }
 
-        .tariff-option.selected {
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-        }
+  /* Tariff title block */
+  .tariff-title-block {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 3px solid #d6c7b8;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    animation: tariffTitleGlow 2s ease-in-out infinite alternate;
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
 
-        .tariff-option h3 {
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
+  .tariff-title-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(214, 199, 184, 0.1), transparent);
+    animation: tariffTitleShimmer 3s ease-in-out infinite;
+  }
 
-        .tariff-option .price {
-            font-size: 18px;
-            font-weight: 600;
-        }
+  .tariff-title-block::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(214, 199, 184, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: tariffTitlePulse 4s ease-in-out infinite;
+  }
 
-        .tariff-option .duration {
-            font-size: 12px;
-            opacity: 0.8;
-        }
+  @keyframes tariffTitleGlow {
+    0% {
+      box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+      border-color: #d6c7b8;
+    }
+    100% {
+      box-shadow: 0 12px 35px rgba(214, 199, 184, 0.4);
+      border-color: #f0eadf;
+    }
+  }
 
-        .payment-methods {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+  @keyframes tariffTitleShimmer {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
 
-        .payment-method {
-            padding: 12px;
-            border: 2px solid var(--tg-theme-button-color, #2481cc);
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: var(--tg-theme-bg-color, #ffffff);
-        }
+  @keyframes tariffTitlePulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.6;
+    }
+  }
 
-        .payment-method.selected {
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-        }
+  .tariff-title-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f0eadf;
+    text-align: center;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    animation: tariffTitleText 2s ease-in-out infinite alternate;
+  }
 
-        .payment-method img {
-            width: 32px;
-            height: 32px;
-            margin-bottom: 8px;
-        }
+  @keyframes tariffTitleText {
+    0% {
+      transform: scale(1);
+      color: #f0eadf;
+    }
+    100% {
+      transform: scale(1.02);
+      color: #d6c7b8;
+    }
+  }
 
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-        }
+  .tariff-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(214, 199, 184, 0.4);
+    animation: tariffBadgeBounce 2s ease-in-out infinite;
+  }
 
-        .btn:hover {
-            opacity: 0.9;
-        }
+  @keyframes tariffBadgeBounce {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-5px) scale(1.05);
+    }
+  }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+  .content-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #f0eadf;
+    margin-bottom: 20px;
+  }
 
-        .btn-secondary {
-            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
-            color: var(--tg-theme-text-color, #000000);
-            border: 2px solid var(--tg-theme-button-color, #2481cc);
-        }
+  .content-text strong {
+    color: #d6c7b8;
+    font-weight: 600;
+  }
 
-        .summary {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 2px solid var(--tg-theme-button-color, #2481cc);
-        }
+  .content-text em {
+    color: #a6a8ad;
+    font-style: italic;
+  }
 
-        .summary h3 {
-            margin-bottom: 12px;
-            color: var(--tg-theme-text-color, #000000);
-        }
+  /* Tariff selection */
+  .tariff-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+  }
 
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
+  .tariff-option {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
 
-        .summary-item:last-child {
-            margin-bottom: 0;
-            font-weight: 600;
-            font-size: 16px;
-            border-top: 1px solid var(--tg-theme-hint-color, #999999);
-            padding-top: 8px;
-        }
+  .tariff-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(214, 199, 184, 0.1), transparent);
+    transition: left 0.6s ease;
+  }
 
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
+  .tariff-option:hover::before {
+    left: 100%;
+  }
 
-        .loading.show {
-            display: block;
-        }
+  .tariff-option:hover {
+    border-color: #d6c7b8;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(214, 199, 184, 0.2);
+  }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--tg-theme-button-color, #2481cc);
-            border-top: 4px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
+  .tariff-option:active {
+    transform: translateY(-2px);
+  }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+  .tariff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
 
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: none;
-        }
+  .tariff-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #f0eadf;
+  }
 
-        .error.show {
-            display: block;
-        }
+  .tariff-price {
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(214, 199, 184, 0.3);
+  }
 
-        .success {
-            background: #e8f5e8;
-            color: #2e7d32;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: none;
-        }
+  .tariff-description {
+    color: #a6a8ad;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
 
-        .success.show {
-            display: block;
-        }
-    </style>
+  /* Payment method selection */
+  .payment-methods {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .payment-method {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .payment-method:hover {
+    border-color: #d6c7b8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
+
+  .payment-method:active {
+    transform: translateY(0);
+  }
+
+  .payment-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #121212;
+    flex-shrink: 0;
+  }
+
+  .payment-info {
+    flex-grow: 1;
+  }
+
+  .payment-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f0eadf;
+    margin-bottom: 4px;
+  }
+
+  .payment-description {
+    color: #a6a8ad;
+    font-size: 0.9rem;
+  }
+
+  /* Form styles */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f0eadf;
+    margin-bottom: 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    color: #f0eadf;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: #d6c7b8;
+    box-shadow: 0 0 0 3px rgba(214, 199, 184, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: #a6a8ad;
+  }
+
+  /* Bank selection */
+  .bank-options {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .bank-option {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-weight: 600;
+    color: #f0eadf;
+  }
+
+  .bank-option:hover {
+    border-color: #d6c7b8;
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  }
+
+  .bank-option.selected {
+    border-color: #d6c7b8;
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+  }
+
+  /* Summary styles */
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #333;
+  }
+
+  .summary-item:last-child {
+    border-bottom: none;
+    font-weight: 600;
+    color: #d6c7b8;
+    font-size: 1.1rem;
+  }
+
+  .summary-label {
+    color: #a6a8ad;
+  }
+
+  .summary-value {
+    color: #f0eadf;
+    font-weight: 500;
+  }
+  
+  /* Payment Method Display Styles */
+  .payment-method-display {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border: 2px solid #3498db;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: paymentGlow 2s ease-in-out infinite alternate;
+  }
+  
+  .payment-method-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .payment-method-display:hover::before {
+    left: 100%;
+  }
+  
+  .payment-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    animation: iconPulse 2s ease-in-out infinite;
+  }
+  
+  .payment-info {
+    flex: 1;
+  }
+  
+  .payment-title {
+    font-weight: 600;
+    color: #ecf0f1;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  
+  .payment-subtitle {
+    color: #bdc3c7;
+    font-size: 14px;
+    font-style: italic;
+  }
+  
+  .payment-status {
+    display: flex;
+    align-items: center;
+  }
+  
+  .status-indicator {
+    width: 12px;
+    height: 12px;
+    background: #27ae60;
+    border-radius: 50%;
+    animation: statusPulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes paymentGlow {
+    0% {
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    100% {
+      box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+    }
+  }
+  
+  @keyframes iconPulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+  
+  @keyframes statusPulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.2);
+    }
+  }
+
+  /* Button styles */
+  .button-group {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn {
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+    box-shadow: 0 4px 15px rgba(214, 199, 184, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.4);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+    color: #f0eadf;
+    border: 2px solid #444;
+  }
+
+  .btn-secondary:hover {
+    border-color: #d6c7b8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  /* Link button styles */
+  .btn[href] {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn[href]:hover {
+    text-decoration: none;
+  }
+
+  /* Progress indicator */
+  .progress-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .progress-step {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #444;
+    transition: all 0.3s ease;
+  }
+
+  .progress-step.active {
+    background: #d6c7b8;
+    transform: scale(1.2);
+  }
+
+  .progress-step.completed {
+    background: #4CAF50;
+  }
+
+  /* Responsive design */
+  @media (max-width: 480px) {
+    .content-block {
+      padding: 20px;
+    }
+    
+    .tariff-option {
+      padding: 16px;
+    }
+    
+    .payment-method {
+      padding: 16px;
+    }
+    
+    .btn {
+      padding: 14px 20px;
+    }
+  }
+
+  /* Scrollbar styles */
+  .step-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .step-container::-webkit-scrollbar-track {
+    background: #1f1f1f;
+  }
+  
+  .step-container::-webkit-scrollbar-thumb {
+    background: #d6c7b8;
+    border-radius: 3px;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>💳 Оплата подписки</h1>
-            <p>Выберите тариф и способ оплаты</p>
+<header>
+  <h1>
+    💳 Оплата доступа
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+      <line x1="1" y1="10" x2="23" y2="10"/>
+    </svg>
+  </h1>
+</header>
+
+<main>
+  <div class="step-container">
+    <!-- Step 1: Tariff Selection -->
+    <div class="step active" id="step1">
+      <div class="progress-bar">
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          Ты сделал верный выбор.
         </div>
-
-        <div class="error" id="error">
-            <strong>Ошибка:</strong> <span id="error-text"></span>
+        <div class="content-text">
+          Выбери тариф по стоимости подписки на Формулу:
         </div>
+      </div>
 
-        <div class="success" id="success">
-            <strong>Успешно!</strong> <span id="success-text"></span>
+      <div class="tariff-grid">
+        <div class="tariff-option" data-tariff="1_month" data-price="50">
+          <div class="tariff-header">
+            <div class="tariff-name">1 месяц</div>
+            <div class="tariff-price">50 ₽</div>
+          </div>
+          <div class="tariff-description">Доступ к закрытому каналу</div>
         </div>
+      </div>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Обрабатываем данные...</p>
+      <div class="content-block">
+        <div class="content-text">
+          <em>*цена в долларах/евро - конвертируется по нынешнему курсу</em><br>
+          <em>*оплачивай любой картой в долларах/евро/рублях, бот сконвертирует сам</em>
         </div>
-
-        <form id="paymentForm">
-            <div class="form-group">
-                <label for="email">📧 Email</label>
-                <input type="email" id="email" name="email" required placeholder="your@email.com">
-            </div>
-
-            <div class="form-group">
-                <label>💳 Тариф подписки</label>
-                <div class="tariff-options">
-                    <div class="tariff-option" data-tariff="1_month" data-price="50">
-                        <h3>1 месяц</h3>
-                        <div class="price">50₽</div>
-                        <div class="duration">30 дней</div>
-                    </div>
-                    <div class="tariff-option" data-tariff="3_months" data-price="120">
-                        <h3>3 месяца</h3>
-                        <div class="price">120₽</div>
-                        <div class="duration">90 дней</div>
-                    </div>
-                    <div class="tariff-option" data-tariff="6_months" data-price="200">
-                        <h3>6 месяцев</h3>
-                        <div class="price">200₽</div>
-                        <div class="duration">180 дней</div>
-                    </div>
-                    <div class="tariff-option" data-tariff="12_months" data-price="350">
-                        <h3>12 месяцев</h3>
-                        <div class="price">350₽</div>
-                        <div class="duration">365 дней</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>🏦 Способ оплаты</label>
-                <div class="payment-methods">
-                    <div class="payment-method selected" data-method="card" data-bank="tinkoff">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzAwMCIvPgo8cGF0aCBkPSJNOCA4SDI0VjI0SDhWOFoiIGZpbGw9IiNmZmYiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMmgxMnY4SDJWMloiIGZpbGw9IiMwMDAiLz4KPHBhdGggZD0iTTQgNGg4djRINFY0WiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4KPC9zdmc+" alt="Card">
-                        <div>Банковская карта</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="summary" id="summary" style="display: none;">
-                <h3>📋 Сводка заказа</h3>
-                <div class="summary-item">
-                    <span>Email:</span>
-                    <span id="summary-email">-</span>
-                </div>
-                <div class="summary-item">
-                    <span>Тариф:</span>
-                    <span id="summary-tariff">-</span>
-                </div>
-                <div class="summary-item">
-                    <span>Способ оплаты:</span>
-                    <span id="summary-payment">-</span>
-                </div>
-                <div class="summary-item">
-                    <span>Итого:</span>
-                    <span id="summary-total">-</span>
-                </div>
-            </div>
-
-            <button type="submit" class="btn" id="submitBtn">
-                💳 Перейти к оплате
-            </button>
-        </form>
+      </div>
     </div>
 
-    <script>
-        // Инициализация Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+    <!-- Step 2: Payment Method Selection -->
+    <div class="step" id="step2">
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+      
+      <div class="tariff-title-block">
+        <div class="tariff-badge">ВЫБРАН</div>
+        <div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на 1 месяц</div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          <em>*если вы из Украины, включите vpn</em><br>
+          <em>*при оплате картой — оформляется автосписание каждые 30 дней</em><br>
+          <em>*далее — вы сможете управлять подпиской в Меню</em>
+        </div>
+        <div class="content-text">
+          Теперь тебе осталось выбрать удобный вид оплаты:
+        </div>
+      </div>
 
-        // Данные формы
-        let formData = {
-            email: '',
-            tariff: '',
-            price: 0,
-            paymentMethod: 'card',
-            bank: 'tinkoff',
-            userId: tg.initDataUnsafe?.user?.id || 'unknown'
-        };
-
-        // Элементы DOM
-        const form = document.getElementById('paymentForm');
-        const emailInput = document.getElementById('email');
-        const tariffOptions = document.querySelectorAll('.tariff-option');
-        const paymentMethods = document.querySelectorAll('.payment-method');
-        const summary = document.getElementById('summary');
-        const submitBtn = document.getElementById('submitBtn');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
-        const success = document.getElementById('success');
-
-        // Обработчики событий
-        emailInput.addEventListener('input', updateFormData);
+      <div class="payment-methods">
+        <div class="payment-method" data-method="card">
+          <div class="payment-icon">💳</div>
+          <div class="payment-info">
+            <div class="payment-name">Картой (любая валюта)</div>
+            <div class="payment-description">Банковская карта, криптокарта</div>
+          </div>
+        </div>
         
-        tariffOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                tariffOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                updateFormData();
-            });
-        });
+        <div class="payment-method" data-method="support">
+          <div class="payment-icon">💬</div>
+          <div class="payment-info">
+            <div class="payment-name">Поддержка</div>
+            <div class="payment-description">Связаться с поддержкой</div>
+          </div>
+        </div>
+      </div>
 
-        paymentMethods.forEach(method => {
-            method.addEventListener('click', () => {
-                paymentMethods.forEach(m => m.classList.remove('selected'));
-                method.classList.add('selected');
-                updateFormData();
-            });
-        });
+      <div class="button-group">
+        <button class="btn btn-secondary" onclick="goToStep(1)">Назад</button>
+      </div>
+    </div>
 
-        function updateFormData() {
-            formData.email = emailInput.value;
-            
-            const selectedTariff = document.querySelector('.tariff-option.selected');
-            if (selectedTariff) {
-                formData.tariff = selectedTariff.dataset.tariff;
-                formData.price = parseFloat(selectedTariff.dataset.price);
-            }
-            
-            const selectedPayment = document.querySelector('.payment-method.selected');
-            if (selectedPayment) {
-                formData.paymentMethod = selectedPayment.dataset.method;
-                formData.bank = selectedPayment.dataset.bank;
-            }
-
-            updateSummary();
-            validateForm();
-        }
-
-        function updateSummary() {
-            if (formData.email && formData.tariff && formData.paymentMethod) {
-                document.getElementById('summary-email').textContent = formData.email;
-                document.getElementById('summary-tariff').textContent = getTariffName(formData.tariff);
-                document.getElementById('summary-payment').textContent = getPaymentName(formData.paymentMethod);
-                document.getElementById('summary-total').textContent = `${formData.price}₽`;
-                summary.style.display = 'block';
-            } else {
-                summary.style.display = 'none';
-            }
-        }
-
-        function getTariffName(tariff) {
-            const names = {
-                '1_month': '1 месяц',
-                '3_months': '3 месяца',
-                '6_months': '6 месяцев',
-                '12_months': '12 месяцев'
-            };
-            return names[tariff] || tariff;
-        }
-
-        function getPaymentName(method) {
-            const names = {
-                'card': 'Банковская карта',
-                'sbp': 'СБП'
-            };
-            return names[method] || method;
-        }
-
-        function validateForm() {
-            const isValid = formData.email && formData.tariff && formData.paymentMethod;
-            submitBtn.disabled = !isValid;
-            return isValid;
-        }
-
-        function showError(message) {
-            document.getElementById('error-text').textContent = message;
-            error.classList.add('show');
-            setTimeout(() => error.classList.remove('show'), 5000);
-        }
-
-        function showSuccess(message) {
-            document.getElementById('success-text').textContent = message;
-            success.classList.add('show');
-            setTimeout(() => success.classList.remove('show'), 5000);
-        }
-
-        function showLoading() {
-            loading.classList.add('show');
-            submitBtn.disabled = true;
-        }
-
-        function hideLoading() {
-            loading.classList.remove('show');
-            submitBtn.disabled = false;
-        }
-
-        // Обработка отправки формы
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                showError('Пожалуйста, заполните все поля');
-                return;
-            }
-
-            showLoading();
-
-            try {
-                console.log('📤 Отправляем данные в бот:', formData);
-
-                // Отправляем данные в бот
-                const finalData = {
-                    step: 'final_data',
-                    ...formData
-                };
-
-                console.log('📋 Финальные данные:', finalData);
-
-                // Проверяем, что tg.sendData доступен
-                if (typeof tg.sendData === 'function') {
-                    console.log('✅ tg.sendData доступен, отправляем данные...');
-                    
-                    // Отправляем через tg.sendData
-                    tg.sendData(JSON.stringify(finalData));
-                    
-                    console.log('✅ Данные отправлены через tg.sendData');
-                    showSuccess('Данные отправлены! Ожидайте ссылку на оплату.');
-                    
-                    // Закрываем Mini Apps через 3 секунды
-                    setTimeout(() => {
-                        console.log('🔒 Закрываем Mini Apps...');
-                        tg.close();
-                    }, 3000);
-                    
-                } else {
-                    console.error('❌ tg.sendData не доступен!');
-                    showError('Ошибка: tg.sendData не доступен');
-                    hideLoading();
-                }
-
-            } catch (error) {
-                console.error('❌ Ошибка отправки данных:', error);
-                showError('Ошибка отправки данных. Попробуйте еще раз.');
-                hideLoading();
-            }
-        });
-
-        // Инициализация
-        updateFormData();
+    <!-- Step 3: Payment Details -->
+    <div class="step" id="step3">
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+      </div>
+      
+      <div class="tariff-title-block">
+        <div class="tariff-badge">ТОВАР</div>
+        <div class="tariff-title-text" id="productName">Канал ФОРМУЛА / 1 мес.</div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          <strong>Наименование товара</strong><br>
+          <span id="productName">Канал ФОРМУЛА / 1 мес.</span>
+        </div>
         
-        // Автоматически выбираем первый тариф
-        if (tariffOptions.length > 0) {
-            tariffOptions[0].click();
-        }
-    </script>
+
+        
+                        <div class="form-group">
+                  <label class="form-label">Метод оплаты</label>
+                  <div class="payment-method-display">
+                    <div class="payment-icon">💳</div>
+                    <div class="payment-info">
+                      <div class="payment-title">Банк РФ</div>
+                      <div class="payment-subtitle">Российские банковские карты</div>
+                    </div>
+                    <div class="payment-status">
+                      <div class="status-indicator"></div>
+                    </div>
+                  </div>
+                </div>
+        
+        <div class="form-group">
+          <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
+          <input type="email" class="form-input" id="userEmail" placeholder="example@email.com" required>
+        </div>
+        
+        <div class="content-text">
+          <strong>Стоимость</strong><br>
+          <span id="finalPrice">50 RUB</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="goToStep(4)" id="nextBtn">Далее</button>
+        <button class="btn btn-secondary" onclick="goToStep(2)">Назад</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Confirmation -->
+    <div class="step" id="step4">
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          Убедитесь, что введённые данные верны:
+        </div>
+        
+        <div class="summary-item">
+          <span class="summary-label">Наименование товара</span>
+          <span class="summary-value" id="confirmProductName">Канал ФОРМУЛА / 1 мес.</span>
+        </div>
+        
+
+        
+        <div class="summary-item">
+          <span class="summary-label">Метод оплаты</span>
+          <span class="summary-value" id="confirmPaymentMethod">Банк РФ/Зарубежный банк</span>
+        </div>
+        
+        <div class="summary-item">
+          <span class="summary-label">Ваш E-mail</span>
+          <span class="summary-value" id="confirmEmail">example@email.com</span>
+        </div>
+        
+        <div class="summary-item">
+          <span class="summary-label">Стоимость</span>
+          <span class="summary-value" id="confirmPrice">50 RUB</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="generatePaymentLink()">Оплатить</button>
+        <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+        <button id="fallbackButton" class="btn btn-warning" onclick="closeAndSendData()" style="display: none; margin-top: 10px;">
+          💬 Отправить данные через сообщение
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Initialize Telegram WebApp
+let tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+// Payment state
+let paymentState = {
+  currentStep: 1,
+  selectedTariff: null,
+  selectedPaymentMethod: 'card',
+  selectedBank: 'russian',
+  userEmail: '',
+  prices: {
+    '1_month': 50
+  },
+  tariffNames: {
+    '1_month': '1 месяц'
+  }
+};
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function() {
+  initializeApp();
+});
+
+function initializeApp() {
+
+  // Tariff selection
+  document.querySelectorAll('.tariff-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const tariff = this.dataset.tariff;
+      const price = this.dataset.price;
+      
+      paymentState.selectedTariff = tariff;
+      paymentState.selectedPaymentMethod = null;
+      paymentState.selectedBank = null;
+      paymentState.userEmail = '';
+      
+      // Update UI
+      document.querySelectorAll('.tariff-option').forEach(opt => opt.style.borderColor = '#444');
+      this.style.borderColor = '#d6c7b8';
+      
+      // Update step 2 content
+      document.getElementById('selectedTariffTitle').textContent = 
+        `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
+      
+             // Update step 3 content
+       const productNameElements = document.querySelectorAll('#productName');
+       productNameElements.forEach(element => {
+         element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+       });
+       document.getElementById('finalPrice').textContent = `${price} RUB`;
+       
+       // Update step 4 content
+       document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+       document.getElementById('confirmPrice').textContent = `${price} RUB`;
+      
+      goToStep(2);
+    });
+  });
+
+  // Payment method selection
+  document.querySelectorAll('.payment-method').forEach(method => {
+    method.addEventListener('click', function() {
+      const methodType = this.dataset.method;
+      
+             if (methodType === 'support') {
+         // Redirect to support page
+         tg.openTelegramLink('https://t.me/acqu1red');
+         return;
+       }
+      
+      paymentState.selectedPaymentMethod = methodType;
+      
+      // Update UI
+      document.querySelectorAll('.payment-method').forEach(m => m.style.borderColor = '#444');
+      this.style.borderColor = '#d6c7b8';
+      
+      goToStep(3);
+    });
+  });
+
+  // Bank selection - автоматически выбираем единственный вариант
+  paymentState.selectedBank = 'russian';
+  document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
+
+  // Email input
+  document.getElementById('userEmail').addEventListener('input', function() {
+    paymentState.userEmail = this.value;
+    document.getElementById('confirmEmail').textContent = this.value || 'Не указан';
+  });
+
+  // Next button validation
+  document.getElementById('nextBtn').addEventListener('click', function() {
+    const email = document.getElementById('userEmail').value;
+    if (!email || !email.includes('@')) {
+      alert('Пожалуйста, введите корректный email');
+      return;
+    }
+    
+    goToStep(4);
+  });
+}
+
+function goToStep(step) {
+  // Hide all steps
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  
+  // Show target step
+  document.getElementById(`step${step}`).classList.add('active');
+  
+  // Update progress bar
+  updateProgressBar(step);
+  
+  paymentState.currentStep = step;
+}
+
+function updateProgressBar(step) {
+  const steps = document.querySelectorAll('.progress-step');
+  
+  steps.forEach((stepEl, index) => {
+    stepEl.classList.remove('active', 'completed');
+    
+    if (index + 1 < step) {
+      stepEl.classList.add('completed');
+    } else if (index + 1 === step) {
+      stepEl.classList.add('active');
+    }
+  });
+}
+
+function generatePaymentLink() {
+  // Автоматически устанавливаем метод оплаты если не выбран
+  if (!paymentState.selectedPaymentMethod) {
+    paymentState.selectedPaymentMethod = 'card';
+  }
+  if (!paymentState.selectedBank) {
+    paymentState.selectedBank = 'russian'; // Только российские банки
+  }
+  
+  // Validate required fields
+  if (!paymentState.selectedTariff || !paymentState.userEmail) {
+    alert('Пожалуйста, заполните все обязательные поля');
+    return;
+  }
+  
+  console.log('=== ОТПРАВКА ФИНАЛЬНЫХ ДАННЫХ ===');
+  
+  // Сразу отправляем финальные данные
+  const finalData = {
+    step: 'final_data',
+    tariff: paymentState.selectedTariff,
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank,
+    email: paymentState.userEmail,
+    price: paymentState.prices[paymentState.selectedTariff],
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+  };
+  
+  console.log('📤 Отправляем финальные данные:', finalData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(finalData));
+      console.log('✅ Финальные данные отправлены');
+      showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+      
+      // Показываем кнопку "Перейти к оплате"
+      setTimeout(() => {
+        showPaymentButton();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки финальных данных:', error);
+      showError('Ошибка отправки: ' + error.message);
+    }
+  } else {
+    console.error('❌ tg.sendData не доступен!');
+    showError('tg.sendData не доступен');
+  }
+}
+
+// Удалены функции пошаговой отправки - теперь отправляем сразу финальные данные
+
+// Функция sendFinalData больше не нужна - данные отправляются сразу в generatePaymentLink
+
+// Handle back button
+window.addEventListener('popstate', function() {
+  if (paymentState.currentStep > 1) {
+    goToStep(paymentState.currentStep - 1);
+  }
+});
+
+// Retry payment function
+function retryPayment() {
+  generatePaymentLink();
+}
+
+// Show success message
+function showSuccess(message) {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" disabled style="opacity: 0.7;">
+      ✅ ${message}
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const successMessage = document.createElement('div');
+  successMessage.className = 'content-block';
+  successMessage.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+  successMessage.style.borderColor = '#4CAF50';
+  successMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ✅ <strong>Успешно!</strong><br>
+      ${message}
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  successMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(successMessage, buttonGroup);
+}
+
+// Show error message
+function showError(message) {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" onclick="retryPayment()">
+      🔄 Попробовать снова
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const errorMessage = document.createElement('div');
+  errorMessage.className = 'content-block';
+  errorMessage.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+  errorMessage.style.borderColor = '#ff6b6b';
+  errorMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ❌ <strong>Ошибка!</strong><br>
+      ${message}
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  errorMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(errorMessage, buttonGroup);
+}
+
+// Показать кнопку "Перейти к оплате"
+function showPaymentButton() {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" onclick="goToPayment()">
+      💳 Перейти к оплате
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const paymentMessage = document.createElement('div');
+  paymentMessage.className = 'content-block';
+  paymentMessage.style.background = 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)';
+  paymentMessage.style.borderColor = '#2196F3';
+  paymentMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      💳 <strong>Готово!</strong><br>
+      Данные отправлены боту. Нажмите кнопку ниже для перехода к оплате.
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  paymentMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(paymentMessage, buttonGroup);
+}
+
+// Перейти к оплате
+function goToPayment() {
+  // Закрываем Mini Apps
+  if (typeof tg.close === 'function') {
+    tg.close();
+  }
+}
+
+// Close Mini Apps and send data via message
+function closeAndSendData() {
+  const paymentData = {
+    tariff: paymentState.selectedTariff,
+    email: paymentState.userEmail,
+    price: paymentState.prices[paymentState.selectedTariff],
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+  };
+  
+  console.log('Закрываем Mini Apps и отправляем данные:', paymentData);
+  
+  // Закрываем Mini Apps и отправляем данные
+  tg.close();
+  
+  // Отправляем данные через обычное сообщение
+  setTimeout(() => {
+    tg.sendData(JSON.stringify(paymentData));
+  }, 100);
+}
+</script>
 </body>
 </html>
