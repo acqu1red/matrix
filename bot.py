@@ -8,7 +8,6 @@ from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
-from channel_manager import channel_manager
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
@@ -555,7 +554,7 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
     
     try:
         # Запускаем проверку истекших подписок
-        await channel_manager.remove_expired_users(context)
+        # await channel_manager.remove_expired_users(context) # Удалено
         
         await update.effective_message.reply_text(
             "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
@@ -615,7 +614,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button))
     
     # Обработчик для управления каналом (принятие заявок, удаление пользователей)
-    application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
+    # application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update)) # Удалено
     print("✅ Обработчик управления каналом зарегистрирован")
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
