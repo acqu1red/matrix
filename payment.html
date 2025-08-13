@@ -800,19 +800,19 @@
         
 
         
-        <div class="form-group">
-          <label class="form-label">Метод оплаты</label>
-          <div class="payment-method-display">
-            <div class="payment-icon">💳</div>
-            <div class="payment-info">
-              <div class="payment-title">Банк РФ/Зарубежный банк</div>
-              <div class="payment-subtitle">Любая банковская карта</div>
-            </div>
-            <div class="payment-status">
-              <div class="status-indicator"></div>
-            </div>
-          </div>
-        </div>
+                        <div class="form-group">
+                  <label class="form-label">Метод оплаты</label>
+                  <div class="payment-method-display">
+                    <div class="payment-icon">💳</div>
+                    <div class="payment-info">
+                      <div class="payment-title">Банк РФ</div>
+                      <div class="payment-subtitle">Российские банковские карты</div>
+                    </div>
+                    <div class="payment-status">
+                      <div class="status-indicator"></div>
+                    </div>
+                  </div>
+                </div>
         
         <div class="form-group">
           <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
@@ -1017,7 +1017,7 @@ function generatePaymentLink() {
     paymentState.selectedPaymentMethod = 'card';
   }
   if (!paymentState.selectedBank) {
-    paymentState.selectedBank = 'russian';
+    paymentState.selectedBank = 'russian'; // Только российские банки
   }
   
   // Validate required fields
@@ -1114,7 +1114,8 @@ function sendPaymentMethodData() {
   const paymentMethodData = {
     step: 'payment_method_data',
     paymentMethod: paymentState.selectedPaymentMethod,
-    bank: paymentState.selectedBank
+    bank: paymentState.selectedBank,
+    bankName: 'Банк РФ'
   };
   
   console.log('🏦 Отправляем payment method данные:', paymentMethodData);

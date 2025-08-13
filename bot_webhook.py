@@ -491,8 +491,9 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
         elif step == 'payment_method_data':
             payment_method = payment_data.get('paymentMethod')
             bank = payment_data.get('bank')
-            print(f"🏦 Получен payment method: {payment_method}, банк: {bank}")
-            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank}")
+            bank_name = payment_data.get('bankName', 'Банк РФ')
+            print(f"🏦 Получен payment method: {payment_method}, банк: {bank_name}")
+            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank_name}")
             return
             
         elif step == 'user_id_data':
@@ -663,8 +664,9 @@ async def handle_web_app_data_from_text(update: Update, context: CallbackContext
         elif step == 'payment_method_data':
             payment_method = payment_data.get('paymentMethod')
             bank = payment_data.get('bank')
-            print(f"🏦 Получен payment method из текста: {payment_method}, банк: {bank}")
-            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank}")
+            bank_name = payment_data.get('bankName', 'Банк РФ')
+            print(f"🏦 Получен payment method из текста: {payment_method}, банк: {bank_name}")
+            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank_name}")
             return
             
         elif step == 'user_id_data':
