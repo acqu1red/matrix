@@ -97,7 +97,11 @@ def reset_webhook():
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
     try:
-        print("=" * 50)
+        print("=" * 80)
+        print("🔥 WEBHOOK ВЫЗВАН!")
+        print("🔥 WEBHOOK ВЫЗВАН!")
+        print("🔥 WEBHOOK ВЫЗВАН!")
+        print("=" * 80)
         print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
         print("=" * 50)
         print(f"📋 Method: {request.method}")
@@ -116,7 +120,10 @@ def telegram_webhook():
         
         # Получаем данные от Telegram (только для POST)
         data = request.get_json()
-        print(f"📋 Данные от Telegram: {data}")
+        print(f"📋 Данные от Telegram: {json.dumps(data, indent=2) if data else 'Пустые данные'}")
+        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
+        print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
+        print(f"📋 Raw data: {request.get_data()}")
         
         # Проверяем, что это действительно от Telegram
         if not data:
