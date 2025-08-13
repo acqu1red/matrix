@@ -13,13 +13,10 @@ from supabase import create_client, Client
 from channel_manager import ChannelManager
 from flask import Flask, request, jsonify
 
-# Импортируем функцию отправки email
-try:
-    from email_invitation import send_email_invitation
-except ImportError:
-    def send_email_invitation(email, tariff, subscription_id):
-        print(f"📧 Email отправка отключена: {email}, тариф: {tariff}")
-        return True
+# Email отправка отключена - используем только Telegram
+def send_email_invitation(email, tariff, subscription_id):
+    print(f"📧 Email отправка отключена: {email}, тариф: {tariff}")
+    return True
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
@@ -141,31 +138,13 @@ def lava_webhook():
             # Отправляем сообщения везде одновременно
             print(f"📤 Отправка уведомлений пользователю...")
             
-            # Всегда отправляем в Telegram (если есть user_id)
+            # Отправляем уведомление только в Telegram
             if user_id:
                 print(f"📱 Отправляем сообщение в Telegram пользователю {user_id}")
                 send_success_message_to_user(user_id, tariff, subscription_id)
+                print("✅ Уведомление отправлено в Telegram")
             else:
-                print("⚠️ user_id не найден - пропускаем отправку в Telegram")
-            
-            # Всегда отправляем на email (если есть email)
-            if email:
-                print(f"📧 Отправляем приглашение на email {email}")
-                send_email_invitation(email, tariff, subscription_id)
-            else:
-                print("⚠️ Email не найден - пропускаем отправку на email")
-            
-            # Логируем результат отправки
-            sent_to = []
-            if user_id:
-                sent_to.append("Telegram")
-            if email:
-                sent_to.append("Email")
-            
-            if sent_to:
-                print(f"✅ Уведомления отправлены: {', '.join(sent_to)}")
-            else:
-                print("❌ КРИТИЧЕСКАЯ ОШИБКА: Нет ни user_id, ни email для отправки уведомления!")
+                print("❌ КРИТИЧЕСКАЯ ОШИБКА: user_id не найден для отправки уведомления!")
                 print(f"📋 Все данные платежа: {data}")
             
             # Отправляем уведомление администраторам
