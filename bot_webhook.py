@@ -96,21 +96,24 @@ def reset_webhook():
 @app.route('/webhook', methods=['GET', 'POST'])
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
+    import sys
+    sys.stdout.flush()  # Принудительный flush
+    
     try:
-        print("=" * 80)
-        print("🔥 WEBHOOK ВЫЗВАН!")
-        print("🔥 WEBHOOK ВЫЗВАН!")
-        print("🔥 WEBHOOK ВЫЗВАН!")
-        print("=" * 80)
-        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
-        print("=" * 50)
-        print(f"📋 Method: {request.method}")
-        print(f"📋 URL: {request.url}")
-        print(f"📋 Headers: {dict(request.headers)}")
+        print("=" * 80, flush=True)
+        print("🔥 WEBHOOK ВЫЗВАН!", flush=True)
+        print("🔥 WEBHOOK ВЫЗВАН!", flush=True)
+        print("🔥 WEBHOOK ВЫЗВАН!", flush=True)
+        print("=" * 80, flush=True)
+        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!", flush=True)
+        print("=" * 50, flush=True)
+        print(f"📋 Method: {request.method}", flush=True)
+        print(f"📋 URL: {request.url}", flush=True)
+        print(f"📋 Headers: {dict(request.headers)}", flush=True)
         
         # Обрабатываем GET запросы (проверка доступности)
         if request.method == 'GET':
-            print("✅ GET запрос - проверка доступности webhook")
+            print("✅ GET запрос - проверка доступности webhook", flush=True)
             return jsonify({
                 "status": "ok", 
                 "message": "Telegram webhook endpoint доступен",
@@ -120,23 +123,23 @@ def telegram_webhook():
         
         # Получаем данные от Telegram (только для POST)
         data = request.get_json()
-        print(f"📋 Данные от Telegram: {json.dumps(data, indent=2) if data else 'Пустые данные'}")
-        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
-        print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
-        print(f"📋 Raw data: {request.get_data()}")
+        print(f"📋 Данные от Telegram: {json.dumps(data, indent=2) if data else 'Пустые данные'}", flush=True)
+        print(f"📋 Content-Type: {request.headers.get('Content-Type')}", flush=True)
+        print(f"📋 Content-Length: {request.headers.get('Content-Length')}", flush=True)
+        print(f"📋 Raw data: {request.get_data()}", flush=True)
         
         # Проверяем, что это действительно от Telegram
         if not data:
-            print("❌ Данные пустые или не JSON")
+            print("❌ Данные пустые или не JSON", flush=True)
             return jsonify({"status": "error", "message": "No data"}), 400
         
         if 'update_id' not in data:
-            print("❌ Это не Telegram webhook (нет update_id)")
+            print("❌ Это не Telegram webhook (нет update_id)", flush=True)
             return jsonify({"status": "error", "message": "Not a Telegram webhook"}), 400
         
         # Передаем данные в обработчик бота
         if hasattr(app, 'telegram_app'):
-            print("✅ Передаем данные в telegram_app")
+            print("✅ Передаем данные в telegram_app", flush=True)
             
             # Создаем Update объект
             update = Update.de_json(data, app.telegram_app.bot)
@@ -439,13 +442,14 @@ def telegram_webhook():
                 print(f"📋 Traceback: {traceback.format_exc()}")
             
         else:
-            print("❌ telegram_app не найден")
+            print("❌ telegram_app не найден", flush=True)
         
+        print("✅ Webhook обработан успешно", flush=True)
         return jsonify({"status": "ok"})
     except Exception as e:
-        print(f"❌ Ошибка обработки webhook: {e}")
+        print(f"❌ Ошибка обработки webhook: {e}", flush=True)
         import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
+        print(f"📋 Traceback: {traceback.format_exc()}", flush=True)
         logging.error(f"Ошибка обработки webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
