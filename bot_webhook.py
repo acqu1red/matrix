@@ -55,10 +55,10 @@ def _lava_signature(body: str, secret: str) -> str:
     return hmac.new(secret.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()
 
 def _lava_headers(body: str) -> dict:
-    # Используем только Bearer авторизацию, без подписи
+    # Пробуем без Bearer токена, только с подписью
     return {
-        "Authorization": f"Bearer {LAVA_API_KEY}",
         "Content-Type": "application/json",
+        "X-Signature": _lava_signature(body, LAVA_API_KEY),
     }
 
 def lava_post(path: str, payload: dict) -> dict:
@@ -80,7 +80,7 @@ def lava_post(path: str, payload: dict) -> dict:
 
 def lava_get(path: str, params: dict) -> dict:
     url = f"{LAVA_API_BASE.rstrip('/')}/{path.lstrip('/')}"
-    headers = {"Authorization": f"Bearer {LAVA_API_KEY}"}
+    headers = {"Content-Type": "application/json"}
     print(f"🔧 Lava API GET: {url}")
     print(f"📋 Params: {params}")
     resp = requests.get(url, params=params, headers=headers, timeout=20)
