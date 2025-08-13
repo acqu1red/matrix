@@ -61,6 +61,25 @@ def webhook_info():
 def reset_webhook():
     """Принудительно переустанавливает webhook"""
     try:
+        # Определяем URL для webhook
+        webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
+        if not webhook_url:
+            webhook_url = os.getenv('WEBHOOK_URL', '')
+        if not webhook_url:
+            webhook_url = os.getenv('RAILWAY_PUBLIC_DOMAIN', '')
+            if webhook_url:
+                webhook_url = f"https://{webhook_url}"
+        if not webhook_url:
+            webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app"
+        
+        target_url = f"{webhook_url}/webhook"
+        
+        # Проверяем текущий webhook
+        get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        webhook_info = requests.get(get_webhook_url)
+        webhook_result = webhook_info.json()
+        print(f"📋 Текущий webhook: {webhook_result}")
+        
         # Удаляем старый webhook
         delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
         delete_response = requests.post(delete_url)
@@ -70,10 +89,9 @@ def reset_webhook():
         time.sleep(2)
         
         # Устанавливаем новый webhook
-        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
         set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
         webhook_data = {
-            "url": webhook_url,
+            "url": target_url,
             "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
             "max_connections": 40,
             "allowed_updates": ["message", "callback_query", "edited_message", "channel_post", "edited_channel_post", "inline_query", "chosen_inline_result", "shipping_query", "pre_checkout_query", "poll", "poll_answer", "my_chat_member", "chat_member", "chat_join_request"]
@@ -82,9 +100,17 @@ def reset_webhook():
         set_response = requests.post(set_url, json=webhook_data)
         print(f"📡 Ответ установки webhook: {set_response.status_code} - {set_response.text}")
         
+        # Проверяем финальное состояние
+        webhook_info = requests.get(get_webhook_url)
+        final_webhook_result = webhook_info.json()
+        print(f"📋 Финальный webhook: {final_webhook_result}")
+        
         return jsonify({
             "status": "ok",
-            "webhook_url": webhook_url,
+            "message": "Webhook успешно переустановлен",
+            "target_url": target_url,
+            "previous_webhook": webhook_result,
+            "final_webhook": final_webhook_result,
             "delete_response": delete_response.json(),
             "set_response": set_response.json()
         })
@@ -1005,15 +1031,38 @@ def main() -> None:
     
     # Настраиваем webhook URL для Railway
     webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
-    if webhook_url:
-        # Убеждаемся, что URL начинается с https://
-        if not webhook_url.startswith('http'):
+    
+    # Если RAILWAY_STATIC_URL не установлен, пробуем другие варианты
+    if not webhook_url:
+        webhook_url = os.getenv('WEBHOOK_URL', '')
+    
+    if not webhook_url:
+        # Пробуем получить URL из переменных окружения Railway
+        webhook_url = os.getenv('RAILWAY_PUBLIC_DOMAIN', '')
+        if webhook_url:
             webhook_url = f"https://{webhook_url}"
+    
+    if not webhook_url:
+        # Используем фиксированный URL для Railway
+        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app"
+    
+    print(f"🌐 Настройка webhook: {webhook_url}/webhook")
+    
+    try:
+        # Сначала проверяем текущий webhook
+        get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        webhook_info = requests.get(get_webhook_url)
+        webhook_result = webhook_info.json()
+        print(f"📋 Текущий webhook: {webhook_result}")
         
-        print(f"🌐 Настройка webhook: {webhook_url}/webhook")
+        # Удаляем старый webhook только если он отличается от нужного
+        current_url = webhook_result.get('result', {}).get('url', '')
+        target_url = f"{webhook_url}/webhook"
         
-        try:
-            # Сначала удаляем старый webhook
+        if current_url != target_url:
+            print(f"🔄 Обновляем webhook с {current_url} на {target_url}")
+            
+            # Удаляем старый webhook
             delete_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
             delete_response = requests.post(delete_webhook_url)
             print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
@@ -1025,7 +1074,7 @@ def main() -> None:
             # Устанавливаем новый webhook
             webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
             webhook_data = {
-                "url": f"{webhook_url}/webhook",
+                "url": target_url,
                 "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
                 "max_connections": 40,
                 "allowed_updates": ["message", "callback_query", "edited_message", "channel_post", "edited_channel_post", "inline_query", "chosen_inline_result", "shipping_query", "pre_checkout_query", "poll", "poll_answer", "my_chat_member", "chat_member", "chat_join_request"]
@@ -1038,21 +1087,26 @@ def main() -> None:
             
             if response.status_code == 200:
                 print("✅ Webhook успешно установлен")
-                
-                # Проверяем текущий webhook
-                get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
-                webhook_info = requests.get(get_webhook_url)
-                webhook_result = webhook_info.json()
-                print(f"📋 Информация о webhook: {webhook_result}")
-                
             else:
                 print(f"❌ Ошибка установки webhook: {response.text}")
-        except Exception as e:
-            print(f"❌ Ошибка установки webhook: {e}")
-            import traceback
-            print(f"📋 Traceback: {traceback.format_exc()}")
-    else:
-        print("⚠️ RAILWAY_STATIC_URL не установлен")
+        else:
+            print("✅ Webhook уже настроен правильно")
+        
+        # Проверяем финальное состояние webhook
+        webhook_info = requests.get(get_webhook_url)
+        webhook_result = webhook_info.json()
+        print(f"📋 Финальная информация о webhook: {webhook_result}")
+        
+        # Проверяем, что webhook действительно установлен
+        if webhook_result.get('result', {}).get('url'):
+            print(f"✅ Webhook URL установлен: {webhook_result['result']['url']}")
+        else:
+            print("❌ Webhook не установлен!")
+            
+    except Exception as e:
+        print(f"❌ Ошибка установки webhook: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
     
     print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
