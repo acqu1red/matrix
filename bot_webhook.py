@@ -167,6 +167,31 @@ def telegram_webhook():
         if hasattr(app, 'telegram_app'):
             print("✅ Передаем данные в telegram_app")
             
+            # Проверяем, есть ли web_app_data в данных
+            if 'message' in data and 'web_app_data' in data['message']:
+                print("📱 Обнаружены данные от Mini Apps!")
+                web_app_data = data['message']['web_app_data']
+                print(f"📱 Web App Data: {web_app_data}")
+                
+                # Обрабатываем данные от Mini Apps напрямую
+                try:
+                    import json
+                    payment_data = json.loads(web_app_data['data'])
+                    print(f"📋 Парсированные данные: {payment_data}")
+                    
+                    # Здесь можно добавить обработку данных от Mini Apps
+                    step = payment_data.get('step')
+                    if step == 'final_data':
+                        print("🎯 Получены финальные данные от Mini Apps!")
+                        # Здесь будет создание инвойса
+                        print("✅ Данные от Mini Apps обработаны")
+                    
+                except Exception as e:
+                    print(f"❌ Ошибка обработки данных Mini Apps: {e}")
+                
+                return jsonify({"status": "ok"})
+            
+            # Для обычных сообщений пытаемся создать Update объект
             try:
                 # Создаем Update объект
                 update = Update.de_json(data, app.telegram_app.bot)
@@ -180,9 +205,6 @@ def telegram_webhook():
                 elif update.callback_query:
                     print(f"📋 Callback query: {update.callback_query.data}")
                     print(f"📋 От пользователя: {update.callback_query.from_user.id}")
-                elif hasattr(update, 'web_app_data') and update.web_app_data:
-                    print(f"📋 Web App Data: {update.web_app_data.data}")
-                    print(f"📋 От пользователя: {update.web_app_data.from_user.id}")
                 else:
                     print(f"📋 Неизвестный тип Update")
                 
