@@ -167,40 +167,53 @@ def telegram_webhook():
         if hasattr(app, 'telegram_app'):
             print("✅ Передаем данные в telegram_app")
             
-            # Создаем Update объект
-            update = Update.de_json(data, app.telegram_app.bot)
-            print(f"📋 Update создан: {update}")
-            print(f"📋 Тип Update: {type(update)}")
-            print(f"📋 Update ID: {update.update_id}")
-            
-            if update.message:
-                print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
-                print(f"📋 От пользователя: {update.message.from_user.id}")
-            elif update.callback_query:
-                print(f"📋 Callback query: {update.callback_query.data}")
-                print(f"📋 От пользователя: {update.callback_query.from_user.id}")
-            
-            # Запускаем обработку в отдельном потоке
-            import threading
-            def process_update_async():
-                import asyncio
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                try:
-                    print("🔄 Запускаем process_update...")
-                    loop.run_until_complete(app.telegram_app.process_update(update))
-                    print("✅ Данные обработаны асинхронно")
-                except Exception as e:
-                    print(f"❌ Ошибка асинхронной обработки: {e}")
-                    import traceback
-                    print(f"📋 Traceback: {traceback.format_exc()}")
-                finally:
-                    loop.close()
-            
-            # Запускаем в отдельном потоке
-            thread = threading.Thread(target=process_update_async)
-            thread.start()
-            print("✅ Поток обработки запущен")
+            try:
+                # Создаем Update объект
+                update = Update.de_json(data, app.telegram_app.bot)
+                print(f"📋 Update создан: {update}")
+                print(f"📋 Тип Update: {type(update)}")
+                print(f"📋 Update ID: {update.update_id}")
+                
+                if update.message:
+                    print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
+                    print(f"📋 От пользователя: {update.message.from_user.id}")
+                elif update.callback_query:
+                    print(f"📋 Callback query: {update.callback_query.data}")
+                    print(f"📋 От пользователя: {update.callback_query.from_user.id}")
+                elif hasattr(update, 'web_app_data') and update.web_app_data:
+                    print(f"📋 Web App Data: {update.web_app_data.data}")
+                    print(f"📋 От пользователя: {update.web_app_data.from_user.id}")
+                else:
+                    print(f"📋 Неизвестный тип Update")
+                
+                # Запускаем обработку в отдельном потоке
+                import threading
+                def process_update_async():
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        print("🔄 Запускаем process_update...")
+                        loop.run_until_complete(app.telegram_app.process_update(update))
+                        print("✅ Данные обработаны асинхронно")
+                    except Exception as e:
+                        print(f"❌ Ошибка асинхронной обработки: {e}")
+                        import traceback
+                        print(f"📋 Traceback: {traceback.format_exc()}")
+                    finally:
+                        loop.close()
+                
+                # Запускаем в отдельном потоке
+                thread = threading.Thread(target=process_update_async)
+                thread.start()
+                print("✅ Поток обработки запущен")
+                
+            except Exception as e:
+                print(f"❌ Ошибка создания Update объекта: {e}")
+                import traceback
+                print(f"📋 Traceback: {traceback.format_exc()}")
+                # Возвращаем успех, чтобы Telegram не сбрасывал webhook
+                return jsonify({"status": "ok"})
             
         else:
             print("❌ telegram_app не найден")
