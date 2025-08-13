@@ -25,6 +25,20 @@ app = Flask(__name__)
 def health_check():
     return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
 
+# Endpoint для payment.html
+@app.route('/payment.html', methods=['GET'])
+def payment_page():
+    """Отдает страницу payment.html"""
+    try:
+        with open('payment.html', 'r', encoding='utf-8') as f:
+            content = f.read()
+        return content, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    except FileNotFoundError:
+        return "Payment page not found", 404
+    except Exception as e:
+        print(f"❌ Ошибка чтения payment.html: {e}")
+        return "Error loading payment page", 500
+
 # Тестовый endpoint для проверки работы бота
 @app.route('/test', methods=['GET'])
 def test_bot():
