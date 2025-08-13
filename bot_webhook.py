@@ -55,8 +55,30 @@ def telegram_webhook():
         # Передаем данные в обработчик бота
         if hasattr(app, 'telegram_app'):
             print("✅ Передаем данные в telegram_app")
-            app.telegram_app.process_update(Update.de_json(data, app.telegram_app.bot))
-            print("✅ Данные обработаны")
+            
+            # Создаем Update объект
+            update = Update.de_json(data, app.telegram_app.bot)
+            print(f"📋 Update создан: {update}")
+            
+            # Запускаем обработку в отдельном потоке
+            import threading
+            def process_update_async():
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(app.telegram_app.process_update(update))
+                    print("✅ Данные обработаны асинхронно")
+                except Exception as e:
+                    print(f"❌ Ошибка асинхронной обработки: {e}")
+                finally:
+                    loop.close()
+            
+            # Запускаем в отдельном потоке
+            thread = threading.Thread(target=process_update_async)
+            thread.start()
+            print("✅ Поток обработки запущен")
+            
         else:
             print("❌ telegram_app не найден")
         
