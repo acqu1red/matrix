@@ -168,16 +168,33 @@ def telegram_webhook():
                     web_app_data_raw = data['message']['web_app_data']
                     print(f"📋 Сырые web_app_data: {web_app_data_raw}")
                     
-                    # Создаем WebAppData объект вручную
-                    from telegram import WebAppData
-                    web_app_data_obj = WebAppData(
-                        data=web_app_data_raw.get('data', ''),
-                        button_text=web_app_data_raw.get('button_text', '')
-                    )
-                    
-                    # Присваиваем web_app_data к сообщению
-                    update.message.web_app_data = web_app_data_obj
-                    print(f"✅ WebAppData создан и присвоен: {web_app_data_obj}")
+                    # Обрабатываем данные напрямую, не создавая WebAppData объект
+                    try:
+                        web_app_data_json = web_app_data_raw.get('data', '')
+                        print(f"📋 JSON данные: {web_app_data_json}")
+                        
+                        # Парсим JSON данные
+                        payment_data = json.loads(web_app_data_json)
+                        print(f"📋 Парсированные данные: {json.dumps(payment_data, indent=2)}")
+                        
+                        # Обрабатываем данные напрямую
+                        import asyncio
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        try:
+                            loop.run_until_complete(process_payment_data(update, None, payment_data))
+                            print("✅ Данные обработаны напрямую")
+                        except Exception as e:
+                            print(f"❌ Ошибка обработки данных: {e}")
+                            import traceback
+                            print(f"📋 Traceback: {traceback.format_exc()}")
+                        finally:
+                            loop.close()
+                            
+                    except Exception as e:
+                        print(f"❌ Ошибка обработки web_app_data: {e}")
+                        import traceback
+                        print(f"📋 Traceback: {traceback.format_exc()}")
                     
             elif update.callback_query:
                 print(f"📋 Callback query: {update.callback_query.data}")
