@@ -59,6 +59,15 @@ def telegram_webhook():
             # Создаем Update объект
             update = Update.de_json(data, app.telegram_app.bot)
             print(f"📋 Update создан: {update}")
+            print(f"📋 Тип Update: {type(update)}")
+            print(f"📋 Update ID: {update.update_id}")
+            
+            if update.message:
+                print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
+                print(f"📋 От пользователя: {update.message.from_user.id}")
+            elif update.callback_query:
+                print(f"📋 Callback query: {update.callback_query.data}")
+                print(f"📋 От пользователя: {update.callback_query.from_user.id}")
             
             # Запускаем обработку в отдельном потоке
             import threading
@@ -67,10 +76,13 @@ def telegram_webhook():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
+                    print("🔄 Запускаем process_update...")
                     loop.run_until_complete(app.telegram_app.process_update(update))
                     print("✅ Данные обработаны асинхронно")
                 except Exception as e:
                     print(f"❌ Ошибка асинхронной обработки: {e}")
+                    import traceback
+                    print(f"📋 Traceback: {traceback.format_exc()}")
                 finally:
                     loop.close()
             
@@ -386,7 +398,10 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps"""
+    print("=" * 30)
     print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!")
+    print("=" * 30)
+    
     user = update.effective_user
     message = update.message
     
@@ -518,6 +533,10 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
 
 async def handle_all_messages(update: Update, context: CallbackContext):
     """Обрабатывает все сообщения от пользователей"""
+    print("=" * 30)
+    print("📨 ВЫЗВАНА ФУНКЦИЯ handle_all_messages!")
+    print("=" * 30)
+    
     user = update.effective_user
     message = update.message
     
