@@ -693,10 +693,18 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
             print(f"❌ Ошибка обработки web_app_data: {e}")
             import traceback
             print(f"📋 Traceback: {traceback.format_exc()}")
-            await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
+            try:
+                await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
+            except Exception as send_error:
+                print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
+                print("📋 Это может быть тестовый запрос с несуществующим chat_id")
     else:
         print("❌ web_app_data не найден или пустой")
-        await message.reply_text("❌ Данные Mini Apps не получены")
+        try:
+            await message.reply_text("❌ Данные Mini Apps не получены")
+        except Exception as send_error:
+            print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
+            print("📋 Это может быть тестовый запрос с несуществующим chat_id")
 
 async def handle_all_messages(update: Update, context: CallbackContext):
     """Обрабатывает все сообщения от пользователей"""
@@ -860,28 +868,43 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
                     f"Нажмите кнопку ниже для перехода к оплате:"
                 )
                 
-                await message.reply_text(
-                    success_message,
-                    parse_mode='HTML',
-                    reply_markup=reply_markup
-                )
-                print("✅ Сообщение с кнопкой оплаты отправлено пользователю")
+                try:
+                    await message.reply_text(
+                        success_message,
+                        parse_mode='HTML',
+                        reply_markup=reply_markup
+                    )
+                    print("✅ Сообщение с кнопкой оплаты отправлено пользователю")
+                except Exception as send_error:
+                    print(f"❌ Не удалось отправить сообщение: {send_error}")
+                    print("📋 Это может быть тестовый запрос с несуществующим chat_id")
+                    print(f"📋 Но ссылка создана успешно: {payment_url}")
+                
                 print("=" * 60)
                 return
             else:
                 print(f"❌ Не удалось создать инвойс")
-                await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
+                try:
+                    await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
+                except Exception as send_error:
+                    print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
                 return
         else:
             print(f"❌ Неизвестный шаг: {step}")
-            await message.reply_text("❌ Неизвестный тип данных")
+            try:
+                await message.reply_text("❌ Неизвестный тип данных")
+            except Exception as send_error:
+                print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
             return
             
     except Exception as e:
         print(f"❌ Ошибка обработки данных платежа: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        await message.reply_text("❌ Произошла ошибка при обработке данных")
+        try:
+            await message.reply_text("❌ Произошла ошибка при обработке данных")
+        except Exception as send_error:
+            print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
 
 async def button(update: Update, context: CallbackContext):
     """Обработчик нажатий на кнопки"""
