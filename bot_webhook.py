@@ -1034,6 +1034,9 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
 def main() -> None:
     """Основная функция запуска бота"""
     print("🚀 Запуск бота с webhook...")
+    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+    print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
@@ -1058,8 +1061,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
     
-    # Обработчик для web_app_data должен быть первым
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+    # Обработчик для всех остальных сообщений
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
     
     print("✅ Обработчики зарегистрированы")
