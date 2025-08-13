@@ -122,6 +122,72 @@ def reset_webhook():
         print(f"❌ Ошибка сброса webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Endpoint для автоматического мониторинга и восстановления webhook
+@app.route('/monitor-webhook', methods=['GET'])
+def monitor_webhook():
+    """Автоматически проверяет и восстанавливает webhook при необходимости"""
+    try:
+        # Проверяем текущий webhook
+        get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        webhook_info = requests.get(get_webhook_url)
+        webhook_result = webhook_info.json()
+        
+        current_url = webhook_result.get('result', {}).get('url', '')
+        expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        
+        if current_url == expected_url:
+            return jsonify({
+                "status": "ok",
+                "message": "Webhook работает правильно",
+                "current_url": current_url,
+                "needs_fix": False
+            })
+        else:
+            print(f"⚠️ Webhook требует исправления: {current_url} != {expected_url}")
+            
+            # Автоматически исправляем webhook
+            delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+            delete_response = requests.post(delete_url)
+            
+            import time
+            time.sleep(2)
+            
+            set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+            webhook_data = {
+                "url": expected_url,
+                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                "max_connections": 40,
+                "allowed_updates": ["message", "callback_query", "edited_message", "channel_post", "edited_channel_post", "inline_query", "chosen_inline_result", "shipping_query", "pre_checkout_query", "poll", "poll_answer", "my_chat_member", "chat_member", "chat_join_request"]
+            }
+            
+            set_response = requests.post(set_url, json=webhook_data)
+            
+            # Проверяем результат
+            webhook_info = requests.get(get_webhook_url)
+            final_webhook_result = webhook_info.json()
+            final_url = final_webhook_result.get('result', {}).get('url', '')
+            
+            if final_url == expected_url:
+                return jsonify({
+                    "status": "fixed",
+                    "message": "Webhook автоматически исправлен",
+                    "previous_url": current_url,
+                    "current_url": final_url,
+                    "needs_fix": False
+                })
+            else:
+                return jsonify({
+                    "status": "error",
+                    "message": "Не удалось исправить webhook",
+                    "previous_url": current_url,
+                    "current_url": final_url,
+                    "needs_fix": True
+                })
+                
+    except Exception as e:
+        print(f"❌ Ошибка мониторинга webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Webhook endpoint для Telegram
 @app.route('/webhook', methods=['GET', 'POST'])
 def telegram_webhook():
