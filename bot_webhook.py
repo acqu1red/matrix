@@ -341,65 +341,44 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
         return 'error'
 
 def create_lava_invoice(user_id, email, tariff, price):
-    """Создает инвойс через Lava Top API"""
+    """Создает прямую ссылку на оплату Lava Top"""
     try:
-        print(f"🔧 Создаем инвойс для пользователя {user_id}")
-        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
-        
-        # Данные для инвойса
-        invoice_data = {
-            "shop_id": LAVA_SHOP_ID,
-            "amount": int(price * 100),  # Конвертируем в копейки
-            "currency": "RUB",
-            "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}",
-            "hook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook",
-            "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
-            "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
-            "metadata": {
-                "user_id": str(user_id),
-                "telegram_id": str(user_id),
-                "tariff": tariff,
-                "email": email
-            }
-        }
-        
-        print(f"📤 Данные инвойса: {invoice_data}")
+        print("=" * 50)
+        print(f"🔧 СОЗДАНИЕ ИНВОЙСА ДЛЯ ПОЛЬЗОВАТЕЛЯ {user_id}")
+        print("=" * 50)
+        print(f"📋 Email: {email}")
+        print(f"📋 Тариф: {tariff}")
+        print(f"📋 Цена: {price}₽")
         print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
-        print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
+        print(f"🔑 LAVA_PRODUCT_ID: {LAVA_PRODUCT_ID}")
         
-        # Отправляем запрос к Lava Top API
-        api_url = "https://api.lava.top/business/invoice/create"
-        headers = {
-            "Authorization": f"Bearer {LAVA_SECRET_KEY}",
-            "Content-Type": "application/json"
+        # Создаем уникальный order_id
+        order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        print(f"📋 Order ID: {order_id}")
+        
+        # Создаем metadata с дополнительной информацией
+        metadata = {
+            'user_id': str(user_id),
+            'email': email,
+            'tariff': tariff,
+            'timestamp': int(datetime.now().timestamp()),
+            'bot_name': 'Formula Private Bot'
         }
         
-        print(f"📡 Отправляем запрос к: {api_url}")
-        print(f"📡 Headers: {headers}")
+        # Создаем прямую ссылку на оплату
+        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps(metadata)}"
         
-        response = requests.post(api_url, json=invoice_data, headers=headers)
-        print(f"📡 Ответ API: {response.status_code} - {response.text}")
+        print(f"✅ Создана прямая ссылка на оплату:")
+        print(f"🔗 {payment_url}")
+        print("=" * 50)
         
-        if response.status_code == 200:
-            result = response.json()
-            print(f"📋 Полный ответ: {result}")
-            
-            # Получаем URL для оплаты
-            payment_url = result.get('data', {}).get('url')
-            if payment_url:
-                print(f"✅ Инвойс создан успешно: {payment_url}")
-                return payment_url
-            else:
-                print(f"❌ URL не найден в ответе: {result}")
-                return None
-        else:
-            print(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
-            return None
+        return payment_url
             
     except Exception as e:
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
+        print("=" * 50)
         return None
 
 # Команды бота
