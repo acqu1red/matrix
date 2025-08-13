@@ -160,46 +160,18 @@ def telegram_webhook():
                 # Создаем контекст
                 context = CallbackContext(app.telegram_app)
                 
-                # Обрабатываем через асинхронные обработчики
-                import asyncio
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                
+                # Обрабатываем через синхронную обработку (избегаем проблем с event loop)
+                print("🔄 Обрабатываем данные синхронно...")
                 try:
-                    # Обрабатываем update через асинхронные обработчики
+                    # Проверяем тип обновления и обрабатываем соответственно
                     if update.message:
                         if update.message.text == '/start':
-                            print("📝 Обрабатываем команду /start через асинхронный обработчик")
-                            loop.run_until_complete(start(update, context))
-                        elif hasattr(update.message, 'web_app_data') and update.message.web_app_data:
-                            print("📱 Обрабатываем данные от Mini Apps через асинхронный обработчик")
-                            loop.run_until_complete(handle_web_app_data(update, context))
-                        else:
-                            print("📝 Обрабатываем обычное сообщение через асинхронный обработчик")
-                            loop.run_until_complete(handle_all_messages(update, context))
-                    elif update.callback_query:
-                        print("🔘 Обрабатываем callback query через асинхронный обработчик")
-                        loop.run_until_complete(button(update, context))
-                    
-                    print("✅ Данные обработаны через асинхронные обработчики")
-                    
-                except Exception as e:
-                    print(f"❌ Ошибка асинхронной обработки: {e}")
-                    import traceback
-                    print(f"📋 Traceback: {traceback.format_exc()}")
-                    
-                    # Fallback на синхронную обработку
-                    print("🔄 Переключаемся на синхронную обработку...")
-                    try:
-                        # Проверяем тип обновления и обрабатываем соответственно
-                        if update.message:
-                            if update.message.text == '/start':
-                                print("📝 Обрабатываем команду /start синхронно")
-                                # Отправляем приветственное сообщение
-                                bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
-                                send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                                
-                                welcome_text = f"""
+                            print("📝 Обрабатываем команду /start синхронно")
+                            # Отправляем приветственное сообщение
+                            bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
+                            send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                            
+                            welcome_text = f"""
 👋 Привет, {update.message.from_user.first_name}!
 
 Добро пожаловать в бот для подписки на закрытый канал.
@@ -210,52 +182,52 @@ def telegram_webhook():
 • Регулярные обновления
 
 💳 <b>Стоимость:</b> 50₽ в месяц
-                                """
-                                
-                                message_data = {
-                                    "chat_id": update.message.chat.id,
-                                    "text": welcome_text,
-                                    "parse_mode": "HTML",
-                                    "reply_markup": {
-                                        "inline_keyboard": [
-                                            [{"text": "💳 Оплатить подписку", "callback_data": "payment_menu"}],
-                                            [{"text": "ℹ️ Подробнее", "callback_data": "more_info"}]
-                                        ]
-                                    }
-                                }
-                                
-                                response = requests.post(send_message_url, json=message_data)
-                                if response.status_code == 200:
-                                    print("✅ Приветственное сообщение отправлено")
-                                else:
-                                    print(f"❌ Ошибка отправки сообщения: {response.text}")
+                            """
                             
-                            elif hasattr(update.message, 'web_app_data') and update.message.web_app_data:
-                                print("📱 Обрабатываем данные от Mini Apps синхронно")
-                                # Обрабатываем данные от Mini Apps
-                                web_app_data = update.message.web_app_data.data
-                                print(f"📋 Данные Mini Apps: {web_app_data}")
+                            message_data = {
+                                "chat_id": update.message.chat.id,
+                                "text": welcome_text,
+                                "parse_mode": "HTML",
+                                "reply_markup": {
+                                    "inline_keyboard": [
+                                        [{"text": "💳 Оплатить подписку", "callback_data": "payment_menu"}],
+                                        [{"text": "ℹ️ Подробнее", "callback_data": "more_info"}]
+                                    ]
+                                }
+                            }
+                            
+                            response = requests.post(send_message_url, json=message_data)
+                            if response.status_code == 200:
+                                print("✅ Приветственное сообщение отправлено")
+                            else:
+                                print(f"❌ Ошибка отправки сообщения: {response.text}")
+                        
+                        elif hasattr(update.message, 'web_app_data') and update.message.web_app_data:
+                            print("📱 Обрабатываем данные от Mini Apps синхронно")
+                            # Обрабатываем данные от Mini Apps
+                            web_app_data = update.message.web_app_data.data
+                            print(f"📋 Данные Mini Apps: {web_app_data}")
+                            
+                            try:
+                                payment_data = json.loads(web_app_data)
+                                print(f"📋 Парсированные данные: {json.dumps(payment_data, indent=2)}")
                                 
-                                try:
-                                    payment_data = json.loads(web_app_data)
-                                    print(f"📋 Парсированные данные: {json.dumps(payment_data, indent=2)}")
+                                # Создаем ссылку на оплату
+                                user_id = payment_data.get('userId') or payment_data.get('user_id')
+                                email = payment_data.get('email')
+                                tariff = payment_data.get('tariff')
+                                price = payment_data.get('price')
+                                
+                                if all([user_id, email, tariff, price]):
+                                    print(f"🎯 Создаем ссылку на оплату для пользователя {user_id}")
+                                    payment_url = create_lava_invoice(user_id, email, tariff, price)
                                     
-                                    # Создаем ссылку на оплату
-                                    user_id = payment_data.get('userId') or payment_data.get('user_id')
-                                    email = payment_data.get('email')
-                                    tariff = payment_data.get('tariff')
-                                    price = payment_data.get('price')
-                                    
-                                    if all([user_id, email, tariff, price]):
-                                        print(f"🎯 Создаем ссылку на оплату для пользователя {user_id}")
-                                        payment_url = create_lava_invoice(user_id, email, tariff, price)
+                                    if payment_url:
+                                        # Отправляем сообщение с кнопкой оплаты
+                                        bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
+                                        send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                                         
-                                        if payment_url:
-                                            # Отправляем сообщение с кнопкой оплаты
-                                            bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
-                                            send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                                            
-                                            success_message = f"""
+                                        success_message = f"""
 💳 <b>Оплата подписки</b>
 
 ✅ Ваши данные получены:
@@ -264,92 +236,92 @@ def telegram_webhook():
 💰 Сумма: {price}₽
 
 Нажмите кнопку ниже для перехода к оплате:
-                                            """
-                                            
-                                            message_data = {
-                                                "chat_id": update.message.chat.id,
-                                                "text": success_message,
-                                                "parse_mode": "HTML",
-                                                "reply_markup": {
-                                                    "inline_keyboard": [
-                                                        [{"text": "💳 Оплатить", "url": payment_url}]
-                                                    ]
-                                                }
-                                            }
-                                            
-                                            response = requests.post(send_message_url, json=message_data)
-                                            if response.status_code == 200:
-                                                print("✅ Сообщение с кнопкой оплаты отправлено")
-                                            else:
-                                                print(f"❌ Ошибка отправки сообщения: {response.text}")
-                                        else:
-                                            print("❌ Не удалось создать ссылку на оплату")
-                                    else:
-                                        print("❌ Неполные данные для создания платежа")
+                                        """
                                         
-                                except Exception as e:
-                                    print(f"❌ Ошибка обработки данных Mini Apps: {e}")
-                                    import traceback
-                                    print(f"📋 Traceback: {traceback.format_exc()}")
-                            
-                            else:
-                                print(f"📝 Обычное сообщение: {update.message.text}")
-                                # Отправляем стандартный ответ
-                                bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
-                                send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                                
-                                message_data = {
-                                    "chat_id": update.message.chat.id,
-                                    "text": "👋 Используйте команду /start для начала работы с ботом!"
-                                }
-                                
-                                response = requests.post(send_message_url, json=message_data)
-                                if response.status_code == 200:
-                                    print("✅ Ответ отправлен")
+                                        message_data = {
+                                            "chat_id": update.message.chat.id,
+                                            "text": success_message,
+                                            "parse_mode": "HTML",
+                                            "reply_markup": {
+                                                "inline_keyboard": [
+                                                    [{"text": "💳 Оплатить", "url": payment_url}]
+                                                ]
+                                            }
+                                        }
+                                        
+                                        response = requests.post(send_message_url, json=message_data)
+                                        if response.status_code == 200:
+                                            print("✅ Сообщение с кнопкой оплаты отправлено")
+                                        else:
+                                            print(f"❌ Ошибка отправки сообщения: {response.text}")
+                                    else:
+                                        print("❌ Не удалось создать ссылку на оплату")
                                 else:
-                                    print(f"❌ Ошибка отправки ответа: {response.text}")
+                                    print("❌ Неполные данные для создания платежа")
+                                    
+                            except Exception as e:
+                                print(f"❌ Ошибка обработки данных Mini Apps: {e}")
+                                import traceback
+                                print(f"📋 Traceback: {traceback.format_exc()}")
                         
-                        elif update.callback_query:
-                            print(f"🔘 Обрабатываем callback query синхронно: {update.callback_query.data}")
-                            # Обрабатываем нажатия на кнопки
+                        else:
+                            print(f"📝 Обычное сообщение: {update.message.text}")
+                            # Отправляем стандартный ответ
                             bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
+                            send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                             
-                            if update.callback_query.data == "payment_menu":
-                                # Показываем меню оплаты
-                                edit_message_url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
-                                
-                                payment_text = """
+                            message_data = {
+                                "chat_id": update.message.chat.id,
+                                "text": "👋 Используйте команду /start для начала работы с ботом!"
+                            }
+                            
+                            response = requests.post(send_message_url, json=message_data)
+                            if response.status_code == 200:
+                                print("✅ Ответ отправлен")
+                            else:
+                                print(f"❌ Ошибка отправки ответа: {response.text}")
+                    
+                    elif update.callback_query:
+                        print(f"🔘 Обрабатываем callback query синхронно: {update.callback_query.data}")
+                        # Обрабатываем нажатия на кнопки
+                        bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
+                        
+                        if update.callback_query.data == "payment_menu":
+                            # Показываем меню оплаты
+                            edit_message_url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
+                            
+                            payment_text = """
 💳 <b>Подписка на закрытый канал:</b>
 
 • 1 месяц - 50₽
 
 Получите доступ к эксклюзивному контенту и сообществу.
-                                """
-                                
-                                message_data = {
-                                    "chat_id": update.callback_query.message.chat.id,
-                                    "message_id": update.callback_query.message.message_id,
-                                    "text": payment_text,
-                                    "parse_mode": "HTML",
-                                    "reply_markup": {
-                                        "inline_keyboard": [
-                                            [{"text": "💳 Оплатить через Mini Apps", "web_app": {"url": "https://acqu1red.github.io/formulaprivate/"}}],
-                                            [{"text": "🔙 Назад", "callback_data": "back_to_start"}]
-                                        ]
-                                    }
-                                }
-                                
-                                response = requests.post(edit_message_url, json=message_data)
-                                if response.status_code == 200:
-                                    print("✅ Меню оплаты показано")
-                                else:
-                                    print(f"❌ Ошибка показа меню: {response.text}")
+                            """
                             
-                            elif update.callback_query.data == "more_info":
-                                # Показываем подробную информацию
-                                edit_message_url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
-                                
-                                info_text = """
+                            message_data = {
+                                "chat_id": update.callback_query.message.chat.id,
+                                "message_id": update.callback_query.message.message_id,
+                                "text": payment_text,
+                                "parse_mode": "HTML",
+                                "reply_markup": {
+                                    "inline_keyboard": [
+                                        [{"text": "💳 Оплатить через Mini Apps", "web_app": {"url": "https://acqu1red.github.io/formulaprivate/"}}],
+                                        [{"text": "🔙 Назад", "callback_data": "back_to_start"}]
+                                    ]
+                                }
+                            }
+                            
+                            response = requests.post(edit_message_url, json=message_data)
+                            if response.status_code == 200:
+                                print("✅ Меню оплаты показано")
+                            else:
+                                print(f"❌ Ошибка показа меню: {response.text}")
+                        
+                        elif update.callback_query.data == "more_info":
+                            # Показываем подробную информацию
+                            edit_message_url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
+                            
+                            info_text = """
 ℹ️ <b>Подробная информация</b>
 
 📋 <b>Что включено в подписку:</b>
@@ -365,31 +337,31 @@ def telegram_webhook():
 • Безопасная оплата через Lava Top
 • Защищенные данные
 • Мгновенная активация
-                                """
-                                
-                                message_data = {
-                                    "chat_id": update.callback_query.message.chat.id,
-                                    "message_id": update.callback_query.message.message_id,
-                                    "text": info_text,
-                                    "parse_mode": "HTML",
-                                    "reply_markup": {
-                                        "inline_keyboard": [
-                                            [{"text": "🔙 Назад", "callback_data": "back_to_start"}]
-                                        ]
-                                    }
-                                }
-                                
-                                response = requests.post(edit_message_url, json=message_data)
-                                if response.status_code == 200:
-                                    print("✅ Подробная информация показана")
-                                else:
-                                    print(f"❌ Ошибка показа информации: {response.text}")
+                            """
                             
-                            elif update.callback_query.data == "back_to_start":
-                                # Возвращаемся к начальному меню
-                                edit_message_url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
-                                
-                                welcome_text = f"""
+                            message_data = {
+                                "chat_id": update.callback_query.message.chat.id,
+                                "message_id": update.callback_query.message.message_id,
+                                "text": info_text,
+                                "parse_mode": "HTML",
+                                "reply_markup": {
+                                    "inline_keyboard": [
+                                        [{"text": "🔙 Назад", "callback_data": "back_to_start"}]
+                                    ]
+                                }
+                            }
+                            
+                            response = requests.post(edit_message_url, json=message_data)
+                            if response.status_code == 200:
+                                print("✅ Подробная информация показана")
+                            else:
+                                print(f"❌ Ошибка показа информации: {response.text}")
+                        
+                        elif update.callback_query.data == "back_to_start":
+                            # Возвращаемся к начальному меню
+                            edit_message_url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
+                            
+                            welcome_text = f"""
 👋 Привет, {update.callback_query.from_user.first_name}!
 
 Добро пожаловать в бот для подписки на закрытый канал.
@@ -400,41 +372,38 @@ def telegram_webhook():
 • Регулярные обновления
 
 💳 <b>Стоимость:</b> 50₽ в месяц
-                                """
-                                
-                                message_data = {
-                                    "chat_id": update.callback_query.message.chat.id,
-                                    "message_id": update.callback_query.message.message_id,
-                                    "text": welcome_text,
-                                    "parse_mode": "HTML",
-                                    "reply_markup": {
-                                        "inline_keyboard": [
-                                            [{"text": "💳 Оплатить подписку", "callback_data": "payment_menu"}],
-                                            [{"text": "ℹ️ Подробнее", "callback_data": "more_info"}]
-                                        ]
-                                    }
-                                }
-                                
-                                response = requests.post(edit_message_url, json=message_data)
-                                if response.status_code == 200:
-                                    print("✅ Возврат к начальному меню")
-                                else:
-                                    print(f"❌ Ошибка возврата: {response.text}")
+                            """
                             
-                            # Отвечаем на callback query
-                            answer_url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
-                            answer_data = {"callback_query_id": update.callback_query.id}
-                            requests.post(answer_url, json=answer_data)
+                            message_data = {
+                                "chat_id": update.callback_query.message.chat.id,
+                                "message_id": update.callback_query.message.message_id,
+                                "text": welcome_text,
+                                "parse_mode": "HTML",
+                                "reply_markup": {
+                                    "inline_keyboard": [
+                                        [{"text": "💳 Оплатить подписку", "callback_data": "payment_menu"}],
+                                        [{"text": "ℹ️ Подробнее", "callback_data": "more_info"}]
+                                    ]
+                                }
+                            }
+                            
+                            response = requests.post(edit_message_url, json=message_data)
+                            if response.status_code == 200:
+                                print("✅ Возврат к начальному меню")
+                            else:
+                                print(f"❌ Ошибка возврата: {response.text}")
                         
-                        print("✅ Данные обработаны синхронно (fallback)")
-                        
-                    except Exception as e:
-                        print(f"❌ Ошибка синхронной обработки (fallback): {e}")
-                        import traceback
-                        print(f"📋 Traceback: {traceback.format_exc()}")
-                
-                finally:
-                    loop.close()
+                        # Отвечаем на callback query
+                        answer_url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
+                        answer_data = {"callback_query_id": update.callback_query.id}
+                        requests.post(answer_url, json=answer_data)
+                    
+                    print("✅ Данные обработаны синхронно")
+                    
+                except Exception as e:
+                    print(f"❌ Ошибка синхронной обработки: {e}")
+                    import traceback
+                    print(f"📋 Traceback: {traceback.format_exc()}")
                 
             except Exception as e:
                 print(f"❌ Ошибка обработки данных: {e}")
