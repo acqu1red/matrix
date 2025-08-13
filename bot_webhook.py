@@ -643,7 +643,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Lava Top конфигурация
 LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
 LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
-LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', 'e3dc5b9b-d511-4b79-9457-edfb404a5cc5')
+LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', '302ecdcd-1581-45ad-8353-a168f347b8cc')
 LAVA_PRODUCT_URL_ID = os.getenv('LAVA_PRODUCT_URL_ID', 'dcaf4bee-db84-476f-85a9-f5af24eb648e')
 
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
