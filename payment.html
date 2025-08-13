@@ -871,6 +871,9 @@
       <div class="button-group">
         <button class="btn btn-primary" onclick="generatePaymentLink()">Оплатить</button>
         <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+        <button id="fallbackButton" class="btn btn-warning" onclick="closeAndSendData()" style="display: none; margin-top: 10px;">
+          💬 Отправить данные через сообщение
+        </button>
       </div>
     </div>
   </div>
@@ -1094,6 +1097,10 @@ function generatePaymentLink() {
     } else {
       console.error('❌ tg.sendData не доступен!');
       showError('tg.sendData не доступен');
+      
+      // Показываем кнопку для отправки через сообщение
+      showError('Нажмите кнопку ниже для отправки данных через сообщение');
+      document.getElementById('fallbackButton').style.display = 'block';
     }
   }
   
