@@ -1026,8 +1026,147 @@ function generatePaymentLink() {
     return;
   }
   
-  // Prepare payment data
+  console.log('=== ПОШАГОВАЯ ОТПРАВКА ДАННЫХ ===');
+  
+  // Отправляем данные по частям для диагностики
+  const testData = {
+    step: 'test_connection',
+    message: 'Проверка соединения с ботом'
+  };
+  
+  console.log('📤 Отправляем тестовые данные:', testData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(testData));
+      console.log('✅ Тестовые данные отправлены');
+      showSuccess('Тестовые данные отправлены!');
+      
+      // Через 2 секунды отправляем email
+      setTimeout(() => {
+        sendEmailData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки тестовых данных:', error);
+      showError('Ошибка отправки: ' + error.message);
+    }
+  } else {
+    console.error('❌ tg.sendData не доступен!');
+    showError('tg.sendData не доступен');
+  }
+}
+
+function sendEmailData() {
+  const emailData = {
+    step: 'email_data',
+    email: paymentState.userEmail
+  };
+  
+  console.log('📧 Отправляем email данные:', emailData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(emailData));
+      console.log('✅ Email данные отправлены');
+      showSuccess('Email данные отправлены!');
+      
+      // Через 2 секунды отправляем tariff
+      setTimeout(() => {
+        sendTariffData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки email данных:', error);
+      showError('Ошибка отправки email: ' + error.message);
+    }
+  }
+}
+
+function sendTariffData() {
+  const tariffData = {
+    step: 'tariff_data',
+    tariff: paymentState.selectedTariff,
+    price: paymentState.prices[paymentState.selectedTariff]
+  };
+  
+  console.log('💳 Отправляем tariff данные:', tariffData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(tariffData));
+      console.log('✅ Tariff данные отправлены');
+      showSuccess('Tariff данные отправлены!');
+      
+      // Через 2 секунды отправляем payment method
+      setTimeout(() => {
+        sendPaymentMethodData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки tariff данных:', error);
+      showError('Ошибка отправки tariff: ' + error.message);
+    }
+  }
+}
+
+function sendPaymentMethodData() {
+  const paymentMethodData = {
+    step: 'payment_method_data',
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank
+  };
+  
+  console.log('🏦 Отправляем payment method данные:', paymentMethodData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(paymentMethodData));
+      console.log('✅ Payment method данные отправлены');
+      showSuccess('Payment method данные отправлены!');
+      
+      // Через 2 секунды отправляем user ID
+      setTimeout(() => {
+        sendUserIdData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки payment method данных:', error);
+      showError('Ошибка отправки payment method: ' + error.message);
+    }
+  }
+}
+
+function sendUserIdData() {
+  const userIdData = {
+    step: 'user_id_data',
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+  };
+  
+  console.log('👤 Отправляем user ID данные:', userIdData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(userIdData));
+      console.log('✅ User ID данные отправлены');
+      showSuccess('User ID данные отправлены!');
+      
+      // Через 2 секунды отправляем финальные данные
+      setTimeout(() => {
+        sendFinalData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки user ID данных:', error);
+      showError('Ошибка отправки user ID: ' + error.message);
+    }
+  }
+}
+
+function sendFinalData() {
+  // Prepare final payment data
   const paymentData = {
+    step: 'final_data',
     tariff: paymentState.selectedTariff,
     paymentMethod: paymentState.selectedPaymentMethod,
     bank: paymentState.selectedBank,
@@ -1036,7 +1175,7 @@ function generatePaymentLink() {
     userId: tg.initDataUnsafe?.user?.id || 'unknown'
   };
   
-  console.log('Payment data:', paymentData);
+  console.log('🎯 Отправляем финальные данные:', paymentData);
   
   // Send data to Telegram bot - бот создаст инвойс через API
   console.log('=== ОТПРАВКА ДАННЫХ В БОТ ===');

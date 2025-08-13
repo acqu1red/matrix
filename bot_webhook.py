@@ -660,11 +660,53 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
         payment_data = json.loads(web_app_data)
         print(f"📋 Парсированные данные: {payment_data}")
         
-        # Извлекаем данные
-        email = payment_data.get('email')
-        tariff = payment_data.get('tariff')
-        price = payment_data.get('price')
-        user_id = payment_data.get('userId')
+        # Проверяем тип данных (пошаговая отправка)
+        step = payment_data.get('step')
+        print(f"📋 Шаг данных: {step}")
+        
+        if step == 'test_connection':
+            print("✅ Тестовое соединение получено!")
+            await message.reply_text("✅ Соединение с ботом установлено!")
+            return
+            
+        elif step == 'email_data':
+            email = payment_data.get('email')
+            print(f"📧 Получен email: {email}")
+            await message.reply_text(f"📧 Email получен: {email}")
+            return
+            
+        elif step == 'tariff_data':
+            tariff = payment_data.get('tariff')
+            price = payment_data.get('price')
+            print(f"💳 Получен tariff: {tariff}, цена: {price}")
+            await message.reply_text(f"💳 Tariff получен: {tariff}, цена: {price}₽")
+            return
+            
+        elif step == 'payment_method_data':
+            payment_method = payment_data.get('paymentMethod')
+            bank = payment_data.get('bank')
+            print(f"🏦 Получен payment method: {payment_method}, банк: {bank}")
+            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank}")
+            return
+            
+        elif step == 'user_id_data':
+            user_id = payment_data.get('userId')
+            print(f"👤 Получен user ID: {user_id}")
+            await message.reply_text(f"👤 User ID получен: {user_id}")
+            return
+            
+        elif step == 'final_data':
+            # Обрабатываем финальные данные
+            email = payment_data.get('email')
+            tariff = payment_data.get('tariff')
+            price = payment_data.get('price')
+            user_id = payment_data.get('userId')
+            print(f"🎯 Обрабатываем финальные данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
+            
+            # Проверяем, что все данные есть
+            if not email or not tariff or not price:
+                await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
+                return
         
         # Создаем инвойс через Lava Top API
         invoice_data = {
@@ -741,6 +783,54 @@ async def handle_web_app_data_from_text(update: Update, context: CallbackContext
     
     try:
         print(f"📱 Обрабатываем данные из текста: {payment_data}")
+        
+        # Проверяем тип данных (пошаговая отправка)
+        step = payment_data.get('step')
+        print(f"📋 Шаг данных из текста: {step}")
+        
+        if step == 'test_connection':
+            print("✅ Тестовое соединение получено из текста!")
+            await message.reply_text("✅ Соединение с ботом установлено!")
+            return
+            
+        elif step == 'email_data':
+            email = payment_data.get('email')
+            print(f"📧 Получен email из текста: {email}")
+            await message.reply_text(f"📧 Email получен: {email}")
+            return
+            
+        elif step == 'tariff_data':
+            tariff = payment_data.get('tariff')
+            price = payment_data.get('price')
+            print(f"💳 Получен tariff из текста: {tariff}, цена: {price}")
+            await message.reply_text(f"💳 Tariff получен: {tariff}, цена: {price}₽")
+            return
+            
+        elif step == 'payment_method_data':
+            payment_method = payment_data.get('paymentMethod')
+            bank = payment_data.get('bank')
+            print(f"🏦 Получен payment method из текста: {payment_method}, банк: {bank}")
+            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank}")
+            return
+            
+        elif step == 'user_id_data':
+            user_id = payment_data.get('userId')
+            print(f"👤 Получен user ID из текста: {user_id}")
+            await message.reply_text(f"👤 User ID получен: {user_id}")
+            return
+            
+        elif step == 'final_data':
+            # Обрабатываем финальные данные
+            email = payment_data.get('email')
+            tariff = payment_data.get('tariff')
+            price = payment_data.get('price')
+            user_id = payment_data.get('userId')
+            print(f"🎯 Обрабатываем финальные данные из текста: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
+            
+            # Проверяем, что все данные есть
+            if not email or not tariff or not price:
+                await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
+                return
         
         # Извлекаем данные
         email = payment_data.get('email')
