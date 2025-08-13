@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 """
-Telegram Bot with Lava API integration for Railway deployment
+Telegram Bot with Webhook support for Railway deployment - CLEAN VERSION
 """
 
 import os
-import hmac
-import hashlib
 import json
-import time
 import base64
 import asyncio
 import requests
 import logging
 from datetime import datetime, timedelta
-from urllib.parse import urlencode
 from flask import Flask, request, jsonify
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters
@@ -32,110 +28,32 @@ SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.
 SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# === LAVA API CONFIG ===
-LAVA_API_BASE = os.getenv("LAVA_API_BASE", "https://api.lava.ru/business")
-LAVA_API_KEY = os.getenv("LAVA_API_KEY", "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav")
-LAVA_SHOP_ID = os.getenv("LAVA_SHOP_ID", "1b9f3e05-86aa-4102-9648-268f0f586bb1")
-LAVA_SUCCESS_URL = os.getenv("LAVA_SUCCESS_URL", "https://t.me/FormulaPrivateBot")
-LAVA_FAIL_URL = os.getenv("LAVA_FAIL_URL", "https://t.me/FormulaPrivateBot")
-
-# Хук, на который LAVA пришлет статус:
-PUBLIC_BASE_URL = os.getenv("RAILWAY_STATIC_URL") or os.getenv("PUBLIC_BASE_URL") or "https://formulaprivate-productionpaymentuknow.up.railway.app"
-HOOK_URL = f"{PUBLIC_BASE_URL}/lava-webhook" if PUBLIC_BASE_URL else ""
-
-# === CHANNEL/INVITES ===
-TARGET_CHANNEL_ID = int(os.getenv("TARGET_CHANNEL_ID", "-1002717275103"))  # например: -1001234567890
-STATIC_INVITE_LINK = os.getenv("STATIC_INVITE_LINK")  # если не задано, создаём одноразовую ссылку
+# Lava Top конфигурация
+LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
+LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
+LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', '302ecdcd-1581-45ad-8353-a168f347b8cc')
 
 # Создаем Flask приложение
 app = Flask(__name__)
 
-# Для подписи запросов (часть интеграций LAVA требует HMAC; оставляем гибко)
-def _lava_signature(body: str, secret: str) -> str:
-    return hmac.new(secret.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()
-
-def _lava_headers(body: str) -> dict:
-    # Встречаются 2 варианта авторизации у платёжек: Bearer и/или HMAC-подпись тела
-    # Оставляем оба — если твоя интеграция не требует подписи, сервер просто проигнорирует.
-    return {
-        "Authorization": f"Bearer {LAVA_API_KEY}",
-        "Content-Type": "application/json",
-        "X-Signature": _lava_signature(body, LAVA_API_KEY),
-    }
-
-def lava_post(path: str, payload: dict) -> dict:
-    url = f"{LAVA_API_BASE.rstrip('/')}/{path.lstrip('/')}"
-    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    headers = _lava_headers(body)
-    print(f"🔧 Lava API POST: {url}")
-    print(f"📋 Headers: {headers}")
-    print(f"📋 Payload: {body}")
-    resp = requests.post(url, data=body.encode("utf-8"), headers=headers, timeout=20)
-    print(f"📡 Response: {resp.status_code} - {resp.text}")
+def create_lava_invoice(user_id, email, tariff, price):
+    """Создает прямую ссылку на оплату Lava Top"""
     try:
-        data = resp.json()
-    except Exception:
-        raise RuntimeError(f"Lava API non-JSON response: {resp.status_code} {resp.text[:200]}")
-    if resp.status_code >= 300:
-        raise RuntimeError(f"Lava API error {resp.status_code}: {data}")
-    return data
-
-def lava_get(path: str, params: dict) -> dict:
-    url = f"{LAVA_API_BASE.rstrip('/')}/{path.lstrip('/')}"
-    headers = {"Authorization": f"Bearer {LAVA_API_KEY}"}
-    print(f"🔧 Lava API GET: {url}")
-    print(f"📋 Params: {params}")
-    resp = requests.get(url, params=params, headers=headers, timeout=20)
-    print(f"📡 Response: {resp.status_code} - {resp.text}")
-    try:
-        data = resp.json()
-    except Exception:
-        raise RuntimeError(f"Lava API non-JSON response: {resp.status_code} {resp.text[:200]}")
-    if resp.status_code >= 300:
-        raise RuntimeError(f"Lava API error {resp.status_code}: {data}")
-    return data
-
-def create_lava_invoice_api(user_id: int, chat_id: int, email: str, tariff: str, price_rub: int) -> str:
-    """
-    Создаёт инвойс через LAVA Business API и возвращает payUrl.
-    orderId прошиваем user_id и chat_id, чтобы не терять связь.
-    """
-    if not (LAVA_API_KEY and LAVA_SHOP_ID):
-        raise RuntimeError("LAVA_API_KEY/LAVA_SHOP_ID are not set")
-
-    # Уникальный orderId: содержит и user_id, и chat_id для обратной связи
-    ts = int(time.time())
-    order_id = f"order_{user_id}_{chat_id}_{ts}"
-
-    # Валюта и сумма — подстрой под свой кейс
-    payload = {
-        "shopId": str(LAVA_SHOP_ID),
-        "orderId": order_id,
-        "sum": int(price_rub),         # целое число в копейках/рублях — зависит от API; чаще рубли целым
-        "currency": "RUB",
-        "comment": f"Tariff: {tariff}",
-        "hookUrl": HOOK_URL,           # куда придёт вебхук об оплате
-        "successUrl": LAVA_SUCCESS_URL,
-        "failUrl": LAVA_FAIL_URL,
-        # Любые твои данные, по которым ты найдёшь пользователя:
-        "metadata": {
-            "user_id": str(user_id),
-            "chat_id": str(chat_id),
-            "email": email,
-            "tariff": tariff
-        }
-    }
-
-    print(f"🔧 Создаем инвойс через API: {payload}")
-    data = lava_post("/invoice/create", payload)
-
-    # В ответе у LAVA обычно есть ссылка оплаты: payUrl / url — поддержим оба
-    pay_url = data.get("payUrl") or data.get("url") or (data.get("data", {}) or {}).get("payUrl")
-    if not pay_url:
-        raise RuntimeError(f"Cannot find payUrl in response: {data}")
-
-    print(f"✅ Создан инвойс: {pay_url}")
-    return pay_url
+        print(f"🔧 Создаем инвойс для пользователя {user_id}")
+        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
+        
+        # Создаем уникальный order_id
+        order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        
+        # Создаем прямую ссылку на оплату
+        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
+        
+        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+        return payment_url
+            
+    except Exception as e:
+        print(f"❌ Ошибка создания инвойса: {e}")
+        return None
 
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
     """Создает подписку в базе данных"""
@@ -175,44 +93,6 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
     except Exception as e:
         print(f"❌ Ошибка создания подписки: {e}")
         return 'error'
-
-def parse_user_from_order(order_id: str) -> tuple[int, int]:
-    """
-    Ждём формат: order_<user_id>_<chat_id>_<timestamp>
-    Возвращаем (user_id, chat_id) либо (0, 0).
-    """
-    try:
-        parts = order_id.split("_")
-        return int(parts[1]), int(parts[2])
-    except Exception:
-        return 0, 0
-
-async def _send_invite_on_success(application: Application, user_id: int, chat_id: int) -> None:
-    """
-    Если задан STATIC_INVITE_LINK — шлём её.
-    Иначе создаём одноразовую ссылку в закрытый канал (бот должен быть админом канала!).
-    """
-    invite_link = STATIC_INVITE_LINK
-    if not invite_link:
-        # Создаём одноразовую ссылку на 1 использование, живёт 1 день.
-        expire_date = int(time.time()) + 86400
-        res = await application.bot.create_chat_invite_link(
-            chat_id=TARGET_CHANNEL_ID,
-            name=f"paid_{user_id}_{int(time.time())}",
-            expire_date=expire_date,
-            member_limit=1
-        )
-        invite_link = res.invite_link
-
-    text = (
-        "✅ Оплата успешно получена!\n\n"
-        f"Вот ваша ссылка-приглашение в закрытый канал:\n{invite_link}\n\n"
-        "Если ссылка не открывается, напишите сюда — мы поможем."
-    )
-    try:
-        await application.bot.send_message(chat_id=chat_id or user_id, text=text)
-    except Exception as e:
-        print(f"[lava-webhook] Failed to send invite to {chat_id or user_id}: {e}")
 
 # Flask endpoints
 @app.route('/health', methods=['GET'])
@@ -274,8 +154,7 @@ def webhook_info():
             "current_url": current_url,
             "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0),
             "needs_fix": needs_fix,
-            "auto_fixed": auto_fixed,
-            "hook_url": HOOK_URL
+            "auto_fixed": auto_fixed
         })
     except Exception as e:
         print(f"❌ Ошибка получения webhook info: {e}")
@@ -400,118 +279,99 @@ def telegram_webhook():
 
 @app.route('/api/create-payment', methods=['POST'])
 def create_payment_api():
-    """
-    Принимает JSON из MiniApp:
-    {
-      "user_id": <int>,      // Telegram user id
-      "chat_id": <int>,      // chat.id пользователя (если есть)
-      "email": "mail@...",
-      "tariff": "basic",
-      "price": 500
-    }
-    Возвращает { ok: true, payment_url: "..." }
-    """
+    """API endpoint для создания платежа"""
     try:
         print("=" * 50)
         print("📥 ПОЛУЧЕН ЗАПРОС НА СОЗДАНИЕ ПЛАТЕЖА!")
         print("=" * 50)
         
-        data = request.get_json(force=True, silent=False)
+        data = request.get_json()
         print(f"📋 Полученные данные: {data}")
         
         if not data:
-            return jsonify({"ok": False, "error": "Invalid JSON"}), 400
-
-        user_id = int(data.get("user_id") or 0)
-        chat_id = int(data.get("chat_id") or user_id)  # на всякий случай используем user_id, если chat_id не прислали
-        email = (data.get("email") or "").strip()
-        tariff = (data.get("tariff") or "").strip()
-        price = int(data.get("price") or 0)
-
-        if not user_id or not price:
-            return jsonify({"ok": False, "error": "user_id and price are required"}), 400
-
-        print(f"📋 Создаем инвойс: user_id={user_id}, chat_id={chat_id}, email={email}, tariff={tariff}, price={price}")
-
-        try:
-            pay_url = create_lava_invoice_api(user_id, chat_id, email, tariff, price)
-            return jsonify({"ok": True, "payment_url": pay_url})
-        except Exception as e:
-            print(f"[create-payment] ERROR: {e}")
-            return jsonify({"ok": False, "error": str(e)}), 500
+            return jsonify({"status": "error", "message": "No data provided"}), 400
+        
+        # Извлекаем данные
+        user_id = data.get('user_id')
+        email = data.get('email')
+        tariff = data.get('tariff')
+        price = data.get('price')
+        
+        if not all([user_id, email, tariff, price]):
+            return jsonify({"status": "error", "message": "Missing required fields"}), 400
+        
+        print(f"📋 Создаем инвойс: user_id={user_id}, email={email}, tariff={tariff}, price={price}")
+        
+        # Создаем инвойс
+        payment_url = create_lava_invoice(user_id, email, tariff, price)
+        
+        if payment_url:
+            return jsonify({
+                "status": "success",
+                "payment_url": payment_url,
+                "message": "Payment created successfully",
+                "data": {
+                    "user_id": user_id,
+                    "email": email,
+                    "tariff": tariff,
+                    "price": price,
+                    "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}"
+                }
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Failed to create payment"
+            }), 500
             
     except Exception as e:
         print(f"❌ Ошибка создания платежа: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route("/lava-webhook", methods=["GET", "POST"])
+@app.route('/lava-webhook', methods=['POST'])
 def lava_webhook():
-    """
-    Приём вебхука от LAVA. Делаем так:
-      1) читаем событие (invoiceId/orderId/status)
-      2) (опционально) проверяем подпись заголовка X-Signature
-      3) запрашиваем статус инвойса по API (защита от подделки)
-      4) при success — шлём инвайт пользователю
-      5) возвращаем 200 OK
-    """
+    """Обрабатывает webhook от Lava Top"""
     try:
         print("=" * 50)
         print("💰 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
         print("=" * 50)
         
-        payload = request.get_json(force=True, silent=False)
-        print(f"[lava-webhook] incoming: {payload}")
-
-        # 1) Достаём идентификаторы
-        invoice_id = (payload.get("invoiceId") or payload.get("id") or "").strip()
-        order_id = (payload.get("orderId") or "").strip()
-        status = (payload.get("status") or "").lower()
-
-        # 2) (опциональная) проверка подписи входящего вебхука:
-        try:
-            # Если LAVA присылает 'X-Signature' как HMAC(body, secret) — проверим:
-            given_sig = request.headers.get("X-Signature")
-            if given_sig:
-                expected = _lava_signature(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), LAVA_API_KEY)
-                if not hmac.compare_digest(given_sig, expected):
-                    print("[lava-webhook] signature mismatch")
-                    # не отбрасываем, но отметим в логах
-        except Exception as _:
-            pass
-
-        # 3) Подтверждаем статус по API (лучше, чем верить вебхуку на слово)
-        try:
-            if invoice_id:
-                status_resp = lava_get("/invoice/status", {"invoiceId": invoice_id})
-            elif order_id:
-                status_resp = lava_get("/invoice/status", {"orderId": order_id})
+        data = request.get_json()
+        print(f"📋 Данные от Lava Top: {data}")
+        
+        # Проверяем подпись (если нужно)
+        # signature = request.headers.get('X-Signature')
+        
+        # Обрабатываем данные платежа
+        if data and data.get('status') == 'success':
+            order_id = data.get('order_id')
+            amount = data.get('amount')
+            metadata = data.get('metadata', {})
+            
+            print(f"✅ Успешный платеж: order_id={order_id}, amount={amount}")
+            
+            # Создаем подписку
+            user_id = metadata.get('user_id')
+            email = metadata.get('email')
+            tariff = metadata.get('tariff')
+            
+            if user_id and email and tariff:
+                subscription_id = create_subscription(
+                    user_id=user_id,
+                    email=email,
+                    tariff=tariff,
+                    amount=amount,
+                    currency='RUB',
+                    order_id=order_id,
+                    metadata=metadata
+                )
+                print(f"✅ Подписка создана: {subscription_id}")
             else:
-                return "missing invoiceId/orderId", 200  # не ругаемся, просто игнор
-
-            print(f"[lava-webhook] status resp: {status_resp}")
-            state = (status_resp.get("status") or status_resp.get("data", {}).get("status") or "").lower()
-            oid = status_resp.get("orderId") or status_resp.get("data", {}).get("orderId") or order_id
-
-            if state in ("success", "paid", "completed"):
-                user_id, chat_id = parse_user_from_order(oid or "")
-                print(f"✅ Успешный платеж: user_id={user_id}, chat_id={chat_id}")
-                
-                # Если в твоей интеграции metadata возвращается в статусе — можно взять chat_id оттуда
-                try:
-                    app_obj = app  # Flask app
-                    application: Application = app_obj.config.get("telegram_application")
-                    if application:
-                        # запуск в фоне
-                        application.create_task(_send_invite_on_success(application, user_id, chat_id))
-                except Exception as e:
-                    print(f"[lava-webhook] schedule invite task error: {e}")
-
-        except Exception as e:
-            print(f"[lava-webhook] status check error: {e}")
-
-        return "ok", 200
+                print("❌ Недостаточно данных для создания подписки")
+        
+        return jsonify({"status": "ok"})
         
     except Exception as e:
         print(f"❌ Ошибка обработки webhook Lava Top: {e}")
@@ -669,15 +529,16 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
                 await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
                 return
             
-            print("✅ Все данные получены, создаем инвойс через API...")
+            print("✅ Все данные получены, создаем инвойс...")
             
-            # Создаем инвойс через API
-            try:
-                pay_url = create_lava_invoice_api(user.id, message.chat.id, email, tariff, price)
-                print(f"✅ Инвойс создан успешно: {pay_url}")
+            # Создаем инвойс
+            payment_url = create_lava_invoice(user.id, email, tariff, price)
+            
+            if payment_url:
+                print(f"✅ Инвойс создан успешно: {payment_url}")
                 
                 # Отправляем сообщение с кнопкой оплаты
-                keyboard = [[InlineKeyboardButton("💳 Оплатить", url=pay_url)]]
+                keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
                 await message.reply_text(
@@ -692,9 +553,9 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
                 )
                 print("✅ Сообщение с кнопкой оплаты отправлено")
                 return
-            except Exception as e:
-                print(f"❌ Ошибка создания инвойса через API: {e}")
-                await message.reply_text(f"❌ Ошибка создания платежа: {e}")
+            else:
+                print(f"❌ Не удалось создать инвойс")
+                await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
                 return
         else:
             print(f"❌ Неизвестный шаг: {step}")
@@ -721,17 +582,15 @@ async def button(update: Update, context: CallbackContext):
 
 def main() -> None:
     """Основная функция запуска бота"""
-    print("🚀 Запуск бота с Lava API...")
+    print("🚀 Запуск бота с webhook...")
     print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
-    print(f"🔑 LAVA_API_KEY: {LAVA_API_KEY[:20]}...")
     print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
-    print(f"🔑 HOOK_URL: {HOOK_URL}")
+    print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     
     # Создаем приложение
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     app.telegram_app = application # Привязываем приложение к Flask
-    app.config["telegram_application"] = application # Для webhook
     
     print("📝 Регистрация обработчиков...")
     
