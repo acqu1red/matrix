@@ -124,133 +124,136 @@ def reset_webhook():
 # Webhook endpoint для Telegram
 @app.route('/webhook', methods=['GET', 'POST'])
 def telegram_webhook():
-    """Обрабатывает webhook от Telegram"""
-    print("=" * 50)
-    print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
-    print("=" * 50)
-    print(f"📋 Headers: {dict(request.headers)}")
+    """Простой webhook endpoint для логирования данных"""
+    print("=" * 60)
+    print("🔥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
+    print("=" * 60)
     print(f"📋 Method: {request.method}")
     print(f"📋 URL: {request.url}")
-    print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
-    print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
+    print(f"📋 Headers: {dict(request.headers)}")
     print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
-    print(f"📋 Raw data: {request.get_data()}")
+    
+    # Обрабатываем GET запросы (проверка доступности)
+    if request.method == 'GET':
+        print("✅ GET запрос - проверка доступности webhook")
+        return jsonify({
+            "status": "ok", 
+            "message": "Telegram webhook endpoint доступен",
+            "method": "GET",
+            "timestamp": datetime.now().isoformat()
+        })
+    
+    # Получаем сырые данные
+    raw_data = request.get_data()
+    print(f"📋 Raw data: {raw_data}")
     
     try:
-        
-        # Обрабатываем GET запросы (проверка доступности)
-        if request.method == 'GET':
-            print("✅ GET запрос - проверка доступности webhook")
-            return jsonify({
-                "status": "ok", 
-                "message": "Telegram webhook endpoint доступен",
-                "method": "GET",
-                "timestamp": datetime.now().isoformat()
-            })
-        
-        # Получаем данные от Telegram (только для POST)
+        # Парсим JSON
         data = request.get_json()
-        print(f"📋 Данные от Telegram: {data}")
-        print(f"📋 Тип данных: {type(data)}")
-        print(f"📋 Ключи в данных: {list(data.keys()) if isinstance(data, dict) else 'Нет ключей'}")
+        print(f"📋 Parsed JSON: {data}")
+        print(f"📋 Type: {type(data)}")
         
-        # Проверяем, что это действительно от Telegram
-        if not data:
-            print("❌ Данные пустые или не JSON")
-            return jsonify({"status": "error", "message": "No data"}), 400
-        
-        if 'update_id' not in data:
-            print("❌ Это не Telegram webhook (нет update_id)")
-            return jsonify({"status": "error", "message": "Not a Telegram webhook"}), 400
-        
-        # Передаем данные в обработчик бота
-        if hasattr(app, 'telegram_app'):
-            print("✅ Передаем данные в telegram_app")
+        if data:
+            print(f"📋 Keys: {list(data.keys())}")
             
-            # Проверяем, есть ли web_app_data в данных
-            if 'message' in data and 'web_app_data' in data['message']:
-                print("📱 Обнаружены данные от Mini Apps!")
-                web_app_data = data['message']['web_app_data']
-                print(f"📱 Web App Data: {web_app_data}")
+            # Проверяем, есть ли update_id
+            if 'update_id' in data:
+                print(f"📋 Update ID: {data['update_id']}")
                 
-                # Обрабатываем данные от Mini Apps напрямую
-                try:
-                    import json
-                    payment_data = json.loads(web_app_data['data'])
-                    print(f"📋 Парсированные данные: {payment_data}")
+                # Проверяем, есть ли message
+                if 'message' in data:
+                    message = data['message']
+                    print(f"📋 Message: {message}")
                     
-                    # Здесь можно добавить обработку данных от Mini Apps
-                    step = payment_data.get('step')
-                    if step == 'final_data':
-                        print("🎯 Получены финальные данные от Mini Apps!")
-                        # Здесь будет создание инвойса
-                        print("✅ Данные от Mini Apps обработаны")
+                    # Проверяем, есть ли web_app_data
+                    if 'web_app_data' in message:
+                        web_app_data = message['web_app_data']
+                        print(f"🔥 ОБНАРУЖЕНЫ ДАННЫЕ ОТ MINI APPS!")
+                        print(f"📱 Web App Data: {web_app_data}")
+                        
+                        # Парсим данные от Mini Apps
+                        try:
+                            import json
+                            payment_data = json.loads(web_app_data['data'])
+                            print(f"📋 Парсированные данные: {payment_data}")
+                            
+                            step = payment_data.get('step')
+                            print(f"📋 Step: {step}")
+                            
+                            if step == 'final_data':
+                                print("🎯 ПОЛУЧЕНЫ ФИНАЛЬНЫЕ ДАННЫЕ!")
+                                email = payment_data.get('email')
+                                tariff = payment_data.get('tariff')
+                                price = payment_data.get('price')
+                                user_id = payment_data.get('userId')
+                                
+                                print(f"📧 Email: {email}")
+                                print(f"💳 Tariff: {tariff}")
+                                print(f"💰 Price: {price}")
+                                print(f"👤 User ID: {user_id}")
+                                
+                                # Здесь будет создание инвойса
+                                print("✅ Данные готовы для создания инвойса")
+                                
+                        except Exception as e:
+                            print(f"❌ Ошибка парсинга данных Mini Apps: {e}")
                     
-                except Exception as e:
-                    print(f"❌ Ошибка обработки данных Mini Apps: {e}")
+                    # Проверяем, есть ли text
+                    elif 'text' in message:
+                        text = message['text']
+                        print(f"📋 Text message: {text}")
+                        
+                        # Проверяем, не является ли это JSON данными
+                        if text.startswith('{') and text.endswith('}'):
+                            try:
+                                import json
+                                json_data = json.loads(text)
+                                print(f"📋 JSON в тексте: {json_data}")
+                                
+                                if 'step' in json_data:
+                                    print("🔥 ОБНАРУЖЕНЫ JSON ДАННЫЕ В ТЕКСТЕ!")
+                                    step = json_data.get('step')
+                                    print(f"📋 Step: {step}")
+                                    
+                                    if step == 'final_data':
+                                        print("🎯 ПОЛУЧЕНЫ ФИНАЛЬНЫЕ ДАННЫЕ ИЗ ТЕКСТА!")
+                                        email = json_data.get('email')
+                                        tariff = json_data.get('tariff')
+                                        price = json_data.get('price')
+                                        user_id = json_data.get('userId')
+                                        
+                                        print(f"📧 Email: {email}")
+                                        print(f"💳 Tariff: {tariff}")
+                                        print(f"💰 Price: {price}")
+                                        print(f"👤 User ID: {user_id}")
+                                        
+                                        # Здесь будет создание инвойса
+                                        print("✅ Данные готовы для создания инвойса")
+                                        
+                            except Exception as e:
+                                print(f"❌ Ошибка парсинга JSON в тексте: {e}")
                 
-                return jsonify({"status": "ok"})
-            
-            # Для обычных сообщений пытаемся создать Update объект
-            try:
-                # Создаем Update объект
-                update = Update.de_json(data, app.telegram_app.bot)
-                print(f"📋 Update создан: {update}")
-                print(f"📋 Тип Update: {type(update)}")
-                print(f"📋 Update ID: {update.update_id}")
-                
-                if update.message:
-                    print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
-                    print(f"📋 От пользователя: {update.message.from_user.id}")
-                elif update.callback_query:
-                    print(f"📋 Callback query: {update.callback_query.data}")
-                    print(f"📋 От пользователя: {update.callback_query.from_user.id}")
-                else:
-                    print(f"📋 Неизвестный тип Update")
-                
-                # Запускаем обработку в отдельном потоке
-                import threading
-                def process_update_async():
-                    import asyncio
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    try:
-                        print("🔄 Запускаем process_update...")
-                        loop.run_until_complete(app.telegram_app.process_update(update))
-                        print("✅ Данные обработаны асинхронно")
-                    except Exception as e:
-                        print(f"❌ Ошибка асинхронной обработки: {e}")
-                        import traceback
-                        print(f"📋 Traceback: {traceback.format_exc()}")
-                    finally:
-                        loop.close()
-                
-                # Запускаем в отдельном потоке
-                thread = threading.Thread(target=process_update_async)
-                thread.start()
-                print("✅ Поток обработки запущен")
-                
-            except Exception as e:
-                print(f"❌ Ошибка создания Update объекта: {e}")
-                import traceback
-                print(f"📋 Traceback: {traceback.format_exc()}")
-                # Возвращаем успех, чтобы Telegram не сбрасывал webhook
-                return jsonify({"status": "ok"})
-            
+                # Проверяем, есть ли callback_query
+                elif 'callback_query' in data:
+                    callback_query = data['callback_query']
+                    print(f"📋 Callback query: {callback_query}")
+                    
+            else:
+                print("❌ Нет update_id в данных")
         else:
-            print("❌ telegram_app не найден")
-        
-        return jsonify({"status": "ok"})
+            print("❌ Данные пустые")
+            
     except Exception as e:
-        print(f"❌ Ошибка обработки webhook: {e}")
+        print(f"❌ Ошибка парсинга JSON: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        logging.error(f"Ошибка обработки webhook: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-    finally:
-        print("=" * 50)
-        print("🏁 ЗАВЕРШЕНА ОБРАБОТКА WEBHOOK")
-        print("=" * 50)
+    
+    print("=" * 60)
+    print("🏁 ЗАВЕРШЕНА ОБРАБОТКА WEBHOOK")
+    print("=" * 60)
+    
+    # Всегда возвращаем успех, чтобы Telegram не сбрасывал webhook
+    return jsonify({"status": "ok"})
 
 # Webhook endpoint для Lava Top
 @app.route('/lava-webhook', methods=['GET', 'POST'])
