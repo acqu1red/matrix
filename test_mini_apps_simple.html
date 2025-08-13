@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Mini Apps и Supabase</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Тест Mini Apps и Supabase</h2>
+        
+        <div>
+            <button onclick="testTelegram()">Тест Telegram</button>
+            <button onclick="testSupabase()">Тест Supabase</button>
+            <button onclick="testAdmin()">Тест Админ</button>
+            <button onclick="clearLog()">Очистить лог</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        let tg;
+        let supabase;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function testTelegram() {
+            try {
+                log('🔍 Тестируем Telegram WebApp...');
+                
+                if (typeof tg === 'undefined') {
+                    log('❌ tg объект не найден!');
+                    return;
+                }
+                
+                log(`✅ Telegram WebApp доступен`);
+                log(`Версия: ${tg.version}`);
+                log(`Платформа: ${tg.platform}`);
+                log(`Цветовая схема: ${tg.colorScheme}`);
+                log(`initData: ${tg.initData}`);
+                log(`initDataUnsafe: ${JSON.stringify(tg.initDataUnsafe)}`);
+                log(`sendData доступен: ${typeof tg.sendData === 'function'}`);
+                
+            } catch (error) {
+                log(`❌ Ошибка Telegram: ${error.message}`);
+            }
+        }
+        
+        function testSupabase() {
+            try {
+                log('🔍 Тестируем Supabase...');
+                
+                if (typeof supabase === 'undefined') {
+                    log('❌ Supabase клиент не найден!');
+                    return;
+                }
+                
+                log(`✅ Supabase клиент доступен`);
+                
+                // Тестируем подключение
+                supabase.from('admins').select('*').limit(1).then(response => {
+                    log(`✅ Supabase подключение: ${JSON.stringify(response)}`);
+                }).catch(error => {
+                    log(`❌ Ошибка Supabase: ${error.message}`);
+                });
+                
+            } catch (error) {
+                log(`❌ Ошибка Supabase: ${error.message}`);
+            }
+        }
+        
+        function testAdmin() {
+            try {
+                log('🔍 Тестируем админ-права...');
+                
+                if (typeof tg === 'undefined' || typeof supabase === 'undefined') {
+                    log('❌ Telegram или Supabase не доступны!');
+                    return;
+                }
+                
+                const userId = tg.initDataUnsafe?.user?.id;
+                if (!userId) {
+                    log('❌ ID пользователя не найден!');
+                    return;
+                }
+                
+                log(`👤 ID пользователя: ${userId}`);
+                
+                // Тестируем функцию is_admin
+                supabase.rpc('is_admin', { user_telegram_id: userId }).then(response => {
+                    log(`✅ is_admin(${userId}): ${JSON.stringify(response)}`);
+                    
+                    if (response.data) {
+                        log('🎉 Пользователь является администратором!');
+                    } else {
+                        log('👤 Пользователь не является администратором');
+                    }
+                }).catch(error => {
+                    log(`❌ Ошибка is_admin: ${error.message}`);
+                });
+                
+            } catch (error) {
+                log(`❌ Ошибка теста админа: ${error.message}`);
+            }
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Страница загружена');
+            
+            try {
+                // Инициализируем Telegram WebApp
+                tg = window.Telegram.WebApp;
+                if (tg) {
+                    tg.expand();
+                    tg.enableClosingConfirmation();
+                    log('✅ Telegram WebApp инициализирован');
+                } else {
+                    log('❌ Telegram WebApp не найден');
+                }
+                
+                // Инициализируем Supabase
+                const supabaseUrl = 'https://uhhsrtmmuwoxsdquimaa.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8';
+                
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                log('✅ Supabase клиент инициализирован');
+                
+            } catch (error) {
+                log(`❌ Ошибка инициализации: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
