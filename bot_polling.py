@@ -693,16 +693,33 @@ def main() -> None:
     except Exception as e:
         print(f"❌ Ошибка удаления webhook: {e}")
     
-    print("🔄 Запускаем polling в отдельном потоке...")
+    print("🔄 Запускаем polling...")
     
-    # Запускаем polling в отдельном потоке
+    # Запускаем polling в отдельном потоке с правильным event loop
     import threading
+    import asyncio
+    
     def run_polling():
         try:
-            print("🔄 Запуск polling...")
-            application.run_polling(allowed_updates=["message", "callback_query"])
+            print("🔄 Запуск polling в потоке...")
+            # Создаем новый event loop для потока
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Запускаем polling
+            loop.run_until_complete(application.initialize())
+            loop.run_until_complete(application.start())
+            loop.run_until_complete(application.updater.start_polling(allowed_updates=["message", "callback_query"]))
+            
+            print("✅ Polling запущен успешно")
+            
+            # Запускаем event loop
+            loop.run_forever()
+            
         except Exception as e:
             print(f"❌ Ошибка polling: {e}")
+            import traceback
+            print(f"📋 Traceback: {traceback.format_exc()}")
     
     polling_thread = threading.Thread(target=run_polling, daemon=True)
     polling_thread.start()
