@@ -788,6 +788,10 @@ def main() -> None:
     # Настраиваем webhook URL для Railway
     webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
     if webhook_url:
+        # Убеждаемся, что URL начинается с https://
+        if not webhook_url.startswith('http'):
+            webhook_url = f"https://{webhook_url}"
+        
         print(f"🌐 Настройка webhook: {webhook_url}/webhook")
         # Устанавливаем webhook URL через requests (синхронно)
         webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
@@ -799,6 +803,12 @@ def main() -> None:
         print(f"🔧 Webhook данные: {webhook_data}")
         
         try:
+            # Сначала удаляем старый webhook
+            delete_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+            delete_response = requests.post(delete_webhook_url)
+            print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
+            
+            # Устанавливаем новый webhook
             response = requests.post(webhook_setup_url, json=webhook_data)
             print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
             if response.status_code == 200:
@@ -814,8 +824,15 @@ def main() -> None:
                 if webhook_result.get('ok') and webhook_result.get('result', {}).get('url'):
                     actual_url = webhook_result['result']['url']
                     print(f"🔍 Фактический webhook URL: {actual_url}")
-                    if actual_url != f"{webhook_url}/webhook":
-                        print("⚠️ ВНИМАНИЕ: URL webhook не совпадает с ожидаемым!")
+                    expected_url = f"{webhook_url}/webhook"
+                    if actual_url != expected_url:
+                        print(f"⚠️ ВНИМАНИЕ: URL webhook не совпадает!")
+                        print(f"   Ожидалось: {expected_url}")
+                        print(f"   Фактически: {actual_url}")
+                    else:
+                        print("✅ Webhook URL установлен правильно!")
+                else:
+                    print("❌ Не удалось получить информацию о webhook")
             else:
                 print(f"❌ Ошибка установки webhook: {response.text}")
         except Exception as e:
@@ -825,6 +842,10 @@ def main() -> None:
         print("🔧 Попробуем использовать переменную WEBHOOK_URL")
         webhook_url = os.getenv('WEBHOOK_URL', '')
         if webhook_url:
+            # Убеждаемся, что URL начинается с https://
+            if not webhook_url.startswith('http'):
+                webhook_url = f"https://{webhook_url}"
+            
             print(f"🌐 Используем WEBHOOK_URL: {webhook_url}")
             webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
             webhook_data = {
