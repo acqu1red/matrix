@@ -697,24 +697,24 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     payment_url = await create_lava_invoice_async(user.id, "user@example.com", "1_month", 50)
     
     if payment_url:
-                # Отправляем сообщение с кнопкой оплаты
-                keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                
-                await query.edit_message_text(
-                    f"💳 <b>Оплата подписки</b>\n\n"
-                    f"✅ Платежная ссылка создана!\n"
-                    f"💰 Сумма: 50₽\n"
-                    f"💳 Тариф: 1 месяц\n\n"
-                    f"Нажмите кнопку ниже для перехода к оплате:",
-                    parse_mode='HTML',
-                    reply_markup=reply_markup
-                )
-                print("✅ Сообщение с кнопкой оплаты отправлено")
-            else:
-    await query.edit_message_text(
-        "❌ Произошла ошибка при создании платежа. Попробуйте еще раз или обратитесь в поддержку."
-    )
+        # Отправляем сообщение с кнопкой оплаты
+        keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(
+            f"💳 <b>Оплата подписки</b>\n\n"
+            f"✅ Платежная ссылка создана!\n"
+            f"💰 Сумма: 50₽\n"
+            f"💳 Тариф: 1 месяц\n\n"
+            f"Нажмите кнопку ниже для перехода к оплате:",
+            parse_mode='HTML',
+            reply_markup=reply_markup
+        )
+        print("✅ Сообщение с кнопкой оплаты отправлено")
+    else:
+        await query.edit_message_text(
+            "❌ Произошла ошибка при создании платежа. Попробуйте еще раз или обратитесь в поддержку."
+        )
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps"""
