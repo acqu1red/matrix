@@ -134,6 +134,8 @@ def telegram_webhook():
         print(f"📋 URL: {request.url}")
         print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
         print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
+        print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
+        print(f"📋 Raw data: {request.get_data()}")
         
         # Обрабатываем GET запросы (проверка доступности)
         if request.method == 'GET':
@@ -148,6 +150,8 @@ def telegram_webhook():
         # Получаем данные от Telegram (только для POST)
         data = request.get_json()
         print(f"📋 Данные от Telegram: {data}")
+        print(f"📋 Тип данных: {type(data)}")
+        print(f"📋 Ключи в данных: {list(data.keys()) if isinstance(data, dict) else 'Нет ключей'}")
         
         # Проверяем, что это действительно от Telegram
         if not data:
