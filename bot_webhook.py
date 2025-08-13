@@ -161,6 +161,24 @@ def telegram_webhook():
                 print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
                 print(f"📋 От пользователя: {update.message.from_user.id}")
                 print(f"📋 web_app_data: {getattr(update.message, 'web_app_data', 'НЕТ')}")
+                
+                # Проверяем, есть ли web_app_data в исходных данных
+                if 'web_app_data' in data.get('message', {}):
+                    print("🔧 Обнаружены web_app_data в исходных данных!")
+                    web_app_data_raw = data['message']['web_app_data']
+                    print(f"📋 Сырые web_app_data: {web_app_data_raw}")
+                    
+                    # Создаем WebAppData объект вручную
+                    from telegram import WebAppData
+                    web_app_data_obj = WebAppData(
+                        data=web_app_data_raw.get('data', ''),
+                        button_text=web_app_data_raw.get('button_text', '')
+                    )
+                    
+                    # Присваиваем web_app_data к сообщению
+                    update.message.web_app_data = web_app_data_obj
+                    print(f"✅ WebAppData создан и присвоен: {web_app_data_obj}")
+                    
             elif update.callback_query:
                 print(f"📋 Callback query: {update.callback_query.data}")
                 print(f"📋 От пользователя: {update.callback_query.from_user.id}")
