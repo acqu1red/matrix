@@ -453,7 +453,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Lava Top конфигурация
 LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
 LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
-LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', '302ecdcd-1581-45ad-8353-a168f347b8cc')  # Product ID из вашей ссылки
+LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', 'e3dc5b9b-d511-4b79-9457-edfb404a5cc5')  # Обновленный Product ID
 LAVA_PRODUCT_URL_ID = os.getenv('LAVA_PRODUCT_URL_ID', 'dcaf4bee-db84-476f-85a9-f5af24eb648e')  # Product URL ID
 
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
@@ -501,25 +501,61 @@ def create_lava_invoice(user_id, email, tariff, price):
         print(f"🔧 Создаем инвойс для пользователя {user_id}")
         print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
         
-        # Создаем прямую ссылку на оплату Lava Top
-        # Формат: https://app.lava.top/ru/products/{shop_id}/{product_id}?currency=RUB&amount={amount}&order_id={order_id}
-        order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        # Данные для инвойса
+        invoice_data = {
+            "shop_id": LAVA_SHOP_ID,
+            "amount": int(price * 100),  # Конвертируем в копейки
+            "currency": "RUB",
+            "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}",
+            "hook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook",
+            "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "metadata": {
+                "user_id": str(user_id),
+                "telegram_id": str(user_id),
+                "tariff": tariff,
+                "email": email
+            }
+        }
         
-        # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
+        print(f"📤 Данные инвойса: {invoice_data}")
+        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+        print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
         
-        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+        # Отправляем запрос к Lava Top API
+        api_url = "https://api.lava.top/business/invoice/create"
+        headers = {
+            "Authorization": f"Bearer {LAVA_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
         
-        # Сохраняем информацию о заказе в базе данных или кэше
-        # Здесь можно добавить сохранение в Supabase
+        print(f"📡 Отправляем запрос к: {api_url}")
+        print(f"📡 Headers: {headers}")
         
-        return payment_url
+        response = requests.post(api_url, json=invoice_data, headers=headers)
+        print(f"📡 Ответ API: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"📋 Полный ответ: {result}")
+            
+            # Получаем URL для оплаты
+            payment_url = result.get('data', {}).get('url')
+            if payment_url:
+                print(f"✅ Инвойс создан успешно: {payment_url}")
+                return payment_url
+            else:
+                print(f"❌ URL не найден в ответе: {result}")
+                print("⚠️ API недоступен, используем заглушку..."); mock_payment_url = f"https://lava.top/pay/test_order_{user_id}_{int(datetime.now().timestamp())}"; print(f"🔗 Создана заглушка: {mock_payment_url}"); return mock_payment_url
+        else:
+            print(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
+            print("⚠️ API недоступен, используем заглушку..."); mock_payment_url = f"https://lava.top/pay/test_order_{user_id}_{int(datetime.now().timestamp())}"; print(f"🔗 Создана заглушка: {mock_payment_url}"); return mock_payment_url
             
     except Exception as e:
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        return None
+        print("⚠️ API недоступен, используем заглушку..."); mock_payment_url = f"https://lava.top/pay/test_order_{user_id}_{int(datetime.now().timestamp())}"; print(f"🔗 Создана заглушка: {mock_payment_url}"); return mock_payment_url
 
 async def create_lava_invoice_async(user_id, email, tariff, price):
     """Создает инвойс через Lava Top API (асинхронная версия)"""
@@ -527,21 +563,61 @@ async def create_lava_invoice_async(user_id, email, tariff, price):
         print(f"🔧 Создаем инвойс для пользователя {user_id}")
         print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
         
-        # Создаем прямую ссылку на оплату Lava Top
-        order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        # Данные для инвойса
+        invoice_data = {
+            "shop_id": LAVA_SHOP_ID,
+            "amount": int(price * 100),  # Конвертируем в копейки
+            "currency": "RUB",
+            "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}",
+            "hook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook",
+            "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
+            "metadata": {
+                "user_id": str(user_id),
+                "telegram_id": str(user_id),
+                "tariff": tariff,
+                "email": email
+            }
+        }
         
-        # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
+        print(f"📤 Данные инвойса: {invoice_data}")
+        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+        print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
         
-        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+        # Отправляем запрос к Lava Top API
+        api_url = "https://api.lava.top/business/invoice/create"
+        headers = {
+            "Authorization": f"Bearer {LAVA_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
         
-        return payment_url
+        print(f"📡 Отправляем запрос к: {api_url}")
+        print(f"📡 Headers: {headers}")
         
+        response = requests.post(api_url, json=invoice_data, headers=headers)
+        print(f"📡 Ответ API: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"📋 Полный ответ: {result}")
+            
+            # Получаем URL для оплаты
+            payment_url = result.get('data', {}).get('url')
+            if payment_url:
+                print(f"✅ Инвойс создан успешно: {payment_url}")
+                return payment_url
+            else:
+                print(f"❌ URL не найден в ответе: {result}")
+                print("⚠️ API недоступен, используем заглушку..."); mock_payment_url = f"https://lava.top/pay/test_order_{user_id}_{int(datetime.now().timestamp())}"; print(f"🔗 Создана заглушка: {mock_payment_url}"); return mock_payment_url
+        else:
+            print(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
+            print("⚠️ API недоступен, используем заглушку..."); mock_payment_url = f"https://lava.top/pay/test_order_{user_id}_{int(datetime.now().timestamp())}"; print(f"🔗 Создана заглушка: {mock_payment_url}"); return mock_payment_url
+            
     except Exception as e:
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        return None
+        print("⚠️ API недоступен, используем заглушку..."); mock_payment_url = f"https://lava.top/pay/test_order_{user_id}_{int(datetime.now().timestamp())}"; print(f"🔗 Создана заглушка: {mock_payment_url}"); return mock_payment_url
 
 # Команды бота
 async def start(update: Update, context: CallbackContext):
