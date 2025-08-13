@@ -695,35 +695,20 @@ def main() -> None:
     
     print("🔄 Запускаем polling...")
     
-    # Запускаем polling в отдельном потоке с правильным event loop
-    import threading
-    import asyncio
-    
-    def run_polling():
-        try:
-            print("🔄 Запуск polling в потоке...")
-            # Создаем новый event loop для потока
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            
-            # Запускаем polling
-            loop.run_until_complete(application.initialize())
-            loop.run_until_complete(application.start())
-            loop.run_until_complete(application.updater.start_polling(allowed_updates=["message", "callback_query"]))
-            
-            print("✅ Polling запущен успешно")
-            
-            # Запускаем event loop
-            loop.run_forever()
-            
-        except Exception as e:
-            print(f"❌ Ошибка polling: {e}")
-            import traceback
-            print(f"📋 Traceback: {traceback.format_exc()}")
-    
-    polling_thread = threading.Thread(target=run_polling, daemon=True)
-    polling_thread.start()
-    print("✅ Polling запущен в отдельном потоке")
+    # Запускаем polling напрямую (без потоков)
+    try:
+        print("🔄 Запуск polling...")
+        # Запускаем polling в фоновом режиме
+        application.run_polling(
+            allowed_updates=["message", "callback_query"],
+            drop_pending_updates=True,  # Игнорируем старые обновления
+            close_loop=False  # Не закрываем loop
+        )
+        print("✅ Polling запущен успешно")
+    except Exception as e:
+        print(f"❌ Ошибка polling: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
     
     print("🚀 Запуск Flask приложения...")
     
