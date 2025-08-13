@@ -51,6 +51,71 @@ def test_webhook():
         print(f"❌ Ошибка тестового webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Endpoint для автоматической проверки и восстановления webhook
+@app.route('/check-webhook', methods=['GET'])
+def check_webhook():
+    """Автоматически проверяет и восстанавливает webhook"""
+    try:
+        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        response = requests.get(webhook_url)
+        webhook_data = response.json()
+        
+        current_url = webhook_data.get('result', {}).get('url', '')
+        expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        
+        if current_url == expected_url:
+            return jsonify({
+                "status": "ok",
+                "message": "Webhook работает правильно",
+                "current_url": current_url,
+                "needs_fix": False
+            })
+        else:
+            print(f"⚠️ Webhook требует исправления: {current_url} != {expected_url}")
+            
+            # Автоматически исправляем webhook
+            delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+            delete_response = requests.post(delete_url)
+            
+            import time
+            time.sleep(2)
+            
+            set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+            webhook_data_setup = {
+                "url": expected_url,
+                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                "max_connections": 40,
+                "allowed_updates": ["message", "callback_query"]
+            }
+            
+            set_response = requests.post(set_url, json=webhook_data_setup)
+            
+            # Проверяем результат
+            response = requests.get(webhook_url)
+            webhook_data = response.json()
+            final_url = webhook_data.get('result', {}).get('url', '')
+            
+            if final_url == expected_url:
+                return jsonify({
+                    "status": "fixed",
+                    "message": "Webhook автоматически исправлен",
+                    "previous_url": current_url,
+                    "current_url": final_url,
+                    "needs_fix": False
+                })
+            else:
+                return jsonify({
+                    "status": "error",
+                    "message": "Не удалось исправить webhook",
+                    "previous_url": current_url,
+                    "current_url": final_url,
+                    "needs_fix": True
+                })
+                
+    except Exception as e:
+        print(f"❌ Ошибка проверки webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Endpoint для проверки webhook info
 @app.route('/webhook-info', methods=['GET'])
 def webhook_info():
@@ -62,13 +127,53 @@ def webhook_info():
         
         print(f"📋 Webhook info: {webhook_data}")
         
+        current_url = webhook_data.get('result', {}).get('url', '')
+        expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        
+        # Автоматически исправляем webhook, если он неправильный
+        needs_fix = current_url != expected_url
+        auto_fixed = False
+        
+        if needs_fix:
+            print(f"⚠️ Webhook требует исправления: {current_url} != {expected_url}")
+            try:
+                # Удаляем старый webhook
+                delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+                delete_response = requests.post(delete_url)
+                
+                import time
+                time.sleep(2)
+                
+                # Устанавливаем новый webhook
+                set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+                webhook_data_setup = {
+                    "url": expected_url,
+                    "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                    "max_connections": 40,
+                    "allowed_updates": ["message", "callback_query"]
+                }
+                
+                set_response = requests.post(set_url, json=webhook_data_setup)
+                print(f"🔧 Автоматическое исправление webhook: {set_response.status_code}")
+                
+                # Проверяем результат
+                response = requests.get(webhook_url)
+                webhook_data = response.json()
+                current_url = webhook_data.get('result', {}).get('url', '')
+                auto_fixed = current_url == expected_url
+                
+            except Exception as e:
+                print(f"❌ Ошибка автоматического исправления webhook: {e}")
+        
         return jsonify({
             "status": "ok",
             "webhook_info": webhook_data,
             "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-            "expected_url": "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook",
-            "current_url": webhook_data.get('result', {}).get('url', ''),
-            "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0)
+            "expected_url": expected_url,
+            "current_url": current_url,
+            "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0),
+            "needs_fix": needs_fix,
+            "auto_fixed": auto_fixed
         })
     except Exception as e:
         print(f"❌ Ошибка получения webhook info: {e}")
@@ -127,6 +232,42 @@ def telegram_webhook():
         # Обрабатываем GET запросы (проверка доступности)
         if request.method == 'GET':
             print("✅ GET запрос - проверка доступности webhook")
+            
+            # Проверяем и исправляем webhook при GET запросе
+            try:
+                webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+                response = requests.get(webhook_url)
+                webhook_data = response.json()
+                
+                current_url = webhook_data.get('result', {}).get('url', '')
+                expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+                
+                if current_url != expected_url:
+                    print(f"⚠️ Webhook неправильный: {current_url} != {expected_url}")
+                    print("🔧 Автоматически исправляем webhook...")
+                    
+                    # Удаляем старый webhook
+                    delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+                    requests.post(delete_url)
+                    
+                    import time
+                    time.sleep(2)
+                    
+                    # Устанавливаем новый webhook
+                    set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+                    webhook_data_setup = {
+                        "url": expected_url,
+                        "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                        "max_connections": 40,
+                        "allowed_updates": ["message", "callback_query"]
+                    }
+                    
+                    set_response = requests.post(set_url, json=webhook_data_setup)
+                    print(f"🔧 Webhook исправлен: {set_response.status_code}")
+                    
+            except Exception as e:
+                print(f"⚠️ Ошибка проверки webhook: {e}")
+            
             return jsonify({
                 "status": "ok", 
                 "message": "Telegram webhook endpoint доступен",
