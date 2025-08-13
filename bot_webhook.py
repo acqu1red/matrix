@@ -1013,7 +1013,7 @@ def main() -> None:
         print(f"⚠️ Ошибка настройки Mini Apps: {e}")
     
     # Настраиваем webhook URL для Railway
-    webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
+    webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app"
     if webhook_url:
         # Убеждаемся, что URL начинается с https://
         if not webhook_url.startswith('http'):
