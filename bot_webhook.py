@@ -209,17 +209,27 @@ def telegram_webhook():
     
     # POST - обработка Telegram updates
     try:
+        print(f"📱 Получен POST запрос на /webhook")
+        print(f"📱 Headers: {dict(request.headers)}")
+        print(f"📱 Content-Type: {request.content_type}")
+        
         update_data = request.get_json(force=True, silent=False)
         print(f"📱 Получен Telegram update: {update_data}")
         
         # Передаем update в Telegram application
         application = app.config.get("telegram_application")
         if application:
+            print(f"📱 Application найден, обрабатываем update...")
             application.create_task(application.process_update(Update.de_json(update_data, application.bot)))
+            print(f"📱 Update отправлен в обработку")
+        else:
+            print(f"❌ Application не найден в app.config")
         
         return "ok"
     except Exception as e:
         print(f"❌ Ошибка обработки Telegram update: {e}")
+        import traceback
+        print(f"❌ Traceback: {traceback.format_exc()}")
         return "error", 500
 
 @app.route("/api/create-payment", methods=["POST"])
@@ -402,6 +412,21 @@ def reset_webhook():
     except Exception as e:
         print(f"❌ Ошибка сброса webhook: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/debug")
+def debug_info():
+    """Отладочная информация о переменных окружения"""
+    debug_data = {
+        "TELEGRAM_BOT_TOKEN": TELEGRAM_BOT_TOKEN[:20] + "..." if TELEGRAM_BOT_TOKEN else "NOT SET",
+        "LAVA_API_KEY": LAVA_API_KEY[:20] + "..." if LAVA_API_KEY else "NOT SET",
+        "LAVA_SHOP_ID": LAVA_SHOP_ID,
+        "PUBLIC_BASE_URL": PUBLIC_BASE_URL,
+        "HOOK_URL": HOOK_URL,
+        "ADMIN_IDS": ADMIN_IDS,
+        "TARGET_CHANNEL_ID": TARGET_CHANNEL_ID,
+        "STATIC_INVITE_LINK": STATIC_INVITE_LINK or "NOT SET"
+    }
+    return jsonify(debug_data)
 
 # Telegram bot handlers
 async def start_command(update: Update, context):
