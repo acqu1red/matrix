@@ -796,21 +796,37 @@ def main() -> None:
                 get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
                 webhook_info = requests.get(get_webhook_url)
                 print(f"📋 Информация о webhook: {webhook_info.json()}")
+                
+                # Проверяем, что URL правильный
+                webhook_result = webhook_info.json()
+                if webhook_result.get('ok') and webhook_result.get('result', {}).get('url'):
+                    actual_url = webhook_result['result']['url']
+                    print(f"🔍 Фактический webhook URL: {actual_url}")
+                    if actual_url != f"{webhook_url}/webhook":
+                        print("⚠️ ВНИМАНИЕ: URL webhook не совпадает с ожидаемым!")
             else:
                 print(f"❌ Ошибка установки webhook: {response.text}")
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
     else:
         print("⚠️ RAILWAY_STATIC_URL не установлен")
-        
-        try:
-            response = requests.post(webhook_setup_url, json=webhook_data)
-            if response.status_code == 200:
-                print("✅ Webhook успешно установлен")
-            else:
-                print(f"❌ Ошибка установки webhook: {response.text}")
-        except Exception as e:
-            print(f"❌ Ошибка установки webhook: {e}")
+        print("🔧 Попробуем использовать переменную WEBHOOK_URL")
+        webhook_url = os.getenv('WEBHOOK_URL', '')
+        if webhook_url:
+            print(f"🌐 Используем WEBHOOK_URL: {webhook_url}")
+            webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+            webhook_data = {
+                "url": webhook_url,
+                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
+            }
+            
+            try:
+                response = requests.post(webhook_setup_url, json=webhook_data)
+                print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
+            except Exception as e:
+                print(f"❌ Ошибка установки webhook: {e}")
+        else:
+            print("❌ Ни RAILWAY_STATIC_URL, ни WEBHOOK_URL не установлены")
     
     print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
