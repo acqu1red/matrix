@@ -51,6 +51,31 @@ def test_webhook():
         print(f"❌ Ошибка тестового webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Тестовый endpoint для проверки получения данных
+@app.route('/test-receive', methods=['POST'])
+def test_receive():
+    """Тестирует получение данных"""
+    try:
+        print("=" * 50)
+        print("🧪 ТЕСТОВЫЙ ENDPOINT ВЫЗВАН!")
+        print("=" * 50)
+        print(f"📋 Method: {request.method}")
+        print(f"📋 Headers: {dict(request.headers)}")
+        print(f"📋 Raw data: {request.get_data()}")
+        
+        data = request.get_json()
+        print(f"📋 JSON data: {data}")
+        
+        return jsonify({
+            "status": "ok",
+            "message": "Test endpoint работает!",
+            "received_data": data,
+            "headers": dict(request.headers)
+        })
+    except Exception as e:
+        print(f"❌ Ошибка тестового endpoint: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Endpoint для автоматической проверки и восстановления webhook
 @app.route('/check-webhook', methods=['GET'])
 def check_webhook():
@@ -278,14 +303,18 @@ def telegram_webhook():
         # Получаем данные от Telegram (только для POST)
         data = request.get_json()
         print(f"📋 Данные от Telegram: {data}")
+        print(f"📋 Raw data: {request.get_data()}")
+        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
         
         # Проверяем, что это действительно от Telegram
         if not data:
             print("❌ Данные пустые или не JSON")
+            print(f"📋 Headers: {dict(request.headers)}")
             return jsonify({"status": "error", "message": "No data"}), 400
         
         if 'update_id' not in data:
             print("❌ Это не Telegram webhook (нет update_id)")
+            print(f"📋 Ключи в данных: {list(data.keys()) if data else 'Нет данных'}")
             return jsonify({"status": "error", "message": "Not a Telegram webhook"}), 400
         
         # Передаем данные в обработчик бота
