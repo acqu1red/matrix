@@ -55,12 +55,10 @@ def _lava_signature(body: str, secret: str) -> str:
     return hmac.new(secret.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()
 
 def _lava_headers(body: str) -> dict:
-    # Встречаются 2 варианта авторизации у платёжек: Bearer и/или HMAC-подпись тела
-    # Оставляем оба — если твоя интеграция не требует подписи, сервер просто проигнорирует.
+    # Используем только Bearer авторизацию, без подписи
     return {
         "Authorization": f"Bearer {LAVA_API_KEY}",
         "Content-Type": "application/json",
-        "X-Signature": _lava_signature(body, LAVA_API_KEY),
     }
 
 def lava_post(path: str, payload: dict) -> dict:
@@ -470,16 +468,8 @@ def lava_webhook():
         status = (payload.get("status") or "").lower()
 
         # 2) (опциональная) проверка подписи входящего вебхука:
-        try:
-            # Если LAVA присылает 'X-Signature' как HMAC(body, secret) — проверим:
-            given_sig = request.headers.get("X-Signature")
-            if given_sig:
-                expected = _lava_signature(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), LAVA_API_KEY)
-                if not hmac.compare_digest(given_sig, expected):
-                    print("[lava-webhook] signature mismatch")
-                    # не отбрасываем, но отметим в логах
-        except Exception as _:
-            pass
+        # Пока отключаем проверку подписи, так как она не требуется
+        print("[lava-webhook] signature check disabled")
 
         # 3) Подтверждаем статус по API (лучше, чем верить вебхуку на слово)
         try:
