@@ -159,11 +159,7 @@ def telegram_webhook():
                 asyncio.set_event_loop(loop)
                 try:
                     print("🔄 Запускаем process_update...")
-                    # Инициализируем приложение если нужно
-                    if not hasattr(app.telegram_app, '_initialized') or not app.telegram_app._initialized:
-                        print("🔧 Инициализируем приложение...")
-                        loop.run_until_complete(app.telegram_app.initialize())
-                    
+                    # Приложение уже инициализировано в main()
                     loop.run_until_complete(app.telegram_app.process_update(update))
                     print("✅ Данные обработаны асинхронно")
                 except Exception as e:
@@ -518,80 +514,27 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     
     print(f"💳 Пользователь {user.id} нажал кнопку оплаты")
     
-    # Сначала показываем сообщение о создании ссылки
-    await query.edit_message_text(
-        "🔄 <b>Создание платежной ссылки...</b>\n\n"
-        "⏳ Пожалуйста, подождите, мы создаем для вас уникальную ссылку на оплату...",
-        parse_mode='HTML'
-    )
-    
     # Создаем инвойс через Lava Top API
     payment_url = create_lava_invoice(user.id, "user@example.com", "1_month", 50)
     
     if payment_url:
-        # Создаем клавиатуру с двумя вариантами
-        keyboard = [
-            [InlineKeyboardButton("🔗 Открыть ссылку", url=payment_url)],
-            [InlineKeyboardButton("💳 Оплатить", callback_data=f"pay_{user.id}")],
-            [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
-        ]
+        # Отправляем сообщение с кнопкой оплаты
+        keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(
             f"💳 <b>Оплата подписки</b>\n\n"
-            f"✅ Платежная ссылка создана успешно!\n"
-            f"💰 Сумма: 50₽\n"
-            f"💳 Тариф: 1 месяц\n\n"
-            f"<b>Варианты оплаты:</b>\n"
-            f"• 🔗 <b>Открыть ссылку</b> - перейти на страницу оплаты\n"
-            f"• 💳 <b>Оплатить</b> - альтернативный способ\n\n"
-            f"Выберите удобный для вас способ:",
-            parse_mode='HTML',
-            reply_markup=reply_markup
-        )
-        print("✅ Сообщение с кнопками оплаты отправлено")
-    else:
-        await query.edit_message_text(
-            "❌ <b>Ошибка создания платежа</b>\n\n"
-            "Произошла ошибка при создании платежной ссылки.\n"
-            "Попробуйте еще раз или обратитесь в поддержку.",
-            parse_mode='HTML'
-        )
-
-async def handle_alternative_payment(update: Update, context: CallbackContext, user_id: str):
-    """Обрабатывает альтернативную кнопку оплаты"""
-    query = update.callback_query
-    user = query.from_user
-    
-    print(f"💳 Пользователь {user.id} выбрал альтернативный способ оплаты")
-    
-    # Создаем новую ссылку на оплату
-    payment_url = create_lava_invoice(user.id, "user@example.com", "1_month", 50)
-    
-    if payment_url:
-        # Отправляем сообщение с прямой ссылкой
-        keyboard = [
-            [InlineKeyboardButton("🔗 Перейти к оплате", url=payment_url)],
-            [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await query.edit_message_text(
-            f"💳 <b>Альтернативная оплата</b>\n\n"
-            f"✅ Создана новая платежная ссылка!\n"
+            f"✅ Платежная ссылка создана!\n"
             f"💰 Сумма: 50₽\n"
             f"💳 Тариф: 1 месяц\n\n"
             f"Нажмите кнопку ниже для перехода к оплате:",
             parse_mode='HTML',
             reply_markup=reply_markup
         )
-        print("✅ Альтернативное сообщение с кнопкой оплаты отправлено")
+        print("✅ Сообщение с кнопкой оплаты отправлено")
     else:
         await query.edit_message_text(
-            "❌ <b>Ошибка создания платежа</b>\n\n"
-            "Не удалось создать платежную ссылку.\n"
-            "Попробуйте еще раз или обратитесь в поддержку.",
-            parse_mode='HTML'
+            "❌ Произошла ошибка при создании платежа. Попробуйте еще раз или обратитесь в поддержку."
         )
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
@@ -773,16 +716,10 @@ async def button(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     
-    print(f"🔘 Нажата кнопка: {query.data}")
-    
     if query.data == "payment_menu":
         await payment_menu(update, context)
     elif query.data == "lava_payment":
         await handle_lava_payment(update, context)
-    elif query.data.startswith("pay_"):
-        # Обработка альтернативной кнопки оплаты
-        user_id = query.data.split("_")[1]
-        await handle_alternative_payment(update, context, user_id)
     elif query.data == "back_to_start":
         await start(update, context)
 
@@ -796,6 +733,13 @@ def main() -> None:
     
     # Создаем приложение
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    
+    # Инициализируем приложение
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(application.initialize())
+    
     app.telegram_app = application # Привязываем приложение к Flask
     
     print("📝 Регистрация обработчиков...")
