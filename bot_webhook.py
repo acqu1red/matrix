@@ -756,7 +756,7 @@ async def payment_menu(update: Update, context: CallbackContext):
     """
     
     keyboard = [
-        [InlineKeyboardButton("💳 Оплатить 50₽", callback_data="lava_payment")],
+        [InlineKeyboardButton("💳 Оплатить через Mini Apps", web_app={"url": "https://acqu1red.github.io/formulaprivate/"})],
         [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -766,35 +766,7 @@ async def payment_menu(update: Update, context: CallbackContext):
     else:
         await update.message.reply_text(text, parse_mode='HTML', reply_markup=reply_markup)
 
-async def handle_lava_payment(update: Update, context: CallbackContext):
-    """Обрабатывает нажатие кнопки оплаты"""
-    query = update.callback_query
-    user = query.from_user
-    
-    print(f"💳 Пользователь {user.id} нажал кнопку оплаты")
-    
-    # Создаем инвойс через Lava Top API
-    payment_url = await create_lava_invoice_async(user.id, "user@example.com", "1_month", 50)
-    
-    if payment_url:
-        # Отправляем сообщение с кнопкой оплаты
-        keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await query.edit_message_text(
-            f"💳 <b>Оплата подписки</b>\n\n"
-            f"✅ Платежная ссылка создана!\n"
-            f"💰 Сумма: 50₽\n"
-            f"💳 Тариф: 1 месяц\n\n"
-            f"Нажмите кнопку ниже для перехода к оплате:",
-            parse_mode='HTML',
-            reply_markup=reply_markup
-        )
-        print("✅ Сообщение с кнопкой оплаты отправлено")
-    else:
-        await query.edit_message_text(
-            "❌ Произошла ошибка при создании платежа. Попробуйте еще раз или обратитесь в поддержку."
-        )
+
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps"""
@@ -808,10 +780,12 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
     print(f"👤 Пользователь: {user.id} (@{user.username})")
     print(f"📱 Тип сообщения: {type(message)}")
     print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}")
+    print(f"📱 Все атрибуты сообщения: {dir(message)}")
     
     if hasattr(message, 'web_app_data') and message.web_app_data:
         print(f"📱 web_app_data объект: {message.web_app_data}")
         print(f"📱 web_app_data.data: {message.web_app_data.data}")
+        print(f"📱 web_app_data.data тип: {type(message.web_app_data.data)}")
         
         try:
             # Парсим данные от Mini Apps
@@ -824,12 +798,14 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
                 decoded_data = base64.b64decode(web_app_data).decode('utf-8')
                 print(f"📱 Декодированные данные из base64: {decoded_data}")
                 payment_data = json.loads(decoded_data)
-            except:
+            except Exception as decode_error:
                 # Если не base64, пробуем парсить как обычный JSON
+                print(f"📱 Ошибка декодирования base64: {decode_error}")
                 print(f"📱 Парсим как обычный JSON: {web_app_data}")
                 payment_data = json.loads(web_app_data)
             
             print(f"📋 Парсированные данные: {payment_data}")
+            print(f"📋 Тип данных: {type(payment_data)}")
             
             # Обрабатываем данные
             await process_payment_data(update, context, payment_data)
@@ -841,6 +817,7 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
             await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
     else:
         print("❌ web_app_data не найден или пустой")
+        print(f"📱 Содержимое сообщения: {message}")
         await message.reply_text("❌ Данные Mini Apps не получены")
 
 async def handle_all_messages(update: Update, context: CallbackContext):
@@ -1020,8 +997,6 @@ async def button(update: Update, context: CallbackContext):
     
     if query.data == "payment_menu":
         await payment_menu(update, context)
-    elif query.data == "lava_payment":
-        await handle_lava_payment(update, context)
     elif query.data == "more_info":
         await more_info(update, context)
     elif query.data == "back_to_start":
