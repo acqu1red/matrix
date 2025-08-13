@@ -114,7 +114,7 @@
 
         .payment-methods {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -303,13 +303,9 @@
             <div class="form-group">
                 <label>🏦 Способ оплаты</label>
                 <div class="payment-methods">
-                    <div class="payment-method" data-method="card" data-bank="tinkoff">
+                    <div class="payment-method selected" data-method="card" data-bank="tinkoff">
                         <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzAwMCIvPgo8cGF0aCBkPSJNOCA4SDI0VjI0SDhWOFoiIGZpbGw9IiNmZmYiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMmgxMnY4SDJWMloiIGZpbGw9IiMwMDAiLz4KPHBhdGggZD0iTTQgNGg4djRINFY0WiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4KPC9zdmc+" alt="Card">
                         <div>Банковская карта</div>
-                    </div>
-                    <div class="payment-method" data-method="sbp" data-bank="sbp">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzAwMCIvPgo8cGF0aCBkPSJNOCA4SDI0VjI0SDhWOFoiIGZpbGw9IiNmZmYiLz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMmgxMnY4SDJWMloiIGZpbGw9IiMwMDAiLz4KPHBhdGggZD0iTTQgNGg4djRINFY0WiIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4KPC9zdmc+" alt="SBP">
-                        <div>СБП</div>
                     </div>
                 </div>
             </div>
@@ -351,8 +347,8 @@
             email: '',
             tariff: '',
             price: 0,
-            paymentMethod: '',
-            bank: '',
+            paymentMethod: 'card',
+            bank: 'tinkoff',
             userId: tg.initDataUnsafe?.user?.id || 'unknown'
         };
 
@@ -485,15 +481,27 @@
 
                 console.log('📋 Финальные данные:', finalData);
 
-                // Отправляем через tg.sendData
-                tg.sendData(JSON.stringify(finalData));
-
-                showSuccess('Данные отправлены! Ожидайте ссылку на оплату.');
-                
-                // Закрываем Mini Apps через 2 секунды
-                setTimeout(() => {
-                    tg.close();
-                }, 2000);
+                // Проверяем, что tg.sendData доступен
+                if (typeof tg.sendData === 'function') {
+                    console.log('✅ tg.sendData доступен, отправляем данные...');
+                    
+                    // Отправляем через tg.sendData
+                    tg.sendData(JSON.stringify(finalData));
+                    
+                    console.log('✅ Данные отправлены через tg.sendData');
+                    showSuccess('Данные отправлены! Ожидайте ссылку на оплату.');
+                    
+                    // Закрываем Mini Apps через 3 секунды
+                    setTimeout(() => {
+                        console.log('🔒 Закрываем Mini Apps...');
+                        tg.close();
+                    }, 3000);
+                    
+                } else {
+                    console.error('❌ tg.sendData не доступен!');
+                    showError('Ошибка: tg.sendData не доступен');
+                    hideLoading();
+                }
 
             } catch (error) {
                 console.error('❌ Ошибка отправки данных:', error);
@@ -504,6 +512,11 @@
 
         // Инициализация
         updateFormData();
+        
+        // Автоматически выбираем первый тариф
+        if (tariffOptions.length > 0) {
+            tariffOptions[0].click();
+        }
     </script>
 </body>
 </html>
