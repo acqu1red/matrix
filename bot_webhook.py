@@ -72,6 +72,10 @@ def reset_webhook():
         if not webhook_url:
             webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app"
         
+        # Убеждаемся, что URL начинается с https://
+        if webhook_url and not webhook_url.startswith('http'):
+            webhook_url = f"https://{webhook_url}"
+        
         target_url = f"{webhook_url}/webhook"
         
         # Проверяем текущий webhook
@@ -1045,6 +1049,10 @@ def main() -> None:
     if not webhook_url:
         # Используем фиксированный URL для Railway
         webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app"
+    
+    # Убеждаемся, что URL начинается с https://
+    if webhook_url and not webhook_url.startswith('http'):
+        webhook_url = f"https://{webhook_url}"
     
     print(f"🌐 Настройка webhook: {webhook_url}/webhook")
     
