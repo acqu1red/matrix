@@ -67,7 +67,7 @@ def webhook_info():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Telegram
-@app.route('/webhook', methods=['POST'])
+@app.route('/webhook', methods=['GET', 'POST'])
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
     try:
@@ -80,7 +80,17 @@ def telegram_webhook():
         print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
         print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
         
-        # Получаем данные от Telegram
+        # Обрабатываем GET запросы (проверка доступности)
+        if request.method == 'GET':
+            print("✅ GET запрос - проверка доступности webhook")
+            return jsonify({
+                "status": "ok", 
+                "message": "Telegram webhook endpoint доступен",
+                "method": "GET",
+                "timestamp": datetime.now().isoformat()
+            })
+        
+        # Получаем данные от Telegram (только для POST)
         data = request.get_json()
         print(f"📋 Данные от Telegram: {data}")
         
