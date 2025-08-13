@@ -95,45 +95,20 @@ def lava_get(path: str, params: dict) -> dict:
 
 def create_lava_invoice_api(user_id: int, chat_id: int, email: str, tariff: str, price_rub: int) -> str:
     """
-    Создаёт инвойс через LAVA Business API и возвращает payUrl.
-    orderId прошиваем user_id и chat_id, чтобы не терять связь.
+    Создаёт прямую ссылку на оплату Lava Top (возвращаемся к ручным ссылкам)
     """
-    if not (LAVA_API_KEY and LAVA_SHOP_ID):
-        raise RuntimeError("LAVA_API_KEY/LAVA_SHOP_ID are not set")
+    if not LAVA_SHOP_ID:
+        raise RuntimeError("LAVA_SHOP_ID is not set")
 
     # Уникальный orderId: содержит и user_id, и chat_id для обратной связи
     ts = int(time.time())
     order_id = f"order_{user_id}_{chat_id}_{ts}"
 
-    # Валюта и сумма — подстрой под свой кейс
-    payload = {
-        "shopId": str(LAVA_SHOP_ID),
-        "orderId": order_id,
-        "sum": int(price_rub),         # целое число в копейках/рублях — зависит от API; чаще рубли целым
-        "currency": "RUB",
-        "comment": f"Tariff: {tariff}",
-        "hookUrl": HOOK_URL,           # куда придёт вебхук об оплате
-        "successUrl": LAVA_SUCCESS_URL,
-        "failUrl": LAVA_FAIL_URL,
-        # Любые твои данные, по которым ты найдёшь пользователя:
-        "metadata": {
-            "user_id": str(user_id),
-            "chat_id": str(chat_id),
-            "email": email,
-            "tariff": tariff
-        }
-    }
-
-    print(f"🔧 Создаем инвойс через API: {payload}")
-    data = lava_post("/invoice/create", payload)
-
-    # В ответе у LAVA обычно есть ссылка оплаты: payUrl / url — поддержим оба
-    pay_url = data.get("payUrl") or data.get("url") or (data.get("data", {}) or {}).get("payUrl")
-    if not pay_url:
-        raise RuntimeError(f"Cannot find payUrl in response: {data}")
-
-    print(f"✅ Создан инвойс: {pay_url}")
-    return pay_url
+    # Создаем прямую ссылку на оплату
+    payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB&amount={int(price_rub * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'chat_id': str(chat_id), 'email': email, 'tariff': tariff})}"
+    
+    print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+    return payment_url
 
 def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
     """Создает подписку в базе данных"""
