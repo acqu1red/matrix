@@ -107,6 +107,66 @@ def telegram_webhook():
         logging.error(f"Ошибка обработки webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# API endpoint для создания платежа
+@app.route('/api/create-payment', methods=['POST'])
+def create_payment_api():
+    """API endpoint для создания платежа от Mini Apps"""
+    try:
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН API ЗАПРОС НА СОЗДАНИЕ ПЛАТЕЖА!")
+        print("=" * 50)
+        
+        data = request.get_json()
+        print(f"📋 Полученные данные: {data}")
+        
+        if not data:
+            return jsonify({"status": "error", "message": "No data provided"}), 400
+        
+        # Извлекаем данные
+        user_id = data.get('user_id') or data.get('userId')
+        email = data.get('email')
+        tariff = data.get('tariff')
+        price = data.get('price')
+        
+        if not all([user_id, email, tariff, price]):
+            return jsonify({
+                "status": "error", 
+                "message": "Missing required fields",
+                "received_data": data
+            }), 400
+        
+        print(f"📋 Создаем платеж: user_id={user_id}, email={email}, tariff={tariff}, price={price}")
+        
+        # Создаем инвойс через Lava Top API
+        payment_url = create_lava_invoice(user_id, email, tariff, price)
+        
+        if payment_url:
+            print(f"✅ Платеж создан успешно: {payment_url}")
+            return jsonify({
+                "status": "success",
+                "payment_url": payment_url,
+                "message": "Payment created successfully",
+                "data": {
+                    "user_id": user_id,
+                    "email": email,
+                    "tariff": tariff,
+                    "price": price,
+                    "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}"
+                }
+            })
+        else:
+            print("❌ Не удалось создать платеж")
+            return jsonify({
+                "status": "error",
+                "message": "Failed to create payment"
+            }), 500
+            
+    except Exception as e:
+        print(f"❌ Ошибка создания платежа: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Webhook endpoint для Lava Top
 @app.route('/lava-webhook', methods=['GET', 'POST'])
 def lava_webhook():
