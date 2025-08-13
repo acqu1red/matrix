@@ -2,8 +2,8 @@
 builder = "nixpacks"
 
 [deploy]
-# Main webhook bot start command
-startCommand = "python bot_webhook.py"
+# Main polling bot start command
+startCommand = "python bot_polling.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"

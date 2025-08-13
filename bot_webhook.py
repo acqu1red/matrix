@@ -923,7 +923,7 @@ async def button(update: Update, context: CallbackContext):
 
 def main() -> None:
     """Основная функция запуска бота"""
-    print("🚀 Запуск бота с webhook...")
+    print("🚀 Запуск бота с POLLING...")
     print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
     print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
     print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
