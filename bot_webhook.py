@@ -881,11 +881,15 @@ async def handle_all_messages(update: Update, context: CallbackContext):
 
 async def process_payment_data(update: Update, context: CallbackContext, payment_data: dict):
     """Обрабатывает данные платежа от Mini Apps"""
+    print("=" * 50, flush=True)
+    print("🚀 ВЫЗВАНА ФУНКЦИЯ process_payment_data!", flush=True)
+    print("=" * 50, flush=True)
+    
     user = update.effective_user
     message = update.message
     
     try:
-        print(f"📱 Обрабатываем данные платежа: {payment_data}")
+        print(f"📱 Обрабатываем данные платежа: {payment_data}", flush=True)
         
         # Проверяем тип данных (пошаговая отправка)
         step = payment_data.get('step')
@@ -974,9 +978,10 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
             return
             
     except Exception as e:
-        print(f"❌ Ошибка обработки данных платежа: {e}")
+        print(f"❌ Ошибка обработки данных платежа: {e}", flush=True)
         import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
+        print(f"📋 Traceback: {traceback.format_exc()}", flush=True)
+        print(f"📋 Данные, которые вызвали ошибку: {payment_data}", flush=True)
         await message.reply_text("❌ Произошла ошибка при обработке данных")
 
 async def button(update: Update, context: CallbackContext):
