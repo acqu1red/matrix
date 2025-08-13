@@ -466,8 +466,6 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     print(f"📨 Получено сообщение от пользователя {user.id}")
     print(f"📋 Тип сообщения: {type(message)}")
     print(f"📋 Атрибуты сообщения: {dir(message)}")
-    print(f"📋 Текст сообщения: {message.text if hasattr(message, 'text') else 'НЕТ ТЕКСТА'}")
-    print(f"📋 web_app_data: {message.web_app_data if hasattr(message, 'web_app_data') else 'НЕТ'}")
     
     # Проверяем, является ли это данными от Mini Apps
     if hasattr(message, 'web_app_data'):
@@ -651,13 +649,8 @@ async def handle_payment_selection(update: Update, context: CallbackContext, pay
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps и создает инвойс через Lava Top API"""
-    print("🎯 ФУНКЦИЯ handle_web_app_data ВЫЗВАНА!")
     user = update.effective_user
     message = update.message
-    
-    print(f"👤 Пользователь: {user.id} ({user.first_name})")
-    print(f"📨 Сообщение: {message}")
-    print(f"📋 web_app_data: {message.web_app_data if hasattr(message, 'web_app_data') else 'НЕТ'}")
     
     try:
         # Парсим данные от Mini Apps
@@ -1066,9 +1059,8 @@ def main() -> None:
     
     # Обработчик для web_app_data должен быть первым
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
-    
-    print("🔍 Обработчики web_app_data и сообщений зарегистрированы")
     
     print("✅ Обработчики зарегистрированы")
     
