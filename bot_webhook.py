@@ -137,6 +137,19 @@ def telegram_webhook():
         # Получаем данные от Telegram (только для POST)
         data = request.get_json()
         print(f"📋 Данные от Telegram: {data}")
+        print(f"📋 Тип данных: {type(data)}")
+        print(f"📋 Ключи в данных: {list(data.keys()) if data else 'НЕТ ДАННЫХ'}")
+        
+        # Дополнительная диагностика
+        if data and 'message' in data:
+            message_data = data['message']
+            print(f"📋 Ключи в message: {list(message_data.keys())}")
+            if 'web_app_data' in message_data:
+                print(f"📋 web_app_data найден: {message_data['web_app_data']}")
+            else:
+                print("❌ web_app_data НЕ найден в message")
+        else:
+            print("❌ message НЕ найден в данных")
         
         # Проверяем, что это действительно от Telegram
         if not data:
