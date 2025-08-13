@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Mini Apps</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Тест Mini Apps</h2>
+        
+        <div>
+            <button onclick="testSendData()">Отправить данные</button>
+            <button onclick="testClose()">Закрыть Mini Apps</button>
+            <button onclick="clearLog()">Очистить лог</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        let tg;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function testSendData() {
+            try {
+                log('🔍 Проверяем tg объект...');
+                log(`tg доступен: ${typeof tg !== 'undefined'}`);
+                
+                if (typeof tg === 'undefined') {
+                    log('❌ tg объект не найден!');
+                    return;
+                }
+                
+                log(`tg.initData: ${tg.initData}`);
+                log(`tg.initDataUnsafe: ${JSON.stringify(tg.initDataUnsafe)}`);
+                log(`tg.sendData доступен: ${typeof tg.sendData === 'function'}`);
+                
+                if (typeof tg.sendData !== 'function') {
+                    log('❌ tg.sendData не доступен!');
+                    return;
+                }
+                
+                const testData = {
+                    step: 'final_data',
+                    email: 'test@example.com',
+                    tariff: '1_month',
+                    price: 50.0,
+                    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+                };
+                
+                log(`📤 Отправляем данные: ${JSON.stringify(testData)}`);
+                
+                tg.sendData(JSON.stringify(testData));
+                log('✅ Данные отправлены через tg.sendData');
+                
+            } catch (error) {
+                log(`❌ Ошибка: ${error.message}`);
+            }
+        }
+        
+        function testClose() {
+            try {
+                if (typeof tg !== 'undefined' && typeof tg.close === 'function') {
+                    log('🔒 Закрываем Mini Apps...');
+                    tg.close();
+                } else {
+                    log('❌ tg.close не доступен');
+                }
+            } catch (error) {
+                log(`❌ Ошибка закрытия: ${error.message}`);
+            }
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Страница загружена');
+            
+            try {
+                tg = window.Telegram.WebApp;
+                log('✅ Telegram WebApp инициализирован');
+                log(`Версия: ${tg.version}`);
+                log(`Платформа: ${tg.platform}`);
+                log(`Цветовая схема: ${tg.colorScheme}`);
+                
+                // Настраиваем MainButton
+                if (tg.MainButton) {
+                    tg.MainButton.setText('Тест кнопка');
+                    tg.MainButton.onClick(() => {
+                        log('🔘 MainButton нажата');
+                        testSendData();
+                    });
+                    tg.MainButton.show();
+                    log('✅ MainButton показана');
+                } else {
+                    log('❌ MainButton не доступна');
+                }
+                
+            } catch (error) {
+                log(`❌ Ошибка инициализации: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

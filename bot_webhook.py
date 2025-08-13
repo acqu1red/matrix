@@ -728,10 +728,17 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
     print(f"👤 Пользователь: {user.id} (@{user.username})")
     print(f"📱 Тип сообщения: {type(message)}")
     print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}")
+    print(f"📱 Все атрибуты сообщения: {dir(message)}")
     
     if hasattr(message, 'web_app_data') and message.web_app_data:
         print(f"📱 web_app_data объект: {message.web_app_data}")
         print(f"📱 web_app_data.data: {message.web_app_data.data}")
+        print(f"📱 web_app_data.button_text: {message.web_app_data.button_text}")
+    else:
+        print("❌ web_app_data не найден или пустой")
+        print(f"📱 Содержимое сообщения: {message.text if hasattr(message, 'text') else 'Нет текста'}")
+        print(f"📱 Все атрибуты: {[attr for attr in dir(message) if not attr.startswith('_')]}")
+        return
     
     try:
         # Парсим данные от Mini Apps
@@ -751,13 +758,6 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
         print(f"📋 Traceback: {traceback.format_exc()}")
         try:
             await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
-        except Exception as send_error:
-            print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
-            print("📋 Это может быть тестовый запрос с несуществующим chat_id")
-    else:
-        print("❌ web_app_data не найден или пустой")
-        try:
-            await message.reply_text("❌ Данные Mini Apps не получены")
         except Exception as send_error:
             print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
             print("📋 Это может быть тестовый запрос с несуществующим chat_id")
@@ -804,7 +804,10 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
     message = update.message
     
     try:
-        print(f"📱 Обрабатываем данные платежа: {payment_data}")
+        print("=" * 60)
+        print("📱 ОБРАБОТКА ДАННЫХ ПЛАТЕЖА!")
+        print("=" * 60)
+        print(f"📱 Полученные данные: {json.dumps(payment_data, indent=2)}")
         
         # Проверяем тип данных (пошаговая отправка)
         step = payment_data.get('step')
