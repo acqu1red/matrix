@@ -315,18 +315,16 @@ def create_payment_api():
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
-        print("=" * 60)
-        print("🔥 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
-        print("=" * 60)
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
+        print("=" * 50)
         print(f"📋 Method: {request.method}")
         print(f"📋 URL: {request.url}")
-        print(f"📋 Remote Address: {request.remote_addr}")
-        print(f"📋 User Agent: {request.headers.get('User-Agent', 'Unknown')}")
-        print(f"📋 Content-Type: {request.headers.get('Content-Type', 'Unknown')}")
+        print(f"📋 Headers: {dict(request.headers)}")
         
         # Проверка API key аутентификации
         api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
-        print(f"🔍 API Key: {api_key_header[:20] + '...' if api_key_header and len(api_key_header) > 20 else api_key_header}")
+        print(f"🔍 API Key: {api_key_header}")
         
         if api_key_header:
             if api_key_header.startswith('Bearer '):
@@ -335,8 +333,6 @@ def lava_webhook():
             expected_api_key = 'LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z'
             if api_key_header != expected_api_key:
                 print(f"❌ Неверный API key")
-                print(f"📋 Ожидаемый: {expected_api_key}")
-                print(f"📋 Полученный: {api_key_header}")
                 return jsonify({"status": "error", "message": "Unauthorized"}), 401
             else:
                 print("✅ API key верный")
@@ -347,24 +343,15 @@ def lava_webhook():
         if request.method == 'GET':
             print("🔍 GET запрос - получаем данные из query параметров")
             data = request.args.to_dict()
-            print(f"📋 Query параметры: {data}")
         elif request.method == 'POST':
             print("🔍 POST запрос - получаем данные из body")
-            try:
-                data = request.get_json()
-                if data:
-                    print("📋 JSON данные получены")
-                else:
-                    print("📋 JSON данные пустые, пробуем form данные")
-                    data = request.form.to_dict()
-            except Exception as e:
-                print(f"📋 Ошибка парсинга JSON: {e}")
+            data = request.get_json()
+            if not data:
                 data = request.form.to_dict()
         else:
-            print(f"❌ Неподдерживаемый метод: {request.method}")
             return jsonify({"status": "error", "message": "Method not allowed"}), 405
         
-        print(f"📋 Обработанные данные: {json.dumps(data, indent=2) if data else 'Пустые данные'}")
+        print(f"📋 Полученные данные: {data}")
         
         # Проверяем статус платежа
         payment_status = data.get('status')
@@ -383,22 +370,14 @@ def lava_webhook():
         print(f"📋 Metadata: {metadata}")
         
         if payment_status == 'success':
-            print("=" * 50)
-            print("🎉 ПЛАТЕЖ УСПЕШЕН!")
-            print("=" * 50)
-            print(f"📋 Order ID: {order_id}")
-            print(f"📋 Amount: {amount} {currency}")
-            print(f"📋 Metadata: {json.dumps(metadata, indent=2)}")
+            print("✅ Платеж успешен!")
             
             # Извлекаем данные из metadata
             user_id = metadata.get('user_id') or metadata.get('telegram_id')
             email = metadata.get('email')
             tariff = metadata.get('tariff')
             
-            print(f"📋 Извлеченные данные:")
-            print(f"   👤 User ID: {user_id}")
-            print(f"   📧 Email: {email}")
-            print(f"   💳 Тариф: {tariff}")
+            print(f"📋 Извлеченные данные: user_id={user_id}, email={email}, tariff={tariff}")
             
             # Отправляем уведомление только в Telegram
             if user_id:
@@ -408,7 +387,6 @@ def lava_webhook():
                     
                     # Создаем подписку в базе данных
                     subscription_id = create_subscription(user_id, email, tariff, amount, currency, order_id, metadata)
-                    print(f"📋 Подписка создана с ID: {subscription_id}")
                     
                     # Отправляем сообщение пользователю
                     success_message = f"""
@@ -523,36 +501,22 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
         return 'error'
 
 def create_lava_invoice(user_id, email, tariff, price):
-    """Создает прямую ссылку на оплату Lava Top"""
+    """Создает инвойс через Lava Top API (синхронная версия)"""
     try:
-        print("=" * 50)
-        print(f"🔧 СОЗДАНИЕ ИНВОЙСА ДЛЯ ПОЛЬЗОВАТЕЛЯ {user_id}")
-        print("=" * 50)
-        print(f"📋 Email: {email}")
-        print(f"📋 Тариф: {tariff}")
-        print(f"📋 Цена: {price}₽")
-        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
-        print(f"🔑 LAVA_PRODUCT_ID: {LAVA_PRODUCT_ID}")
+        print(f"🔧 Создаем инвойс для пользователя {user_id}")
+        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
         
-        # Создаем уникальный order_id
+        # Создаем прямую ссылку на оплату Lava Top
+        # Формат: https://app.lava.top/ru/products/{shop_id}/{product_id}?currency=RUB&amount={amount}&order_id={order_id}
         order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
-        print(f"📋 Order ID: {order_id}")
-        
-        # Создаем metadata с дополнительной информацией
-        metadata = {
-            'user_id': str(user_id),
-            'email': email,
-            'tariff': tariff,
-            'timestamp': int(datetime.now().timestamp()),
-            'bot_name': 'Formula Private Bot'
-        }
         
         # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps(metadata)}"
+        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
         
-        print(f"✅ Создана прямая ссылка на оплату:")
-        print(f"🔗 {payment_url}")
-        print("=" * 50)
+        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+        
+        # Сохраняем информацию о заказе в базе данных или кэше
+        # Здесь можно добавить сохранение в Supabase
         
         return payment_url
             
@@ -560,40 +524,21 @@ def create_lava_invoice(user_id, email, tariff, price):
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        print("=" * 50)
         return None
 
 async def create_lava_invoice_async(user_id, email, tariff, price):
-    """Создает прямую ссылку на оплату Lava Top (асинхронная версия)"""
+    """Создает инвойс через Lava Top API (асинхронная версия)"""
     try:
-        print("=" * 50)
-        print(f"🔧 СОЗДАНИЕ ИНВОЙСА ДЛЯ ПОЛЬЗОВАТЕЛЯ {user_id} (АСИНХРОННО)")
-        print("=" * 50)
-        print(f"📋 Email: {email}")
-        print(f"📋 Тариф: {tariff}")
-        print(f"📋 Цена: {price}₽")
-        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
-        print(f"🔑 LAVA_PRODUCT_ID: {LAVA_PRODUCT_ID}")
+        print(f"🔧 Создаем инвойс для пользователя {user_id}")
+        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
         
-        # Создаем уникальный order_id
+        # Создаем прямую ссылку на оплату Lava Top
         order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
-        print(f"📋 Order ID: {order_id}")
-        
-        # Создаем metadata с дополнительной информацией
-        metadata = {
-            'user_id': str(user_id),
-            'email': email,
-            'tariff': tariff,
-            'timestamp': int(datetime.now().timestamp()),
-            'bot_name': 'Formula Private Bot'
-        }
         
         # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps(metadata)}"
+        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
         
-        print(f"✅ Создана прямая ссылка на оплату:")
-        print(f"🔗 {payment_url}")
-        print("=" * 50)
+        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
         
         return payment_url
         
@@ -601,7 +546,6 @@ async def create_lava_invoice_async(user_id, email, tariff, price):
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        print("=" * 50)
         return None
 
 # Команды бота
