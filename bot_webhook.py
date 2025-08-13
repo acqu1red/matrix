@@ -512,8 +512,14 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
             
             # Проверяем, что все данные есть
             if not email or not tariff or not price:
+                print("❌ Не все данные получены:")
+                print(f"   email: {email}")
+                print(f"   tariff: {tariff}")
+                print(f"   price: {price}")
                 await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
                 return
+            
+            print("✅ Все данные получены, создаем инвойс...")
             
             # Создаем инвойс через Lava Top API
             invoice_data = {
@@ -535,6 +541,9 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
             }
             
             print(f"📤 Создаем инвойс с данными: {invoice_data}")
+            print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+            print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
+            print(f"💰 Сумма в копейках: {int(price * 100)}")
             
             # Отправляем запрос к Lava Top API
             api_url = "https://api.lava.top/business/invoice/create"
@@ -543,12 +552,18 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
                 "Content-Type": "application/json"
             }
             
+            print(f"📡 Отправляем запрос к: {api_url}")
+            print(f"📡 Headers: {headers}")
+            
             response = requests.post(api_url, json=invoice_data, headers=headers)
             print(f"📡 Ответ API: {response.status_code} - {response.text}")
             
             if response.status_code == 200:
                 result = response.json()
+                print(f"📋 Полный ответ API: {result}")
+                
                 payment_url = result.get('data', {}).get('url')
+                print(f"🔍 Ищем payment_url в: {result.get('data', {})}")
                 
                 if payment_url:
                     print(f"✅ Инвойс создан успешно: {payment_url}")
@@ -567,11 +582,16 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
                         parse_mode='HTML',
                         reply_markup=reply_markup
                     )
+                    print("✅ Сообщение с кнопкой оплаты отправлено")
                     return
                 else:
                     print(f"❌ URL не найден в ответе: {result}")
+                    print(f"📋 Структура ответа: {list(result.keys())}")
+                    if 'data' in result:
+                        print(f"📋 Структура data: {list(result['data'].keys())}")
             else:
                 print(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
+                print(f"📋 Заголовки ответа: {dict(response.headers)}")
                 
     except Exception as e:
         print(f"❌ Ошибка обработки данных Mini Apps: {e}")
@@ -579,6 +599,7 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
         print(f"📋 Traceback: {traceback.format_exc()}")
     
     # Fallback - отправляем сообщение об ошибке
+    print("❌ Отправляем сообщение об ошибке пользователю")
     await message.reply_text(
         "❌ Произошла ошибка при создании платежа. Попробуйте еще раз или обратитесь в поддержку."
     )
