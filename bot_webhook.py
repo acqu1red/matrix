@@ -807,20 +807,20 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps"""
-    print("=" * 50)
-    print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!")
-    print("=" * 50)
+    print("=" * 50, flush=True)
+    print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!", flush=True)
+    print("=" * 50, flush=True)
     
     user = update.effective_user
     message = update.message
     
-    print(f"👤 Пользователь: {user.id} (@{user.username})")
-    print(f"📱 Тип сообщения: {type(message)}")
-    print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}")
+    print(f"👤 Пользователь: {user.id} (@{user.username})", flush=True)
+    print(f"📱 Тип сообщения: {type(message)}", flush=True)
+    print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}", flush=True)
     
     if hasattr(message, 'web_app_data') and message.web_app_data:
-        print(f"📱 web_app_data объект: {message.web_app_data}")
-        print(f"📱 web_app_data.data: {message.web_app_data.data}")
+        print(f"📱 web_app_data объект: {message.web_app_data}", flush=True)
+        print(f"📱 web_app_data.data: {message.web_app_data.data}", flush=True)
         
         try:
             # Парсим данные от Mini Apps
@@ -943,7 +943,7 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
             print("✅ Все данные получены, создаем инвойс...")
             
             # Создаем инвойс через Lava Top API
-            payment_url = create_lava_invoice(user.id, email, tariff, price)
+            payment_url = create_lava_invoice(user_id, email, tariff, price)
             
             if payment_url:
                 print(f"✅ Инвойс создан успешно: {payment_url}")
