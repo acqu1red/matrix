@@ -8,7 +8,6 @@ import logging
 import requests
 import json
 import base64
-import asyncio
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -196,113 +195,6 @@ def telegram_webhook():
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
         logging.error(f"Ошибка обработки webhook: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# Endpoint для создания инвойса
-@app.route('/create-invoice', methods=['POST'])
-def create_invoice():
-    """Создает инвойс через Lava Top API"""
-    try:
-        print("=" * 50)
-        print("📥 ПОЛУЧЕН ЗАПРОС НА СОЗДАНИЕ ИНВОЙСА!")
-        print("=" * 50)
-        
-        data = request.get_json()
-        print(f"📋 Полученные данные: {data}")
-        
-        if not data:
-            return jsonify({"status": "error", "message": "No data provided"}), 400
-        
-        # Извлекаем данные
-        user_id = data.get('user_id')
-        email = data.get('email')
-        tariff = data.get('tariff')
-        price = data.get('price')
-        
-        if not all([user_id, email, tariff, price]):
-            return jsonify({"status": "error", "message": "Missing required fields"}), 400
-        
-        print(f"📋 Создаем инвойс: user_id={user_id}, email={email}, tariff={tariff}, price={price}")
-        
-        # Создаем инвойс через Lava Top API
-        payment_url = create_lava_invoice(user_id, email, tariff, price)
-        
-        if payment_url:
-            return jsonify({
-                "status": "success",
-                "payment_url": payment_url,
-                "message": "Invoice created successfully"
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "message": "Failed to create invoice"
-            }), 500
-            
-    except Exception as e:
-        print(f"❌ Ошибка создания инвойса: {e}")
-        import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# Endpoint для создания инвойса через Mini Apps
-@app.route('/api/create-payment', methods=['POST'])
-def create_payment_api():
-    """API endpoint для создания платежа от Mini Apps"""
-    try:
-        print("=" * 50)
-        print("📥 ПОЛУЧЕН API ЗАПРОС НА СОЗДАНИЕ ПЛАТЕЖА!")
-        print("=" * 50)
-        
-        data = request.get_json()
-        print(f"📋 Полученные данные: {data}")
-        
-        if not data:
-            return jsonify({"status": "error", "message": "No data provided"}), 400
-        
-        # Извлекаем данные
-        user_id = data.get('user_id') or data.get('userId')
-        email = data.get('email')
-        tariff = data.get('tariff')
-        price = data.get('price')
-        
-        if not all([user_id, email, tariff, price]):
-            return jsonify({
-                "status": "error", 
-                "message": "Missing required fields",
-                "received_data": data
-            }), 400
-        
-        print(f"📋 Создаем платеж: user_id={user_id}, email={email}, tariff={tariff}, price={price}")
-        
-        # Создаем инвойс через Lava Top API
-        payment_url = create_lava_invoice(user_id, email, tariff, price)
-        
-        if payment_url:
-            print(f"✅ Платеж создан успешно: {payment_url}")
-            return jsonify({
-                "status": "success",
-                "payment_url": payment_url,
-                "message": "Payment created successfully",
-                "data": {
-                    "user_id": user_id,
-                    "email": email,
-                    "tariff": tariff,
-                    "price": price,
-                    "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}"
-                }
-            })
-        else:
-            print("❌ Не удалось создать платеж")
-            return jsonify({
-                "status": "error",
-                "message": "Failed to create payment"
-            }), 500
-            
-    except Exception as e:
-        print(f"❌ Ошибка создания платежа: {e}")
-        import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Lava Top
@@ -496,69 +388,7 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
         return 'error'
 
 def create_lava_invoice(user_id, email, tariff, price):
-    """Создает инвойс через Lava Top API (синхронная версия)"""
-    try:
-        print(f"🔧 Создаем инвойс для пользователя {user_id}")
-        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
-        
-        # Данные для инвойса
-        invoice_data = {
-            "shop_id": LAVA_SHOP_ID,
-            "amount": int(price * 100),  # Конвертируем в копейки
-            "currency": "RUB",
-            "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}",
-            "hook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook",
-            "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
-            "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
-            "metadata": {
-                "user_id": str(user_id),
-                "telegram_id": str(user_id),
-                "tariff": tariff,
-                "email": email
-            }
-        }
-        
-        print(f"📤 Данные инвойса: {invoice_data}")
-        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
-        print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
-        
-        # Отправляем запрос к Lava Top API
-        api_url = "https://api.lava.top/business/invoice/create"
-        headers = {
-            "Authorization": f"Bearer {LAVA_SECRET_KEY}",
-            "Content-Type": "application/json"
-        }
-        
-        print(f"📡 Отправляем запрос к: {api_url}")
-        print(f"📡 Headers: {headers}")
-        
-        response = requests.post(api_url, json=invoice_data, headers=headers)
-        print(f"📡 Ответ API: {response.status_code} - {response.text}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            print(f"📋 Полный ответ: {result}")
-            
-            # Получаем URL для оплаты
-            payment_url = result.get('data', {}).get('url')
-            if payment_url:
-                print(f"✅ Инвойс создан успешно: {payment_url}")
-                return payment_url
-            else:
-                print(f"❌ URL не найден в ответе: {result}")
-                return None
-        else:
-            print(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
-            return None
-            
-    except Exception as e:
-        print(f"❌ Ошибка создания инвойса: {e}")
-        import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
-        return None
-
-async def create_lava_invoice_async(user_id, email, tariff, price):
-    """Создает инвойс через Lava Top API (асинхронная версия)"""
+    """Создает инвойс через Lava Top API"""
     try:
         print(f"🔧 Создаем инвойс для пользователя {user_id}")
         print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
@@ -709,7 +539,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     print(f"💳 Пользователь {user.id} нажал кнопку оплаты")
     
     # Создаем инвойс через Lava Top API
-    payment_url = await create_lava_invoice_async(user.id, "user@example.com", "1_month", 50)
+    payment_url = create_lava_invoice(user.id, "user@example.com", "1_month", 50)
     
     if payment_url:
         # Отправляем сообщение с кнопкой оплаты
@@ -868,42 +698,8 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
             
             print("✅ Все данные получены, создаем инвойс...")
             
-            # Создаем инвойс через наш API endpoint
-            try:
-                api_data = {
-                    "user_id": str(user.id),
-                    "email": email,
-                    "tariff": tariff,
-                    "price": price
-                }
-                
-                print(f"📤 Отправляем данные в API: {api_data}")
-                
-                # Отправляем запрос к нашему API endpoint
-                api_response = requests.post(
-                    "https://formulaprivate-productionpaymentuknow.up.railway.app/api/create-payment",
-                    json=api_data,
-                    headers={"Content-Type": "application/json"}
-                )
-                
-                print(f"📡 API ответ: {api_response.status_code} - {api_response.text}")
-                
-                if api_response.status_code == 200:
-                    result = api_response.json()
-                    payment_url = result.get('payment_url')
-                    
-                    if payment_url:
-                        print(f"✅ Платеж создан через API: {payment_url}")
-                    else:
-                        print("❌ URL не найден в API ответе")
-                        payment_url = None
-                else:
-                    print(f"❌ API ошибка: {api_response.status_code}")
-                    payment_url = None
-                    
-            except Exception as e:
-                print(f"❌ Ошибка API запроса: {e}")
-                payment_url = None
+            # Создаем инвойс через Lava Top API
+            payment_url = create_lava_invoice(user.id, email, tariff, price)
             
             if payment_url:
                 print(f"✅ Инвойс создан успешно: {payment_url}")
