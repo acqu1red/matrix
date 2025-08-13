@@ -173,6 +173,11 @@ def telegram_webhook():
                 asyncio.set_event_loop(loop)
                 try:
                     print("🔄 Запускаем process_update...")
+                    # Инициализируем приложение если нужно
+                    if not app.telegram_app._initialized:
+                        print("🔧 Инициализируем приложение...")
+                        loop.run_until_complete(app.telegram_app.initialize())
+                    
                     loop.run_until_complete(app.telegram_app.process_update(update))
                     print("✅ Данные обработаны асинхронно")
                 except Exception as e:
@@ -657,9 +662,9 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps"""
-    print("=" * 50)
+    print("=" * 80)
     print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!")
-    print("=" * 50)
+    print("=" * 80)
     
     user = update.effective_user
     message = update.message
@@ -679,7 +684,7 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
             
             # Парсим JSON данные
             payment_data = json.loads(web_app_data)
-            print(f"📋 Парсированные данные: {payment_data}")
+            print(f"📋 Парсированные данные: {json.dumps(payment_data, indent=2)}")
             
             # Обрабатываем данные
             await process_payment_data(update, context, payment_data)
@@ -779,7 +784,14 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
             tariff = payment_data.get('tariff')
             price = payment_data.get('price')
             user_id = payment_data.get('userId')
-            print(f"🎯 Обрабатываем финальные данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
+            print("=" * 60)
+            print("🎯 ОБРАБОТКА ФИНАЛЬНЫХ ДАННЫХ!")
+            print("=" * 60)
+            print(f"📧 Email: {email}")
+            print(f"💳 Tariff: {tariff}")
+            print(f"💰 Price: {price}")
+            print(f"👤 User ID: {user_id}")
+            print(f"👤 Telegram User ID: {user.id}")
             
             # Проверяем, что все данные есть
             if not email or not tariff or not price:
@@ -830,23 +842,31 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
                 payment_url = None
             
             if payment_url:
-                print(f"✅ Инвойс создан успешно: {payment_url}")
+                print("=" * 60)
+                print("✅ ИНВОЙС СОЗДАН УСПЕШНО!")
+                print("=" * 60)
+                print(f"🔗 URL для оплаты: {payment_url}")
                 
                 # Отправляем сообщение с кнопкой оплаты
                 keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
-                await message.reply_text(
+                success_message = (
                     f"💳 <b>Оплата подписки</b>\n\n"
                     f"✅ Ваши данные получены:\n"
                     f"📧 Email: {email}\n"
                     f"💳 Тариф: {tariff}\n"
                     f"💰 Сумма: {price}₽\n\n"
-                    f"Нажмите кнопку ниже для перехода к оплате:",
+                    f"Нажмите кнопку ниже для перехода к оплате:"
+                )
+                
+                await message.reply_text(
+                    success_message,
                     parse_mode='HTML',
                     reply_markup=reply_markup
                 )
-                print("✅ Сообщение с кнопкой оплаты отправлено")
+                print("✅ Сообщение с кнопкой оплаты отправлено пользователю")
+                print("=" * 60)
                 return
             else:
                 print(f"❌ Не удалось создать инвойс")
@@ -887,6 +907,13 @@ def main() -> None:
     
     # Создаем приложение
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    
+    # Инициализируем приложение
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(application.initialize())
+    
     app.telegram_app = application # Привязываем приложение к Flask
     
     print("📝 Регистрация обработчиков...")
