@@ -847,19 +847,35 @@ def main() -> None:
             delete_response = requests.post(delete_webhook_url)
             print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
             
-            # Устанавливаем новый webhook
-            response = requests.post(webhook_setup_url, json=webhook_data)
+            # Ждем немного
+            import time
+            time.sleep(2)
+            
+            # Устанавливаем новый webhook с дополнительными параметрами
+            webhook_data_with_params = {
+                "url": f"{webhook_url}/webhook",
+                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                "max_connections": 40,
+                "allowed_updates": ["message", "callback_query"]
+            }
+            
+            print(f"🔧 Webhook данные с параметрами: {webhook_data_with_params}")
+            
+            response = requests.post(webhook_setup_url, json=webhook_data_with_params)
             print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
             if response.status_code == 200:
                 print("✅ Webhook успешно установлен")
                 
+                # Ждем немного
+                time.sleep(2)
+                
                 # Проверяем текущий webhook
                 get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
                 webhook_info = requests.get(get_webhook_url)
-                print(f"📋 Информация о webhook: {webhook_info.json()}")
+                webhook_result = webhook_info.json()
+                print(f"📋 Информация о webhook: {webhook_result}")
                 
                 # Проверяем, что URL правильный
-                webhook_result = webhook_info.json()
                 if webhook_result.get('ok') and webhook_result.get('result', {}).get('url'):
                     actual_url = webhook_result['result']['url']
                     print(f"🔍 Фактический webhook URL: {actual_url}")
@@ -868,14 +884,22 @@ def main() -> None:
                         print(f"⚠️ ВНИМАНИЕ: URL webhook не совпадает!")
                         print(f"   Ожидалось: {expected_url}")
                         print(f"   Фактически: {actual_url}")
+                        
+                        # Пробуем еще раз
+                        print("🔄 Пробуем установить webhook еще раз...")
+                        response2 = requests.post(webhook_setup_url, json=webhook_data_with_params)
+                        print(f"📡 Повторная установка: {response2.status_code} - {response2.text}")
                     else:
                         print("✅ Webhook URL установлен правильно!")
                 else:
                     print("❌ Не удалось получить информацию о webhook")
+                    print(f"📋 Полный ответ: {webhook_result}")
             else:
                 print(f"❌ Ошибка установки webhook: {response.text}")
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
+            import traceback
+            print(f"📋 Traceback: {traceback.format_exc()}")
     else:
         print("⚠️ RAILWAY_STATIC_URL не установлен")
         print("🔧 Попробуем использовать переменную WEBHOOK_URL")
