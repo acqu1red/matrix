@@ -1036,53 +1036,34 @@ function generatePaymentLink() {
   console.log('Payment data:', paymentData);
   
   // Send data to Telegram bot - бот создаст инвойс через API
-  try {
-    console.log('Отправляем данные в бот:', paymentData);
-    console.log('tg объект:', tg);
-    console.log('tg.sendData доступен:', typeof tg.sendData);
-    console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
-    
-    if (typeof tg.sendData === 'function') {
-      const dataString = JSON.stringify(paymentData);
-      console.log('Отправляем строку данных:', dataString);
-      tg.sendData(dataString);
-      console.log('Данные отправлены успешно через sendData');
-    } else {
-      console.error('tg.sendData не доступен');
-      throw new Error('tg.sendData не доступен');
-    }
-  } catch (error) {
-    console.error('Ошибка отправки данных:', error);
-    
-    // Альтернативный способ - закрываем Mini Apps и отправляем данные через обычное сообщение
-    const buttonGroup = document.querySelector('#step4 .button-group');
-    buttonGroup.innerHTML = `
-      <button class="btn btn-primary" onclick="closeAndSendData()">
-        💬 Отправить данные через сообщение
-      </button>
-      <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
-    `;
-    
-    const errorMessage = document.createElement('div');
-    errorMessage.className = 'content-block';
-    errorMessage.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
-    errorMessage.style.borderColor = '#ff9800';
-    errorMessage.innerHTML = `
-      <div class="content-text" style="color: white; text-align: center;">
-        ⚠️ <strong>Автоматическая отправка не работает</strong><br>
-        Нажмите кнопку ниже для отправки данных через сообщение
-      </div>
-    `;
-    
-    const step4 = document.getElementById('step4');
-    const existingError = step4.querySelector('.error-message');
-    if (existingError) {
-      existingError.remove();
-    }
-    
-    errorMessage.classList.add('error-message');
-    buttonGroup.parentNode.insertBefore(errorMessage, buttonGroup);
+  console.log('=== ОТПРАВКА ДАННЫХ В БОТ ===');
+  console.log('Данные для отправки:', paymentData);
+  console.log('tg объект:', tg);
+  console.log('tg.sendData доступен:', typeof tg.sendData);
+  console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
+  console.log('tg.initData:', tg.initData);
+  
+  // Проверяем доступность sendData
+  if (typeof tg.sendData !== 'function') {
+    console.error('❌ tg.sendData не доступен!');
+    showError('tg.sendData не доступен');
     return;
+  }
+  
+  try {
+    const dataString = JSON.stringify(paymentData);
+    console.log('📤 Отправляем строку данных:', dataString);
+    
+    // Отправляем данные
+    tg.sendData(dataString);
+    console.log('✅ Данные отправлены успешно');
+    
+    // Показываем успешное сообщение
+    showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+    
+  } catch (error) {
+    console.error('❌ Ошибка отправки данных:', error);
+    showError('Ошибка отправки: ' + error.message);
   }
   
   // Replace the button with a loading state
@@ -1093,16 +1074,6 @@ function generatePaymentLink() {
     </button>
     <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
   `;
-  
-  // Показываем MainButton для отправки данных
-  if (tg.MainButton) {
-    tg.MainButton.setText('💳 Отправить данные');
-    tg.MainButton.onClick(() => {
-      console.log('MainButton нажата, отправляем данные:', paymentData);
-      tg.sendData(JSON.stringify(paymentData));
-    });
-    tg.MainButton.show();
-  }
   
   // Show success message
   const successMessage = document.createElement('div');
@@ -1137,6 +1108,68 @@ window.addEventListener('popstate', function() {
 // Retry payment function
 function retryPayment() {
   generatePaymentLink();
+}
+
+// Show success message
+function showSuccess(message) {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" disabled style="opacity: 0.7;">
+      ✅ ${message}
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const successMessage = document.createElement('div');
+  successMessage.className = 'content-block';
+  successMessage.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+  successMessage.style.borderColor = '#4CAF50';
+  successMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ✅ <strong>Успешно!</strong><br>
+      ${message}
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  successMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(successMessage, buttonGroup);
+}
+
+// Show error message
+function showError(message) {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" onclick="retryPayment()">
+      🔄 Попробовать снова
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const errorMessage = document.createElement('div');
+  errorMessage.className = 'content-block';
+  errorMessage.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+  errorMessage.style.borderColor = '#ff6b6b';
+  errorMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ❌ <strong>Ошибка!</strong><br>
+      ${message}
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  errorMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(errorMessage, buttonGroup);
 }
 
 // Close Mini Apps and send data via message

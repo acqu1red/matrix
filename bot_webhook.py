@@ -1045,6 +1045,9 @@ def main() -> None:
     
     print("📝 Регистрация обработчиков...")
     
+    # Обработчик для web_app_data должен быть первым
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+    
     # Регистрируем обработчики команд
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("payment", payment))
@@ -1058,7 +1061,6 @@ def main() -> None:
     application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
     
     # Обработчик для web_app_data должен быть первым
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
     
