@@ -466,8 +466,8 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     print(f"📨 Получено сообщение от пользователя {user.id}")
     print(f"📋 Тип сообщения: {type(message)}")
     print(f"📋 Атрибуты сообщения: {dir(message)}")
-    print(f"📋 Текст сообщения: {getattr(message, 'text', 'НЕТ ТЕКСТА')}")
-    print(f"📋 web_app_data: {getattr(message, 'web_app_data', 'НЕТ WEB_APP_DATA')}")
+    print(f"📋 Текст сообщения: {message.text if hasattr(message, 'text') else 'НЕТ ТЕКСТА'}")
+    print(f"📋 web_app_data: {message.web_app_data if hasattr(message, 'web_app_data') else 'НЕТ'}")
     
     # Проверяем, является ли это данными от Mini Apps
     if hasattr(message, 'web_app_data'):
@@ -486,26 +486,11 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
         try:
             import json
             data = json.loads(message.text)
-            print(f"📱 Попытка парсинга JSON: {data}")
-            
-            # Проверяем тестовые данные
-            if isinstance(data, dict) and data.get('test'):
-                print(f"📱 Получены тестовые данные: {data}")
-                await message.reply_text(
-                    f"✅ <b>Тестовые данные получены!</b>\n\n"
-                    f"📋 Данные: {data}\n"
-                    f"⏰ Время: {data.get('timestamp', 'не указано')}",
-                    parse_mode='HTML'
-                )
-                return
-            
-            # Проверяем данные платежа
             if isinstance(data, dict) and 'tariff' in data and 'email' in data:
                 print(f"📱 Обнаружены JSON данные в обычном сообщении: {data}")
                 await handle_web_app_data_from_text(update, context, data)
                 return
-        except (json.JSONDecodeError, TypeError) as e:
-            print(f"📱 Ошибка парсинга JSON: {e}")
+        except (json.JSONDecodeError, TypeError):
             pass  # Это не JSON данные
     
     # Сохраняем сообщение в базу данных
@@ -666,8 +651,13 @@ async def handle_payment_selection(update: Update, context: CallbackContext, pay
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps и создает инвойс через Lava Top API"""
+    print("🎯 ФУНКЦИЯ handle_web_app_data ВЫЗВАНА!")
     user = update.effective_user
     message = update.message
+    
+    print(f"👤 Пользователь: {user.id} ({user.first_name})")
+    print(f"📨 Сообщение: {message}")
+    print(f"📋 web_app_data: {message.web_app_data if hasattr(message, 'web_app_data') else 'НЕТ'}")
     
     try:
         # Парсим данные от Mini Apps
@@ -1077,6 +1067,8 @@ def main() -> None:
     # Обработчик для web_app_data должен быть первым
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
+    
+    print("🔍 Обработчики web_app_data и сообщений зарегистрированы")
     
     print("✅ Обработчики зарегистрированы")
     
