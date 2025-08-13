@@ -15,13 +15,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters
 from supabase import create_client, Client
 
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 # Email отправка отключена - используем только Telegram
 def send_email_invitation(email, tariff, subscription_id):
     print(f"📧 Email отправка отключена: {email}, тариф: {tariff}")
@@ -29,73 +22,6 @@ def send_email_invitation(email, tariff, subscription_id):
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
-
-# Функция для автоматической переустановки webhook
-def setup_webhook():
-    """Автоматически устанавливает webhook при запуске"""
-    try:
-        print("🔧 Автоматическая настройка webhook...")
-        
-        # Получаем токен бота
-        bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        if not bot_token:
-            print("❌ TELEGRAM_BOT_TOKEN не найден")
-            return False
-        
-        # Получаем URL webhook
-        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-        secret_token = os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
-        
-        print(f"🌐 Webhook URL: {webhook_url}")
-        print(f"🔑 Secret Token: {secret_token[:20]}...")
-        
-        # Удаляем старый webhook
-        delete_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
-        delete_response = requests.post(delete_url)
-        print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
-        
-        # Ждем немного
-        import time
-        time.sleep(2)
-        
-        # Устанавливаем новый webhook
-        set_url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
-        webhook_data = {
-            "url": webhook_url,
-            "secret_token": secret_token,
-            "max_connections": 40,
-            "allowed_updates": ["message", "callback_query"]
-        }
-        
-        set_response = requests.post(set_url, json=webhook_data)
-        print(f"📡 Установка webhook: {set_response.status_code} - {set_response.text}")
-        
-        if set_response.status_code == 200:
-            print("✅ Webhook успешно установлен")
-            
-            # Проверяем установку
-            time.sleep(2)
-            info_url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
-            info_response = requests.get(info_url)
-            info_data = info_response.json()
-            
-            print(f"📋 Информация о webhook: {info_data}")
-            
-            if info_data.get('ok') and info_data.get('result', {}).get('url') == webhook_url:
-                print("✅ Webhook подтвержден!")
-                return True
-            else:
-                print("❌ Webhook не подтвержден")
-                return False
-        else:
-            print(f"❌ Ошибка установки webhook: {set_response.text}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Ошибка настройки webhook: {e}")
-        import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
-        return False
 
 # Health check endpoint для Railway
 @app.route('/health', methods=['GET'])
@@ -108,9 +34,9 @@ def test_bot():
     return jsonify({
         "status": "ok",
         "message": "Бот работает!",
-        "telegram_token": os.getenv('TELEGRAM_BOT_TOKEN', '')[:20] + "...",
-        "lava_shop_id": os.getenv('LAVA_SHOP_ID', ''),
-        "webhook_url": "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
+        "lava_shop_id": LAVA_SHOP_ID,
+        "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
     })
 
 # Тестовый endpoint для проверки webhook
@@ -130,11 +56,7 @@ def test_webhook():
 def webhook_info():
     """Показывает информацию о текущем webhook"""
     try:
-        bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        if not bot_token:
-            return jsonify({"status": "error", "message": "TELEGRAM_BOT_TOKEN не найден"}), 500
-        
-        webhook_url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
+        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
         response = requests.get(webhook_url)
         webhook_data = response.json()
         
@@ -143,7 +65,7 @@ def webhook_info():
         return jsonify({
             "status": "ok",
             "webhook_info": webhook_data,
-            "bot_token": bot_token[:20] + "...",
+            "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
             "expected_url": "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook",
             "current_url": webhook_data.get('result', {}).get('url', ''),
             "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0)
@@ -157,10 +79,32 @@ def webhook_info():
 def reset_webhook():
     """Принудительно переустанавливает webhook"""
     try:
-        success = setup_webhook()
+        # Удаляем старый webhook
+        delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+        delete_response = requests.post(delete_url)
+        print(f"🗑️ Удаление webhook: {delete_response.status_code} - {delete_response.text}")
+        
+        import time
+        time.sleep(2)
+        
+        # Устанавливаем новый webhook
+        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+        webhook_data = {
+            "url": webhook_url,
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+            "max_connections": 40,
+            "allowed_updates": ["message", "callback_query"]
+        }
+        
+        set_response = requests.post(set_url, json=webhook_data)
+        print(f"🔧 Установка webhook: {set_response.status_code} - {set_response.text}")
+        
         return jsonify({
-            "status": "ok" if success else "error",
-            "message": "Webhook переустановлен" if success else "Ошибка переустановки webhook"
+            "status": "ok",
+            "delete_response": delete_response.json(),
+            "set_response": set_response.json(),
+            "webhook_url": webhook_url
         })
     except Exception as e:
         print(f"❌ Ошибка сброса webhook: {e}")
@@ -371,16 +315,18 @@ def create_payment_api():
 def lava_webhook():
     """Обрабатывает webhook от Lava Top"""
     try:
-        print("=" * 50)
-        print("📥 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
-        print("=" * 50)
+        print("=" * 60)
+        print("🔥 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
+        print("=" * 60)
         print(f"📋 Method: {request.method}")
         print(f"📋 URL: {request.url}")
-        print(f"📋 Headers: {dict(request.headers)}")
+        print(f"📋 Remote Address: {request.remote_addr}")
+        print(f"📋 User Agent: {request.headers.get('User-Agent', 'Unknown')}")
+        print(f"📋 Content-Type: {request.headers.get('Content-Type', 'Unknown')}")
         
         # Проверка API key аутентификации
         api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
-        print(f"🔍 API Key: {api_key_header}")
+        print(f"🔍 API Key: {api_key_header[:20] + '...' if api_key_header and len(api_key_header) > 20 else api_key_header}")
         
         if api_key_header:
             if api_key_header.startswith('Bearer '):
@@ -389,6 +335,8 @@ def lava_webhook():
             expected_api_key = 'LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z'
             if api_key_header != expected_api_key:
                 print(f"❌ Неверный API key")
+                print(f"📋 Ожидаемый: {expected_api_key}")
+                print(f"📋 Полученный: {api_key_header}")
                 return jsonify({"status": "error", "message": "Unauthorized"}), 401
             else:
                 print("✅ API key верный")
@@ -399,15 +347,24 @@ def lava_webhook():
         if request.method == 'GET':
             print("🔍 GET запрос - получаем данные из query параметров")
             data = request.args.to_dict()
+            print(f"📋 Query параметры: {data}")
         elif request.method == 'POST':
             print("🔍 POST запрос - получаем данные из body")
-            data = request.get_json()
-            if not data:
+            try:
+                data = request.get_json()
+                if data:
+                    print("📋 JSON данные получены")
+                else:
+                    print("📋 JSON данные пустые, пробуем form данные")
+                    data = request.form.to_dict()
+            except Exception as e:
+                print(f"📋 Ошибка парсинга JSON: {e}")
                 data = request.form.to_dict()
         else:
+            print(f"❌ Неподдерживаемый метод: {request.method}")
             return jsonify({"status": "error", "message": "Method not allowed"}), 405
         
-        print(f"📋 Полученные данные: {data}")
+        print(f"📋 Обработанные данные: {json.dumps(data, indent=2) if data else 'Пустые данные'}")
         
         # Проверяем статус платежа
         payment_status = data.get('status')
@@ -426,14 +383,22 @@ def lava_webhook():
         print(f"📋 Metadata: {metadata}")
         
         if payment_status == 'success':
-            print("✅ Платеж успешен!")
+            print("=" * 50)
+            print("🎉 ПЛАТЕЖ УСПЕШЕН!")
+            print("=" * 50)
+            print(f"📋 Order ID: {order_id}")
+            print(f"📋 Amount: {amount} {currency}")
+            print(f"📋 Metadata: {json.dumps(metadata, indent=2)}")
             
             # Извлекаем данные из metadata
             user_id = metadata.get('user_id') or metadata.get('telegram_id')
             email = metadata.get('email')
             tariff = metadata.get('tariff')
             
-            print(f"📋 Извлеченные данные: user_id={user_id}, email={email}, tariff={tariff}")
+            print(f"📋 Извлеченные данные:")
+            print(f"   👤 User ID: {user_id}")
+            print(f"   📧 Email: {email}")
+            print(f"   💳 Тариф: {tariff}")
             
             # Отправляем уведомление только в Telegram
             if user_id:
@@ -443,6 +408,7 @@ def lava_webhook():
                     
                     # Создаем подписку в базе данных
                     subscription_id = create_subscription(user_id, email, tariff, amount, currency, order_id, metadata)
+                    print(f"📋 Подписка создана с ID: {subscription_id}")
                     
                     # Отправляем сообщение пользователю
                     success_message = f"""
@@ -492,11 +458,11 @@ def lava_webhook():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Настройка логирования
-# logging.basicConfig(
-#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#     level=logging.INFO
-# )
-# logger = logging.getLogger(__name__)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 # Конфигурация
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
@@ -557,22 +523,36 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
         return 'error'
 
 def create_lava_invoice(user_id, email, tariff, price):
-    """Создает инвойс через Lava Top API (синхронная версия)"""
+    """Создает прямую ссылку на оплату Lava Top"""
     try:
-        print(f"🔧 Создаем инвойс для пользователя {user_id}")
-        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
+        print("=" * 50)
+        print(f"🔧 СОЗДАНИЕ ИНВОЙСА ДЛЯ ПОЛЬЗОВАТЕЛЯ {user_id}")
+        print("=" * 50)
+        print(f"📋 Email: {email}")
+        print(f"📋 Тариф: {tariff}")
+        print(f"📋 Цена: {price}₽")
+        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+        print(f"🔑 LAVA_PRODUCT_ID: {LAVA_PRODUCT_ID}")
         
-        # Создаем прямую ссылку на оплату Lava Top
-        # Формат: https://app.lava.top/ru/products/{shop_id}/{product_id}?currency=RUB&amount={amount}&order_id={order_id}
+        # Создаем уникальный order_id
         order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        print(f"📋 Order ID: {order_id}")
+        
+        # Создаем metadata с дополнительной информацией
+        metadata = {
+            'user_id': str(user_id),
+            'email': email,
+            'tariff': tariff,
+            'timestamp': int(datetime.now().timestamp()),
+            'bot_name': 'Formula Private Bot'
+        }
         
         # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
+        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps(metadata)}"
         
-        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
-        
-        # Сохраняем информацию о заказе в базе данных или кэше
-        # Здесь можно добавить сохранение в Supabase
+        print(f"✅ Создана прямая ссылка на оплату:")
+        print(f"🔗 {payment_url}")
+        print("=" * 50)
         
         return payment_url
             
@@ -580,21 +560,40 @@ def create_lava_invoice(user_id, email, tariff, price):
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
+        print("=" * 50)
         return None
 
 async def create_lava_invoice_async(user_id, email, tariff, price):
-    """Создает инвойс через Lava Top API (асинхронная версия)"""
+    """Создает прямую ссылку на оплату Lava Top (асинхронная версия)"""
     try:
-        print(f"🔧 Создаем инвойс для пользователя {user_id}")
-        print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
+        print("=" * 50)
+        print(f"🔧 СОЗДАНИЕ ИНВОЙСА ДЛЯ ПОЛЬЗОВАТЕЛЯ {user_id} (АСИНХРОННО)")
+        print("=" * 50)
+        print(f"📋 Email: {email}")
+        print(f"📋 Тариф: {tariff}")
+        print(f"📋 Цена: {price}₽")
+        print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+        print(f"🔑 LAVA_PRODUCT_ID: {LAVA_PRODUCT_ID}")
         
-        # Создаем прямую ссылку на оплату Lava Top
+        # Создаем уникальный order_id
         order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        print(f"📋 Order ID: {order_id}")
+        
+        # Создаем metadata с дополнительной информацией
+        metadata = {
+            'user_id': str(user_id),
+            'email': email,
+            'tariff': tariff,
+            'timestamp': int(datetime.now().timestamp()),
+            'bot_name': 'Formula Private Bot'
+        }
         
         # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
+        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps(metadata)}"
         
-        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+        print(f"✅ Создана прямая ссылка на оплату:")
+        print(f"🔗 {payment_url}")
+        print("=" * 50)
         
         return payment_url
         
@@ -602,6 +601,7 @@ async def create_lava_invoice_async(user_id, email, tariff, price):
         print(f"❌ Ошибка создания инвойса: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
+        print("=" * 50)
         return None
 
 # Команды бота
@@ -728,36 +728,36 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
     print(f"👤 Пользователь: {user.id} (@{user.username})")
     print(f"📱 Тип сообщения: {type(message)}")
     print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}")
-    print(f"📱 Все атрибуты сообщения: {dir(message)}")
     
     if hasattr(message, 'web_app_data') and message.web_app_data:
         print(f"📱 web_app_data объект: {message.web_app_data}")
         print(f"📱 web_app_data.data: {message.web_app_data.data}")
-        print(f"📱 web_app_data.button_text: {message.web_app_data.button_text}")
+        
+        try:
+            # Парсим данные от Mini Apps
+            web_app_data = message.web_app_data.data
+            print(f"📱 Получены данные от Mini Apps: {web_app_data}")
+            
+            # Парсим JSON данные
+            payment_data = json.loads(web_app_data)
+            print(f"📋 Парсированные данные: {json.dumps(payment_data, indent=2)}")
+            
+            # Обрабатываем данные
+            await process_payment_data(update, context, payment_data)
+            
+        except Exception as e:
+            print(f"❌ Ошибка обработки web_app_data: {e}")
+            import traceback
+            print(f"📋 Traceback: {traceback.format_exc()}")
+            try:
+                await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
+            except Exception as send_error:
+                print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
+                print("📋 Это может быть тестовый запрос с несуществующим chat_id")
     else:
         print("❌ web_app_data не найден или пустой")
-        print(f"📱 Содержимое сообщения: {message.text if hasattr(message, 'text') else 'Нет текста'}")
-        print(f"📱 Все атрибуты: {[attr for attr in dir(message) if not attr.startswith('_')]}")
-        return
-    
-    try:
-        # Парсим данные от Mini Apps
-        web_app_data = message.web_app_data.data
-        print(f"📱 Получены данные от Mini Apps: {web_app_data}")
-        
-        # Парсим JSON данные
-        payment_data = json.loads(web_app_data)
-        print(f"📋 Парсированные данные: {json.dumps(payment_data, indent=2)}")
-        
-        # Обрабатываем данные
-        await process_payment_data(update, context, payment_data)
-            
-    except Exception as e:
-        print(f"❌ Ошибка обработки web_app_data: {e}")
-        import traceback
-        print(f"📋 Traceback: {traceback.format_exc()}")
         try:
-            await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
+            await message.reply_text("❌ Данные Mini Apps не получены")
         except Exception as send_error:
             print(f"❌ Не удалось отправить сообщение об ошибке: {send_error}")
             print("📋 Это может быть тестовый запрос с несуществующим chat_id")
@@ -804,10 +804,7 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
     message = update.message
     
     try:
-        print("=" * 60)
-        print("📱 ОБРАБОТКА ДАННЫХ ПЛАТЕЖА!")
-        print("=" * 60)
-        print(f"📱 Полученные данные: {json.dumps(payment_data, indent=2)}")
+        print(f"📱 Обрабатываем данные платежа: {payment_data}")
         
         # Проверяем тип данных (пошаговая отправка)
         step = payment_data.get('step')
@@ -868,7 +865,7 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
                 print(f"   price: {price}")
                 await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
                 return
-        
+            
             print("✅ Все данные получены, создаем инвойс...")
             
             # Создаем инвойс через наш API endpoint
@@ -982,42 +979,21 @@ async def button(update: Update, context: CallbackContext):
 def main() -> None:
     """Основная функция запуска бота"""
     print("🚀 Запуск бота с webhook...")
-    
-    # Получаем переменные окружения
-    bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-    lava_shop_id = os.getenv('LAVA_SHOP_ID')
-    lava_secret_key = os.getenv('LAVA_SECRET_KEY')
-    admin_ids = os.getenv('ADMIN_IDS', '708907063,7365307696')
-    
-    print(f"🔑 TELEGRAM_BOT_TOKEN: {bot_token[:20] if bot_token else 'НЕ НАЙДЕН'}...")
-    print(f"🔑 LAVA_SHOP_ID: {lava_shop_id}")
-    print(f"🔑 LAVA_SECRET_KEY: {lava_secret_key[:20] if lava_secret_key else 'НЕ НАЙДЕН'}...")
-    print(f"👥 Администраторы по ID: {admin_ids}")
-    
-    # Автоматически устанавливаем webhook
-    print("🔧 Автоматическая настройка webhook...")
-    webhook_success = setup_webhook()
-    if webhook_success:
-        print("✅ Webhook настроен успешно")
-    else:
-        print("⚠️ Webhook не настроен, но продолжаем...")
+    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+    print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
+    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     
     # Создаем приложение
-    application = Application.builder().token(bot_token).build()
-    
-    # Привязываем приложение к Flask ДО инициализации
-    app.telegram_app = application
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     
     # Инициализируем приложение
     import asyncio
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    try:
-        loop.run_until_complete(application.initialize())
-        print("✅ Приложение инициализировано успешно")
-    except Exception as e:
-        print(f"⚠️ Ошибка инициализации: {e}")
-        print("📋 Продолжаем без инициализации...")
+    loop.run_until_complete(application.initialize())
+    
+    app.telegram_app = application # Привязываем приложение к Flask
     
     print("📝 Регистрация обработчиков...")
     
