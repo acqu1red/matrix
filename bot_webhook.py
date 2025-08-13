@@ -466,6 +466,7 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     print(f"📨 Получено сообщение от пользователя {user.id}")
     print(f"📋 Тип сообщения: {type(message)}")
     print(f"📋 Атрибуты сообщения: {dir(message)}")
+    print(f"📋 Содержимое сообщения: {message.text if hasattr(message, 'text') else 'Нет текста'}")
     
     # Проверяем, является ли это данными от Mini Apps
     if hasattr(message, 'web_app_data'):
@@ -478,6 +479,18 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
             print(f"📱 web_app_data пустой или без data")
     else:
         print(f"📱 web_app_data не найден")
+    
+    # Проверяем, является ли это JSON данными от Mini Apps в обычном сообщении
+    if hasattr(message, 'text') and message.text:
+        try:
+            import json
+            data = json.loads(message.text)
+            if isinstance(data, dict) and 'tariff' in data and 'email' in data:
+                print(f"📱 Обнаружены JSON данные в обычном сообщении: {data}")
+                await handle_web_app_data_from_text(update, context, data)
+                return
+        except (json.JSONDecodeError, TypeError):
+            pass  # Это не JSON данные
     
     # Проверяем, является ли это JSON данными от Mini Apps в обычном сообщении
     if hasattr(message, 'text') and message.text:
@@ -1065,6 +1078,28 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
     
     print("✅ Обработчики зарегистрированы")
+    
+    # Настраиваем Mini Apps для бота
+    try:
+        print("🔧 Настройка Mini Apps...")
+        # Устанавливаем команды для бота
+        commands = [
+            ("start", "Запустить бота"),
+            ("payment", "Оплатить подписку"),
+            ("more_info", "Подробнее")
+        ]
+        
+        set_commands_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setMyCommands"
+        commands_data = {"commands": [{"command": cmd[0], "description": cmd[1]} for cmd in commands]}
+        
+        response = requests.post(set_commands_url, json=commands_data)
+        if response.status_code == 200:
+            print("✅ Команды бота настроены")
+        else:
+            print(f"⚠️ Ошибка настройки команд: {response.text}")
+            
+    except Exception as e:
+        print(f"⚠️ Ошибка настройки Mini Apps: {e}")
     
     # Настраиваем webhook URL для Railway
     webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
