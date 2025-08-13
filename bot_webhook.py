@@ -36,6 +36,18 @@ def test_bot():
         "webhook_url": f"https://formulaprivate-production.up.railway.app/webhook"
     })
 
+# Тестовый endpoint для проверки webhook
+@app.route('/test-webhook', methods=['POST'])
+def test_webhook():
+    """Тестирует webhook endpoint"""
+    try:
+        data = request.get_json()
+        print(f"🧪 Тестовый webhook получен: {data}")
+        return jsonify({"status": "ok", "message": "Webhook endpoint работает!", "received_data": data})
+    except Exception as e:
+        print(f"❌ Ошибка тестового webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Webhook endpoint для Telegram
 @app.route('/webhook', methods=['POST'])
 def telegram_webhook():
