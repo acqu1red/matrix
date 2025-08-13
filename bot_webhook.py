@@ -57,13 +57,54 @@ def webhook_info():
         response = requests.get(webhook_url)
         webhook_data = response.json()
         
+        print(f"📋 Webhook info: {webhook_data}")
+        
         return jsonify({
             "status": "ok",
             "webhook_info": webhook_data,
             "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-            "expected_url": "https://formulaprivate-production.up.railway.app/webhook"
+            "expected_url": "https://formulaprivate-production.up.railway.app/webhook",
+            "current_url": webhook_data.get('result', {}).get('url', ''),
+            "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0)
         })
     except Exception as e:
+        print(f"❌ Ошибка получения webhook info: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Endpoint для принудительной переустановки webhook
+@app.route('/reset-webhook', methods=['GET'])
+def reset_webhook():
+    """Принудительно переустанавливает webhook"""
+    try:
+        # Удаляем старый webhook
+        delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+        delete_response = requests.post(delete_url)
+        print(f"🗑️ Удаление webhook: {delete_response.status_code} - {delete_response.text}")
+        
+        import time
+        time.sleep(2)
+        
+        # Устанавливаем новый webhook
+        webhook_url = "https://formulaprivate-production.up.railway.app/webhook"
+        set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+        webhook_data = {
+            "url": webhook_url,
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+            "max_connections": 40,
+            "allowed_updates": ["message", "callback_query"]
+        }
+        
+        set_response = requests.post(set_url, json=webhook_data)
+        print(f"🔧 Установка webhook: {set_response.status_code} - {set_response.text}")
+        
+        return jsonify({
+            "status": "ok",
+            "delete_response": delete_response.json(),
+            "set_response": set_response.json(),
+            "webhook_url": webhook_url
+        })
+    except Exception as e:
+        print(f"❌ Ошибка сброса webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Telegram
