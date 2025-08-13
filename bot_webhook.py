@@ -25,21 +25,46 @@ app = Flask(__name__)
 def health_check():
     return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
 
+# Тестовый endpoint для проверки работы бота
+@app.route('/test', methods=['GET'])
+def test_bot():
+    return jsonify({
+        "status": "ok",
+        "message": "Бот работает!",
+        "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
+        "lava_shop_id": LAVA_SHOP_ID,
+        "webhook_url": f"https://formulaprivate-production.up.railway.app/webhook"
+    })
+
 # Webhook endpoint для Telegram
 @app.route('/webhook', methods=['POST'])
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
     try:
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
+        print("=" * 50)
+        print(f"📋 Headers: {dict(request.headers)}")
+        print(f"📋 Method: {request.method}")
+        print(f"📋 URL: {request.url}")
+        
         # Получаем данные от Telegram
         data = request.get_json()
-        print(f"📥 Получен webhook от Telegram: {data}")
+        print(f"📋 Данные от Telegram: {data}")
         
         # Передаем данные в обработчик бота
         if hasattr(app, 'telegram_app'):
+            print("✅ Передаем данные в telegram_app")
             app.telegram_app.process_update(Update.de_json(data, app.telegram_app.bot))
+            print("✅ Данные обработаны")
+        else:
+            print("❌ telegram_app не найден")
         
         return jsonify({"status": "ok"})
     except Exception as e:
+        print(f"❌ Ошибка обработки webhook: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
         logging.error(f"Ошибка обработки webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -238,6 +263,8 @@ async def start(update: Update, context: CallbackContext):
     """Обработчик команды /start"""
     user = update.effective_user
     print(f"🚀 Команда /start от пользователя {user.id}")
+    print(f"📋 Пользователь: {user.first_name} {user.last_name or ''} (@{user.username or 'без username'})")
+    print(f"📋 ID пользователя: {user.id}")
     
     welcome_text = f"""
 👋 Привет, {user.first_name}!
@@ -715,6 +742,25 @@ def main() -> None:
             "url": f"{webhook_url}/webhook",
             "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
         }
+        
+        print(f"🔧 Webhook данные: {webhook_data}")
+        
+        try:
+            response = requests.post(webhook_setup_url, json=webhook_data)
+            print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
+            if response.status_code == 200:
+                print("✅ Webhook успешно установлен")
+                
+                # Проверяем текущий webhook
+                get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+                webhook_info = requests.get(get_webhook_url)
+                print(f"📋 Информация о webhook: {webhook_info.json()}")
+            else:
+                print(f"❌ Ошибка установки webhook: {response.text}")
+        except Exception as e:
+            print(f"❌ Ошибка установки webhook: {e}")
+    else:
+        print("⚠️ RAILWAY_STATIC_URL не установлен")
         
         try:
             response = requests.post(webhook_setup_url, json=webhook_data)
