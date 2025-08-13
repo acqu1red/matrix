@@ -220,8 +220,18 @@ def telegram_webhook():
         application = app.config.get("telegram_application")
         if application:
             print(f"📱 Application найден, обрабатываем update...")
-            application.create_task(application.process_update(Update.de_json(update_data, application.bot)))
-            print(f"📱 Update отправлен в обработку")
+            # Создаем Update объект
+            update = Update.de_json(update_data, application.bot)
+            print(f"📱 Update объект создан: {update}")
+            
+            # Обрабатываем update синхронно
+            try:
+                application.process_update(update)
+                print(f"📱 Update обработан успешно")
+            except Exception as process_error:
+                print(f"❌ Ошибка обработки update: {process_error}")
+                import traceback
+                print(f"❌ Traceback: {traceback.format_exc()}")
         else:
             print(f"❌ Application не найден в app.config")
         
