@@ -87,44 +87,48 @@ def lava_get(path: str, params: dict) -> dict:
 
 def create_lava_invoice_api(user_id: int, chat_id: int, email: str, tariff: str, price_rub: int) -> str:
     """
-    Создаёт инвойс через LAVA Business API и возвращает payUrl.
-    orderId прошиваем user_id и chat_id, чтобы не терять связь.
+    Создаёт прямую ссылку на оплату Lava Top.
+    Используем прямой URL вместо API для обхода проблем с подписью.
     """
-    if not (LAVA_API_KEY and LAVA_SHOP_ID):
-        raise RuntimeError("LAVA_API_KEY/LAVA_SHOP_ID are not set")
+    if not LAVA_SHOP_ID:
+        raise RuntimeError("LAVA_SHOP_ID is not set")
 
     # Уникальный orderId: содержит и user_id, и chat_id для обратной связи
     ts = int(time.time())
     order_id = f"order_{user_id}_{chat_id}_{ts}"
 
-    # Валюта и сумма — подстрой под свой кейс
-    payload = {
-        "shopId": str(LAVA_SHOP_ID),
-        "orderId": order_id,
-        "sum": int(price_rub),         # целое число в копейках/рублях — зависит от API; чаще рубли целым
-        "currency": "RUB",
-        "comment": f"Tariff: {tariff}",
-        "hookUrl": HOOK_URL,           # куда придёт вебхук об оплате
-        "successUrl": LAVA_SUCCESS_URL,
-        "failUrl": LAVA_FAIL_URL,
-        # Любые твои данные, по которым ты найдёшь пользователя:
-        "metadata": {
-            "user_id": str(user_id),
-            "chat_id": str(chat_id),
-            "email": email,
-            "tariff": tariff
-        }
+    # Создаем прямую ссылку на Lava Top
+    # Формат: https://app.lava.top/ru/products/{shop_id}/{product_id}?currency=RUB&amount={amount}&order_id={order_id}&metadata={json.dumps(...)}
+    
+    # Используем product_id из вашей ссылки
+    product_id = "302ecdcd-1581-45ad-8353-a168f347b8cc"
+    
+    # Метаданные для передачи в URL
+    metadata = {
+        "user_id": str(user_id),
+        "chat_id": str(chat_id),
+        "email": email,
+        "tariff": tariff
     }
+    
+    # Создаем URL параметры
+    params = {
+        "currency": "RUB",
+        "amount": str(price_rub),
+        "order_id": order_id,
+        "metadata": json.dumps(metadata, ensure_ascii=False)
+    }
+    
+    # Если есть webhook URL, добавляем его
+    if HOOK_URL:
+        params["hook_url"] = HOOK_URL
+    
+    # Создаем URL
+    base_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{product_id}"
+    query_string = urlencode(params)
+    pay_url = f"{base_url}?{query_string}"
 
-    print(f"[create_lava_invoice_api] Creating invoice with payload: {payload}")
-    data = lava_post("/invoice/create", payload)
-
-    # В ответе у LAVA обычно есть ссылка оплаты: payUrl / url — поддержим оба
-    pay_url = data.get("payUrl") or data.get("url") or (data.get("data", {}) or {}).get("payUrl")
-    if not pay_url:
-        raise RuntimeError(f"Cannot find payUrl in response: {data}")
-
-    print(f"[create_lava_invoice_api] Generated pay_url: {pay_url}")
+    print(f"[create_lava_invoice_api] Generated direct pay_url: {pay_url}")
     return pay_url
 
 def parse_user_from_order(order_id: str) -> tuple[int, int]:
