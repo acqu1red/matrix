@@ -446,6 +446,11 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     print(f"📋 Тип сообщения: {type(message)}")
     print(f"📋 Атрибуты сообщения: {dir(message)}")
     print(f"📋 Содержимое сообщения: {message.text if hasattr(message, 'text') else 'Нет текста'}")
+    print(f"📋 web_app_data: {getattr(message, 'web_app_data', 'НЕТ')}")
+    print(f"📋 hasattr web_app_data: {hasattr(message, 'web_app_data')}")
+    if hasattr(message, 'web_app_data') and message.web_app_data:
+        print(f"📋 web_app_data.data: {getattr(message.web_app_data, 'data', 'НЕТ DATA')}")
+        print(f"📋 web_app_data.type: {getattr(message.web_app_data, 'type', 'НЕТ TYPE')}")
     
     # Проверяем, является ли это данными от Mini Apps
     if hasattr(message, 'web_app_data'):
@@ -641,6 +646,7 @@ async def handle_payment_selection(update: Update, context: CallbackContext, pay
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps и создает инвойс через Lava Top API"""
+    print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!")
     user = update.effective_user
     message = update.message
     
