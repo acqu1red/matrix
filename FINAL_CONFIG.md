@@ -35,7 +35,7 @@ LAVA_SECRET_KEY=whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
 LAVA_WEBHOOK_SECRET=LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z
 
 # Railway URL (добавится автоматически после деплоя)
-RAILWAY_STATIC_URL=https://formulaprivate-production.up.railway.app
+RAILWAY_STATIC_URL=https://formulaprivate-productionpaymentuknow.up.railway.app
 ```
 
 ## 🔧 Настройка в Lava Top Dashboard

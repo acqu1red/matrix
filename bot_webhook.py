@@ -33,7 +33,7 @@ def test_bot():
         "message": "Бот работает!",
         "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
         "lava_shop_id": LAVA_SHOP_ID,
-        "webhook_url": f"https://formulaprivate-production.up.railway.app/webhook"
+        "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
     })
 
 # Тестовый endpoint для проверки webhook
@@ -63,7 +63,7 @@ def webhook_info():
             "status": "ok",
             "webhook_info": webhook_data,
             "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-            "expected_url": "https://formulaprivate-production.up.railway.app/webhook",
+            "expected_url": "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook",
             "current_url": webhook_data.get('result', {}).get('url', ''),
             "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0)
         })
@@ -85,7 +85,7 @@ def reset_webhook():
         time.sleep(2)
         
         # Устанавливаем новый webhook
-        webhook_url = "https://formulaprivate-production.up.railway.app/webhook"
+        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
         set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
         webhook_data = {
             "url": webhook_url,
@@ -492,7 +492,7 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
         f"Бот автоматически создаст платежную ссылку с вашими данными.",
         parse_mode='HTML',
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("💳 Оплатить", web_app=WebAppInfo(url="https://formulaprivate-production.up.railway.app/payment.html"))],
+            [InlineKeyboardButton("💳 Оплатить", web_app=WebAppInfo(url="https://formulaprivate-productionpaymentuknow.up.railway.app/payment.html"))],
             [InlineKeyboardButton("🔙 Назад", callback_data="payment_menu")]
         ])
     )
@@ -590,7 +590,7 @@ async def handle_web_app_data(update: Update, context: CallbackContext):
                 "amount": int(price * 100),  # Конвертируем в копейки
                 "currency": "RUB",
                 "order_id": f"order_{user.id}_{int(datetime.now().timestamp())}",
-                "hook_url": f"https://formulaprivate-production.up.railway.app/lava-webhook",
+                "hook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook",
                 "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
                 "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
                 "metadata": {
@@ -784,7 +784,7 @@ async def handle_web_app_data_from_text(update: Update, context: CallbackContext
             "amount": int(price * 100),  # Конвертируем в копейки
             "currency": "RUB",
             "order_id": f"order_{user.id}_{int(datetime.now().timestamp())}",
-            "hook_url": f"https://formulaprivate-production.up.railway.app/lava-webhook",
+                            "hook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook",
             "success_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
             "fail_url": "https://t.me/+6SQb4RwwAmZlMWQ6",
             "metadata": {
