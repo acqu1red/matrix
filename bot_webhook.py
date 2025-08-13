@@ -76,7 +76,7 @@ def reset_webhook():
             "url": webhook_url,
             "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
             "max_connections": 40,
-            "allowed_updates": ["message", "callback_query"]
+            "allowed_updates": ["message", "callback_query", "edited_message", "channel_post", "edited_channel_post", "inline_query", "chosen_inline_result", "shipping_query", "pre_checkout_query", "poll", "poll_answer", "my_chat_member", "chat_member", "chat_join_request"]
         }
         
         set_response = requests.post(set_url, json=webhook_data)
@@ -766,7 +766,7 @@ def main() -> None:
                 "url": f"{webhook_url}/webhook",
                 "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
                 "max_connections": 40,
-                "allowed_updates": ["message", "callback_query"]
+                "allowed_updates": ["message", "callback_query", "edited_message", "channel_post", "edited_channel_post", "inline_query", "chosen_inline_result", "shipping_query", "pre_checkout_query", "poll", "poll_answer", "my_chat_member", "chat_member", "chat_join_request"]
             }
             
             print(f"🔧 Webhook данные: {webhook_data}")
