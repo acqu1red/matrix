@@ -125,17 +125,18 @@ def reset_webhook():
 @app.route('/webhook', methods=['GET', 'POST'])
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
+    print("=" * 50)
+    print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
+    print("=" * 50)
+    print(f"📋 Headers: {dict(request.headers)}")
+    print(f"📋 Method: {request.method}")
+    print(f"📋 URL: {request.url}")
+    print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
+    print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
+    print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
+    print(f"📋 Raw data: {request.get_data()}")
+    
     try:
-        print("=" * 50)
-        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
-        print("=" * 50)
-        print(f"📋 Headers: {dict(request.headers)}")
-        print(f"📋 Method: {request.method}")
-        print(f"📋 URL: {request.url}")
-        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
-        print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
-        print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
-        print(f"📋 Raw data: {request.get_data()}")
         
         # Обрабатываем GET запросы (проверка доступности)
         if request.method == 'GET':
@@ -211,6 +212,10 @@ def telegram_webhook():
         print(f"📋 Traceback: {traceback.format_exc()}")
         logging.error(f"Ошибка обработки webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        print("=" * 50)
+        print("🏁 ЗАВЕРШЕНА ОБРАБОТКА WEBHOOK")
+        print("=" * 50)
 
 # Webhook endpoint для Lava Top
 @app.route('/lava-webhook', methods=['GET', 'POST'])
