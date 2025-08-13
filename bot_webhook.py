@@ -155,7 +155,7 @@ def telegram_webhook():
             print("🔄 Обрабатываем данные через асинхронные обработчики...")
             try:
                 # Создаем контекст
-                context = CallbackContext(application)
+                context = CallbackContext(app.telegram_app)
                 
                 # Обрабатываем через асинхронные обработчики
                 import asyncio
