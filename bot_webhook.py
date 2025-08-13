@@ -48,6 +48,24 @@ def test_webhook():
         print(f"❌ Ошибка тестового webhook: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Endpoint для проверки webhook info
+@app.route('/webhook-info', methods=['GET'])
+def webhook_info():
+    """Показывает информацию о текущем webhook"""
+    try:
+        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        response = requests.get(webhook_url)
+        webhook_data = response.json()
+        
+        return jsonify({
+            "status": "ok",
+            "webhook_info": webhook_data,
+            "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
+            "expected_url": "https://formulaprivate-production.up.railway.app/webhook"
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Webhook endpoint для Telegram
 @app.route('/webhook', methods=['POST'])
 def telegram_webhook():
@@ -59,10 +77,21 @@ def telegram_webhook():
         print(f"📋 Headers: {dict(request.headers)}")
         print(f"📋 Method: {request.method}")
         print(f"📋 URL: {request.url}")
+        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
+        print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
         
         # Получаем данные от Telegram
         data = request.get_json()
         print(f"📋 Данные от Telegram: {data}")
+        
+        # Проверяем, что это действительно от Telegram
+        if not data:
+            print("❌ Данные пустые или не JSON")
+            return jsonify({"status": "error", "message": "No data"}), 400
+        
+        if 'update_id' not in data:
+            print("❌ Это не Telegram webhook (нет update_id)")
+            return jsonify({"status": "error", "message": "Not a Telegram webhook"}), 400
         
         # Передаем данные в обработчик бота
         if hasattr(app, 'telegram_app'):
