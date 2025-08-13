@@ -1,631 +1,818 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters
-from queue import Queue
-from telegram.ext import ApplicationBuilder
-import pytz
-from telegram.ext import CallbackQueryHandler, ChatMemberHandler
-from supabase import create_client, Client
-import asyncio
-import aiohttp
+#!/usr/bin/env python3
+"""
+Telegram Bot with Lava API integration for Railway deployment
+"""
+
+import os
+import hmac
+import hashlib
 import json
-from channel_manager import channel_manager
+import time
+import base64
+import asyncio
+import requests
+import logging
+from datetime import datetime, timedelta
+from urllib.parse import urlencode
+from flask import Flask, request, jsonify
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters
+from supabase import create_client, Client
 
-MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Lava Top API configuration
-LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
-LAVA_TOP_BASE_URL = "https://api.lava.top"
-LAVA_TOP_PRODUCT_URL = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
+# Конфигурация
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
+ADMIN_IDS = [708907063, 7365307696]
 
-# Supabase configuration
-SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
+# Supabase конфигурация
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.co')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Список username администраторов
-ADMIN_USERNAMES = [
-    "acqu1red",
-    "cashm3thod",
-]
+# === LAVA API CONFIG ===
+LAVA_API_BASE = os.getenv("LAVA_API_BASE", "https://api.lava.ru/business")
+LAVA_API_KEY = os.getenv("LAVA_API_KEY", "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav")
+LAVA_SHOP_ID = os.getenv("LAVA_SHOP_ID", "1b9f3e05-86aa-4102-9648-268f0f586bb1")
+LAVA_SUCCESS_URL = os.getenv("LAVA_SUCCESS_URL", "https://t.me/FormulaPrivateBot")
+LAVA_FAIL_URL = os.getenv("LAVA_FAIL_URL", "https://t.me/FormulaPrivateBot")
 
-# Список ID администраторов (для проверки прав)
-ADMIN_IDS = [
-    708907063,  # Замените на реальные ID администраторов
-    7365307696,
-]
+# Хук, на который LAVA пришлет статус:
+PUBLIC_BASE_URL = os.getenv("RAILWAY_STATIC_URL") or os.getenv("PUBLIC_BASE_URL") or "https://formulaprivate-productionpaymentuknow.up.railway.app"
+HOOK_URL = f"{PUBLIC_BASE_URL}/lava-webhook" if PUBLIC_BASE_URL else ""
 
-# ---------- Admin notification functions ----------
+# === CHANNEL/INVITES ===
+TARGET_CHANNEL_ID = int(os.getenv("TARGET_CHANNEL_ID", "-1002717275103"))  # например: -1001234567890
+STATIC_INVITE_LINK = os.getenv("STATIC_INVITE_LINK")  # если не задано, создаём одноразовую ссылку
 
-async def save_message_to_db(user, message):
-    """Сохраняет сообщение в базе данных"""
+# Создаем Flask приложение
+app = Flask(__name__)
+
+# Для подписи запросов (часть интеграций LAVA требует HMAC; оставляем гибко)
+def _lava_signature(body: str, secret: str) -> str:
+    return hmac.new(secret.encode("utf-8"), body.encode("utf-8"), hashlib.sha256).hexdigest()
+
+def _lava_headers(body: str) -> dict:
+    # Пробуем без Bearer токена, только с подписью
+    return {
+        "Content-Type": "application/json",
+        "X-Signature": _lava_signature(body, LAVA_API_KEY),
+    }
+
+def lava_post(path: str, payload: dict) -> dict:
+    url = f"{LAVA_API_BASE.rstrip('/')}/{path.lstrip('/')}"
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    headers = _lava_headers(body)
+    print(f"🔧 Lava API POST: {url}")
+    print(f"📋 Headers: {headers}")
+    print(f"📋 Payload: {body}")
+    resp = requests.post(url, data=body.encode("utf-8"), headers=headers, timeout=20)
+    print(f"📡 Response: {resp.status_code} - {resp.text}")
     try:
-        # Создаем или получаем пользователя
-        user_data = {
-            'telegram_id': user.id,
-            'username': user.username,
-            'first_name': user.first_name,
-            'last_name': user.last_name
+        data = resp.json()
+    except Exception:
+        raise RuntimeError(f"Lava API non-JSON response: {resp.status_code} {resp.text[:200]}")
+    if resp.status_code >= 300:
+        raise RuntimeError(f"Lava API error {resp.status_code}: {data}")
+    return data
+
+def lava_get(path: str, params: dict) -> dict:
+    url = f"{LAVA_API_BASE.rstrip('/')}/{path.lstrip('/')}"
+    headers = {"Content-Type": "application/json"}
+    print(f"🔧 Lava API GET: {url}")
+    print(f"📋 Params: {params}")
+    resp = requests.get(url, params=params, headers=headers, timeout=20)
+    print(f"📡 Response: {resp.status_code} - {resp.text}")
+    try:
+        data = resp.json()
+    except Exception:
+        raise RuntimeError(f"Lava API non-JSON response: {resp.status_code} {resp.text[:200]}")
+    if resp.status_code >= 300:
+        raise RuntimeError(f"Lava API error {resp.status_code}: {data}")
+    return data
+
+def create_lava_invoice_api(user_id: int, chat_id: int, email: str, tariff: str, price_rub: int) -> str:
+    """
+    Создаёт прямую ссылку на оплату Lava Top (возвращаемся к ручным ссылкам)
+    """
+    if not LAVA_SHOP_ID:
+        raise RuntimeError("LAVA_SHOP_ID is not set")
+
+    # Уникальный orderId: содержит и user_id, и chat_id для обратной связи
+    ts = int(time.time())
+    order_id = f"order_{user_id}_{chat_id}_{ts}"
+
+    # Создаем прямую ссылку на оплату
+    payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB&amount={int(price_rub * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'chat_id': str(chat_id), 'email': email, 'tariff': tariff})}"
+    
+    print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
+    return payment_url
+
+def create_subscription(user_id, email, tariff, amount, currency, order_id, metadata):
+    """Создает подписку в базе данных"""
+    try:
+        # Определяем длительность подписки
+        tariff_durations = {
+            '1month': 30,
+            '1_month': 30,
+            '3months': 90,
+            '6months': 180,
+            '12months': 365
         }
         
-        # Вставляем или обновляем пользователя
-        result = supabase.table('users').upsert(user_data).execute()
+        duration_days = tariff_durations.get(tariff, 30)
+        end_date = datetime.utcnow() + timedelta(days=duration_days)
         
-        # Получаем или создаем диалог
-        conversation_result = supabase.table('conversations').select('id').eq('user_id', user.id).execute()
-        
-        if conversation_result.data:
-            conversation_id = conversation_result.data[0]['id']
-        else:
-            # Создаем новый диалог
-            conversation_data = {
-                'user_id': user.id,
-                'status': 'open'
-            }
-            conversation_result = supabase.table('conversations').insert(conversation_data).execute()
-            conversation_id = conversation_result.data[0]['id']
-        
-        # Определяем тип сообщения
-        message_type = 'text'
-        content = message.text or ''
-        
-        if message.photo:
-            message_type = 'image'
-            content = message.caption or '[Фото]'
-        elif message.video:
-            message_type = 'video'
-            content = message.caption or '[Видео]'
-        elif message.voice:
-            message_type = 'voice'
-            content = '[Голосовое сообщение]'
-        elif message.document:
-            message_type = 'file'
-            content = f'[Документ] {message.document.file_name or "Без названия"}'
-        elif message.sticker:
-            message_type = 'sticker'
-            content = f'[Стикер] {message.sticker.emoji or "Без эмодзи"}'
-        elif message.audio:
-            message_type = 'audio'
-            content = f'[Аудио] {message.audio.title or "Без названия"}'
-        
-        # Сохраняем сообщение
-        message_data = {
-            'conversation_id': conversation_id,
-            'sender_id': user.id,
-            'content': content,
-            'message_type': message_type
+        subscription_data = {
+            'user_id': str(user_id),
+            'email': email,
+            'tariff': tariff,
+            'amount': amount,
+            'currency': currency,
+            'order_id': order_id,
+            'start_date': datetime.utcnow().isoformat(),
+            'end_date': end_date.isoformat(),
+            'status': 'active',
+            'metadata': metadata
         }
         
-        supabase.table('messages').insert(message_data).execute()
+        print(f"📊 Создаем подписку: {subscription_data}")
+        
+        result = supabase.table('subscriptions').insert(subscription_data).execute()
+        print(f"✅ Подписка создана: {result}")
+        
+        return result.data[0]['id'] if result.data else 'unknown'
         
     except Exception as e:
-        print(f"Ошибка сохранения в БД: {e}")
-        raise e
+        print(f"❌ Ошибка создания подписки: {e}")
+        return 'error'
 
+def parse_user_from_order(order_id: str) -> tuple[int, int]:
+    """
+    Ждём формат: order_<user_id>_<chat_id>_<timestamp>
+    Возвращаем (user_id, chat_id) либо (0, 0).
+    """
+    try:
+        parts = order_id.split("_")
+        return int(parts[1]), int(parts[2])
+    except Exception:
+        return 0, 0
 
+async def _send_invite_on_success(application: Application, user_id: int, chat_id: int) -> None:
+    """
+    Если задан STATIC_INVITE_LINK — шлём её.
+    Иначе создаём одноразовую ссылку в закрытый канал (бот должен быть админом канала!).
+    """
+    invite_link = STATIC_INVITE_LINK
+    if not invite_link:
+        # Создаём одноразовую ссылку на 1 использование, живёт 1 день.
+        expire_date = int(time.time()) + 86400
+        res = await application.bot.create_chat_invite_link(
+            chat_id=TARGET_CHANNEL_ID,
+            name=f"paid_{user_id}_{int(time.time())}",
+            expire_date=expire_date,
+            member_limit=1
+        )
+        invite_link = res.invite_link
 
-async def handle_all_messages(update: Update, context: CallbackContext) -> None:
-    """Обрабатывает все сообщения - уведомления администраторов и ответы от них"""
-    print("🎯 Функция handle_all_messages вызвана!")
-    
-    # Проверяем, является ли это данными от miniapp
-    if update.message and update.message.web_app_data:
-        await handle_webapp_data(update, context)
-        return
-    user = update.effective_user
-    message = update.effective_message
-    
-    # Определяем тип сообщения для отладки
-    message_type = "текст"
-    if message.photo:
-        message_type = "фото"
-    elif message.video:
-        message_type = "видео"
-    elif message.voice:
-        message_type = "голосовое"
-    elif message.document:
-        message_type = "документ"
-    elif message.sticker:
-        message_type = "стикер"
-    elif message.audio:
-        message_type = "аудио"
-    
-    print(f"🔍 Получено {message_type} сообщение от пользователя {user.id} ({user.first_name}): {message.text or '[медиа]'}")
-    
-    # Если это администратор и он в режиме ответа
-    if (user.id in ADMIN_IDS or (user.username and user.username in ADMIN_USERNAMES)) and context.user_data.get('waiting_for_reply') and context.user_data.get('replying_to'):
-        print(f"👨‍💼 Администратор {user.id} отправляет ответ пользователю {context.user_data['replying_to']}")
-        target_user_id = context.user_data['replying_to']
+    text = (
+        "✅ Оплата успешно получена!\n\n"
+        f"Вот ваша ссылка-приглашение в закрытый канал:\n{invite_link}\n\n"
+        "Если ссылка не открывается, напишите сюда — мы поможем."
+    )
+    try:
+        await application.bot.send_message(chat_id=chat_id or user_id, text=text)
+    except Exception as e:
+        print(f"[lava-webhook] Failed to send invite to {chat_id or user_id}: {e}")
+
+# Flask endpoints
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({"status": "ok", "timestamp": datetime.now().isoformat()})
+
+@app.route('/webhook-info', methods=['GET'])
+def webhook_info():
+    """Показывает информацию о текущем webhook"""
+    try:
+        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        response = requests.get(webhook_url)
+        webhook_data = response.json()
         
+        current_url = webhook_data.get('result', {}).get('url', '')
+        expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        
+        # Автоматически исправляем webhook, если он неправильный
+        needs_fix = current_url != expected_url
+        auto_fixed = False
+        
+        if needs_fix:
+            print(f"⚠️ Webhook требует исправления: {current_url} != {expected_url}")
+            try:
+                # Удаляем старый webhook
+                delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+                delete_response = requests.post(delete_url)
+                
+                import time
+                time.sleep(2)
+                
+                # Устанавливаем новый webhook
+                set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+                webhook_data_setup = {
+                    "url": expected_url,
+                    "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                    "max_connections": 40,
+                    "allowed_updates": ["message", "callback_query"]
+                }
+                
+                set_response = requests.post(set_url, json=webhook_data_setup)
+                print(f"🔧 Автоматическое исправление webhook: {set_response.status_code}")
+                
+                # Проверяем результат
+                response = requests.get(webhook_url)
+                webhook_data = response.json()
+                current_url = webhook_data.get('result', {}).get('url', '')
+                auto_fixed = current_url == expected_url
+                
+            except Exception as e:
+                print(f"❌ Ошибка автоматического исправления webhook: {e}")
+        
+        return jsonify({
+            "status": "ok",
+            "webhook_info": webhook_data,
+            "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
+            "expected_url": expected_url,
+            "current_url": current_url,
+            "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0),
+            "needs_fix": needs_fix,
+            "auto_fixed": auto_fixed,
+            "hook_url": HOOK_URL
+        })
+    except Exception as e:
+        print(f"❌ Ошибка получения webhook info: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/reset-webhook', methods=['GET', 'POST'])
+def reset_webhook():
+    """Принудительно переустанавливает webhook"""
+    try:
+        # Удаляем старый webhook
+        delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+        delete_response = requests.post(delete_url)
+        print(f"🗑️ Удаление webhook: {delete_response.status_code} - {delete_response.text}")
+        
+        import time
+        time.sleep(2)
+        
+        # Устанавливаем новый webhook
+        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+        webhook_data = {
+            "url": webhook_url,
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+            "max_connections": 40,
+            "allowed_updates": ["message", "callback_query"]
+        }
+        
+        set_response = requests.post(set_url, json=webhook_data)
+        print(f"🔧 Установка webhook: {set_response.status_code} - {set_response.text}")
+        
+        return jsonify({
+            "status": "ok",
+            "delete_response": delete_response.json(),
+            "set_response": set_response.json(),
+            "webhook_url": webhook_url
+        })
+    except Exception as e:
+        print(f"❌ Ошибка сброса webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/webhook', methods=['GET', 'POST'])
+def telegram_webhook():
+    """Обрабатывает webhook от Telegram"""
+    try:
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
+        print("=" * 50)
+        print(f"📋 Method: {request.method}")
+        print(f"📋 URL: {request.url}")
+        print(f"📋 Headers: {dict(request.headers)}")
+        
+        # Обрабатываем GET запросы (проверка доступности)
+        if request.method == 'GET':
+            print("✅ GET запрос - проверка доступности webhook")
+            return jsonify({
+                "status": "ok", 
+                "message": "Telegram webhook endpoint доступен",
+                "method": "GET",
+                "timestamp": datetime.now().isoformat()
+            })
+        
+        # Получаем данные от Telegram (только для POST)
+        data = request.get_json()
+        print(f"📋 Данные от Telegram: {data}")
+        print(f"📋 Raw data: {request.get_data()}")
+        
+        # Проверяем, что это действительно от Telegram
+        if not data:
+            print("❌ Данные пустые или не JSON")
+            return jsonify({"status": "error", "message": "No data"}), 400
+        
+        if 'update_id' not in data:
+            print("❌ Это не Telegram webhook (нет update_id)")
+            return jsonify({"status": "error", "message": "Not a Telegram webhook"}), 400
+        
+        # Передаем данные в обработчик бота
+        if hasattr(app, 'telegram_app'):
+            print("✅ Передаем данные в telegram_app")
+            
+            # Создаем Update объект
+            update = Update.de_json(data, app.telegram_app.bot)
+            print(f"📋 Update создан: {update}")
+            print(f"📋 Update ID: {update.update_id}")
+            
+            if update.message:
+                print(f"📋 Сообщение от пользователя: {update.message.from_user.id}")
+            elif update.callback_query:
+                print(f"📋 От пользователя: {update.callback_query.from_user.id}")
+            
+            # Запускаем обработку в отдельном потоке
+            import threading
+            def process_update_async():
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    print("🔄 Запускаем process_update...")
+                    loop.run_until_complete(app.telegram_app.process_update(update))
+                    print("✅ Данные обработаны асинхронно")
+                except Exception as e:
+                    print(f"❌ Ошибка асинхронной обработки: {e}")
+                    import traceback
+                    print(f"📋 Traceback: {traceback.format_exc()}")
+                finally:
+                    loop.close()
+            
+            # Запускаем в отдельном потоке
+            thread = threading.Thread(target=process_update_async)
+            thread.start()
+            print("✅ Поток обработки запущен")
+            
+        else:
+            print("❌ telegram_app не найден")
+        
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        print(f"❌ Ошибка обработки webhook: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        logging.error(f"Ошибка обработки webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/create-payment', methods=['POST'])
+def create_payment_api():
+    """
+    Принимает JSON из MiniApp:
+    {
+      "user_id": <int>,      // Telegram user id
+      "chat_id": <int>,      // chat.id пользователя (если есть)
+      "email": "mail@...",
+      "tariff": "basic",
+      "price": 500
+    }
+    Возвращает { ok: true, payment_url: "..." }
+    """
+    try:
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН ЗАПРОС НА СОЗДАНИЕ ПЛАТЕЖА!")
+        print("=" * 50)
+        
+        data = request.get_json(force=True, silent=False)
+        print(f"📋 Полученные данные: {data}")
+        
+            if not data:
+            return jsonify({"ok": False, "error": "Invalid JSON"}), 400
+
+        user_id = int(data.get("user_id") or 0)
+        chat_id = int(data.get("chat_id") or user_id)  # на всякий случай используем user_id, если chat_id не прислали
+        email = (data.get("email") or "").strip()
+        tariff = (data.get("tariff") or "").strip()
+        price = int(data.get("price") or 0)
+
+        if not user_id or not price:
+            return jsonify({"ok": False, "error": "user_id and price are required"}), 400
+
+        print(f"📋 Создаем инвойс: user_id={user_id}, chat_id={chat_id}, email={email}, tariff={tariff}, price={price}")
+
         try:
-            # Отправляем ответ пользователю
-            await context.bot.send_message(
-                chat_id=target_user_id,
-                text=f"💬 <b>Ответ от администратора:</b>\n\n{message.text}",
-                parse_mode='HTML'
-            )
+            pay_url = create_lava_invoice_api(user_id, chat_id, email, tariff, price)
+            return jsonify({"ok": True, "payment_url": pay_url})
+                except Exception as e:
+            print(f"[create-payment] ERROR: {e}")
+            return jsonify({"ok": False, "error": str(e)}), 500
             
-            # Подтверждаем отправку администратору
-            await update.effective_message.reply_text(
-                f"✅ <b>Ответ отправлен пользователю {target_user_id}</b>",
-                parse_mode='HTML'
-            )
+    except Exception as e:
+        print(f"❌ Ошибка создания платежа: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/lava-webhook", methods=["GET", "POST"])
+def lava_webhook():
+    """
+    Приём вебхука от LAVA. Делаем так:
+      1) читаем событие (invoiceId/orderId/status)
+      2) (опционально) проверяем подпись заголовка X-Signature
+      3) запрашиваем статус инвойса по API (защита от подделки)
+      4) при success — шлём инвайт пользователю
+      5) возвращаем 200 OK
+    """
+    try:
+        print("=" * 50)
+        print("💰 ПОЛУЧЕН WEBHOOK ОТ LAVA TOP!")
+        print("=" * 50)
+        
+        payload = request.get_json(force=True, silent=False)
+        print(f"[lava-webhook] incoming: {payload}")
+
+        # 1) Достаём идентификаторы
+        invoice_id = (payload.get("invoiceId") or payload.get("id") or "").strip()
+        order_id = (payload.get("orderId") or "").strip()
+        status = (payload.get("status") or "").lower()
+
+        # 2) (опциональная) проверка подписи входящего вебхука:
+        # Пока отключаем проверку подписи, так как она не требуется
+        print("[lava-webhook] signature check disabled")
+
+        # 3) Подтверждаем статус по API (лучше, чем верить вебхуку на слово)
+        try:
+            if invoice_id:
+                status_resp = lava_get("/invoice/status", {"invoiceId": invoice_id})
+            elif order_id:
+                status_resp = lava_get("/invoice/status", {"orderId": order_id})
+            else:
+                return "missing invoiceId/orderId", 200  # не ругаемся, просто игнор
+
+            print(f"[lava-webhook] status resp: {status_resp}")
+            state = (status_resp.get("status") or status_resp.get("data", {}).get("status") or "").lower()
+            oid = status_resp.get("orderId") or status_resp.get("data", {}).get("orderId") or order_id
+
+            if state in ("success", "paid", "completed"):
+                user_id, chat_id = parse_user_from_order(oid or "")
+                print(f"✅ Успешный платеж: user_id={user_id}, chat_id={chat_id}")
+                
+                # Если в твоей интеграции metadata возвращается в статусе — можно взять chat_id оттуда
+                try:
+                    app_obj = app  # Flask app
+                    application: Application = app_obj.config.get("telegram_application")
+                    if application:
+                        # запуск в фоне
+                        application.create_task(_send_invite_on_success(application, user_id, chat_id))
+                except Exception as e:
+                    print(f"[lava-webhook] schedule invite task error: {e}")
+
+        except Exception as e:
+            print(f"[lava-webhook] status check error: {e}")
+
+        return "ok", 200
+        
+    except Exception as e:
+        print(f"❌ Ошибка обработки webhook Lava Top: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Telegram Bot обработчики
+async def start(update: Update, context: CallbackContext):
+    """Обработчик команды /start"""
+    user = update.effective_user
+    print(f"🚀 Команда /start от пользователя {user.id}")
+    
+    welcome_text = f"""
+👋 Привет, {user.first_name}!
+
+Добро пожаловать в бот для подписки на закрытый канал.
+
+💡 <b>Что вы получите:</b>
+• Эксклюзивный контент
+• Доступ к закрытому сообществу
+• Регулярные обновления
+
+💳 <b>Стоимость:</b> 50₽ в месяц
+    """
+    
+    keyboard = [
+        [InlineKeyboardButton("💳 Оплатить подписку", callback_data="payment_menu")],
+        [InlineKeyboardButton("ℹ️ Подробнее", callback_data="more_info")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(welcome_text, parse_mode='HTML', reply_markup=reply_markup)
+
+async def payment_menu(update: Update, context: CallbackContext):
+    """Показывает меню оплаты"""
+    text = """
+💳 <b>Подписка на закрытый канал:</b>
+
+• 1 месяц - 50₽
+
+Получите доступ к эксклюзивному контенту и сообществу.
+    """
+    
+    keyboard = [
+        [InlineKeyboardButton("💳 Оплатить через Mini Apps", web_app={"url": "https://acqu1red.github.io/formulaprivate/"})],
+        [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    if update.callback_query:
+        await update.callback_query.edit_message_text(text, parse_mode='HTML', reply_markup=reply_markup)
+    else:
+        await update.message.reply_text(text, parse_mode='HTML', reply_markup=reply_markup)
+
+async def more_info(update: Update, context: CallbackContext):
+    """Показывает подробную информацию"""
+    info_text = """
+ℹ️ <b>Подробная информация</b>
+
+📋 <b>Что включено в подписку:</b>
+• Доступ к закрытому Telegram каналу
+• Эксклюзивный контент
+• Общение с единомышленниками
+• Регулярные обновления
+
+⏱️ <b>Длительность:</b> 1 месяц
+💰 <b>Стоимость:</b> 50₽
+
+🔒 <b>Безопасность:</b>
+• Безопасная оплата через Lava Top
+• Автоматическое продление
+• Возможность отмены в любое время
+    """
+    
+    keyboard = [
+        [InlineKeyboardButton("💳 Оплатить", callback_data="payment_menu")],
+        [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(info_text, parse_mode='HTML', reply_markup=reply_markup)
+
+async def handle_web_app_data(update: Update, context: CallbackContext):
+    """Обрабатывает данные от Mini Apps"""
+    print("=" * 50)
+    print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!")
+    print("=" * 50)
+    
+    user = update.effective_user
+    message = update.message
+    
+    print(f"👤 Пользователь: {user.id} (@{user.username})")
+    print(f"📱 Тип сообщения: {type(message)}")
+    print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}")
+    
+    if hasattr(message, 'web_app_data') and message.web_app_data:
+        print(f"📱 web_app_data объект: {message.web_app_data}")
+        print(f"📱 web_app_data.data: {message.web_app_data.data}")
+    
+    try:
+        # Парсим данные от Mini Apps
+        web_app_data = message.web_app_data.data
+        print(f"📱 Получены данные от Mini Apps: {web_app_data}")
+        
+            # Пробуем декодировать из base64, если не получится - используем как есть
+            try:
+                decoded_data = base64.b64decode(web_app_data).decode('utf-8')
+                print(f"📱 Декодированные данные из base64: {decoded_data}")
+                payment_data = json.loads(decoded_data)
+            except Exception as decode_error:
+                # Если не base64, пробуем парсить как обычный JSON
+                print(f"📱 Ошибка декодирования base64: {decode_error}")
+                print(f"📱 Парсим как обычный JSON: {web_app_data}")
+        payment_data = json.loads(web_app_data)
             
-            # Очищаем состояние
-            context.user_data.pop('waiting_for_reply', None)
-            context.user_data.pop('replying_to', None)
+        print(f"📋 Парсированные данные: {payment_data}")
+        
+            # Обрабатываем данные
+            await process_payment_data(update, context, payment_data)
             
         except Exception as e:
-            await update.effective_message.reply_text(
-                f"❌ <b>Ошибка отправки ответа:</b> {str(e)}",
-                parse_mode='HTML'
-            )
-        return
-    
-    # Сохраняем сообщение в базе данных
-    try:
-        await save_message_to_db(user, message)
-        print(f"💾 Сообщение сохранено в БД для пользователя {user.id}")
-    except Exception as e:
-        print(f"❌ Ошибка сохранения сообщения в БД: {e}")
-    
-    # Если это обычный пользователь (не администратор), отправляем уведомление администраторам
-    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
-        print(f"📨 Отправляем уведомление администраторам о сообщении от пользователя {user.id}")
-        
-        # Формируем информацию о пользователе
-        user_info = f"👤 <b>Пользователь:</b>\n"
-        user_info += f"ID: {user.id}\n"
-        user_info += f"Имя: {user.first_name or 'Не указано'}\n"
-        user_info += f"Фамилия: {user.last_name or 'Не указана'}\n"
-        user_info += f"Username: @{user.username or 'Не указан'}\n"
-        
-        # Определяем тип сообщения
-        message_type = "Текст"
-        message_content = message.text or ""
-        
-        if message.photo:
-            message_type = "Фото"
-            message_content = f"[Фото] {message.caption or 'Без подписи'}"
-        elif message.video:
-            message_type = "Видео"
-            message_content = f"[Видео] {message.caption or 'Без подписи'}"
-        elif message.voice:
-            message_type = "Голосовое сообщение"
-            message_content = "[Голосовое сообщение]"
-        elif message.document:
-            message_type = "Документ"
-            message_content = f"[Документ] {message.document.file_name or 'Без названия'}"
-        elif message.sticker:
-            message_type = "Стикер"
-            message_content = f"[Стикер] {message.sticker.emoji or 'Без эмодзи'}"
-        elif message.audio:
-            message_type = "Аудио"
-            message_content = f"[Аудио] {message.audio.title or 'Без названия'}"
-        
-        # Формируем текст сообщения
-        message_text = f"📨 <b>Новое сообщение от пользователя!</b>\n\n{user_info}\n"
-        message_text += f"💬 <b>Тип сообщения:</b> {message_type}\n"
-        message_text += f"💬 <b>Содержание:</b>\n{message_content}\n\n"
-        message_text += f"⚠️ <b>Требуется ответ!</b>"
-        
-        # Создаем инлайн-кнопку для ответа
-        keyboard = [
-            [InlineKeyboardButton("Ответить долбаебу", callback_data=f'reply_to_{user.id}')]
-        ]
-        markup = InlineKeyboardMarkup(keyboard)
-        
-        # Отправляем уведомление всем администраторам по username
-        for admin_username in ADMIN_USERNAMES:
-            try:
-                print(f"📤 Отправляем уведомление администратору @{admin_username}")
-                await context.bot.send_message(
-                    chat_id=f"@{admin_username}",
-                    text=message_text,
-                    parse_mode='HTML',
-                    reply_markup=markup
-                )
-                print(f"✅ Уведомление успешно отправлено администратору @{admin_username}")
-            except Exception as e:
-                print(f"❌ Ошибка отправки уведомления администратору @{admin_username}: {e}")
-                # Попробуем отправить без @
-                try:
-                    print(f"📤 Пробуем отправить без @ администратору {admin_username}")
-                    await context.bot.send_message(
-                        chat_id=admin_username,
-                        text=message_text,
-                        parse_mode='HTML',
-                        reply_markup=markup
-                    )
-                    print(f"✅ Уведомление успешно отправлено администратору {admin_username}")
-                except Exception as e2:
-                    print(f"❌ Ошибка отправки уведомления администратору {admin_username}: {e2}")
+            print(f"❌ Ошибка обработки web_app_data: {e}")
+            import traceback
+            print(f"📋 Traceback: {traceback.format_exc()}")
+            await message.reply_text("❌ Ошибка обработки данных от Mini Apps")
     else:
-        print(f"👨‍💼 Сообщение от администратора {user.id} - уведомления не отправляем")
+        print("❌ web_app_data не найден или пустой")
+        await message.reply_text("❌ Данные Mini Apps не получены")
 
-async def cancel_reply(update: Update, context: CallbackContext) -> None:
-    """Отменяет режим ответа администратора"""
+async def process_payment_data(update: Update, context: CallbackContext, payment_data: dict):
+    """Обрабатывает данные платежа от Mini Apps"""
     user = update.effective_user
-    
-    # Проверяем, является ли пользователь администратором
-    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
-        return
-    
-    # Очищаем состояние
-    context.user_data.pop('waiting_for_reply', None)
-    context.user_data.pop('replying_to', None)
-    
-    await update.effective_message.reply_text(
-        "❌ <b>Режим ответа отменен</b>",
-        parse_mode='HTML'
-    )
-
-async def admin_messages(update: Update, context: CallbackContext) -> None:
-    """Показывает администратору новые сообщения от пользователей"""
-    user = update.effective_user
-    
-    # Проверяем, является ли пользователь администратором
-    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
-        await update.effective_message.reply_text(
-            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
-            parse_mode='HTML'
-        )
-        return
+    message = update.message
     
     try:
-        # Получаем последние диалоги с сообщениями
-        result = supabase.rpc('get_admin_conversations').execute()
+        print(f"📱 Обрабатываем данные платежа: {payment_data}")
         
-        if not result.data:
-            await update.effective_message.reply_text(
-                "📭 <b>Новых сообщений нет</b>",
-                parse_mode='HTML'
-            )
-            return
+        # Проверяем тип данных (пошаговая отправка)
+        step = payment_data.get('step')
+        print(f"📋 Шаг данных: {step}")
         
-        # Формируем список диалогов
-        conversations_text = "📨 <b>Последние сообщения от пользователей:</b>\n\n"
-        
-        for i, conv in enumerate(result.data[:10], 1):  # Показываем первые 10
-            user_name = conv.get('username', f'Пользователь #{conv["user_id"]}')
-            last_message = conv.get('last_message', 'Нет сообщений')[:50] + '...' if len(conv.get('last_message', '')) > 50 else conv.get('last_message', 'Нет сообщений')
-            message_count = conv.get('message_count', 0)
+        if step == 'final_data':
+            # Обрабатываем финальные данные
+            email = payment_data.get('email')
+            tariff = payment_data.get('tariff')
+            price = payment_data.get('price')
+            user_id = payment_data.get('userId')
+            print(f"🎯 Обрабатываем финальные данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
             
-            conversations_text += f"{i}. <b>{user_name}</b> (ID: {conv['user_id']})\n"
-            conversations_text += f"   💬 {last_message}\n"
-            conversations_text += f"   📊 Сообщений: {message_count}\n\n"
-        
-        # Создаем кнопки для ответа
-        keyboard = []
-        for i, conv in enumerate(result.data[:5], 1):  # Кнопки для первых 5
-            keyboard.append([InlineKeyboardButton(f"Ответить {i}", callback_data=f'admin_reply_{conv["user_id"]}')])
-        
-        keyboard.append([InlineKeyboardButton("🔄 Обновить", callback_data='admin_refresh')])
-        
-        markup = InlineKeyboardMarkup(keyboard)
-        
-        await update.effective_message.reply_text(
-            conversations_text,
-            parse_mode='HTML',
-            reply_markup=markup
-        )
-        
+            # Проверяем, что все данные есть
+            if not email or not tariff or not price:
+                print("❌ Не все данные получены:")
+                print(f"   email: {email}")
+                print(f"   tariff: {tariff}")
+                print(f"   price: {price}")
+                await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
+                return
+            
+            print("✅ Все данные получены, создаем инвойс через API...")
+            
+            # Создаем инвойс через API
+            try:
+                pay_url = create_lava_invoice_api(user.id, message.chat.id, email, tariff, price)
+                print(f"✅ Инвойс создан успешно: {pay_url}")
+                    
+                    # Отправляем сообщение с кнопкой оплаты
+                keyboard = [[InlineKeyboardButton("💳 Оплатить", url=pay_url)]]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    
+                    await message.reply_text(
+                        f"💳 <b>Оплата подписки</b>\n\n"
+                        f"✅ Ваши данные получены:\n"
+                        f"📧 Email: {email}\n"
+                        f"💳 Тариф: {tariff}\n"
+                        f"💰 Сумма: {price}₽\n\n"
+                        f"Нажмите кнопку ниже для перехода к оплате:",
+                        parse_mode='HTML',
+                        reply_markup=reply_markup
+                    )
+                    print("✅ Сообщение с кнопкой оплаты отправлено")
+                    return
     except Exception as e:
-        print(f"Ошибка получения сообщений: {e}")
-        await update.effective_message.reply_text(
-            f"❌ <b>Ошибка получения сообщений:</b> {str(e)}",
-            parse_mode='HTML'
-        )
+                print(f"❌ Ошибка создания инвойса через API: {e}")
+                await message.reply_text(f"❌ Ошибка создания платежа: {e}")
+            return
+        else:
+            print(f"❌ Неизвестный шаг: {step}")
+            await message.reply_text("❌ Неизвестный тип данных")
+                return
+            
+    except Exception as e:
+        print(f"❌ Ошибка обработки данных платежа: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        await message.reply_text("❌ Произошла ошибка при обработке данных")
 
-# ---------- Builders for messages & keyboards ----------
-
-def build_start_content():
-    text = (
-        "Добро пожаловать в шлюз в закрытого канала <b>ФОРМУЛА</b>, где знания не просто ценные, жизненно необходимые.\n\n"
-        "<b>💳 Подписка - ежемесячная 1500₽ или ~15$</b>, оплата принимается в любой валюте и крипте.\n"
-        "<b>⬇️ Ниже — кнопка. Жмешь — и проходишь туда, где люди не ноют, а ебут этот мир в обе щеки.</b>"
-    )
-    keyboard = [
-        [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
-        [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
-        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-def build_payment_content():
-    text = (
-        "💵 Стоимость подписки на Базу\n"
-        "1 месяц 1500 рублей\n"
-        "6 месяцев 8000 рублей\n"
-        "12 месяцев 10 000 рублей\n\n"
-        "*цена в долларах/евро - конвертируется по нынешнему курсу\n"
-        "*оплачивай любой картой в долларах/евро/рублях, бот сконвертирует сам\n\n"
-        "Оплатить и получить доступ\n👇👇👇"
-    )
-    keyboard = [
-        [InlineKeyboardButton("1 месяц", callback_data='pay_1_month')],
-        [InlineKeyboardButton("6 месяцев", callback_data='pay_6_months')],
-        [InlineKeyboardButton("12 месяцев", callback_data='pay_12_months')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='back')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-def build_more_info_content():
-    text = (
-        "ФОРМУЛА — это золотой рюкзак знаний, с которым ты можешь вылезти из любой жопы.\n"
-        "Тут не просто \"мотивация\" и \"развитие\", а рабочие схемы, которые ты не найдёшь даже если будешь копать ебучий Даркнет.\n"
-        "🧠 Подкасты с таймкодами — от ПРОФАЙЛИНГА до манипуляций баб, от ПСИХОТИПОВ до коммуникации на уровне спецслужб\n"
-        "💉 Органический БИОХАКИНГ — почему тебе плохо и как через неделю почувствовать себя богом\n"
-        "💸 Уроки по ФРОДУ, где из нуля делается $5000+ в месяц, если не еблан\n"
-        "🧱 Как выстроить дисциплину, отшить самобичевание и наконец стать машиной, а не мямлей\n"
-        "📈 Авторские стратегии по трейдингу — от $500/мес на автопилоте\n"
-        "⚡ Скальпинг и биржи — как хитрить систему, не теряя бабки на комиссиях\n"
-        "🎥 Стримы каждые 2 недели, где разбираю вопросы подписчиков: здоровье, деньги, психика, мышление\n\n"
-        "И это лишь малая часть того, что тебя ожидает в Формуле.\n"
-        "Это не просто канал. Это сила, которая перестраивает твое мышление под нового тебя.\n"
-        "Вокруг тебя — миллион способов сделать бабки, использовать людей и не пахать, пока другие пашут.\n"
-        "Ты будешь считывать людей с его профиля в мессенджере, зарабатывать из воздуха и нести себя как король, потому что знаешь больше, чем они когда-либо поймут.\n\n"
-        "Кнопка внизу ⬇️. Там не просто инфа. Там выход из стада.\n"
-        "Решай."
-    )
-    keyboard = [
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=MINIAPP_URL))],
-        [InlineKeyboardButton("🔙 Назад", callback_data='back')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-def build_checkout_content(duration_label: str):
-    text = (
-        f"🦍 ЗАКРЫТЫЙ КАНАЛ \"ОСНОВА\" на {duration_label}\n\n"
-        "Выберите удобный вид оплаты:\n"
-        "*если вы из Украины, включите vpn\n"
-        "*при оплате картой — оформляется автосписание каждые 30 дней\n"
-        "*далее — вы сможете управлять подпиской в Меню бота\n"
-        "*оплата криптой доступна на тарифах 6/12 мес"
-    )
-    keyboard = [
-        [InlineKeyboardButton("💳 Карта (любая валюта)", callback_data='noop')],
-        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
-        [InlineKeyboardButton("📄 Договор оферты", callback_data='noop')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='payment')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-# ---------- Command handlers (send new messages) ----------
-
-# Define the start command handler
-async def start(update: Update, context: CallbackContext) -> None:
-    text, markup = build_start_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
-
-
-# Define the payment command handler
-async def payment(update: Update, context: CallbackContext) -> None:
-    text, markup = build_payment_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
-
-
-# Define the more_info command handler
-async def more_info(update: Update, context: CallbackContext) -> None:
-    text, markup = build_more_info_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
-
-
-# ---------- Callback query handler (edits existing message) ----------
-
-async def button(update: Update, context: CallbackContext) -> None:
+async def button(update: Update, context: CallbackContext):
+    """Обработчик нажатий на кнопки"""
     query = update.callback_query
     await query.answer()
-    data = query.data
+    
+    if query.data == "payment_menu":
+        await payment_menu(update, context)
+    elif query.data == "more_info":
+        await more_info(update, context)
+    elif query.data == "back_to_start":
+        await start(update, context)
 
-    if data == 'more_info':
-        text, markup = build_more_info_content()
-        await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
-    elif data == 'back':
-        text, markup = build_start_content()
-        await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
-    elif data.startswith('reply_to_'):
-        # Обработка кнопки "Ответить долбаебу"
-        user_id = data.split('_')[2]  # Получаем ID пользователя
-        await handle_admin_reply(update, context, user_id)
-    elif data.startswith('admin_reply_'):
-        # Обработка кнопки "Ответить" из админ-панели
-        user_id = data.split('_')[2]  # Получаем ID пользователя
-        await handle_admin_reply(update, context, user_id)
-    elif data == 'admin_refresh':
-        # Обновление списка сообщений
-        await admin_messages(update, context)
-    else:
-        return
-
-async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
-    """Создает платеж в Lava Top и возвращает URL для оплаты"""
+def main() -> None:
+    """Основная функция запуска бота"""
+    print("🚀 Запуск бота с Lava API...")
+    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    print(f"🔑 LAVA_API_KEY: {LAVA_API_KEY[:20]}...")
+    print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
+    print(f"🔑 HOOK_URL: {HOOK_URL}")
+    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
+    
+    # Создаем приложение
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    app.telegram_app = application # Привязываем приложение к Flask
+    app.config["telegram_application"] = application # Для webhook
+    
+    print("📝 Регистрация обработчиков...")
+    
+    # Обработчик для web_app_data должен быть первым
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+    
+    # Регистрируем обработчики команд
+    application.add_handler(CommandHandler("start", start))
+    
+    # Регистрируем обработчики кнопок и сообщений
+    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, lambda u, c: None))
+    
+    print("✅ Обработчики зарегистрированы")
+    
+    # Настраиваем Mini Apps для бота
     try:
-        # Конвертируем цену из рублей в евро (примерный курс)
-        rub_to_eur_rate = 0.009  # 1 RUB ≈ 0.009 EUR
-        price_rub = payment_data.get('price', 1500)
-        price_eur = round(price_rub * rub_to_eur_rate, 2)
+        print("🔧 Настройка Mini Apps...")
+        # Устанавливаем команды для бота
+        commands = [
+            ("start", "Запустить бота")
+        ]
         
-        # Формируем данные для создания платежа
-        payment_request = {
-            "amount": price_rub,  # Используем цену в рублях
-            "currency": "RUB",    # Изменяем валюту на RUB
-            "order_id": f"formula_{user_id}_{int(asyncio.get_event_loop().time())}",
-            "hook_url": "https://your-webhook-url.com/lava-webhook",  # Замените на ваш webhook
-            "success_url": "https://t.me/acqu1red",
-            "fail_url": "https://t.me/acqu1red",
-            "metadata": {
-                "user_id": user_id,
-                "tariff": payment_data.get('tariff'),
-                "email": payment_data.get('email'),
-                "bank": payment_data.get('bank'),
-                "product": "Формула Успеха"
-            }
+        set_commands_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setMyCommands"
+        commands_data = {"commands": [{"command": cmd[0], "description": cmd[1]} for cmd in commands]}
+        
+        response = requests.post(set_commands_url, json=commands_data)
+        if response.status_code == 200:
+            print("✅ Команды бота настроены")
+        else:
+            print(f"⚠️ Ошибка настройки команд: {response.text}")
+            
+    except Exception as e:
+        print(f"⚠️ Ошибка настройки Mini Apps: {e}")
+    
+    # Настраиваем webhook URL для Railway
+    webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
+    if webhook_url:
+        # Убеждаемся, что URL начинается с https://
+        if not webhook_url.startswith('http'):
+            webhook_url = f"https://{webhook_url}"
+        
+        print(f"🌐 Настройка webhook: {webhook_url}/webhook")
+        # Устанавливаем webhook URL через requests (синхронно)
+        webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
+        webhook_data = {
+            "url": f"{webhook_url}/webhook",
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
         }
         
-        # Отправляем запрос к Lava Top API
-        async with aiohttp.ClientSession() as session:
-            headers = {
-                "Authorization": f"Bearer {LAVA_TOP_API_KEY}",
-                "Content-Type": "application/json"
+        print(f"🔧 Webhook данные: {webhook_data}")
+        
+        try:
+            # Сначала удаляем старый webhook
+            delete_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+            delete_response = requests.post(delete_webhook_url)
+            print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
+            
+            # Ждем немного
+            import time
+            time.sleep(2)
+            
+            # Устанавливаем новый webhook с дополнительными параметрами
+            webhook_data_with_params = {
+                "url": f"{webhook_url}/webhook",
+                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                "max_connections": 40,
+                "allowed_updates": ["message", "callback_query"]
             }
             
-            async with session.post(
-                f"{LAVA_TOP_BASE_URL}/business/invoice/create",
-                headers=headers,
-                json=payment_request
-            ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get('data', {}).get('url', LAVA_TOP_PRODUCT_URL)
+            print(f"🔧 Webhook данные с параметрами: {webhook_data_with_params}")
+            
+            response = requests.post(webhook_setup_url, json=webhook_data_with_params)
+            print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
+            if response.status_code == 200:
+                print("✅ Webhook успешно установлен")
+                
+                # Ждем немного
+                time.sleep(2)
+                
+                # Проверяем текущий webhook
+                get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+                webhook_info = requests.get(get_webhook_url)
+                webhook_result = webhook_info.json()
+                print(f"📋 Информация о webhook: {webhook_result}")
+                
+                # Проверяем, что URL правильный
+                if webhook_result.get('ok') and webhook_result.get('result', {}).get('url'):
+                    actual_url = webhook_result['result']['url']
+                    print(f"🔍 Фактический webhook URL: {actual_url}")
+                    expected_url = f"{webhook_url}/webhook"
+                    if actual_url != expected_url:
+                        print(f"⚠️ ВНИМАНИЕ: URL webhook не совпадает!")
+                        print(f"   Ожидалось: {expected_url}")
+                        print(f"   Фактически: {actual_url}")
+                        
+                        # Пробуем еще раз
+                        print("🔄 Пробуем установить webhook еще раз...")
+                        response2 = requests.post(webhook_setup_url, json=webhook_data_with_params)
+                        print(f"📡 Повторная установка: {response2.status_code} - {response2.text}")
+                    else:
+                        print("✅ Webhook URL установлен правильно!")
                 else:
-                    print(f"❌ Ошибка Lava Top API: {response.status}")
-                    return LAVA_TOP_PRODUCT_URL
-                    
-    except Exception as e:
-        print(f"❌ Ошибка создания платежа Lava Top: {e}")
-        return LAVA_TOP_PRODUCT_URL
-
-
-async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
-    """Обрабатывает данные от miniapp"""
-    try:
-        webapp_data = update.message.web_app_data.data
-        user = update.effective_user
-        
-        print(f"📱 Получены данные от miniapp: {webapp_data}")
-        
-        # Парсим JSON данные
-        payment_data = json.loads(webapp_data)
-        
-        # Формируем сообщение для администраторов
-        admin_message = f"💳 <b>Новая заявка на оплату!</b>\n\n"
-        admin_message += f"👤 <b>Пользователь:</b> {user.first_name}"
-        if user.username:
-            admin_message += f" (@{user.username})"
-        admin_message += f"\n🆔 <b>ID:</b> {user.id}\n"
-        admin_message += f"📧 <b>Email:</b> {payment_data.get('email', 'Не указан')}\n"
-        admin_message += f"💵 <b>Тариф:</b> {payment_data.get('tariff', 'Не указан')}\n"
-        admin_message += f"🏦 <b>Банк:</b> {payment_data.get('bank', 'Не указан')}\n"
-        admin_message += f"💰 <b>Сумма:</b> {payment_data.get('price', 'Не указана')} RUB\n"
-        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n\n"
-        admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}\n\n"
-        admin_message += "ℹ️ Пользователь перенаправлен на Lava Top для оплаты"
-        
-        # Отправляем уведомление всем администраторам
-        for admin_id in ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    chat_id=admin_id,
-                    text=admin_message,
-                    parse_mode='HTML'
-                )
-            except Exception as e:
-                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
-        
-        # Отправляем подтверждение пользователю
-        await update.message.reply_text(
-            "✅ <b>Заявка принята!</b>\n\n"
-            "Вы были перенаправлены на страницу оплаты Lava Top.\n"
-            "После успешной оплаты вы получите доступ к закрытому каналу.",
-            parse_mode='HTML'
-        )
-        
-    except Exception as e:
-        print(f"❌ Ошибка обработки данных miniapp: {e}")
-        await update.message.reply_text(
-            "❌ <b>Ошибка обработки заявки</b>\n\n"
-            "Пожалуйста, попробуйте еще раз или обратитесь в поддержку.",
-            parse_mode='HTML'
-        )
-
-
-async def check_expired_subscriptions(update: Update, context: CallbackContext) -> None:
-    """Проверяет и удаляет пользователей с истекшей подпиской"""
-    user = update.effective_user
+                    print("❌ Не удалось получить информацию о webhook")
+                    print(f"📋 Полный ответ: {webhook_result}")
+            else:
+                print(f"❌ Ошибка установки webhook: {response.text}")
+        except Exception as e:
+            print(f"❌ Ошибка установки webhook: {e}")
+            import traceback
+            print(f"📋 Traceback: {traceback.format_exc()}")
+    else:
+        print("⚠️ RAILWAY_STATIC_URL не установлен")
     
-    # Проверяем, является ли пользователь администратором
-    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
-        await update.effective_message.reply_text("У вас нет прав для выполнения этого действия!")
-        return
-    
-    try:
-        # Запускаем проверку истекших подписок
-        await channel_manager.remove_expired_users(context)
-        
-        await update.effective_message.reply_text(
-            "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
-            "Все пользователи с истекшей подпиской удалены из канала.",
-            parse_mode='HTML'
-        )
-        
-    except Exception as e:
-        print(f"Ошибка проверки истекших подписок: {e}")
-        await update.effective_message.reply_text(
-            f"❌ <b>Ошибка проверки подписок:</b> {str(e)}",
-            parse_mode='HTML'
-        )
+    print("🚀 Запуск Flask приложения...")
+    app.run(host='0.0.0.0', port=8080, debug=False)
 
-
-async def handle_admin_reply(update: Update, context: CallbackContext, user_id: str) -> None:
-    """Обрабатывает нажатие кнопки 'Ответить долбаебу' администратором"""
-    query = update.callback_query
-    admin_user = update.effective_user
-    
-    # Проверяем, является ли пользователь администратором
-    if admin_user.id not in ADMIN_IDS and (admin_user.username is None or admin_user.username not in ADMIN_USERNAMES):
-        await query.answer("У вас нет прав для выполнения этого действия!")
-        return
-    
-    # Сохраняем информацию о том, что администратор хочет ответить пользователю
-    context.user_data['replying_to'] = user_id
-    
-    # Отправляем сообщение администратору с инструкциями
-    reply_text = f"💬 <b>Ответ пользователю {user_id}</b>\n\n"
-    reply_text += "Напишите ваш ответ. Он будет отправлен пользователю.\n"
-    reply_text += "Для отмены напишите /cancel"
-    
-    await query.edit_message_text(text=reply_text, parse_mode='HTML')
-    
-    # Устанавливаем состояние ожидания ответа администратора
-    context.user_data['waiting_for_reply'] = True
-
-
-# ---------- App bootstrap ----------
-
-# Main function to start the bot
-def main() -> None:
-    print("🚀 Запуск бота...")
-    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
-    print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
-    
-    application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
-
-    print("📝 Регистрация обработчиков...")
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("payment", payment))
-    application.add_handler(CommandHandler("more_info", more_info))
-    application.add_handler(CommandHandler("cancel", cancel_reply))
-    application.add_handler(CommandHandler("messages", admin_messages))
-    application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
-    application.add_handler(CallbackQueryHandler(button))
-    
-    # Обработчик для управления каналом (принятие заявок, удаление пользователей)
-    application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
-    print("✅ Обработчик управления каналом зарегистрирован")
-    
-    # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
-    # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
-    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
-    print("✅ Обработчик всех сообщений зарегистрирован")
-
-    print("🔄 Запуск polling...")
-    application.run_polling()
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
