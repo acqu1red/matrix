@@ -432,6 +432,15 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
     
     print(f"💳 Пользователь {user.id} нажал кнопку оплаты")
     
+    # Проверяем, что WebAppInfo импортирован
+    try:
+        from telegram import WebAppInfo
+        print("✅ WebAppInfo импортирован успешно")
+    except ImportError as e:
+        print(f"❌ Ошибка импорта WebAppInfo: {e}")
+        await query.edit_message_text("❌ Ошибка настройки Mini Apps")
+        return
+    
     await query.edit_message_text(
         f"💳 <b>Оплата подписки</b>\n\n"
         f"Для оплаты используйте Mini Apps:\n"
@@ -446,15 +455,28 @@ async def handle_lava_payment(update: Update, context: CallbackContext):
             [InlineKeyboardButton("🔙 Назад", callback_data="payment_menu")]
         ])
     )
+    print("✅ Кнопка Mini Apps отправлена пользователю")
 
 async def handle_web_app_data(update: Update, context: CallbackContext):
     """Обрабатывает данные от Mini Apps"""
-    print("=" * 30)
+    print("=" * 50)
     print("🚀 ВЫЗВАНА ФУНКЦИЯ handle_web_app_data!")
-    print("=" * 30)
+    print("=" * 50)
     
     user = update.effective_user
     message = update.message
+    
+    print(f"👤 Пользователь: {user.id} (@{user.username})")
+    print(f"📱 Тип сообщения: {type(message)}")
+    print(f"📱 Есть web_app_data: {hasattr(message, 'web_app_data')}")
+    
+    if hasattr(message, 'web_app_data'):
+        print(f"📱 web_app_data объект: {message.web_app_data}")
+        print(f"📱 web_app_data.data: {message.web_app_data.data}")
+    else:
+        print("❌ web_app_data не найден в сообщении")
+        await message.reply_text("❌ Данные Mini Apps не получены")
+        return
     
     try:
         # Парсим данные от Mini Apps
