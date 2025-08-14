@@ -1,309 +1,571 @@
-
 #!/usr/bin/env python3
 """
-Telegram bot + Flask webhook server for Railway
-- Creates LAVA Business API invoices
-- Receives LAVA webhooks and sends invite link to a private channel
-- Handles Telegram WebApp data (miniapp -> bot)
+Telegram Bot with Webhook support for Railway deployment - LAVA TOP API v2
 """
+
 import os
-import json
-import time
 import hmac
 import hashlib
+import json
+import time
+import base64
 from datetime import datetime
-from urllib.parse import urlencode
-
 import aiohttp
-import asyncio
+import requests
 from flask import Flask, request, jsonify
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, CallbackContext, filters
 
+# для телеграма
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from telegram.constants import ParseMode
 
-# -----------------------------
-# Environment
-# -----------------------------
-# Environment variables
-TELEGRAM_BOT_TOKEN = "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc"
-PUBLIC_BASE_URL    = "https://formulaprivate-productionpaymentuknow.up.railway.app"  # e.g. https://your-app.up.railway.app
+# === TELEGRAM CONFIG ===
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip()]
 
-# LAVA Business API
-LAVA_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
-LAVA_SHOP_ID = "1b9f3e05-86aa-4102-9648-268f0f586bb1"
-LAVA_WEBHOOK_SECRET = ""  # optional HMAC secret
+# === LAVA TOP API CONFIG ===
+LAVA_TOP_API_BASE = os.getenv("LAVA_TOP_API_BASE", "https://gate.lava.top")
+LAVA_TOP_API_KEY = os.getenv("LAVA_TOP_API_KEY", "")
+LAVA_TOP_WEBHOOK_SECRET = os.getenv("LAVA_TOP_WEBHOOK_SECRET", "")
 
-# Telegram
-PRIVATE_CHANNEL_ID = "-1002717275103"  # e.g. -1001234567890 (string)
-ADMIN_IDS = [708907063, 7365307696]
+# === OFFER IDs ===
+OFFER_MAP = {
+    "basic": os.getenv("LAVA_OFFER_ID_BASIC", ""),
+    "pro": os.getenv("LAVA_OFFER_ID_PRO", ""),
+    "vip": os.getenv("LAVA_OFFER_ID_VIP", ""),
+    "1_month": os.getenv("LAVA_OFFER_ID_BASIC", ""),  # для совместимости
+}
 
-# Redirects (optional)
-SUCCESS_REDIRECT_URL = ""
-FAIL_REDIRECT_URL    = ""
+# === CHANNEL/INVITES ===
+PRIVATE_CHANNEL_ID = int(os.getenv("PRIVATE_CHANNEL_ID", "-1001234567890"))
 
-# MiniApp
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
+# === MINI APPS ===
+PAYMENT_MINIAPP_URL = os.getenv("PAYMENT_MINIAPP_URL", "https://acqu1red.github.io/formulaprivate/payment.html")
 
-# LAVA endpoints
-LAVA_ENDPOINTS = [
-    "https://api.lava.ru/business",
-    "https://api.lava.top/business",  # fallback
-]
+# === BASE URL ===
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://formulaprivate-productionpaymentuknow.up.railway.app")
 
-# -----------------------------
-# Flask app + Telegram Application
-# -----------------------------
+# Flask app
 app = Flask(__name__)
-application: Application | None = None
 
-# -----------------------------
-# Telegram Handlers
-# -----------------------------
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    kb = InlineKeyboardMarkup([[
-        InlineKeyboardButton("💳 Оплатить (Mini App)", web_app=WebAppInfo(PAYMENT_MINIAPP_URL))
-    ]])
-    await update.message.reply_text(
-        "Привет! Готовы оформить доступ? Нажми кнопку, чтобы открыть мини‑приложение.",
-        reply_markup=kb
-    )
+def _method_by_bank_and_currency(bank: str, currency: str) -> str:
+    """Определяет метод оплаты по банку и валюте"""
+    bank = (bank or "russian").lower()
+    currency = (currency or "RUB").upper()
+    if currency == "RUB":
+        return "BANK131"
+    # для заграничных валют - подставь подходящее из доступных
+    return "UNLIMINT"  # либо PAYPAL/STRIPE, если включены в кабинете
 
-async def handle_web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    try:
-        if not update.message or not update.message.web_app_data:
-            return
-        data_raw = update.message.web_app_data.data
-        payment = json.loads(data_raw)
-        user = update.effective_user
-        chat_id = update.effective_chat.id
+async def create_lava_top_invoice(*, email: str, tariff: str, price: int,
+                                  bank: str, currency: str = "RUB", user_id: int = 0, chat_id: int = 0) -> str:
+    """Создает инвойс через LAVA TOP API v2"""
+    assert LAVA_TOP_API_KEY, "LAVA_TOP_API_KEY is required"
+    
+    # Определяем offerId по тарифу
+    offer_id = OFFER_MAP.get((tariff or "basic").lower())
+    if not offer_id:
+        raise RuntimeError(f"No offerId for tariff={tariff}")
 
-        pay_url = await create_lava_invoice(payment, user.id, chat_id)
-        kb = InlineKeyboardMarkup([[InlineKeyboardButton("Перейти к оплате", url=pay_url)]])
-        await update.message.reply_text(
-            "✅ Заявка принята. Нажмите, чтобы оплатить. После успешной оплаты доступ придёт автоматически.",
-            reply_markup=kb
-        )
-    except Exception as e:
-        await update.message.reply_text("❌ Не удалось создать платёж, попробуйте ещё раз.")
-        for admin in ADMIN_IDS:
-            try:
-                await context.bot.send_message(admin, f"❌ Ошибка создания инвойса: {e}")
-            except: pass
-
-# Fallback: if miniapp POSTs directly to our API, this endpoint handles it
-@app.post("/api/create-payment")
-def api_create_payment():
-    try:
-        data = request.get_json(silent=True) or request.form.to_dict() or {}
-        user_id = int(data.get("user_id") or data.get("tg_user_id") or 0)
-        chat_id = int(data.get("chat_id") or 0)
-        if not user_id or not chat_id:
-            return jsonify({"ok": False, "error": "missing user_id/chat_id"}), 400
-        pay_url = asyncio.run(create_lava_invoice(data, user_id, chat_id))
-        return jsonify({"ok": True, "payment_url": pay_url})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-# -----------------------------
-# LAVA invoice creation
-# -----------------------------
-async def create_lava_invoice(payment_data: dict, user_id: int, chat_id: int) -> str:
-    """
-    Creates invoice via LAVA Business API and returns payUrl
-    """
-    if not (TELEGRAM_BOT_TOKEN and LAVA_API_KEY and LAVA_SHOP_ID and PUBLIC_BASE_URL):
-        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN/LAVA_API_KEY/LAVA_SHOP_ID/PUBLIC_BASE_URL")
-
-    amount = int(payment_data.get("price") or payment_data.get("amount") or 50)
-    email  = (payment_data.get("email") or "").strip()
-    tariff = (payment_data.get("tariff") or "default").strip()
-    bank   = (payment_data.get("bank") or "russian").strip()
-
-    order_id = f"order_{user_id}_{int(time.time())}"
-    payload = {
-        "shopId": LAVA_SHOP_ID,
-        "sum": float(amount),
-        "orderId": order_id,
-        "comment": f"{tariff} for {email}" if email else tariff,
-        **({"hookUrl": f"{PUBLIC_BASE_URL.rstrip('/')}/lava-webhook"} if PUBLIC_BASE_URL else {}),
-        **({"successUrl": SUCCESS_REDIRECT_URL} if SUCCESS_REDIRECT_URL else {}),
-        **({"failUrl": FAIL_REDIRECT_URL} if FAIL_REDIRECT_URL else {}),
-        "customFields": {
-            "user_id": str(user_id),
-            "chat_id": str(chat_id),
-            "email": email,
-            "tariff": tariff,
-            "bank": bank,
-        }
-    }
-
+    url = f"{LAVA_TOP_API_BASE.rstrip('/')}/api/v2/invoice"
     headers = {
-        "Authorization": f"Bearer {LAVA_API_KEY}",
+        "X-Api-Key": LAVA_TOP_API_KEY,
+        "Accept": "application/json",
         "Content-Type": "application/json",
     }
+    
+    # Метаданные для передачи user_id и chat_id
+    metadata = {}
+    if user_id:
+        metadata["user_id"] = str(user_id)
+    if chat_id:
+        metadata["chat_id"] = str(chat_id)
+    
+    payload = {
+        "email": email,
+        "offerId": offer_id,
+        "currency": currency,
+        "paymentMethod": _method_by_bank_and_currency(bank, currency),
+        "buyerLanguage": "RU"
+    }
+    
+    # Добавляем metadata если есть
+    if metadata:
+        payload["metadata"] = metadata
+    
+    async with aiohttp.ClientSession() as s:
+        async with s.post(url, headers=headers, json=payload) as r:
+            txt = await r.text()
+            if r.status != 200:
+                raise RuntimeError(f"Lava TOP {r.status}: {txt}")
+            data = json.loads(txt)
+            
+            # Ищем ссылку оплаты в ответе
+            pay_url = next((data.get(k) for k in ("payUrl","invoiceUrl","paymentUrl","url","link") if data.get(k)), None)
+            if not pay_url:
+                raise RuntimeError(f"No payment URL in response: {data}")
+            return pay_url
 
-    last_error = None
-    for base in LAVA_ENDPOINTS:
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(f"{base}/invoice/create", headers=headers, data=json.dumps(payload)) as resp:
-                    text = await resp.text()
-                    if resp.status != 200:
-                        raise RuntimeError(f"LAVA {base} {resp.status}: {text}")
-                    data = json.loads(text)
-                    pay_url = data.get("payUrl") or data.get("url") or data.get("payment_url")
-                    if not pay_url:
-                        raise RuntimeError(f"No payUrl in response: {data}")
-                    return pay_url
-        except Exception as e:
-            last_error = e
-            continue
-    raise last_error or RuntimeError("Failed to create invoice")
-
-# -----------------------------
-# LAVA webhook
-# -----------------------------
-def verify_lava_signature(raw_body: bytes) -> bool:
-    if not LAVA_WEBHOOK_SECRET:
-        return True
-    # HMAC SHA256 of raw JSON with shared secret; header name may vary, keep soft
-    provided = request.headers.get("X-Signature", "") or request.headers.get("X-Lava-Signature", "")
-    digest = hmac.new(LAVA_WEBHOOK_SECRET.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
-    return provided and provided.lower() == digest.lower()
-
-@app.post("/lava-webhook")
-def lava_webhook():
-    raw = request.get_data()
-    if not verify_lava_signature(raw):
-        return jsonify({"ok": False, "error": "bad signature"}), 403
-    data = request.get_json(silent=True) or {}
-    status = (data.get("status") or data.get("paymentStatus") or "").lower()
-    custom = data.get("customFields") or {}
-    chat_id = int(custom.get("chat_id") or 0)
-    user_id = int(custom.get("user_id") or 0)
-
-    # You may also re-check invoice status via API here.
-    if status not in {"success", "paid", "confirmed"}:
-        return jsonify({"ok": True, "ignored": True})
-
-    if not (application and application.bot and PRIVATE_CHANNEL_ID and chat_id):
-        return jsonify({"ok": False, "error": "misconfiguration"}), 500
-
+async def _send_invite_on_success(application: Application, user_id: int, chat_id: int) -> None:
+    """Отправляет пригласительную ссылку пользователю после успешной оплаты"""
     try:
-        invite = application.bot.create_chat_invite_link(
+        # Создаём одноразовую ссылку на 1 использование, живёт 1 день
+        expire_date = int(time.time()) + 86400
+        invite = await application.bot.create_chat_invite_link(
             chat_id=PRIVATE_CHANNEL_ID,
+            name=f"paid_{user_id}_{int(time.time())}",
+            expire_date=expire_date,
             member_limit=1,
             creates_join_request=False
         )
-        application.bot.send_message(
-            chat_id=chat_id,
-            text=(
-                "🎉 Оплата прошла успешно!\n\n"
-                f"Ваша ссылка в закрытый канал:\n{invite.invite_link}\n\n"
-                "Если ссылка не открывается — отправьте /start."
-            ),
-            parse_mode=ParseMode.HTML
+
+        text = (
+            "✅ Оплата успешно получена!\n\n"
+            f"Вот ваша ссылка-приглашение в закрытый канал:\n{invite.invite_link}\n\n"
+            "Если ссылка не открывается, напишите сюда — мы поможем."
         )
-        return jsonify({"ok": True})
+        
+        await application.bot.send_message(chat_id=chat_id or user_id, text=text)
+        print(f"[_send_invite_on_success] Invite sent to {chat_id or user_id}")
+        
     except Exception as e:
-        for admin in ADMIN_IDS:
-            try:
-                application.bot.send_message(admin, f"❌ Ошибка отправки инвайта: {e}")
-            except: pass
+        print(f"[_send_invite_on_success] Failed to send invite to {chat_id or user_id}: {e}")
+
+# Flask endpoints
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+@app.route("/webhook", methods=["GET", "POST"])
+def telegram_webhook():
+    """Telegram webhook endpoint"""
+    if request.method == "GET":
+        # Автоматическое исправление webhook при GET запросе
+        try:
+            webhook_url = f"{PUBLIC_BASE_URL}/webhook"
+            webhook_data = {
+                "url": webhook_url,
+                "secret_token": "Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c",
+                "max_connections": 40,
+                "allowed_updates": ["message", "callback_query"]
+            }
+            
+            # Удаляем старый webhook
+            delete_response = requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+            )
+            print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
+            
+            # Устанавливаем новый webhook
+            set_response = requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+                json=webhook_data
+            )
+            print(f"📡 Ответ установки webhook: {set_response.status_code} - {set_response.text}")
+            
+            return jsonify({"status": "webhook_updated", "url": webhook_url})
+        except Exception as e:
+            print(f"❌ Ошибка обновления webhook: {e}")
+            return jsonify({"error": str(e)}), 500
+    
+    # POST - обработка Telegram updates
+    try:
+        update_data = request.get_json(force=True, silent=False)
+        print(f"📱 Получен Telegram update: {update_data}")
+        
+        # Передаем update в Telegram application
+        application = app.config.get("telegram_application")
+        if application:
+            application.create_task(application.process_update(Update.de_json(update_data, application.bot)))
+        
+        return "ok"
+    except Exception as e:
+        print(f"❌ Ошибка обработки Telegram update: {e}")
+        return "error", 500
+
+@app.route("/api/create-payment", methods=["POST"])
+async def create_payment_api():
+    """
+    Принимает JSON из MiniApp:
+    {
+      "user_id": <int>,      // Telegram user id
+      "chat_id": <int>,      // chat.id пользователя (если есть)
+      "email": "mail@...",
+      "tariff": "basic",
+      "price": 500,
+      "bank": "russian"
+    }
+    Возвращает { ok: true, payment_url: "..." }
+    """
+    try:
+        data = request.get_json(force=True, silent=False)
+        print(f"📋 Получены данные для создания платежа: {data}")
+    except Exception:
+        return jsonify({"ok": False, "error": "Invalid JSON"}), 400
+
+    user_id = int(data.get("user_id") or 0)
+    chat_id = int(data.get("chat_id") or user_id)
+    email = (data.get("email") or "").strip()
+    tariff = (data.get("tariff") or "").strip()
+    price = int(data.get("price") or 0)
+    bank = (data.get("bank") or "russian").strip()
+
+    if not user_id or not price or not email:
+        return jsonify({"ok": False, "error": "user_id, price and email are required"}), 400
+
+    try:
+        # Создаем инвойс через LAVA TOP API v2
+        pay_url = await create_lava_top_invoice(
+            email=email, 
+            tariff=tariff, 
+            price=price, 
+            bank=bank, 
+            user_id=user_id, 
+            chat_id=chat_id
+        )
+        print(f"✅ Создан платеж: {pay_url}")
+        return jsonify({"ok": True, "payment_url": pay_url})
+    except Exception as e:
+        print(f"[create-payment] ERROR: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
-# -----------------------------
-# Telegram webhook endpoint
-# -----------------------------
-@app.post("/webhook")
-def telegram_webhook():
-    if not application:
-        return jsonify({"ok": False, "error": "telegram not ready"}), 503
-    data = request.get_json(force=True, silent=True) or {}
-    update = Update.de_json(data, application.bot)
-    # Process synchronously via application
-    application.update_queue.put_nowait(update)
-    return jsonify({"ok": True})
-
-@app.get("/")
-def root():
-    return jsonify({"message": "Telegram Bot Webhook Server", "status": "running"})
-
-@app.get("/health")
-def health():
+@app.route("/lava-webhook", methods=["GET", "POST"])
+def lava_webhook():
+    """
+    Приём вебхука от LAVA TOP API v2
+    """
+    if request.method == "GET":
+        return "Lava TOP webhook endpoint is working"
+    
     try:
-        # Basic health check
-        health_status = {
-            "status": "ok",
-            "ts": datetime.now().isoformat(),
-            "bot_ready": application is not None,
-            "webhook_url": f"{PUBLIC_BASE_URL.rstrip('/')}/webhook" if PUBLIC_BASE_URL else None
-        }
-        return jsonify(health_status)
+        payload = request.get_json(force=True, silent=False)
+    except Exception:
+        return "bad json", 400
+
+    print(f"[lava-webhook] incoming: {payload}")
+
+    # Проверяем подпись если задан секрет
+    if LAVA_TOP_WEBHOOK_SECRET:
+        try:
+            signature = request.headers.get("X-Signature")
+            if signature:
+                # Вычисляем HMAC-SHA256
+                body = request.get_data()
+                expected_signature = hmac.new(
+                    LAVA_TOP_WEBHOOK_SECRET.encode('utf-8'),
+                    body,
+                    hashlib.sha256
+                ).hexdigest()
+                
+                if not hmac.compare_digest(signature, expected_signature):
+                    print("[lava-webhook] signature mismatch")
+                    return "signature mismatch", 400
+        except Exception as e:
+            print(f"[lava-webhook] signature check error: {e}")
+
+    # Обрабатываем событие успешной оплаты
+    event_type = payload.get("eventType", "").lower()
+    if event_type in ("payment.success", "invoice.paid", "success"):
+        try:
+            # Извлекаем user_id и chat_id из metadata
+            metadata = payload.get("data", {}).get("metadata", {})
+            user_id = int(metadata.get("user_id", 0))
+            chat_id = int(metadata.get("chat_id", 0))
+            
+            if user_id:
+                # Отправляем приглашение пользователю
+                application = app.config.get("telegram_application")
+                if application:
+                    application.create_task(_send_invite_on_success(application, user_id, chat_id))
+                    print(f"[lava-webhook] Scheduled invite for user {user_id}")
+                else:
+                    print("[lava-webhook] No telegram application available")
+            else:
+                print("[lava-webhook] No user_id in metadata")
+                
+        except Exception as e:
+            print(f"[lava-webhook] Error processing success: {e}")
+
+    return "ok", 200
+
+@app.route("/webhook-info")
+def webhook_info():
+    """Проверка статуса webhook"""
+    try:
+        response = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo")
+        webhook_info = response.json()
+        print(f"📋 Информация о webhook: {webhook_info}")
+        
+        if webhook_info.get("ok"):
+            result = webhook_info.get("result", {})
+            current_url = result.get("url", "")
+            expected_url = f"{PUBLIC_BASE_URL}/webhook"
+            
+            print(f"🔍 Фактический webhook URL: {current_url}")
+            print(f"🔍 Ожидаемый webhook URL: {expected_url}")
+            
+            if current_url == expected_url:
+                print("✅ Webhook URL установлен правильно!")
+                return jsonify({"status": "ok", "webhook_info": webhook_info})
+            else:
+                print("❌ Webhook URL неверный, исправляем...")
+                # Автоматическое исправление
+                webhook_data = {
+                    "url": expected_url,
+                    "secret_token": "Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c",
+                    "max_connections": 40,
+                    "allowed_updates": ["message", "callback_query"]
+                }
+                
+                set_response = requests.post(
+                    f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+                    json=webhook_data
+                )
+                print(f"📡 Ответ исправления webhook: {set_response.status_code} - {set_response.text}")
+                
+                return jsonify({"status": "fixed", "webhook_info": webhook_info})
+        else:
+            return jsonify({"status": "error", "webhook_info": webhook_info})
+            
     except Exception as e:
-        return jsonify({"status": "error", "error": str(e), "ts": datetime.now().isoformat()}), 500
+        print(f"❌ Ошибка получения информации о webhook: {e}")
+        return jsonify({"error": str(e)}), 500
 
-@app.get("/webhook-info")
-async def webhook_info():
-    if not application:
-        return jsonify({"ok": False, "error": "telegram not ready"}), 503
-    me = await application.bot.get_me()
-    info = await application.bot.get_webhook_info()
-    return jsonify({"bot": me.to_dict(), "webhook": info.to_dict()})
-
-@app.post("/reset-webhook")
+@app.route("/reset-webhook", methods=["GET", "POST"])
 def reset_webhook():
-    if not application:
-        return jsonify({"ok": False, "error": "telegram not ready"}), 503
-    url = f"{PUBLIC_BASE_URL.rstrip('/')}/webhook"
-    # We cannot call async from sync directly; schedule
-    async def _set():
-        await application.bot.set_webhook(url=url, allowed_updates=["message","callback_query","chat_member","chat_join_request"])
-    application.create_task(_set())
-    return jsonify({"ok": True, "url": url})
+    """Сброс и переустановка webhook"""
+    try:
+        webhook_url = f"{PUBLIC_BASE_URL}/webhook"
+        webhook_data = {
+            "url": webhook_url,
+            "secret_token": "Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c",
+            "max_connections": 40,
+            "allowed_updates": ["message", "callback_query"]
+        }
+        
+        # Удаляем старый webhook
+        delete_response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+        )
+        print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
+        
+        # Устанавливаем новый webhook
+        set_response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+            json=webhook_data
+        )
+        print(f"📡 Ответ установки webhook: {set_response.status_code} - {set_response.text}")
+        
+        if set_response.status_code == 200:
+            print("✅ Webhook успешно установлен")
+            return jsonify({"status": "success", "url": webhook_url})
+        else:
+            print("❌ Ошибка установки webhook")
+            return jsonify({"status": "error", "response": set_response.text}), 500
+            
+    except Exception as e:
+        print(f"❌ Ошибка сброса webhook: {e}")
+        return jsonify({"error": str(e)}), 500
 
-# -----------------------------
-# Bootstrap
-# -----------------------------
-def build_application() -> Application:
-    if not TELEGRAM_BOT_TOKEN:
-        raise RuntimeError("TELEGRAM_BOT_TOKEN not set")
-    app_ = Application.builder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(True).build()
-    app_.add_handler(CommandHandler("start", start))
-    app_.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
-    # optional: ignore other messages
-    return app_
+# Telegram bot handlers
+async def start_command(update: Update, context):
+    """Обработчик команды /start"""
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+    
+    print(f"👋 Пользователь {user.id} ({user.username}) запустил бота в чате {chat_id}")
+    
+    welcome_text = (
+        f"👋 Привет, {user.first_name}!\n\n"
+        "Добро пожаловать в Formula Private Channel!\n\n"
+        "Для получения доступа к закрытому каналу необходимо оформить подписку."
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("💳 Оплатить подписку", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))]
+    ])
+    
+    await update.message.reply_text(welcome_text, reply_markup=keyboard)
+
+async def handle_web_app_data(update: Update, context):
+    """Обработчик данных из Mini App"""
+    try:
+        if not update.message or not update.message.web_app_data:
+            return
+            
+        user = update.effective_user
+        chat_id = update.effective_chat.id
+        
+        print(f"📱 Получены данные от Mini App от пользователя {user.id}")
+        
+        # Декодируем данные из Mini App (они приходят в base64)
+        raw_data = update.message.web_app_data.data
+        try:
+            decoded_data = base64.b64decode(raw_data).decode('utf-8')
+            payment_data = json.loads(decoded_data)
+            print(f"📱 Декодированные данные (base64): {payment_data}")
+        except Exception as decode_error:
+            print(f"📱 Ошибка base64 декодирования: {decode_error}")
+            # Fallback: пробуем парсить как обычный JSON
+            try:
+                payment_data = json.loads(raw_data)
+                print(f"📱 Данные (прямой JSON): {payment_data}")
+            except Exception as json_error:
+                print(f"📱 Ошибка JSON парсинга: {json_error}")
+                await update.message.reply_text("❌ Ошибка обработки данных. Попробуйте еще раз.")
+                return
+            
+        # Извлекаем данные из payment_data
+        if isinstance(payment_data, dict):
+            # Если данные пришли в формате {step: "final_data", data: {...}}
+            if "step" in payment_data and payment_data["step"] == "final_data":
+                final_data = payment_data.get("data", {})
+                email = final_data.get("email", "")
+                tariff = final_data.get("tariff", "basic")
+                price = int(final_data.get("price", 50))
+                bank = final_data.get("bank", "russian")
+            else:
+                # Прямой формат данных
+                email = payment_data.get("email", "")
+                tariff = payment_data.get("tariff", "basic")
+                price = int(payment_data.get("price", 50))
+                bank = payment_data.get("bank", "russian")
+        else:
+            await update.message.reply_text("❌ Неверный формат данных. Попробуйте еще раз.")
+            return
+            
+        print(f"📋 Обработанные данные: email={email}, tariff={tariff}, price={price}, bank={bank}")
+        
+        # Создаем платеж через LAVA TOP API v2
+        try:
+            pay_url = await create_lava_top_invoice(
+                email=email, 
+                tariff=tariff, 
+                price=price, 
+                bank=bank, 
+                user_id=user.id, 
+                chat_id=chat_id
+            )
+            
+            text = (
+                "✅ <b>Заявка принята!</b>\n\n"
+                "Нажмите кнопку, чтобы перейти к оплате. После успешной оплаты доступ придёт автоматически."
+            )
+            kb = InlineKeyboardMarkup([
+                [InlineKeyboardButton("💳 Оплатить (LAVA TOP)", url=pay_url)]
+            ])
+            await update.message.reply_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+                
+        except Exception as e:
+            print(f"❌ Ошибка создания платежа: {e}")
+            await update.message.reply_text(
+                "❌ Не удалось создать платёж. Попробуйте ещё раз или напишите в поддержку."
+            )
+            # Лог админам
+            for admin in ADMIN_IDS:
+                try:
+                    await context.bot.send_message(admin, f"❌ Ошибка создания инвойса: {e}")
+                except:
+                    pass
+    
+    except Exception as e:
+        print(f"❌ Общая ошибка в handle_web_app_data: {e}")
+        await update.message.reply_text("❌ Произошла ошибка. Попробуйте еще раз.")
+
+async def payment_menu(update: Update, context):
+    """Меню оплаты"""
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("💳 Оплатить подписку", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))]
+    ])
+    
+    text = (
+        "💳 <b>Оформление подписки</b>\n\n"
+        "Нажмите кнопку ниже, чтобы перейти к оформлению подписки."
+    )
+    
+    await update.message.reply_text(text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+
+async def button(update: Update, context):
+    """Обработчик inline кнопок"""
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == "payment":
+        await payment_menu(update, context)
 
 def main():
-    global application
-    application = build_application()
-    # We don't run polling; Flask will feed updates
-    # Try to set webhook automatically if PUBLIC_BASE_URL is present
-    if PUBLIC_BASE_URL:
-        def _auto():
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(application.bot.set_webhook(
-                    url=f"{PUBLIC_BASE_URL.rstrip('/')}/webhook",
-                    allowed_updates=["message","callback_query","chat_member","chat_join_request"]
-                ))
-                loop.close()
-            except Exception as e:
-                print(f"⚠️ Webhook setup error: {e}")
+    """Основная функция запуска бота"""
+    print("🚀 Запуск Flask приложения...")
+    
+    # Создаем Telegram application
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    
+    # Сохраняем application в Flask app для доступа из webhook
+    app.config["telegram_application"] = application
+    
+    print("🚀 Запуск бота с webhook...")
+    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    print(f"🔑 LAVA_TOP_API_KEY: {LAVA_TOP_API_KEY[:20] if LAVA_TOP_API_KEY else 'NOT SET'}...")
+    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
+    print(f"📦 Offer IDs: {OFFER_MAP}")
+    
+    # Регистрируем обработчики
+    print("📝 Регистрация обработчиков...")
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("payment", payment_menu))
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+    application.add_handler(CallbackQueryHandler(button))
+    print("✅ Обработчики зарегистрированы")
+    
+    # Настройка Mini Apps
+    print("🔧 Настройка Mini Apps...")
+    try:
+        application.bot.set_my_commands([
+            ("start", "Запустить бота"),
+            ("payment", "Оформить подписку")
+        ])
+        print("✅ Команды бота настроены")
+    except Exception as e:
+        print(f"❌ Ошибка настройки команд: {e}")
+    
+    # Настройка webhook
+    webhook_url = f"{PUBLIC_BASE_URL}/webhook"
+    print(f"🌐 Настройка webhook: {webhook_url}")
+    
+    webhook_data = {
+        "url": webhook_url,
+        "secret_token": "Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c",
+        "max_connections": 40,
+        "allowed_updates": ["message", "callback_query"]
+    }
         
-        # Run webhook setup in background thread
-        import threading
-        thread = threading.Thread(target=_auto)
-        thread.daemon = True
-        thread.start()
+    print(f"🔧 Webhook данные: {webhook_data}")
+        
+    try:
+        # Удаляем старый webhook
+        delete_response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+        )
+        print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
+            
+        # Устанавливаем новый webhook
+        set_response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+            json=webhook_data
+        )
+        print(f"📡 Ответ установки webhook: {set_response.status_code} - {set_response.text}")
+        
+        if set_response.status_code == 200:
+            print("✅ Webhook успешно установлен")
+        else:
+            print("❌ Ошибка установки webhook")
+            
+    except Exception as e:
+        print(f"❌ Ошибка настройки webhook: {e}")
+    
+    # Запускаем Flask app
+    print("🚀 Запуск Flask приложения...")
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)), debug=False)
 
 if __name__ == "__main__":
-    # Initialize bot in background
     main()
-    
-    # Start Flask server
-    port = int(os.getenv("PORT", 5000))
-    print(f"🚀 Starting Flask server on port {port}")
-    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

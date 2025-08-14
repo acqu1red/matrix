@@ -1,27 +1,45 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters
-from queue import Queue
-from telegram.ext import ApplicationBuilder
-import pytz
-from telegram.ext import CallbackQueryHandler, ChatMemberHandler
-from supabase import create_client, Client
-import asyncio
-import aiohttp
-import json
+#!/usr/bin/env python3
+"""
+Telegram Bot with polling for local development - LAVA TOP API v2 + Support
+"""
+
 import os
+import json
+import time
+import aiohttp
+import base64
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+from telegram.constants import ParseMode
+from supabase import create_client, Client
 
+# === TELEGRAM CONFIG ===
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc")
+ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "708907063,7365307696").split(",") if x.strip()]
+
+# === LAVA TOP API CONFIG ===
+LAVA_TOP_API_BASE = os.getenv("LAVA_TOP_API_BASE", "https://gate.lava.top")
+LAVA_TOP_API_KEY = os.getenv("LAVA_TOP_API_KEY", "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav")
+
+# === OFFER IDs ===
+OFFER_MAP = {
+    "basic": os.getenv("LAVA_OFFER_ID_BASIC", ""),
+    "pro": os.getenv("LAVA_OFFER_ID_PRO", ""),
+    "vip": os.getenv("LAVA_OFFER_ID_VIP", ""),
+    "1_month": os.getenv("LAVA_OFFER_ID_BASIC", ""),  # для совместимости
+}
+
+# === CHANNEL/INVITES ===
+PRIVATE_CHANNEL_ID = int(os.getenv("PRIVATE_CHANNEL_ID", "-1001234567890"))
+
+# === MINI APPS ===
+PAYMENT_MINIAPP_URL = os.getenv("PAYMENT_MINIAPP_URL", "https://acqu1red.github.io/formulaprivate/payment.html")
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 
-# LAVA Top API configuration
-LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
-LAVA_TOP_BASE_URL = "https://api.lava.top"
-LAVA_TOP_PRODUCT_URL = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
-
-# Supabase configuration
-SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+# === SUPABASE CONFIG ===
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://uhhsrtmmuwoxsdquimaa.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Список username администраторов
 ADMIN_USERNAMES = [
@@ -29,17 +47,93 @@ ADMIN_USERNAMES = [
     "cashm3thod",
 ]
 
-# Список ID администраторов (для проверки прав)
-ADMIN_IDS = [708907063, 7365307696]
+def _method_by_bank_and_currency(bank: str, currency: str) -> str:
+    """Определяет метод оплаты по банку и валюте"""
+    bank = (bank or "russian").lower()
+    currency = (currency or "RUB").upper()
+    if currency == "RUB":
+        return "BANK131"
+    # для заграничных валют - подставь подходящее из доступных
+    return "UNLIMINT"  # либо PAYPAL/STRIPE, если включены в кабинете
 
-# ---------- Admin notification functions ----------
+async def create_lava_top_invoice(*, email: str, tariff: str, price: int,
+                                  bank: str, currency: str = "RUB", user_id: int = 0, chat_id: int = 0) -> str:
+    """Создает инвойс через LAVA TOP API v2"""
+    assert LAVA_TOP_API_KEY, "LAVA_TOP_API_KEY is required"
+    
+    # Определяем offerId по тарифу
+    offer_id = OFFER_MAP.get((tariff or "basic").lower())
+    if not offer_id:
+        raise RuntimeError(f"No offerId for tariff={tariff}")
+
+    url = f"{LAVA_TOP_API_BASE.rstrip('/')}/api/v2/invoice"
+    headers = {
+        "X-Api-Key": LAVA_TOP_API_KEY,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    
+    # Метаданные для передачи user_id и chat_id
+    metadata = {}
+    if user_id:
+        metadata["user_id"] = str(user_id)
+    if chat_id:
+        metadata["chat_id"] = str(chat_id)
+    
+    payload = {
+        "email": email,
+        "offerId": offer_id,
+        "currency": currency,
+        "paymentMethod": _method_by_bank_and_currency(bank, currency),
+        "buyerLanguage": "RU"
+    }
+    
+    # Добавляем metadata если есть
+    if metadata:
+        payload["metadata"] = metadata
+    
+    async with aiohttp.ClientSession() as s:
+        async with s.post(url, headers=headers, json=payload) as r:
+            txt = await r.text()
+            if r.status != 200:
+                raise RuntimeError(f"Lava TOP {r.status}: {txt}")
+            data = json.loads(txt)
+            
+            # Ищем ссылку оплаты в ответе
+            pay_url = next((data.get(k) for k in ("payUrl","invoiceUrl","paymentUrl","url","link") if data.get(k)), None)
+            if not pay_url:
+                raise RuntimeError(f"No payment URL in response: {data}")
+            return pay_url
+
+async def _send_invite_on_success(application: Application, user_id: int, chat_id: int) -> None:
+    """Отправляет пригласительную ссылку пользователю после успешной оплаты"""
+    try:
+        # Создаём одноразовую ссылку на 1 использование, живёт 1 день
+        expire_date = int(time.time()) + 86400
+        invite = await application.bot.create_chat_invite_link(
+            chat_id=PRIVATE_CHANNEL_ID,
+            name=f"paid_{user_id}_{int(time.time())}",
+            expire_date=expire_date,
+            member_limit=1,
+            creates_join_request=False
+        )
+
+        text = (
+            "✅ Оплата успешно получена!\n\n"
+            f"Вот ваша ссылка-приглашение в закрытый канал:\n{invite.invite_link}\n\n"
+            "Если ссылка не открывается, напишите сюда — мы поможем."
+        )
+        
+        await application.bot.send_message(chat_id=chat_id or user_id, text=text)
+        print(f"[_send_invite_on_success] Invite sent to {chat_id or user_id}")
+        
+    except Exception as e:
+        print(f"[_send_invite_on_success] Failed to send invite to {chat_id or user_id}: {e}")
+
+# === SUPABASE FUNCTIONS ===
 
 async def save_message_to_db(user, message):
     """Сохраняет сообщение в базе данных"""
-    if not supabase:
-        print("Supabase не настроен, пропускаем сохранение")
-        return
-        
     try:
         # Создаем или получаем пользователя
         user_data = {
@@ -103,16 +197,121 @@ async def save_message_to_db(user, message):
         print(f"Ошибка сохранения в БД: {e}")
         raise e
 
+# Telegram bot handlers
+async def start_command(update: Update, context):
+    """Обработчик команды /start"""
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+    
+    print(f"👋 Пользователь {user.id} ({user.username}) запустил бота в чате {chat_id}")
+    
+    welcome_text = (
+        f"👋 Привет, {user.first_name}!\n\n"
+        "Добро пожаловать в Formula Private Channel!\n\n"
+        "Для получения доступа к закрытому каналу необходимо оформить подписку."
+    )
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("💳 Оплатить подписку", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
+        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
+    ])
+    
+    await update.message.reply_text(welcome_text, reply_markup=keyboard)
 
+async def handle_web_app_data(update: Update, context):
+    """Обработчик данных из Mini App"""
+    try:
+        if not update.message or not update.message.web_app_data:
+            return
+            
+        user = update.effective_user
+        chat_id = update.effective_chat.id
+        
+        print(f"📱 Получены данные от Mini App от пользователя {user.id}")
+        
+        # Декодируем данные из Mini App (они приходят в base64)
+        raw_data = update.message.web_app_data.data
+        try:
+            decoded_data = base64.b64decode(raw_data).decode('utf-8')
+            payment_data = json.loads(decoded_data)
+            print(f"📱 Декодированные данные (base64): {payment_data}")
+        except Exception as decode_error:
+            print(f"📱 Ошибка base64 декодирования: {decode_error}")
+            # Fallback: пробуем парсить как обычный JSON
+            try:
+                payment_data = json.loads(raw_data)
+                print(f"📱 Данные (прямой JSON): {payment_data}")
+            except Exception as json_error:
+                print(f"📱 Ошибка JSON парсинга: {json_error}")
+                await update.message.reply_text("❌ Ошибка обработки данных. Попробуйте еще раз.")
+                return
+            
+        # Извлекаем данные из payment_data
+        if isinstance(payment_data, dict):
+            # Если данные пришли в формате {step: "final_data", data: {...}}
+            if "step" in payment_data and payment_data["step"] == "final_data":
+                final_data = payment_data.get("data", {})
+                email = final_data.get("email", "")
+                tariff = final_data.get("tariff", "basic")
+                price = int(final_data.get("price", 50))
+                bank = final_data.get("bank", "russian")
+            else:
+                # Прямой формат данных
+                email = payment_data.get("email", "")
+                tariff = payment_data.get("tariff", "basic")
+                price = int(payment_data.get("price", 50))
+                bank = payment_data.get("bank", "russian")
+        else:
+            await update.message.reply_text("❌ Неверный формат данных. Попробуйте еще раз.")
+            return
+            
+        print(f"📋 Обработанные данные: email={email}, tariff={tariff}, price={price}, bank={bank}")
+        
+        # Создаем платеж через LAVA TOP API v2
+        try:
+            pay_url = await create_lava_top_invoice(
+                email=email, 
+                tariff=tariff, 
+                price=price, 
+                bank=bank, 
+                user_id=user.id, 
+                chat_id=chat_id
+            )
+            
+            text = (
+                "✅ <b>Заявка принята!</b>\n\n"
+                "Нажмите кнопку, чтобы перейти к оплате. После успешной оплаты доступ придёт автоматически."
+            )
+            kb = InlineKeyboardMarkup([
+                [InlineKeyboardButton("💳 Оплатить (LAVA TOP)", url=pay_url)]
+            ])
+            await update.message.reply_text(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+                
+        except Exception as e:
+            print(f"❌ Ошибка создания платежа: {e}")
+            await update.message.reply_text(
+                "❌ Не удалось создать платёж. Попробуйте ещё раз или напишите в поддержку."
+            )
+            # Лог админам
+            for admin in ADMIN_IDS:
+                try:
+                    await context.bot.send_message(admin, f"❌ Ошибка создания инвойса: {e}")
+                except:
+                    pass
+    
+    except Exception as e:
+        print(f"❌ Общая ошибка в handle_web_app_data: {e}")
+        await update.message.reply_text("❌ Произошла ошибка. Попробуйте еще раз.")
 
-async def handle_all_messages(update: Update, context: CallbackContext) -> None:
+async def handle_all_messages(update: Update, context) -> None:
     """Обрабатывает все сообщения - уведомления администраторов и ответы от них"""
     print("🎯 Функция handle_all_messages вызвана!")
     
     # Проверяем, является ли это данными от miniapp
     if update.message and update.message.web_app_data:
-        await handle_webapp_data(update, context)
+        await handle_web_app_data(update, context)
         return
+    
     user = update.effective_user
     message = update.effective_message
     
@@ -244,7 +443,21 @@ async def handle_all_messages(update: Update, context: CallbackContext) -> None:
     else:
         print(f"👨‍💼 Сообщение от администратора {user.id} - уведомления не отправляем")
 
-async def cancel_reply(update: Update, context: CallbackContext) -> None:
+async def payment_menu(update: Update, context):
+    """Меню оплаты"""
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("💳 Оплатить подписку", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
+        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
+    ])
+    
+    text = (
+        "💳 <b>Оформление подписки</b>\n\n"
+        "Нажмите кнопку ниже, чтобы перейти к оформлению подписки."
+    )
+    
+    await update.message.reply_text(text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+
+async def cancel_reply(update: Update, context) -> None:
     """Отменяет режим ответа администратора"""
     user = update.effective_user
     
@@ -261,7 +474,7 @@ async def cancel_reply(update: Update, context: CallbackContext) -> None:
         parse_mode='HTML'
     )
 
-async def admin_messages(update: Update, context: CallbackContext) -> None:
+async def admin_messages(update: Update, context) -> None:
     """Показывает администратору новые сообщения от пользователей"""
     user = update.effective_user
     
@@ -269,13 +482,6 @@ async def admin_messages(update: Update, context: CallbackContext) -> None:
     if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
         await update.effective_message.reply_text(
             "❌ <b>У вас нет прав для выполнения этого действия!</b>",
-            parse_mode='HTML'
-        )
-        return
-    
-    if not supabase:
-        await update.effective_message.reply_text(
-            "❌ <b>База данных не настроена</b>",
             parse_mode='HTML'
         )
         return
@@ -325,260 +531,7 @@ async def admin_messages(update: Update, context: CallbackContext) -> None:
             parse_mode='HTML'
         )
 
-# ---------- Builders for messages & keyboards ----------
-
-def build_start_content():
-    text = (
-        "Добро пожаловать в шлюз в закрытого канала <b>ФОРМУЛА</b>, где знания не просто ценные, жизненно необходимые.\n\n"
-        "<b>💳 Подписка - ежемесячная 1500₽ или ~15$</b>, оплата принимается в любой валюте и крипте.\n"
-        "<b>⬇️ Ниже — кнопка. Жмешь — и проходишь туда, где люди не ноют, а ебут этот мир в обе щеки.</b>"
-    )
-    keyboard = [
-        [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
-        [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
-        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-def build_payment_content():
-    text = (
-        "💵 Стоимость подписки на Базу\n"
-        "1 месяц 1500 рублей\n"
-        "6 месяцев 8000 рублей\n"
-        "12 месяцев 10 000 рублей\n\n"
-        "*цена в долларах/евро - конвертируется по нынешнему курсу\n"
-        "*оплачивай любой картой в долларах/евро/рублях, бот сконвертирует сам\n\n"
-        "Оплатить и получить доступ\n👇👇👇"
-    )
-    keyboard = [
-        [InlineKeyboardButton("1 месяц", callback_data='pay_1_month')],
-        [InlineKeyboardButton("6 месяцев", callback_data='pay_6_months')],
-        [InlineKeyboardButton("12 месяцев", callback_data='pay_12_months')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='back')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-def build_more_info_content():
-    text = (
-        "ФОРМУЛА — это золотой рюкзак знаний, с которым ты можешь вылезти из любой жопы.\n"
-        "Тут не просто \"мотивация\" и \"развитие\", а рабочие схемы, которые ты не найдёшь даже если будешь копать ебучий Даркнет.\n"
-        "🧠 Подкасты с таймкодами — от ПРОФАЙЛИНГА до манипуляций баб, от ПСИХОТИПОВ до коммуникации на уровне спецслужб\n"
-        "💉 Органический БИОХАКИНГ — почему тебе плохо и как через неделю почувствовать себя богом\n"
-        "💸 Уроки по ФРОДУ, где из нуля делается $5000+ в месяц, если не еблан\n"
-        "🧱 Как выстроить дисциплину, отшить самобичевание и наконец стать машиной, а не мямлей\n"
-        "📈 Авторские стратегии по трейдингу — от $500/мес на автопилоте\n"
-        "⚡ Скальпинг и биржи — как хитрить систему, не теряя бабки на комиссиях\n"
-        "🎥 Стримы каждые 2 недели, где разбираю вопросы подписчиков: здоровье, деньги, психика, мышление\n\n"
-        "И это лишь малая часть того, что тебя ожидает в Формуле.\n"
-        "Это не просто канал. Это сила, которая перестраивает твое мышление под нового тебя.\n"
-        "Вокруг тебя — миллион способов сделать бабки, использовать людей и не пахать, пока другие пашут.\n"
-        "Ты будешь считывать людей с его профиля в мессенджере, зарабатывать из воздуха и нести себя как король, потому что знаешь больше, чем они когда-либо поймут.\n\n"
-        "Кнопка внизу ⬇️. Там не просто инфа. Там выход из стада.\n"
-        "Решай."
-    )
-    keyboard = [
-        [InlineKeyboardButton("❓ Задать вопрос", web_app=WebAppInfo(url=MINIAPP_URL))],
-        [InlineKeyboardButton("🔙 Назад", callback_data='back')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-def build_checkout_content(duration_label: str):
-    text = (
-        f"🦍 ЗАКРЫТЫЙ КАНАЛ \"ОСНОВА\" на {duration_label}\n\n"
-        "Выберите удобный вид оплаты:\n"
-        "*если вы из Украины, включите vpn\n"
-        "*при оплате картой — оформляется автосписание каждые 30 дней\n"
-        "*далее — вы сможете управлять подпиской в Меню бота\n"
-        "*оплата криптой доступна на тарифах 6/12 мес"
-    )
-    keyboard = [
-        [InlineKeyboardButton("💳 Карта (любая валюта)", callback_data='noop')],
-        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
-        [InlineKeyboardButton("📄 Договор оферты", callback_data='noop')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='payment')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
-
-
-# ---------- Command handlers (send new messages) ----------
-
-# Define the start command handler
-async def start(update: Update, context: CallbackContext) -> None:
-    text, markup = build_start_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
-
-
-# Define the payment command handler
-async def payment(update: Update, context: CallbackContext) -> None:
-    text, markup = build_payment_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
-
-
-# Define the more_info command handler
-async def more_info(update: Update, context: CallbackContext) -> None:
-    text, markup = build_more_info_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
-
-
-# ---------- Callback query handler (edits existing message) ----------
-
-async def button(update: Update, context: CallbackContext) -> None:
-    query = update.callback_query
-    await query.answer()
-    data = query.data
-
-    if data == 'more_info':
-        text, markup = build_more_info_content()
-        await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
-    elif data == 'back':
-        text, markup = build_start_content()
-        await query.edit_message_text(text=text, parse_mode='HTML', reply_markup=markup)
-    elif data.startswith('reply_to_'):
-        # Обработка кнопки "Ответить долбаебу"
-        user_id = data.split('_')[2]  # Получаем ID пользователя
-        await handle_admin_reply(update, context, user_id)
-    elif data.startswith('admin_reply_'):
-        # Обработка кнопки "Ответить" из админ-панели
-        user_id = data.split('_')[2]  # Получаем ID пользователя
-        await handle_admin_reply(update, context, user_id)
-    elif data == 'admin_refresh':
-        # Обновление списка сообщений
-        await admin_messages(update, context)
-    else:
-        return
-
-async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
-    """Создает платеж в Lava Top и возвращает URL для оплаты"""
-    try:
-        # Конвертируем цену из рублей в евро (примерный курс)
-        rub_to_eur_rate = 0.009  # 1 RUB ≈ 0.009 EUR
-        price_rub = payment_data.get('price', 1500)
-        price_eur = round(price_rub * rub_to_eur_rate, 2)
-        
-        # Формируем данные для создания платежа
-        payment_request = {
-            "amount": price_rub,  # Используем цену в рублях
-            "currency": "RUB",    # Изменяем валюту на RUB
-            "order_id": f"formula_{user_id}_{int(asyncio.get_event_loop().time())}",
-            "hook_url": "https://your-webhook-url.com/lava-webhook",  # Замените на ваш webhook
-            "success_url": "https://t.me/acqu1red",
-            "fail_url": "https://t.me/acqu1red",
-            "metadata": {
-                "user_id": user_id,
-                "tariff": payment_data.get('tariff'),
-                "email": payment_data.get('email'),
-                "bank": payment_data.get('bank'),
-                "product": "Формула Успеха"
-            }
-        }
-        
-        # Отправляем запрос к Lava Top API
-        async with aiohttp.ClientSession() as session:
-            headers = {
-                "Authorization": f"Bearer {LAVA_TOP_API_KEY}",
-                "Content-Type": "application/json"
-            }
-            
-            async with session.post(
-                f"{LAVA_TOP_BASE_URL}/business/invoice/create",
-                headers=headers,
-                json=payment_request
-            ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get('data', {}).get('url', LAVA_TOP_PRODUCT_URL)
-                else:
-                    print(f"❌ Ошибка Lava Top API: {response.status}")
-                    return LAVA_TOP_PRODUCT_URL
-                    
-    except Exception as e:
-        print(f"❌ Ошибка создания платежа Lava Top: {e}")
-        return LAVA_TOP_PRODUCT_URL
-
-
-async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
-    """Обрабатывает данные от miniapp"""
-    try:
-        webapp_data = update.message.web_app_data.data
-        user = update.effective_user
-        
-        print(f"📱 Получены данные от miniapp: {webapp_data}")
-        
-        # Парсим JSON данные
-        payment_data = json.loads(webapp_data)
-        
-        # Формируем сообщение для администраторов
-        admin_message = f"💳 <b>Новая заявка на оплату!</b>\n\n"
-        admin_message += f"👤 <b>Пользователь:</b> {user.first_name}"
-        if user.username:
-            admin_message += f" (@{user.username})"
-        admin_message += f"\n🆔 <b>ID:</b> {user.id}\n"
-        admin_message += f"📧 <b>Email:</b> {payment_data.get('email', 'Не указан')}\n"
-        admin_message += f"💵 <b>Тариф:</b> {payment_data.get('tariff', 'Не указан')}\n"
-        admin_message += f"🏦 <b>Банк:</b> {payment_data.get('bank', 'Не указан')}\n"
-        admin_message += f"💰 <b>Сумма:</b> {payment_data.get('price', 'Не указана')} RUB\n"
-        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n\n"
-        admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}\n\n"
-        admin_message += "ℹ️ Пользователь перенаправлен на Lava Top для оплаты"
-        
-        # Отправляем уведомление всем администраторам
-        for admin_id in ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    chat_id=admin_id,
-                    text=admin_message,
-                    parse_mode='HTML'
-                )
-            except Exception as e:
-                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
-        
-        # Отправляем подтверждение пользователю
-        await update.message.reply_text(
-            "✅ <b>Заявка принята!</b>\n\n"
-            "Вы были перенаправлены на страницу оплаты Lava Top.\n"
-            "После успешной оплаты вы получите доступ к закрытому каналу.",
-            parse_mode='HTML'
-        )
-        
-    except Exception as e:
-        print(f"❌ Ошибка обработки данных miniapp: {e}")
-        await update.message.reply_text(
-            "❌ <b>Ошибка обработки заявки</b>\n\n"
-            "Пожалуйста, попробуйте еще раз или обратитесь в поддержку.",
-            parse_mode='HTML'
-        )
-
-
-async def check_expired_subscriptions(update: Update, context: CallbackContext) -> None:
-    """Проверяет и удаляет пользователей с истекшей подпиской"""
-    user = update.effective_user
-    
-    # Проверяем, является ли пользователь администратором
-    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
-        await update.effective_message.reply_text("У вас нет прав для выполнения этого действия!")
-        return
-    
-    try:
-        # Запускаем проверку истекших подписок
-        # Убираем вызов channel_manager.remove_expired_users так как модуль не существует
-        await update.effective_message.reply_text(
-            "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
-            "Функция временно недоступна.",
-            parse_mode='HTML'
-        )
-            
-    except Exception as e:
-        print(f"Ошибка проверки истекших подписок: {e}")
-        await update.effective_message.reply_text(
-            f"❌ <b>Ошибка проверки подписок:</b> {str(e)}",
-            parse_mode='HTML'
-        )
-
-
-async def handle_admin_reply(update: Update, context: CallbackContext, user_id: str) -> None:
+async def handle_admin_reply(update: Update, context, user_id: str) -> None:
     """Обрабатывает нажатие кнопки 'Ответить долбаебу' администратором"""
     query = update.callback_query
     admin_user = update.effective_user
@@ -601,42 +554,62 @@ async def handle_admin_reply(update: Update, context: CallbackContext, user_id: 
     # Устанавливаем состояние ожидания ответа администратора
     context.user_data['waiting_for_reply'] = True
 
+async def button(update: Update, context):
+    """Обработчик inline кнопок"""
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == "payment":
+        await payment_menu(update, context)
+    elif query.data.startswith('reply_to_'):
+        # Обработка кнопки "Ответить долбаебу"
+        user_id = query.data.split('_')[2]  # Получаем ID пользователя
+        await handle_admin_reply(update, context, user_id)
+    elif query.data.startswith('admin_reply_'):
+        # Обработка кнопки "Ответить" из админ-панели
+        user_id = query.data.split('_')[2]  # Получаем ID пользователя
+        await handle_admin_reply(update, context, user_id)
+    elif query.data == 'admin_refresh':
+        # Обновление списка сообщений
+        await admin_messages(update, context)
 
-# ---------- App bootstrap ----------
-
-# Main function to start the bot
-def main() -> None:
-    print("🚀 Запуск бота...")
+def main():
+    """Основная функция запуска бота"""
+    print("🚀 Запуск бота с polling...")
+    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    print(f"🔑 LAVA_TOP_API_KEY: {LAVA_TOP_API_KEY[:20] if LAVA_TOP_API_KEY else 'NOT SET'}...")
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
+    print(f"📦 Offer IDs: {OFFER_MAP}")
     
-    bot_token = "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc"
-    if not bot_token:
-        print("❌ TELEGRAM_BOT_TOKEN не установлен!")
-        return
+    # Создаем Telegram application
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     
-    application = ApplicationBuilder().token(bot_token).build()
-    
+    # Регистрируем обработчики
     print("📝 Регистрация обработчиков...")
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("payment", payment))
-    application.add_handler(CommandHandler("more_info", more_info))
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("payment", payment_menu))
     application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CommandHandler("messages", admin_messages))
-    application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
-    application.add_handler(CallbackQueryHandler(button))
-    
-    # Убираем обработчик channel_manager так как модуль не существует
-    print("✅ Обработчик управления каналом пропущен (модуль не найден)")
-    
-    # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
-    # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_all_messages))
-    print("✅ Обработчик всех сообщений зарегистрирован")
+    application.add_handler(CallbackQueryHandler(button))
+    print("✅ Обработчики зарегистрированы")
+    
+    # Настройка Mini Apps
+    print("🔧 Настройка Mini Apps...")
+    try:
+        application.bot.set_my_commands([
+            ("start", "Запустить бота"),
+            ("payment", "Оформить подписку"),
+            ("messages", "Сообщения пользователей")
+        ])
+        print("✅ Команды бота настроены")
+    except Exception as e:
+        print(f"❌ Ошибка настройки команд: {e}")
 
     print("🔄 Запуск polling...")
     application.run_polling()
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

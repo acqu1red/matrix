@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Оплата — Мини-приложение</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<style>
+  <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
   * {
@@ -568,7 +568,7 @@
     background: #d6c7b8;
     border-radius: 3px;
   }
-</style>
+  </style>
 </head>
 <body>
 <header>
@@ -632,7 +632,7 @@
         <div class="tariff-badge">ВЫБРАН</div>
         <div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на 1 месяц</div>
       </div>
-      
+
       <div class="content-block">
         <div class="content-text">
           <em>*если вы из Украины, включите vpn</em><br>
@@ -652,7 +652,7 @@
             <div class="payment-description">Банковская карта, криптокарта</div>
           </div>
         </div>
-        
+
         <div class="payment-method" data-method="support">
           <div class="payment-icon">💬</div>
           <div class="payment-info">
@@ -700,7 +700,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
           <input type="email" class="form-input" id="userEmail" placeholder="example@email.com" required>
@@ -747,7 +747,7 @@
           <span class="summary-label">Ваш E-mail</span>
           <span class="summary-value" id="confirmEmail">example@email.com</span>
         </div>
-        
+
         <div class="summary-item">
           <span class="summary-label">Стоимость</span>
           <span class="summary-value" id="confirmPrice">50 RUB</span>
@@ -765,7 +765,7 @@
   </div>
 </main>
 
-<script>
+  <script>
 // Initialize Telegram WebApp
 let tg = window.Telegram.WebApp;
 tg.ready();
@@ -851,8 +851,8 @@ function initializeApp() {
       this.style.borderColor = '#d6c7b8';
       
       goToStep(3);
-    });
-  });
+        });
+      });
 
   // Bank selection - автоматически выбираем единственный вариант
   paymentState.selectedBank = 'russian';
@@ -1082,6 +1082,6 @@ function closeAndSendData() {
     tg.sendData(JSON.stringify(paymentData));
   }, 100);
 }
-</script>
+  </script>
 </body>
 </html>
