@@ -10,3 +10,4 @@ restartPolicyType = "on_failure"
 
 [env]
 PORT = "5000"
+FLASK_ENV = "production"

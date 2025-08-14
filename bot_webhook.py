@@ -226,9 +226,23 @@ def telegram_webhook():
     application.update_queue.put_nowait(update)
     return jsonify({"ok": True})
 
+@app.get("/")
+def root():
+    return jsonify({"message": "Telegram Bot Webhook Server", "status": "running"})
+
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok", "ts": datetime.now().isoformat()})
+    try:
+        # Basic health check
+        health_status = {
+            "status": "ok",
+            "ts": datetime.now().isoformat(),
+            "bot_ready": application is not None,
+            "webhook_url": f"{PUBLIC_BASE_URL.rstrip('/')}/webhook" if PUBLIC_BASE_URL else None
+        }
+        return jsonify(health_status)
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e), "ts": datetime.now().isoformat()}), 500
 
 @app.get("/webhook-info")
 async def webhook_info():
@@ -267,13 +281,29 @@ def main():
     # We don't run polling; Flask will feed updates
     # Try to set webhook automatically if PUBLIC_BASE_URL is present
     if PUBLIC_BASE_URL:
-        async def _auto():
-            await application.bot.set_webhook(url=f"{PUBLIC_BASE_URL.rstrip('/')}/webhook",
-                                              allowed_updates=["message","callback_query","chat_member","chat_join_request"])
-        application.create_task(_auto())
+        def _auto():
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(application.bot.set_webhook(
+                    url=f"{PUBLIC_BASE_URL.rstrip('/')}/webhook",
+                    allowed_updates=["message","callback_query","chat_member","chat_join_request"]
+                ))
+                loop.close()
+            except Exception as e:
+                print(f"⚠️ Webhook setup error: {e}")
+        
+        # Run webhook setup in background thread
+        import threading
+        thread = threading.Thread(target=_auto)
+        thread.daemon = True
+        thread.start()
 
 if __name__ == "__main__":
+    # Initialize bot in background
     main()
+    
     # Start Flask server
     port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    print(f"🚀 Starting Flask server on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
