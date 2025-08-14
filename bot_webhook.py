@@ -4,6 +4,7 @@ Telegram Bot with Webhook support for Railway deployment
 """
 
 import os
+import sys
 import logging
 import requests
 import json
@@ -21,12 +22,25 @@ def send_email_invitation(email, tariff, subscription_id):
     print(f"📧 Email отправка отключена: {email}, тариф: {tariff}")
     return True
 
+# Функция для принудительного вывода логов
+def log_print(message):
+    """Выводит сообщение с принудительным flush для Railway"""
+    print(message, flush=True)
+    sys.stdout.flush()
+
 # Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    level=logging.INFO,
+    force=True,
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 logger = logging.getLogger(__name__)
+
+# Принудительный flush для Railway
+log_print("🔧 Настройка логирования завершена")
 
 # Конфигурация
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
@@ -57,7 +71,7 @@ PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', '')
 
 # Инициализируем Supabase клиент
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-print(f"✅ Supabase клиент инициализирован: {SUPABASE_URL}")
+log_print(f"✅ Supabase клиент инициализирован: {SUPABASE_URL}")
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
@@ -65,7 +79,21 @@ app = Flask(__name__)
 # Health check endpoint для Railway
 @app.route('/health', methods=['GET'])
 def health_check():
+    log_print("🏥 Health check endpoint вызван")
     return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
+
+# Test endpoint для проверки логов
+@app.route('/test-logs', methods=['GET'])
+def test_logs():
+    """Тестовый endpoint для проверки вывода логов"""
+    log_print("🧪 Тестовый endpoint для логов вызван")
+    log_print("📝 Это тестовое сообщение для проверки логов в Railway")
+    log_print("🕐 Время: " + datetime.now().isoformat())
+    return jsonify({
+        "status": "success", 
+        "message": "Логи отправлены",
+        "timestamp": datetime.now().isoformat()
+    })
 
 # Endpoint для сброса webhook
 @app.route('/reset-webhook', methods=['POST'])
@@ -167,18 +195,18 @@ def webhook_info():
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
     try:
-        print("=" * 50)
-        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
-        print("=" * 50)
-        print(f"📋 Headers: {dict(request.headers)}")
-        print(f"📋 Method: {request.method}")
-        print(f"📋 URL: {request.url}")
-        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
-        print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
+        log_print("=" * 50)
+        log_print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
+        log_print("=" * 50)
+        log_print(f"📋 Headers: {dict(request.headers)}")
+        log_print(f"📋 Method: {request.method}")
+        log_print(f"📋 URL: {request.url}")
+        log_print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
+        log_print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
         
         # Обрабатываем GET запросы (проверка доступности)
         if request.method == 'GET':
-            print("✅ GET запрос - проверка доступности webhook")
+            log_print("✅ GET запрос - проверка доступности webhook")
             
             # Проверяем и исправляем webhook при GET запросе
             try:
@@ -1088,10 +1116,14 @@ async def button(update: Update, context: CallbackContext):
 
 def main() -> None:
     """Основная функция запуска бота"""
-    print("🚀 Запуск бота с webhook...")
-    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
-    print(f"🔑 LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
-    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
+    # Принудительный flush для Railway
+    sys.stdout.flush()
+    sys.stderr.flush()
+    
+    log_print("🚀 Запуск бота с webhook...")
+    log_print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    log_print(f"🔑 LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
+    log_print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     
     # Создаем приложение
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
@@ -1188,7 +1220,11 @@ def main() -> None:
         print("❌ Не удалось настроить webhook URL")
         print("🚀 Запускаем Flask приложение без webhook")
     
-    print("🚀 Запуск Flask приложения...")
+    log_print("🚀 Запуск Flask приложения...")
+    # Принудительный flush перед запуском Flask
+    sys.stdout.flush()
+    sys.stderr.flush()
+    
     # Запускаем Flask приложение
     port = int(os.getenv('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
