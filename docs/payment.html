@@ -605,7 +605,7 @@
         <div class="progress-step"></div>
         <div class="progress-step"></div>
       </div>
-      
+
       <div class="tariff-title-block">
         <div class="tariff-badge">ВЫБРАН</div>
         <div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ "ФОРМУЛА" на 30 дней</div>
@@ -719,7 +719,7 @@
           <span class="summary-label">Метод оплаты</span>
           <span class="summary-value" id="confirmPaymentMethod">Банк РФ/Зарубежный банк</span>
         </div>
-        
+
         <div class="summary-item">
           <span class="summary-label">Ваш E-mail</span>
           <span class="summary-value" id="confirmEmail">example@email.com</span>
@@ -911,9 +911,38 @@ function sendFinalData() {
   try {
     const dataString = JSON.stringify(paymentData);
     console.log('📤 Отправляем данные:', dataString);
-    tg.sendData(dataString);
-    console.log('✅ Данные отправлены успешно');
-    showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+    
+    // Проверяем доступность tg.sendData
+    if (typeof tg.sendData === 'function') {
+      tg.sendData(dataString);
+      console.log('✅ Данные отправлены через tg.sendData');
+      showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+    } else {
+      console.warn('⚠️ tg.sendData недоступен, используем fallback');
+      
+      // Fallback: закрываем MiniApp и отправляем через обычное сообщение
+      tg.close();
+      
+      // Показываем инструкцию пользователю
+      showSuccess('MiniApp закрыт. Отправьте боту сообщение с данными: ' + dataString);
+      
+      // Создаем кнопку для копирования данных
+      const copyButton = document.createElement('button');
+      copyButton.className = 'btn btn-secondary';
+      copyButton.textContent = '📋 Скопировать данные';
+      copyButton.onclick = () => {
+        navigator.clipboard.writeText(dataString);
+        copyButton.textContent = '✅ Скопировано!';
+        setTimeout(() => {
+          copyButton.textContent = '📋 Скопировать данные';
+        }, 2000);
+      };
+      
+      const buttonGroup = document.querySelector('#step4 .button-group');
+      buttonGroup.appendChild(copyButton);
+      
+      return;
+    }
   } catch (error) {
     console.error('❌ Ошибка отправки данных:', error);
     showError('Ошибка отправки: ' + error.message);

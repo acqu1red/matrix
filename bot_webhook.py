@@ -53,7 +53,7 @@ PRIVATE_CHANNEL_ID = os.getenv('PRIVATE_CHANNEL_ID', '-1001234567890')
 ADMIN_IDS = [int(x.strip()) for x in os.getenv('ADMIN_IDS', '708907063,7365307696').split(',') if x.strip()]
 
 # MiniApp
-PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/payment.html')
+PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/')
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
@@ -122,6 +122,27 @@ def test_invoice():
             "status": "error",
             "message": str(e),
             "lava_api_key_set": bool(LAVA_TOP_API_KEY)
+        }), 500
+
+# Тестовый endpoint для проверки MiniApp
+@app.route('/test-miniapp', methods=['GET'])
+def test_miniapp():
+    """Тестирует доступность MiniApp"""
+    try:
+        import requests
+        response = requests.get("https://acqu1red.github.io/formulaprivate/payment.html", timeout=10)
+        return jsonify({
+            "status": "success",
+            "miniapp_url": "https://acqu1red.github.io/formulaprivate/payment.html",
+            "miniapp_status": response.status_code,
+            "miniapp_content_length": len(response.text),
+            "redirects_to": "docs/payment.html"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "miniapp_url": "https://acqu1red.github.io/formulaprivate/payment.html"
         }), 500
 
 # Тестовый endpoint для проверки webhook
@@ -361,8 +382,11 @@ def telegram_webhook():
             })
         
         # Получаем данные от Telegram (только для POST)
+        print("📥 Обрабатываем POST запрос от Telegram")
         data = request.get_json()
         print(f"📋 Данные от Telegram: {data}")
+        print(f"📋 Размер данных: {len(str(data)) if data else 0} символов")
+        print(f"📋 Content-Length: {request.headers.get('Content-Length')}")
         
         # Проверяем, что это действительно от Telegram
         if not data:
@@ -387,16 +411,6 @@ def telegram_webhook():
                 print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
                 print(f"📋 От пользователя: {update.message.from_user.id}")
                 print(f"📋 web_app_data: {getattr(update.message, 'web_app_data', 'НЕТ')}")
-                print(f"📋 Все атрибуты сообщения: {[attr for attr in dir(update.message) if not attr.startswith('_')]}")
-                
-                # Проверяем web_app_data более детально
-                if hasattr(update.message, 'web_app_data') and update.message.web_app_data:
-                    print(f"📱 web_app_data найден!")
-                    print(f"📱 web_app_data.data: {update.message.web_app_data.data}")
-                    print(f"📱 web_app_data.button_text: {getattr(update.message.web_app_data, 'button_text', 'НЕТ')}")
-                else:
-                    print("📱 web_app_data НЕ найден")
-                    
             elif update.callback_query:
                 print(f"📋 Callback query: {update.callback_query.data}")
                 print(f"📋 От пользователя: {update.callback_query.from_user.id}")
@@ -1028,7 +1042,7 @@ async def handle_all_messages(update: Update, context: CallbackContext):
     if message.text:
         try:
             data = json.loads(message.text)
-            if isinstance(data, dict) and 'step' in data:
+            if isinstance(data, dict) and ('step' in data or 'email' in data):
                 print(f"📱 Обнаружены JSON данные в тексте: {data}")
                 await process_payment_data(update, context, data)
                 return
