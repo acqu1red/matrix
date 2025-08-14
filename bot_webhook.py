@@ -1288,6 +1288,14 @@ def main() -> None:
     
     # Настраиваем webhook URL для Railway
     webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
+    if not webhook_url:
+        webhook_url = os.getenv('PUBLIC_BASE_URL', '')
+    
+    # Если мы в Railway, используем стандартный URL
+    if not webhook_url and os.getenv('RAILWAY_ENVIRONMENT'):
+        webhook_url = 'https://formulaprivate-productionpaymentuknow.up.railway.app'
+        print(f"🌐 Обнаружена среда Railway, используем стандартный URL: {webhook_url}")
+    
     if webhook_url:
         # Убеждаемся, что URL начинается с https://
         if not webhook_url.startswith('http'):
@@ -1363,7 +1371,7 @@ def main() -> None:
             import traceback
             print(f"📋 Traceback: {traceback.format_exc()}")
     else:
-        print("⚠️ RAILWAY_STATIC_URL не установлен")
+        print("⚠️ RAILWAY_STATIC_URL и PUBLIC_BASE_URL не установлены")
         print("🔧 Попробуем использовать переменную WEBHOOK_URL")
         webhook_url = os.getenv('WEBHOOK_URL', '')
         if webhook_url:
@@ -1384,7 +1392,17 @@ def main() -> None:
             except Exception as e:
                 print(f"❌ Ошибка установки webhook: {e}")
         else:
-            print("❌ Ни RAILWAY_STATIC_URL, ни WEBHOOK_URL не установлены")
+            print("❌ Ни RAILWAY_STATIC_URL, ни PUBLIC_BASE_URL, ни WEBHOOK_URL не установлены")
+            
+            # Проверяем, запускаем ли мы локально
+            if os.getenv('RAILWAY_ENVIRONMENT'):
+                print("🚀 Обнаружена среда Railway, но URL не настроен")
+                print("🚀 Запускаем Flask приложение без webhook")
+            else:
+                print("🚀 Запускаем в режиме polling (для локальной разработки)")
+                # Запускаем в режиме polling для локальной разработки
+                application.run_polling(allowed_updates=Update.ALL_TYPES)
+                return
     
     print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
