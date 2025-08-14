@@ -1,14 +1,14 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters, Application
 from queue import Queue
 from telegram.ext import ApplicationBuilder
 import pytz
-from telegram.ext import CallbackQueryHandler, ChatMemberHandler
+from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
-from channel_manager import channel_manager
+# channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
@@ -482,7 +482,7 @@ async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
                 if response.status == 200:
                     result = await response.json()
                     return result.get('data', {}).get('url', LAVA_TOP_PRODUCT_URL)
-    else:
+                else:
                     print(f"❌ Ошибка Lava Top API: {response.status}")
                     return LAVA_TOP_PRODUCT_URL
                     
@@ -551,11 +551,9 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
     # Проверяем, является ли пользователь администратором
     if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
         await update.effective_message.reply_text("У вас нет прав для выполнения этого действия!")
-                return
+        return
     
     try:
-        # Запускаем проверку истекших подписок
-        await channel_manager.remove_expired_users(context)
         
         await update.effective_message.reply_text(
             "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
@@ -614,9 +612,8 @@ def main() -> None:
     application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
     application.add_handler(CallbackQueryHandler(button))
     
-    # Обработчик для управления каналом (принятие заявок, удаление пользователей)
-    application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
-    print("✅ Обработчик управления каналом зарегистрирован")
+    # Обработчик для управления каналом отключен - используем webhook версию
+    print("✅ Обработчик управления каналом отключен (webhook версия)")
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
     # Обрабатываем ВСЕ сообщения от пользователей, включая медиа

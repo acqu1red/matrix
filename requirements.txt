@@ -4,4 +4,3 @@ pytz==2024.1
 aiohttp==3.9.1
 flask==3.1.0
 requests==2.31.0
-channel_manager==0.1.0
