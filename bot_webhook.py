@@ -43,7 +43,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # LAVA TOP (seller API) конфигурация
 LAVA_TOP_API_BASE = os.getenv('LAVA_TOP_API_BASE', 'https://gate.lava.top')
-LAVA_TOP_API_KEY = os.getenv('LAVA_TOP_API_KEY', '')
+LAVA_TOP_API_KEY = os.getenv('LAVA_TOP_API_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
 LAVA_OFFER_ID_BASIC = os.getenv('LAVA_OFFER_ID_BASIC', '302ecdcd-1581-45ad-8353-a168f347b8cc')
 LAVA_TOP_WEBHOOK_SECRET = os.getenv('LAVA_TOP_WEBHOOK_SECRET', '')
 
@@ -1038,50 +1038,111 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
     try:
         print(f"📱 Обрабатываем данные платежа: {payment_data}")
         
-        # Проверяем тип данных (пошаговая отправка)
+        # Проверяем тип данных (пошаговая отправка или прямой формат)
         step = payment_data.get('step')
         print(f"📋 Шаг данных: {step}")
         
-        if step == 'test_connection':
-            print("✅ Тестовое соединение получено!")
-            await message.reply_text("✅ Соединение с ботом установлено!")
-            return
-            
-        elif step == 'email_data':
-            email = payment_data.get('email')
-            print(f"📧 Получен email: {email}")
-            await message.reply_text(f"📧 Email получен: {email}")
-            return
-            
-        elif step == 'tariff_data':
-            tariff = payment_data.get('tariff')
-            price = payment_data.get('price')
-            print(f"💳 Получен tariff: {tariff}, цена: {price}")
-            await message.reply_text(f"💳 Tariff получен: {tariff}, цена: {price}₽")
-            return
-            
-        elif step == 'payment_method_data':
-            payment_method = payment_data.get('paymentMethod')
-            bank = payment_data.get('bank')
-            bank_name = payment_data.get('bankName', 'Банк РФ')
-            print(f"🏦 Получен payment method: {payment_method}, банк: {bank_name}")
-            await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank_name}")
-            return
-            
-        elif step == 'user_id_data':
-            user_id = payment_data.get('userId')
-            print(f"👤 Получен user ID: {user_id}")
-            await message.reply_text(f"👤 User ID получен: {user_id}")
-            return
-            
-        elif step == 'final_data':
-            # Обрабатываем финальные данные
+        # Если есть поле step - это пошаговая отправка
+        if step:
+            if step == 'test_connection':
+                print("✅ Тестовое соединение получено!")
+                await message.reply_text("✅ Соединение с ботом установлено!")
+                return
+                
+            elif step == 'email_data':
+                email = payment_data.get('email')
+                print(f"📧 Получен email: {email}")
+                await message.reply_text(f"📧 Email получен: {email}")
+                return
+                
+            elif step == 'tariff_data':
+                tariff = payment_data.get('tariff')
+                price = payment_data.get('price')
+                print(f"💳 Получен tariff: {tariff}, цена: {price}")
+                await message.reply_text(f"💳 Tariff получен: {tariff}, цена: {price}₽")
+                return
+                
+            elif step == 'payment_method_data':
+                payment_method = payment_data.get('paymentMethod')
+                bank = payment_data.get('bank')
+                bank_name = payment_data.get('bankName', 'Банк РФ')
+                print(f"🏦 Получен payment method: {payment_method}, банк: {bank_name}")
+                await message.reply_text(f"🏦 Payment method получен: {payment_method}, банк: {bank_name}")
+                return
+                
+            elif step == 'user_id_data':
+                user_id = payment_data.get('userId')
+                print(f"👤 Получен user ID: {user_id}")
+                await message.reply_text(f"👤 User ID получен: {user_id}")
+                return
+                
+            elif step == 'final_data':
+                # Обрабатываем финальные данные
+                email = payment_data.get('email')
+                tariff = payment_data.get('tariff')
+                price = payment_data.get('price')
+                user_id = payment_data.get('userId')
+                bank = payment_data.get('bank', 'russian')
+                print(f"🎯 Обрабатываем финальные данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
+                
+                # Проверяем, что все данные есть
+                if not email or not tariff or not price:
+                    print("❌ Не все данные получены:")
+                    print(f"   email: {email}")
+                    print(f"   tariff: {tariff}")
+                    print(f"   price: {price}")
+                    await message.reply_text("❌ Не все данные получены. Попробуйте еще раз.")
+                    return
+                
+                print("✅ Все данные получены, создаем инвойс...")
+                
+                # Создаем инвойс через LAVA TOP Seller API
+                try:
+                    payment_url = await create_lava_top_invoice(
+                        email=email,
+                        tariff=tariff,
+                        price=price,
+                        bank=bank,
+                        user_id=str(user.id)
+                    )
+                    
+                    if payment_url:
+                        print(f"✅ Инвойс создан успешно: {payment_url}")
+                        
+                        # Отправляем сообщение с кнопкой оплаты
+                        keyboard = [[InlineKeyboardButton("💳 Перейти к оплате", url=payment_url)]]
+                        reply_markup = InlineKeyboardMarkup(keyboard)
+                        
+                        await message.reply_text(
+                            f"💳 <b>Оплата подписки</b>\n\n"
+                            f"✅ Ваши данные получены:\n"
+                            f"📧 Email: {email}\n"
+                            f"💳 Тариф: {tariff}\n"
+                            f"💰 Сумма: {price}₽\n\n"
+                            f"Нажмите кнопку ниже для перехода к оплате:",
+                            parse_mode='HTML',
+                            reply_markup=reply_markup
+                        )
+                        print("✅ Сообщение с кнопкой оплаты отправлено")
+                        return
+                    else:
+                        print("❌ Не удалось создать инвойс")
+                        await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
+                        return
+                        
+                except Exception as e:
+                    print(f"❌ Ошибка создания инвойса: {e}")
+                    await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
+                    return
+        else:
+            # Прямой формат данных (без поля step)
+            print("📦 Обрабатываем прямой формат данных")
             email = payment_data.get('email')
             tariff = payment_data.get('tariff')
             price = payment_data.get('price')
             user_id = payment_data.get('userId')
             bank = payment_data.get('bank', 'russian')
-            print(f"🎯 Обрабатываем финальные данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
+            print(f"🎯 Обрабатываем данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
             
             # Проверяем, что все данные есть
             if not email or not tariff or not price:
@@ -1132,10 +1193,6 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
                 print(f"❌ Ошибка создания инвойса: {e}")
                 await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
                 return
-        else:
-            print(f"❌ Неизвестный шаг: {step}")
-            await message.reply_text("❌ Неизвестный тип данных")
-            return
             
     except Exception as e:
         print(f"❌ Ошибка обработки данных платежа: {e}")
