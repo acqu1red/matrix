@@ -7,3 +7,6 @@ startCommand = "python bot_webhook.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
+
+[env]
+PORT = "5000"
