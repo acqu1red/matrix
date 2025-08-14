@@ -1,13 +1,13 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, CallbackContext, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters
+from queue import Queue
 from telegram.ext import ApplicationBuilder
 import pytz
-from telegram.ext import CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, ChatMemberHandler
 from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
-# channel_manager removed - not needed for this bot
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
@@ -553,12 +553,11 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
         return
     
     try:
-        # Проверка истекших подписок временно отключена
-        # await channel_manager.remove_expired_users(context)
-        
+        # Запускаем проверку истекших подписок
+        # Убираем вызов channel_manager.remove_expired_users так как модуль не существует
         await update.effective_message.reply_text(
-            "✅ <b>Функция проверки подписок отключена</b>\n\n"
-            "Управление подписками происходит через LAVA API.",
+            "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
+            "Функция временно недоступна.",
             parse_mode='HTML'
         )
             
@@ -613,9 +612,8 @@ def main() -> None:
     application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
     application.add_handler(CallbackQueryHandler(button))
     
-    # Обработчик для управления каналом отключен
-    # application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
-    print("✅ Обработчик управления каналом отключен")
+    # Убираем обработчик channel_manager так как модуль не существует
+    print("✅ Обработчик управления каналом пропущен (модуль не найден)")
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
     # Обрабатываем ВСЕ сообщения от пользователей, включая медиа

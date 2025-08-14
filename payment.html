@@ -3,281 +3,1235 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Оплата — MiniApp</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Оплата — Мини-приложение</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg:#0f1115; --card:#171923; --text:#e8e8ef; --muted:#a6a8ad;
-      --brand:#d6c7b8; --accent:#c4a98a; --danger:#ef4444; --ok:#22c55e;
-      --radius:16px;
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    background: #121212;
+    font-family: 'Inter', sans-serif;
+    color: #f0eadf;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Header styles */
+  header {
+    background: #1f1f1f;
+    padding: 16px 0;
+    text-align: center;
+    position: relative;
+    border: 2px solid #d6c7b8;
+    border-radius: 12px;
+    margin: 12px 16px 8px 16px;
+    flex-shrink: 0;
+  }
+  
+  header h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: #f0eadf;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  /* Main content */
+  main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .step-container {
+    height: 100%;
+    overflow-y: auto;
+    padding: 0 16px 16px 16px;
+  }
+
+  /* Step styles */
+  .step {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .step.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Content blocks */
+  .content-block {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .content-block:hover {
+    border-color: #d6c7b8;
+    box-shadow: 0 4px 15px rgba(214, 199, 184, 0.1);
+  }
+
+  .content-text {
+    margin-bottom: 12px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+
+  .content-text:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Tariff selection */
+  .tariff-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .tariff-option {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tariff-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(214, 199, 184, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .tariff-option:hover::before {
+    left: 100%;
+  }
+
+  .tariff-option:hover {
+    border-color: #d6c7b8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
+
+  .tariff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .tariff-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #f0eadf;
+  }
+
+  .tariff-price {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #d6c7b8;
+  }
+
+  .tariff-description {
+    color: #a6a8ad;
+    font-size: 0.9rem;
+  }
+
+  /* Tariff title block */
+  .tariff-title-block {
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #121212;
+  }
+
+  .tariff-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+
+  .tariff-title-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  /* Payment methods */
+  .payment-methods {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .payment-method {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .payment-method:hover {
+    border-color: #d6c7b8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
+
+  .payment-icon {
+    font-size: 2rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .payment-info {
+    flex: 1;
+  }
+
+  .payment-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #f0eadf;
+    margin-bottom: 4px;
+  }
+
+  .payment-description {
+    color: #a6a8ad;
+    font-size: 0.9rem;
+  }
+
+  /* Form styles */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f0eadf;
+    margin-bottom: 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    color: #f0eadf;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: #d6c7b8;
+    box-shadow: 0 0 0 3px rgba(214, 199, 184, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: #a6a8ad;
+  }
+
+  /* Bank selection */
+  .bank-options {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .bank-option {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-weight: 600;
+    color: #f0eadf;
+  }
+
+  .bank-option:hover {
+    border-color: #d6c7b8;
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  }
+
+  .bank-option.selected {
+    border-color: #d6c7b8;
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+  }
+
+  /* Summary styles */
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #333;
+  }
+
+  .summary-item:last-child {
+    border-bottom: none;
+    font-weight: 600;
+    color: #d6c7b8;
+    font-size: 1.1rem;
+  }
+
+  .summary-label {
+    color: #a6a8ad;
+  }
+
+  .summary-value {
+    color: #f0eadf;
+    font-weight: 500;
+  }
+  
+  /* Payment Method Display Styles */
+  .payment-method-display {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border: 2px solid #3498db;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: paymentGlow 2s ease-in-out infinite alternate;
+  }
+  
+  .payment-method-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .payment-method-display:hover::before {
+    left: 100%;
+  }
+  
+  .payment-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    animation: iconPulse 2s ease-in-out infinite;
+  }
+  
+  .payment-info {
+    flex: 1;
+  }
+  
+  .payment-title {
+    font-weight: 600;
+    color: #ecf0f1;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  
+  .payment-subtitle {
+    color: #bdc3c7;
+    font-size: 14px;
+    font-style: italic;
+  }
+  
+  .payment-status {
+    display: flex;
+    align-items: center;
+  }
+  
+  .status-indicator {
+    width: 12px;
+    height: 12px;
+    background: #27ae60;
+    border-radius: 50%;
+    animation: statusPulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes paymentGlow {
+    0% {
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0; font: 16px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, Arial;
-      color: var(--text); background: radial-gradient(1200px 600px at 50% -80px,#202437 0%,#0f1115 50%);
-      min-height: 100dvh; display: grid; place-items: start center; padding: 24px;
+    100% {
+      box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
     }
-    .wrap { width: 100%; max-width: 760px; }
-    .card {
-      background: linear-gradient(180deg, #181b26 0%, #131621 100%);
-      border: 1px solid #25293a; border-radius: var(--radius); padding: 20px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  
+  @keyframes iconPulse {
+    0%, 100% {
+      transform: scale(1);
     }
-    h1 { font-size: 22px; margin: 0 0 14px; }
-    p.lead { margin: 0 0 18px; color: var(--muted) }
-    .grid { display: grid; gap: 12px; }
-    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .opt {
-      position: relative; border:1px solid #2a2e45; border-radius: 14px; padding: 12px; cursor: pointer;
-      transition: .2s transform, .2s border-color, .2s box-shadow, .2s background;
-      background: #121524;
+    50% {
+      transform: scale(1.1);
     }
-    .opt:hover { transform: translateY(-2px); border-color:#3a4062; }
-    .opt input { display:none; }
-    .opt .title { font-weight: 600; }
-    .opt .sub { color: var(--muted); font-size: 13px; }
-    .opt .price { margin-top: 6px; font-size: 18px; color: var(--brand); }
-    .opt.active { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(196,169,138,.2) inset; background:#161a2b; }
-    .field { display: grid; gap: 6px; }
-    .field label { font-weight:600; }
-    .input {
-      width: 100%; padding: 12px 14px; background: #0e1220; color: var(--text);
-      border: 1px solid #2a2e45; border-radius: 12px; outline: none;
+  }
+  
+  @keyframes statusPulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
     }
-    .input:focus { border-color:#3a4062; }
-    .hint { color: var(--muted); font-size: 13px; }
-    .error { color: var(--danger); font-size: 13px; display:none; }
-    .banner {
-      display:none; padding: 10px 12px; border-radius: 12px; margin-bottom:12px;
-      border:1px solid rgba(255,255,255,.08);
+    50% {
+      opacity: 0.7;
+      transform: scale(1.2);
     }
-    .banner.ok { background: rgba(34,197,94,.08); border-color: rgba(34,197,94,.25); color:#bbf7d0; }
-    .banner.err{ background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color:#fecaca; }
-    .total {
-      display:flex; align-items:center; justify-content:space-between; padding:12px 14px;
-      border:1px dashed #2a2e45; border-radius: 12px; background: #0e1220; margin-top: 6px;
+  }
+
+  /* Button styles */
+  .button-group {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn {
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%);
+    color: #121212;
+    box-shadow: 0 4px 15px rgba(214, 199, 184, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.4);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+    color: #f0eadf;
+    border: 2px solid #444;
+  }
+
+  .btn-secondary:hover {
+    border-color: #d6c7b8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(214, 199, 184, 0.2);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  /* Link button styles */
+  .btn[href] {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn[href]:hover {
+    text-decoration: none;
+  }
+
+  /* Progress indicator */
+  .progress-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .progress-step {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #444;
+    transition: all 0.3s ease;
+  }
+
+  .progress-step.active {
+    background: #d6c7b8;
+    transform: scale(1.2);
+  }
+
+  .progress-step.completed {
+    background: #4CAF50;
+  }
+
+  /* Responsive design */
+  @media (max-width: 480px) {
+    .content-block {
+      padding: 20px;
     }
+    
+    .tariff-option {
+      padding: 16px;
+    }
+    
+    .payment-method {
+      padding: 16px;
+    }
+    
     .btn {
-      width:100%; padding: 14px 16px; border:0; border-radius: 12px; cursor:pointer;
-      background: linear-gradient(90deg, #cdb89d, #bca185); color:#0b0d14; font-weight:700;
-      box-shadow: 0 8px 24px rgba(198,178,150,.25);
-      transition: .2s transform, .2s opacity;
+      padding: 14px 20px;
     }
-    .btn[disabled]{ opacity:.4; cursor:not-allowed; }
-    .btn:active { transform: translateY(1px); }
-    .foot { margin-top: 12px; color: var(--muted); font-size: 12px; text-align:center; }
-    .row { display:grid; gap:12px; grid-template-columns: 1fr; }
-    @media (min-width:720px){ .row { grid-template-columns: 1fr 1fr; } }
+  }
+
+  /* Scrollbar styles */
+  .step-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .step-container::-webkit-scrollbar-track {
+    background: #1f1f1f;
+  }
+  
+  .step-container::-webkit-scrollbar-thumb {
+    background: #d6c7b8;
+    border-radius: 3px;
+  }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div id="bannerOk" class="banner ok">Готово. Мы отправили данные в бота.</div>
-    <div id="bannerErr" class="banner err">Ошибка. Попробуйте ещё раз.</div>
+<header>
+  <h1>
+    💳 Оплата доступа
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+      <line x1="1" y1="10" x2="23" y2="10"/>
+    </svg>
+  </h1>
+</header>
 
-    <div class="card grid">
-      <div>
-        <h1>Оформление доступа</h1>
-        <p class="lead">Выберите тариф, укажите e‑mail для чека и способ оплаты. После успешной оплаты бот автоматически пришлёт ссылку в закрытый канал.</p>
+<main>
+  <div class="step-container">
+    <!-- Step 1: Tariff Selection -->
+    <div class="step active" id="step1">
+      <div class="progress-bar">
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          Ты сделал верный выбор.
+        </div>
+        <div class="content-text">
+          Выбери тариф по стоимости подписки на Формулу:
+        </div>
       </div>
 
-      <div class="grid">
-        <div class="field">
-          <label>Тариф</label>
-          <div id="tariffs" class="grid cols-3">
-            <label class="opt" data-price="490" data-tariff="basic">
-              <input type="radio" name="tariff" value="basic">
-              <div class="title">Базовый</div>
-              <div class="sub">30 дней</div>
-              <div class="price">490 ₽</div>
-            </label>
-            <label class="opt" data-price="1290" data-tariff="pro">
-              <input type="radio" name="tariff" value="pro">
-              <div class="title">PRO</div>
-              <div class="sub">90 дней</div>
-              <div class="price">1 290 ₽</div>
-            </label>
-            <label class="opt" data-price="3990" data-tariff="vip">
-              <input type="radio" name="tariff" value="vip">
-              <div class="title">VIP</div>
-              <div class="sub">365 дней</div>
-              <div class="price">3 990 ₽</div>
-            </label>
+      <div class="tariff-grid">
+        <div class="tariff-option" data-tariff="1_month" data-price="50">
+          <div class="tariff-header">
+            <div class="tariff-name">1 месяц</div>
+            <div class="tariff-price">50 ₽</div>
           </div>
-          <div class="error" id="errTariff">Выберите тариф</div>
+          <div class="tariff-description">Доступ к закрытому каналу</div>
+        </div>
+      </div>
+
+      <div class="content-block">
+        <div class="content-text">
+          <em>*цена в долларах/евро - конвертируется по нынешнему курсу</em><br>
+          <em>*оплачивай любой картой в долларах/евро/рублях, бот сконвертирует сам</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Payment Method Selection -->
+    <div class="step" id="step2">
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+      
+      <div class="tariff-title-block">
+        <div class="tariff-badge">ВЫБРАН</div>
+        <div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на 1 месяц</div>
+      </div>
+
+      <div class="content-block">
+        <div class="content-text">
+          <em>*если вы из Украины, включите vpn</em><br>
+          <em>*при оплате картой — оформляется автосписание каждые 30 дней</em><br>
+          <em>*далее — вы сможете управлять подпиской в Меню</em>
+        </div>
+        <div class="content-text">
+          Теперь тебе осталось выбрать удобный вид оплаты:
+        </div>
+      </div>
+
+      <div class="payment-methods">
+        <div class="payment-method" data-method="card">
+          <div class="payment-icon">💳</div>
+          <div class="payment-info">
+            <div class="payment-name">Картой (любая валюта)</div>
+            <div class="payment-description">Банковская карта, криптокарта</div>
+          </div>
         </div>
 
-        <div class="row">
-          <div class="field">
-            <label>E‑mail для чека</label>
-            <input id="email" class="input" type="email" placeholder="you@example.com" inputmode="email" autocomplete="email" />
-            <div class="error" id="errEmail">Введите корректный e‑mail</div>
-            <div class="hint">Мы не спамим. E‑mail нужен только для чека.</div>
+        <div class="payment-method" data-method="support">
+          <div class="payment-icon">💬</div>
+          <div class="payment-info">
+            <div class="payment-name">Поддержка</div>
+            <div class="payment-description">Связаться с поддержкой</div>
           </div>
-          <div class="field">
-            <label>Способ оплаты</label>
-            <div class="grid cols-3" id="banks">
-              <label class="opt" data-bank="russian"><input type="radio" name="bank" value="russian"><div class="title">🇷🇺 Банк РФ</div></label>
-              <label class="opt" data-bank="foreign"><input type="radio" name="bank" value="foreign"><div class="title">🌍 Зарубежный</div></label>
-              <label class="opt" data-bank="crypto"><input type="radio" name="bank" value="crypto"><div class="title">₿ Крипто</div></label>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-secondary" onclick="goToStep(1)">Назад</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Payment Details -->
+    <div class="step" id="step3">
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+      </div>
+      
+      <div class="tariff-title-block">
+        <div class="tariff-badge">ТОВАР</div>
+        <div class="tariff-title-text" id="productName">Канал ФОРМУЛА / 1 мес.</div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          <strong>Наименование товара</strong><br>
+          <span id="productName">Канал ФОРМУЛА / 1 мес.</span>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Метод оплаты</label>
+          <div class="payment-method-display">
+            <div class="payment-icon">💳</div>
+            <div class="payment-info">
+              <div class="payment-title">Банк РФ</div>
+              <div class="payment-subtitle">Российские банковские карты</div>
             </div>
-            <div class="error" id="errBank">Выберите способ оплаты</div>
+            <div class="payment-status">
+              <div class="status-indicator"></div>
+            </div>
           </div>
         </div>
 
-        <div class="total">
-          <div>К оплате</div>
-          <div><b id="total">—</b></div>
+        <div class="form-group">
+          <label class="form-label">Ваш E-mail: <span style="color: #ff6b6b;">*</span></label>
+          <input type="email" class="form-input" id="userEmail" placeholder="example@email.com" required>
+        </div>
+        
+        <div class="content-text">
+          <strong>Стоимость</strong><br>
+          <span id="finalPrice">50 RUB</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="goToStep(4)" id="nextBtn">Далее</button>
+        <button class="btn btn-secondary" onclick="goToStep(2)">Назад</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Confirmation -->
+    <div class="step" id="step4">
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+      </div>
+      
+      <div class="content-block">
+        <div class="content-text">
+          Убедитесь, что введённые данные верны:
+        </div>
+        
+        <div class="summary-item">
+          <span class="summary-label">Наименование товара</span>
+          <span class="summary-value" id="confirmProductName">Канал ФОРМУЛА / 1 мес.</span>
+        </div>
+        
+        <div class="summary-item">
+          <span class="summary-label">Метод оплаты</span>
+          <span class="summary-value" id="confirmPaymentMethod">Банк РФ/Зарубежный банк</span>
+        </div>
+        
+        <div class="summary-item">
+          <span class="summary-label">Ваш E-mail</span>
+          <span class="summary-value" id="confirmEmail">example@email.com</span>
         </div>
 
-        <button id="pay" class="btn" disabled>Оплатить</button>
-        <div class="foot">Нажимая «Оплатить», вы соглашаетесь с офертой. Оплата происходит через LAVA.</div>
+        <div class="summary-item">
+          <span class="summary-label">Стоимость</span>
+          <span class="summary-value" id="confirmPrice">50 RUB</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="generatePaymentLink()">Оплатить</button>
+        <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+        <button id="fallbackButton" class="btn btn-warning" onclick="closeAndSendData()" style="display: none; margin-top: 10px;">
+          💬 Отправить данные через сообщение
+        </button>
       </div>
     </div>
   </div>
+</main>
 
   <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) { tg.expand(); tg.ready(); }
+// Initialize Telegram WebApp
+let tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-    const $ = (s)=>document.querySelector(s);
-    const $$ = (s)=>Array.from(document.querySelectorAll(s));
+// Payment state
+let paymentState = {
+  currentStep: 1,
+  selectedTariff: null,
+  selectedPaymentMethod: 'card',
+  selectedBank: 'russian',
+  userEmail: '',
+  prices: {
+    '1_month': 50
+  },
+  tariffNames: {
+    '1_month': '1 месяц'
+  }
+};
 
-    const state = { tariff:null, price:0, email:"", bank:null, userId:null };
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function() {
+  initializeApp();
+});
 
-    function money(n){ try{ return new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(n); }catch(e){ return n + ' ₽'; } }
-    function show(el){ el.style.display='block'; }
-    function hide(el){ el.style.display='none'; }
+function initializeApp() {
 
-    function validate(){
-      let ok = true;
-
-      // tariff
-      if (!state.tariff) { show($('#errTariff')); ok=false; } else hide($('#errTariff'));
-
-      // email
-      const emailVal = $('#email').value.trim();
-      state.email = emailVal;
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailVal);
-      if (!emailOk) { show($('#errEmail')); ok=false; } else hide($('#errEmail'));
-
-      // bank
-      if (!state.bank) { show($('#errBank')); ok=false; } else hide($('#errBank'));
-
-      $('#pay').disabled = !ok;
-      return ok;
-    }
-
-    function recalc(){
-      $('#total').textContent = state.price ? money(state.price) : '—';
-      validate();
-    }
-
-    function initSelections(){
-      // Tariffs
-      $$('#tariffs .opt').forEach(opt => {
-        opt.addEventListener('click', () => {
-          $$('#tariffs .opt').forEach(o => o.classList.remove('active'));
-          opt.classList.add('active');
-          const price = parseInt(opt.dataset.price, 10);
-          const tariff = opt.dataset.tariff;
-          state.tariff = tariff; state.price = isNaN(price)?0:price;
-          recalc();
-        });
+  // Tariff selection
+  document.querySelectorAll('.tariff-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const tariff = this.dataset.tariff;
+      const price = this.dataset.price;
+      
+      paymentState.selectedTariff = tariff;
+      paymentState.selectedPaymentMethod = null;
+      paymentState.selectedBank = null;
+      paymentState.userEmail = '';
+      
+      // Update UI
+      document.querySelectorAll('.tariff-option').forEach(opt => opt.style.borderColor = '#444');
+      this.style.borderColor = '#d6c7b8';
+      
+      // Update step 2 content
+      document.getElementById('selectedTariffTitle').textContent = 
+        `ЗАКРЫТЫЙ КАНАЛ "ОСНОВА" на ${paymentState.tariffNames[tariff]}`;
+      
+      // Update step 3 content
+      const productNameElements = document.querySelectorAll('#productName');
+      productNameElements.forEach(element => {
+        element.textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
       });
+      document.getElementById('finalPrice').textContent = `${price} RUB`;
+      
+      // Update step 4 content
+      document.getElementById('confirmProductName').textContent = `Канал ФОРМУЛА / ${paymentState.tariffNames[tariff]}`;
+      document.getElementById('confirmPrice').textContent = `${price} RUB`;
+      
+      goToStep(2);
+    });
+  });
 
-      // Banks
-      $$('#banks .opt').forEach(opt => {
-        opt.addEventListener('click', () => {
-          $$('#banks .opt').forEach(o => o.classList.remove('active'));
-          opt.classList.add('active');
-          state.bank = opt.dataset.bank;
-          recalc();
-        });
-      });
-
-      $('#email').addEventListener('input', validate);
-    }
-
-    function params(){
-      const q = new URLSearchParams(location.search);
-      return Object.fromEntries(q.entries());
-    }
-
-    async function createPaymentIfAPI(payload){
-      const p = params();
-      if (!p.api) return null; // optional: direct API call only if ?api=... is provided
-      try{
-        const res = await fetch(p.api.replace(/\/$/, '') + '/api/create-payment', {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data?.ok && data.payment_url){
-          if (tg?.openLink) tg.openLink(data.payment_url);
-          else window.open(data.payment_url, '_blank');
-          return data.payment_url;
-        }
-        throw new Error(data?.error || 'API error');
-      }catch(e){
-        console.error('Direct API error', e);
-        return null;
+  // Payment method selection
+  document.querySelectorAll('.payment-method').forEach(method => {
+    method.addEventListener('click', function() {
+      const methodType = this.dataset.method;
+      
+      if (methodType === 'support') {
+        // Redirect to support page
+        tg.openTelegramLink('https://t.me/acqu1red');
+        return;
       }
+      
+      paymentState.selectedPaymentMethod = methodType;
+      
+      // Update UI
+      document.querySelectorAll('.payment-method').forEach(m => m.style.borderColor = '#444');
+      this.style.borderColor = '#d6c7b8';
+      
+      goToStep(3);
+        });
+      });
+
+  // Bank selection - автоматически выбираем единственный вариант
+  paymentState.selectedBank = 'russian';
+  document.getElementById('confirmPaymentMethod').textContent = 'Банк РФ/Зарубежный банк';
+
+  // Email input
+  document.getElementById('userEmail').addEventListener('input', function() {
+    paymentState.userEmail = this.value;
+    document.getElementById('confirmEmail').textContent = this.value || 'Не указан';
+  });
+
+  // Next button validation
+  document.getElementById('nextBtn').addEventListener('click', function() {
+    const email = document.getElementById('userEmail').value;
+    if (!email || !email.includes('@')) {
+      alert('Пожалуйста, введите корректный email');
+      return;
     }
+    
+    goToStep(4);
+  });
+}
 
-    async function pay(){
-      if (!validate()) return;
+function goToStep(step) {
+  // Hide all steps
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  
+  // Show target step
+  document.getElementById(`step${step}`).classList.add('active');
+  
+  // Update progress bar
+  updateProgressBar(step);
+  
+  paymentState.currentStep = step;
+}
 
-      // prepare payload
-      const payload = {
-        price: state.price,
-        email: state.email,
-        tariff: state.tariff,
-        bank: state.bank,
-        userId: state.userId || undefined
-      };
+function updateProgressBar(step) {
+  const steps = document.querySelectorAll('.progress-step');
+  
+  steps.forEach((stepEl, index) => {
+    stepEl.classList.remove('active', 'completed');
+    
+    if (index + 1 < step) {
+      stepEl.classList.add('completed');
+    } else if (index + 1 === step) {
+      stepEl.classList.add('active');
+    }
+  });
+}
 
-      // 1) send to bot (required path)
+function generatePaymentLink() {
+  // Автоматически устанавливаем метод оплаты если не выбран
+  if (!paymentState.selectedPaymentMethod) {
+    paymentState.selectedPaymentMethod = 'card';
+  }
+  if (!paymentState.selectedBank) {
+    paymentState.selectedBank = 'russian'; // Только российские банки
+  }
+  
+  // Validate required fields
+  if (!paymentState.selectedTariff || !paymentState.userEmail) {
+    alert('Пожалуйста, заполните все обязательные поля');
+    return;
+  }
+  
+  console.log('=== ПОШАГОВАЯ ОТПРАВКА ДАННЫХ ===');
+  
+  // Отправляем данные по частям для диагностики
+  const testData = {
+    step: 'test_connection',
+    message: 'Проверка соединения с ботом'
+  };
+  
+  console.log('📤 Отправляем тестовые данные:', testData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(testData));
+      console.log('✅ Тестовые данные отправлены');
+      showSuccess('Тестовые данные отправлены!');
+      
+      // Через 2 секунды отправляем email
+      setTimeout(() => {
+        sendEmailData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки тестовых данных:', error);
+      showError('Ошибка отправки: ' + error.message);
+    }
+  } else {
+    console.error('❌ tg.sendData не доступен!');
+    showError('tg.sendData не доступен');
+  }
+}
+
+function sendEmailData() {
+  const emailData = {
+    step: 'email_data',
+    email: paymentState.userEmail
+  };
+  
+  console.log('📧 Отправляем email данные:', emailData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(emailData));
+      console.log('✅ Email данные отправлены');
+      showSuccess('Email данные отправлены!');
+      
+      // Через 2 секунды отправляем tariff
+      setTimeout(() => {
+        sendTariffData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки email данных:', error);
+      showError('Ошибка отправки email: ' + error.message);
+    }
+  }
+}
+
+function sendTariffData() {
+  const tariffData = {
+    step: 'tariff_data',
+    tariff: paymentState.selectedTariff,
+    price: paymentState.prices[paymentState.selectedTariff]
+  };
+  
+  console.log('💳 Отправляем tariff данные:', tariffData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(tariffData));
+      console.log('✅ Tariff данные отправлены');
+      showSuccess('Tariff данные отправлены!');
+      
+      // Через 2 секунды отправляем payment method
+      setTimeout(() => {
+        sendPaymentMethodData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки tariff данных:', error);
+      showError('Ошибка отправки tariff: ' + error.message);
+    }
+  }
+}
+
+function sendPaymentMethodData() {
+  const paymentMethodData = {
+    step: 'payment_method_data',
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank,
+    bankName: 'Банк РФ'
+  };
+  
+  console.log('🏦 Отправляем payment method данные:', paymentMethodData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(paymentMethodData));
+      console.log('✅ Payment method данные отправлены');
+      showSuccess('Payment method данные отправлены!');
+      
+      // Через 2 секунды отправляем user ID
+      setTimeout(() => {
+        sendUserIdData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки payment method данных:', error);
+      showError('Ошибка отправки payment method: ' + error.message);
+    }
+  }
+}
+
+function sendUserIdData() {
+  const userIdData = {
+    step: 'user_id_data',
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+  };
+  
+  console.log('👤 Отправляем user ID данные:', userIdData);
+  
+  if (typeof tg.sendData === 'function') {
+    try {
+      tg.sendData(JSON.stringify(userIdData));
+      console.log('✅ User ID данные отправлены');
+      showSuccess('User ID данные отправлены!');
+      
+      // Через 2 секунды отправляем финальные данные
+      setTimeout(() => {
+        sendFinalData();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('❌ Ошибка отправки user ID данных:', error);
+      showError('Ошибка отправки user ID: ' + error.message);
+    }
+  }
+}
+
+function sendFinalData() {
+  // Prepare final payment data
+  const paymentData = {
+    step: 'final_data',
+    tariff: paymentState.selectedTariff,
+    paymentMethod: paymentState.selectedPaymentMethod,
+    bank: paymentState.selectedBank,
+    email: paymentState.userEmail,
+    price: paymentState.prices[paymentState.selectedTariff],
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+  };
+  
+  console.log('🎯 Отправляем финальные данные:', paymentData);
+  
+  // Send data to Telegram bot - бот создаст инвойс через API
+  console.log('=== ОТПРАВКА ДАННЫХ В БОТ ===');
+  console.log('Данные для отправки:', paymentData);
+  console.log('tg объект:', tg);
+  console.log('tg.sendData доступен:', typeof tg.sendData);
+  console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
+  console.log('tg.initData:', tg.initData);
+  console.log('tg.MainButton доступен:', typeof tg.MainButton);
+  
+  // Показываем MainButton для отправки данных
+  if (tg.MainButton && typeof tg.MainButton.setText === 'function') {
+    console.log('📱 Настраиваем MainButton...');
+    
+    tg.MainButton.setText('💳 Отправить данные');
+    tg.MainButton.onClick(() => {
+      console.log('🔘 MainButton нажата, отправляем данные:', paymentData);
+      
       try {
-        tg?.sendData?.(JSON.stringify(payload));
-        show($('#bannerOk')); hide($('#bannerErr'));
-      } catch(e){
-        console.error('sendData error', e);
-        show($('#bannerErr')); hide($('#bannerOk'));
+        const dataString = JSON.stringify(paymentData);
+        console.log('📤 Отправляем строку данных через MainButton:', dataString);
+        tg.sendData(dataString);
+        console.log('✅ Данные отправлены через MainButton');
+        
+        // Скрываем MainButton после отправки
+        tg.MainButton.hide();
+        
+        // Показываем успешное сообщение
+        showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+        
+      } catch (error) {
+        console.error('❌ Ошибка отправки через MainButton:', error);
+        showError('Ошибка отправки: ' + error.message);
       }
-
-      // 2) optional: call server directly when ?api=... provided
-      await createPaymentIfAPI(payload);
+    });
+    
+    tg.MainButton.show();
+    console.log('✅ MainButton показана');
+    
+    // Показываем инструкцию пользователю
+    showSuccess('Нажмите кнопку "💳 Отправить данные" внизу экрана');
+    
+  } else {
+    console.error('❌ MainButton не доступен!');
+    
+    // Пробуем обычный sendData
+    if (typeof tg.sendData === 'function') {
+      try {
+        const dataString = JSON.stringify(paymentData);
+        console.log('📤 Отправляем строку данных:', dataString);
+        tg.sendData(dataString);
+        console.log('✅ Данные отправлены успешно');
+        showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+      } catch (error) {
+        console.error('❌ Ошибка отправки данных:', error);
+        showError('Ошибка отправки: ' + error.message);
+      }
+    } else {
+      console.error('❌ tg.sendData не доступен!');
+      showError('tg.sendData не доступен');
+      
+      // Показываем кнопку для отправки через сообщение
+      showError('Нажмите кнопку ниже для отправки данных через сообщение');
+      document.getElementById('fallbackButton').style.display = 'block';
     }
+  }
+  
+  // Replace the button with a loading state
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" disabled style="opacity: 0.7;">
+      ⏳ Создание платежа...
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  // Show success message
+  const successMessage = document.createElement('div');
+  successMessage.className = 'content-block';
+  successMessage.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+  successMessage.style.borderColor = '#4CAF50';
+  successMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ✅ <strong>Данные отправлены!</strong><br>
+      Бот создает платежную ссылку с вашими данными...
+    </div>
+  `;
+  
+  // Insert success message before button group
+  const step4 = document.getElementById('step4');
+  const existingSuccess = step4.querySelector('.success-message');
+  if (existingSuccess) {
+    existingSuccess.remove();
+  }
+  
+  successMessage.classList.add('success-message');
+  buttonGroup.parentNode.insertBefore(successMessage, buttonGroup);
+}
 
-    function boot(){
-      // read user id from Telegram
-      try{
-        state.userId = tg?.initDataUnsafe?.user?.id || null;
-      }catch{}
-      initSelections();
-      recalc();
-      $('#pay').addEventListener('click', pay);
+// Handle back button
+window.addEventListener('popstate', function() {
+  if (paymentState.currentStep > 1) {
+    goToStep(paymentState.currentStep - 1);
+  }
+});
 
-      // Prefill via URL (?tariff=pro&email=x&bank=crypto)
-      const p = params();
-      if (p.email) { $('#email').value = p.email; }
-      if (p.tariff) {
-        const t = document.querySelector(`[data-tariff="${p.tariff}"]`);
-        t?.click();
-      }
-      if (p.bank) {
-        const b = document.querySelector(`[data-bank="${p.bank}"]`);
-        b?.click();
-      }
-      if (p.price) {
-        const pr = parseInt(p.price, 10);
-        if (!isNaN(pr)) { state.price = pr; recalc(); }
-      }
-    }
+// Retry payment function
+function retryPayment() {
+  generatePaymentLink();
+}
 
-    document.addEventListener('DOMContentLoaded', boot);
+// Show success message
+function showSuccess(message) {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" disabled style="opacity: 0.7;">
+      ✅ ${message}
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const successMessage = document.createElement('div');
+  successMessage.className = 'content-block';
+  successMessage.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+  successMessage.style.borderColor = '#4CAF50';
+  successMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ✅ <strong>Успешно!</strong><br>
+      ${message}
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  successMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(successMessage, buttonGroup);
+}
+
+// Show error message
+function showError(message) {
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" onclick="retryPayment()">
+      🔄 Попробовать снова
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+  
+  const errorMessage = document.createElement('div');
+  errorMessage.className = 'content-block';
+  errorMessage.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+  errorMessage.style.borderColor = '#ff6b6b';
+  errorMessage.innerHTML = `
+    <div class="content-text" style="color: white; text-align: center;">
+      ❌ <strong>Ошибка!</strong><br>
+      ${message}
+    </div>
+  `;
+  
+  const step4 = document.getElementById('step4');
+  const existingMessage = step4.querySelector('.status-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  errorMessage.classList.add('status-message');
+  buttonGroup.parentNode.insertBefore(errorMessage, buttonGroup);
+}
+
+// Close Mini Apps and send data via message
+function closeAndSendData() {
+  const paymentData = {
+    tariff: paymentState.selectedTariff,
+    email: paymentState.userEmail,
+    price: paymentState.prices[paymentState.selectedTariff],
+    userId: tg.initDataUnsafe?.user?.id || 'unknown'
+  };
+  
+  console.log('Закрываем Mini Apps и отправляем данные:', paymentData);
+  
+  // Закрываем Mini Apps и отправляем данные
+  tg.close();
+  
+  // Отправляем данные через обычное сообщение
+  setTimeout(() => {
+    tg.sendData(JSON.stringify(paymentData));
+  }, 100);
+}
   </script>
 </body>
 </html>

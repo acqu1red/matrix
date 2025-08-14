@@ -24,19 +24,19 @@ from telegram.constants import ParseMode
 # -----------------------------
 # Environment
 # -----------------------------
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc")
-PUBLIC_BASE_URL    = os.getenv("PUBLIC_BASE_URL", "https://formulaprivate-productionpaymentuknow.up.railway.app")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+PUBLIC_BASE_URL    = os.getenv("PUBLIC_BASE_URL", "")  # e.g. https://your-app.up.railway.app
 
 # LAVA Business API (Bearer token) and project
-LAVA_API_KEY = os.getenv("LAVA_API_KEY", "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav")
-LAVA_SHOP_ID = os.getenv("LAVA_SHOP_ID", "1b9f3e05-86aa-4102-9648-268f0f586bb1")
+LAVA_API_KEY = os.getenv("LAVA_API_KEY", "")
+LAVA_SHOP_ID = os.getenv("LAVA_SHOP_ID", "")
 
 # Optional: extra validation of incoming LAVA webhooks (shared secret if configured)
 LAVA_WEBHOOK_SECRET = os.getenv("LAVA_WEBHOOK_SECRET", "")  # optional HMAC secret
 
 # Telegram
-PRIVATE_CHANNEL_ID = os.getenv("PRIVATE_CHANNEL_ID", "-1002717275103")
-ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "708907063,7365307696").split(",") if x.strip().isdigit()]
+PRIVATE_CHANNEL_ID = os.getenv("PRIVATE_CHANNEL_ID")  # e.g. -1001234567890 (string)
+ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()]
 
 # Redirects after payment (optional)
 SUCCESS_REDIRECT_URL = os.getenv("SUCCESS_REDIRECT_URL", "")
@@ -226,23 +226,9 @@ def telegram_webhook():
     application.update_queue.put_nowait(update)
     return jsonify({"ok": True})
 
-@app.get("/")
-def root():
-    return jsonify({"message": "Telegram Bot Webhook Server", "status": "running"})
-
 @app.get("/health")
 def health():
-    try:
-        # Basic health check
-        health_status = {
-            "status": "ok",
-            "ts": datetime.now().isoformat(),
-            "bot_ready": application is not None,
-            "webhook_url": f"{PUBLIC_BASE_URL.rstrip('/')}/webhook" if PUBLIC_BASE_URL else None
-        }
-        return jsonify(health_status)
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e), "ts": datetime.now().isoformat()}), 500
+    return jsonify({"status": "ok", "ts": datetime.now().isoformat()})
 
 @app.get("/webhook-info")
 async def webhook_info():
@@ -281,29 +267,10 @@ def main():
     # We don't run polling; Flask will feed updates
     # Try to set webhook automatically if PUBLIC_BASE_URL is present
     if PUBLIC_BASE_URL:
-        def _auto():
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(application.bot.set_webhook(
-                    url=f"{PUBLIC_BASE_URL.rstrip('/')}/webhook",
-                    allowed_updates=["message","callback_query","chat_member","chat_join_request"]
-                ))
-                loop.close()
-            except Exception as e:
-                print(f"⚠️ Webhook setup error: {e}")
-        
-        # Run webhook setup in background thread
-        import threading
-        thread = threading.Thread(target=_auto)
-        thread.daemon = True
-        thread.start()
+        async def _auto():
+            await application.bot.set_webhook(url=f"{PUBLIC_BASE_URL.rstrip('/')}/webhook",
+                                              allowed_updates=["message","callback_query","chat_member","chat_join_request"])
+        application.create_task(_auto())
 
 if __name__ == "__main__":
-    # Initialize bot in background
     main()
-    
-    # Start Flask server
-    port = int(os.getenv("PORT", 5000))
-    print(f"🚀 Starting Flask server on port {port}")
-    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
