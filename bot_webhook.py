@@ -48,8 +48,8 @@ PAYMENT_MINIAPP_URL = os.getenv("PAYMENT_MINIAPP_URL", "https://acqu1red.github.
 
 # LAVA endpoints
 LAVA_ENDPOINTS = [
-    "https://api.lava.ru/business",
-    "https://api.lava.top/business",  # fallback
+    "https://api.lava.ru",
+    "https://api.lava.top",  # fallback
 ]
 
 # -----------------------------
@@ -148,7 +148,7 @@ async def create_lava_invoice(payment_data: dict, user_id: int, chat_id: int) ->
     for base in LAVA_ENDPOINTS:
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(f"{base}/invoice/create", headers=headers, data=json.dumps(payload)) as resp:
+                async with session.post(f"{base}/business/invoice/create", headers=headers, data=json.dumps(payload)) as resp:
                     text = await resp.text()
                     if resp.status != 200:
                         raise RuntimeError(f"LAVA {base} {resp.status}: {text}")
