@@ -63,263 +63,7 @@ app = Flask(__name__)
 def health_check():
     return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
 
-# Тестовый endpoint для проверки работы бота
-@app.route('/test', methods=['GET'])
-def test_bot():
-    return jsonify({
-        "status": "ok",
-        "message": "Бот работает!",
-        "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-        "lava_offer_id": LAVA_OFFER_ID_BASIC,
-        "lava_api_key_set": bool(LAVA_TOP_API_KEY),
-        "lava_api_key_preview": LAVA_TOP_API_KEY[:10] + "..." if LAVA_TOP_API_KEY else "НЕ УСТАНОВЛЕН",
-        "private_channel_id": PRIVATE_CHANNEL_ID,
-        "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-    })
 
-# Тестовый endpoint для проверки создания инвойса
-@app.route('/test-invoice', methods=['GET'])
-def test_invoice():
-    """Тестирует создание инвойса"""
-    try:
-        print("🧪 Тестирование создания инвойса...")
-        
-        # Проверяем переменные
-        if not LAVA_TOP_API_KEY:
-            return jsonify({
-                "status": "error",
-                "message": "LAVA_TOP_API_KEY не установлен",
-                "lava_api_key_set": False
-            }), 400
-        
-        # Создаем тестовый инвойс
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            payment_url = loop.run_until_complete(
-                create_lava_top_invoice(
-                    email="test@example.com",
-                    tariff="basic",
-                    price=50,
-                    bank="russian",
-                    user_id="123456789"
-                )
-            )
-            
-            return jsonify({
-                "status": "success",
-                "message": "Инвойс создан успешно",
-                "payment_url": payment_url,
-                "lava_api_key_set": True
-            })
-        finally:
-            loop.close()
-            
-    except Exception as e:
-        print(f"❌ Ошибка тестирования инвойса: {e}")
-        return jsonify({
-            "status": "error",
-            "message": str(e),
-            "lava_api_key_set": bool(LAVA_TOP_API_KEY)
-        }), 500
-
-# Тестовый endpoint для проверки MiniApp
-@app.route('/test-miniapp', methods=['GET'])
-def test_miniapp():
-    """Тестирует доступность MiniApp"""
-    try:
-        import requests
-        response = requests.get("https://acqu1red.github.io/formulaprivate/payment.html", timeout=10)
-        return jsonify({
-            "status": "success",
-            "miniapp_url": "https://acqu1red.github.io/formulaprivate/payment.html",
-            "miniapp_status": response.status_code,
-            "miniapp_content_length": len(response.text),
-            "redirects_to": "docs/payment.html"
-        })
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e),
-            "miniapp_url": "https://acqu1red.github.io/formulaprivate/payment.html"
-        }), 500
-
-# Тестовый endpoint для проверки webhook
-@app.route('/test-webhook', methods=['POST'])
-def test_webhook():
-    """Тестирует webhook endpoint"""
-    try:
-        data = request.get_json()
-        print(f"🧪 Тестовый webhook получен: {data}")
-        return jsonify({"status": "ok", "message": "Webhook endpoint работает!", "received_data": data})
-    except Exception as e:
-        print(f"❌ Ошибка тестового webhook: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# Endpoint для автоматической проверки и восстановления webhook
-@app.route('/check-webhook', methods=['GET'])
-def check_webhook():
-    """Автоматически проверяет и восстанавливает webhook"""
-    try:
-        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
-        response = requests.get(webhook_url)
-        webhook_data = response.json()
-        
-        current_url = webhook_data.get('result', {}).get('url', '')
-        expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-        
-        if current_url == expected_url:
-            return jsonify({
-                "status": "ok",
-                "message": "Webhook работает правильно",
-                "current_url": current_url,
-                "needs_fix": False
-            })
-        else:
-            print(f"⚠️ Webhook требует исправления: {current_url} != {expected_url}")
-            
-            # Автоматически исправляем webhook
-            delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
-            delete_response = requests.post(delete_url)
-            
-            import time
-            time.sleep(2)
-            
-            set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-            webhook_data_setup = {
-                "url": expected_url,
-                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
-                "max_connections": 40,
-                "allowed_updates": ["message", "callback_query"]
-            }
-            
-            set_response = requests.post(set_url, json=webhook_data_setup)
-            
-            # Проверяем результат
-            response = requests.get(webhook_url)
-            webhook_data = response.json()
-            final_url = webhook_data.get('result', {}).get('url', '')
-            
-            if final_url == expected_url:
-                return jsonify({
-                    "status": "fixed",
-                    "message": "Webhook автоматически исправлен",
-                    "previous_url": current_url,
-                    "current_url": final_url,
-                    "needs_fix": False
-                })
-            else:
-                return jsonify({
-                    "status": "error",
-                    "message": "Не удалось исправить webhook",
-                    "previous_url": current_url,
-                    "current_url": final_url,
-                    "needs_fix": True
-                })
-                
-    except Exception as e:
-        print(f"❌ Ошибка проверки webhook: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# Endpoint для проверки webhook info
-@app.route('/webhook-info', methods=['GET'])
-def webhook_info():
-    """Показывает информацию о текущем webhook"""
-    try:
-        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
-        response = requests.get(webhook_url)
-        webhook_data = response.json()
-        
-        print(f"📋 Webhook info: {webhook_data}")
-        
-        current_url = webhook_data.get('result', {}).get('url', '')
-        expected_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-        
-        # Автоматически исправляем webhook, если он неправильный
-        needs_fix = current_url != expected_url
-        auto_fixed = False
-        
-        if needs_fix:
-            print(f"⚠️ Webhook требует исправления: {current_url} != {expected_url}")
-            try:
-                # Удаляем старый webhook
-                delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
-                delete_response = requests.post(delete_url)
-                
-                import time
-                time.sleep(2)
-                
-                # Устанавливаем новый webhook
-                set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-                webhook_data_setup = {
-                    "url": expected_url,
-                    "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
-                    "max_connections": 40,
-                    "allowed_updates": ["message", "callback_query"]
-                }
-                
-                set_response = requests.post(set_url, json=webhook_data_setup)
-                print(f"🔧 Автоматическое исправление webhook: {set_response.status_code}")
-                
-                # Проверяем результат
-                response = requests.get(webhook_url)
-                webhook_data = response.json()
-                current_url = webhook_data.get('result', {}).get('url', '')
-                auto_fixed = current_url == expected_url
-                
-            except Exception as e:
-                print(f"❌ Ошибка автоматического исправления webhook: {e}")
-        
-        return jsonify({
-            "status": "ok",
-            "webhook_info": webhook_data,
-            "bot_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-            "expected_url": expected_url,
-            "current_url": current_url,
-            "pending_updates": webhook_data.get('result', {}).get('pending_update_count', 0),
-            "needs_fix": needs_fix,
-            "auto_fixed": auto_fixed
-        })
-    except Exception as e:
-        print(f"❌ Ошибка получения webhook info: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# Endpoint для принудительной переустановки webhook
-@app.route('/reset-webhook', methods=['GET', 'POST'])
-def reset_webhook():
-    """Принудительно переустанавливает webhook"""
-    try:
-        # Удаляем старый webhook
-        delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
-        delete_response = requests.post(delete_url)
-        print(f"🗑️ Удаление webhook: {delete_response.status_code} - {delete_response.text}")
-        
-        import time
-        time.sleep(2)
-        
-        # Устанавливаем новый webhook
-        webhook_url = "https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-        set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-        webhook_data = {
-            "url": webhook_url,
-            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
-            "max_connections": 40,
-            "allowed_updates": ["message", "callback_query"]
-        }
-        
-        set_response = requests.post(set_url, json=webhook_data)
-        print(f"🔧 Установка webhook: {set_response.status_code} - {set_response.text}")
-        
-        return jsonify({
-            "status": "ok",
-            "delete_response": delete_response.json(),
-            "set_response": set_response.json(),
-            "webhook_url": webhook_url
-        })
-    except Exception as e:
-        print(f"❌ Ошибка сброса webhook: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Webhook endpoint для Telegram
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -1240,8 +984,7 @@ def main() -> None:
     """Основная функция запуска бота"""
     print("🚀 Запуск бота с webhook...")
     print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
-    print(f"🔑 LAVA_OFFER_ID_BASIC: {LAVA_OFFER_ID_BASIC}")
-    print(f"🔑 LAVA_TOP_API_KEY: {LAVA_TOP_API_KEY[:20] if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}...")
+    print(f"🔑 LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     
     # Создаем приложение
@@ -1309,13 +1052,11 @@ def main() -> None:
             "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
         }
         
-        print(f"🔧 Webhook данные: {webhook_data}")
-        
         try:
             # Сначала удаляем старый webhook
             delete_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
             delete_response = requests.post(delete_webhook_url)
-            print(f"🗑️ Удаление старого webhook: {delete_response.status_code} - {delete_response.text}")
+            print(f"🗑️ Удаление старого webhook: {delete_response.status_code}")
             
             # Ждем немного
             import time
@@ -1329,80 +1070,17 @@ def main() -> None:
                 "allowed_updates": ["message", "callback_query"]
             }
             
-            print(f"🔧 Webhook данные с параметрами: {webhook_data_with_params}")
-            
             response = requests.post(webhook_setup_url, json=webhook_data_with_params)
-            print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
+            print(f"📡 Установка webhook: {response.status_code}")
             if response.status_code == 200:
                 print("✅ Webhook успешно установлен")
-                
-                # Ждем немного
-                time.sleep(2)
-                
-                # Проверяем текущий webhook
-                get_webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
-                webhook_info = requests.get(get_webhook_url)
-                webhook_result = webhook_info.json()
-                print(f"📋 Информация о webhook: {webhook_result}")
-                
-                # Проверяем, что URL правильный
-                if webhook_result.get('ok') and webhook_result.get('result', {}).get('url'):
-                    actual_url = webhook_result['result']['url']
-                    print(f"🔍 Фактический webhook URL: {actual_url}")
-                    expected_url = f"{webhook_url}/webhook"
-                    if actual_url != expected_url:
-                        print(f"⚠️ ВНИМАНИЕ: URL webhook не совпадает!")
-                        print(f"   Ожидалось: {expected_url}")
-                        print(f"   Фактически: {actual_url}")
-                        
-                        # Пробуем еще раз
-                        print("🔄 Пробуем установить webhook еще раз...")
-                        response2 = requests.post(webhook_setup_url, json=webhook_data_with_params)
-                        print(f"📡 Повторная установка: {response2.status_code} - {response2.text}")
-                    else:
-                        print("✅ Webhook URL установлен правильно!")
-                else:
-                    print("❌ Не удалось получить информацию о webhook")
-                    print(f"📋 Полный ответ: {webhook_result}")
             else:
                 print(f"❌ Ошибка установки webhook: {response.text}")
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
-            import traceback
-            print(f"📋 Traceback: {traceback.format_exc()}")
     else:
-        print("⚠️ RAILWAY_STATIC_URL и PUBLIC_BASE_URL не установлены")
-        print("🔧 Попробуем использовать переменную WEBHOOK_URL")
-        webhook_url = os.getenv('WEBHOOK_URL', '')
-        if webhook_url:
-            # Убеждаемся, что URL начинается с https://
-            if not webhook_url.startswith('http'):
-                webhook_url = f"https://{webhook_url}"
-            
-            print(f"🌐 Используем WEBHOOK_URL: {webhook_url}")
-            webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-            webhook_data = {
-                "url": webhook_url,
-                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
-            }
-            
-            try:
-                response = requests.post(webhook_setup_url, json=webhook_data)
-                print(f"📡 Ответ установки webhook: {response.status_code} - {response.text}")
-            except Exception as e:
-                print(f"❌ Ошибка установки webhook: {e}")
-        else:
-            print("❌ Ни RAILWAY_STATIC_URL, ни PUBLIC_BASE_URL, ни WEBHOOK_URL не установлены")
-            
-            # Проверяем, запускаем ли мы локально
-            if os.getenv('RAILWAY_ENVIRONMENT'):
-                print("🚀 Обнаружена среда Railway, но URL не настроен")
-                print("🚀 Запускаем Flask приложение без webhook")
-            else:
-                print("🚀 Запускаем в режиме polling (для локальной разработки)")
-                # Запускаем в режиме polling для локальной разработки
-                application.run_polling(allowed_updates=Update.ALL_TYPES)
-                return
+        print("❌ Не удалось настроить webhook URL")
+        print("🚀 Запускаем Flask приложение без webhook")
     
     print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
