@@ -698,7 +698,7 @@ async def payment_menu(update: Update, context: CallbackContext):
     """
     
     keyboard = [
-        [InlineKeyboardButton("💳 Оплатить через Mini Apps", web_app={"url": "https://acqu1red.github.io/formulaprivate/payment.html"})],
+        [InlineKeyboardButton("💳 Оплатить через Mini Apps", web_app={"url": "https://acqu1red.github.io/formulaprivate/"})],
         [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)

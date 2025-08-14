@@ -13,7 +13,7 @@ ADMIN_IDS=708907063,7365307696
 SUPABASE_URL=https://uhhsrtmmuwoxsdquimaa.supabase.co
 SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8
 WEBHOOK_SECRET=Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c
-PAYMENT_MINIAPP_URL=https://acqu1red.github.io/formulaprivate/payment.html
+PAYMENT_MINIAPP_URL=https://acqu1red.github.io/formulaprivate/
 ```
 
 ## База данных Supabase
@@ -59,7 +59,7 @@ https://formulaprivate-productionpaymentuknow.up.railway.app/lava-webhook
 ## Проверка работы
 
 1. Бот должен автоматически установить webhook при запуске
-2. MiniApp доступен по адресу: https://acqu1red.github.io/formulaprivate/payment.html
+2. MiniApp доступен по адресу: https://acqu1red.github.io/formulaprivate/
 3. Базовый тариф: 50 рублей
 4. После оплаты бот автоматически отправит ссылку в приватный канал
 
