@@ -838,7 +838,9 @@ function initializeApp() {
   // Next button validation
   document.getElementById('nextBtn').addEventListener('click', function() {
     const email = document.getElementById('userEmail').value;
-    if (!email || !email.includes('@')) {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email || !emailPattern.test(email)) {
       alert('Пожалуйста, введите корректный email');
       return;
     }
@@ -889,6 +891,13 @@ function generatePaymentLink() {
     return;
   }
   
+  // Validate email format
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(paymentState.userEmail)) {
+    alert('Пожалуйста, введите корректный email');
+    return;
+  }
+  
   // Отправляем данные напрямую в бот
   sendFinalData();
 }
@@ -920,26 +929,14 @@ function sendFinalData() {
     } else {
       console.warn('⚠️ tg.sendData недоступен, используем fallback');
       
-      // Fallback: закрываем MiniApp и отправляем через обычное сообщение
-      tg.close();
+      // Fallback: НЕ закрываем WebApp, показываем кнопку для отправки через сообщение
+      showSuccess('tg.sendData недоступен. Используйте кнопку ниже для отправки данных через сообщение.');
       
-      // Показываем инструкцию пользователю
-      showSuccess('MiniApp закрыт. Отправьте боту сообщение с данными: ' + dataString);
-      
-      // Создаем кнопку для копирования данных
-      const copyButton = document.createElement('button');
-      copyButton.className = 'btn btn-secondary';
-      copyButton.textContent = '📋 Скопировать данные';
-      copyButton.onclick = () => {
-        navigator.clipboard.writeText(dataString);
-        copyButton.textContent = '✅ Скопировано!';
-        setTimeout(() => {
-          copyButton.textContent = '📋 Скопировать данные';
-        }, 2000);
-      };
-      
-      const buttonGroup = document.querySelector('#step4 .button-group');
-      buttonGroup.appendChild(copyButton);
+      // Показываем кнопку fallback
+      const fallbackButton = document.getElementById('fallbackButton');
+      if (fallbackButton) {
+        fallbackButton.style.display = 'block';
+      }
       
       return;
     }
@@ -1064,15 +1061,30 @@ function closeAndSendData() {
     userId: tg.initDataUnsafe?.user?.id || 'unknown'
   };
   
-  console.log('Закрываем Mini Apps и отправляем данные:', paymentData);
+  console.log('Отправляем данные через сообщение:', paymentData);
   
-  // Закрываем Mini Apps и отправляем данные
-  tg.close();
-  
-  // Отправляем данные через обычное сообщение
-  setTimeout(() => {
-    tg.sendData(JSON.stringify(paymentData));
-  }, 100);
+  // Сначала отправляем данные, потом закрываем
+  try {
+    if (typeof tg.sendData === 'function') {
+      tg.sendData(JSON.stringify(paymentData));
+      console.log('✅ Данные отправлены через tg.sendData');
+      
+      // Показываем статус успешной отправки
+      showSuccess('Данные отправлены! Бот создает платежную ссылку...');
+      
+      // Закрываем MiniApp только после успешной отправки
+      setTimeout(() => {
+        tg.close();
+      }, 2000);
+    } else {
+      // Если tg.sendData недоступен, просто закрываем
+      console.warn('⚠️ tg.sendData недоступен, закрываем MiniApp');
+      tg.close();
+    }
+  } catch (error) {
+    console.error('❌ Ошибка отправки данных:', error);
+    showError('Ошибка отправки: ' + error.message);
+  }
 }
   </script>
 </body>
