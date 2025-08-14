@@ -53,7 +53,7 @@ PRIVATE_CHANNEL_ID = os.getenv('PRIVATE_CHANNEL_ID', '-1001234567890')
 ADMIN_IDS = [int(x.strip()) for x in os.getenv('ADMIN_IDS', '708907063,7365307696').split(',') if x.strip()]
 
 # MiniApp
-PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/')
+PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/payment.html')
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
@@ -387,6 +387,16 @@ def telegram_webhook():
                 print(f"📋 Сообщение: {update.message.text if update.message.text else 'Нет текста'}")
                 print(f"📋 От пользователя: {update.message.from_user.id}")
                 print(f"📋 web_app_data: {getattr(update.message, 'web_app_data', 'НЕТ')}")
+                print(f"📋 Все атрибуты сообщения: {[attr for attr in dir(update.message) if not attr.startswith('_')]}")
+                
+                # Проверяем web_app_data более детально
+                if hasattr(update.message, 'web_app_data') and update.message.web_app_data:
+                    print(f"📱 web_app_data найден!")
+                    print(f"📱 web_app_data.data: {update.message.web_app_data.data}")
+                    print(f"📱 web_app_data.button_text: {getattr(update.message.web_app_data, 'button_text', 'НЕТ')}")
+                else:
+                    print("📱 web_app_data НЕ найден")
+                    
             elif update.callback_query:
                 print(f"📋 Callback query: {update.callback_query.data}")
                 print(f"📋 От пользователя: {update.callback_query.from_user.id}")
@@ -930,7 +940,7 @@ async def payment_menu(update: Update, context: CallbackContext):
     """
     
     keyboard = [
-        [InlineKeyboardButton("💳 Оплатить через Mini Apps", web_app={"url": "https://acqu1red.github.io/formulaprivate/"})],
+        [InlineKeyboardButton("💳 Оплатить через Mini Apps", web_app={"url": "https://acqu1red.github.io/formulaprivate/payment.html"})],
         [InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
