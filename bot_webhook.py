@@ -9,6 +9,7 @@ import requests
 import json
 import base64
 import asyncio
+import aiohttp
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -40,11 +41,19 @@ SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.
 SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Lava Top конфигурация
-LAVA_SHOP_ID = os.getenv('LAVA_SHOP_ID', '1b9f3e05-86aa-4102-9648-268f0f586bb1')
-LAVA_SECRET_KEY = os.getenv('LAVA_SECRET_KEY', 'whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav')
-LAVA_PRODUCT_ID = os.getenv('LAVA_PRODUCT_ID', '302ecdcd-1581-45ad-8353-a168f347b8cc')  # Product ID из вашей ссылки
-LAVA_PRODUCT_URL_ID = os.getenv('LAVA_PRODUCT_URL_ID', 'dcaf4bee-db84-476f-85a9-f5af24eb648e')  # Product URL ID
+# LAVA TOP (seller API) конфигурация
+LAVA_TOP_API_BASE = os.getenv('LAVA_TOP_API_BASE', 'https://gate.lava.top')
+LAVA_TOP_API_KEY = os.getenv('LAVA_TOP_API_KEY', '')
+LAVA_OFFER_ID_BASIC = os.getenv('LAVA_OFFER_ID_BASIC', '302ecdcd-1581-45ad-8353-a168f347b8cc')
+LAVA_TOP_WEBHOOK_SECRET = os.getenv('LAVA_TOP_WEBHOOK_SECRET', '')
+
+# Telegram конфигурация
+PUBLIC_BASE_URL = os.getenv('PUBLIC_BASE_URL', 'https://formulaprivate-productionpaymentuknow.up.railway.app')
+PRIVATE_CHANNEL_ID = os.getenv('PRIVATE_CHANNEL_ID', '-1001234567890')
+ADMIN_IDS = [int(x.strip()) for x in os.getenv('ADMIN_IDS', '708907063,7365307696').split(',') if x.strip()]
+
+# MiniApp
+PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/')
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
@@ -57,13 +66,13 @@ def health_check():
 # Тестовый endpoint для проверки работы бота
 @app.route('/test', methods=['GET'])
 def test_bot():
-    return jsonify({
-        "status": "ok",
-        "message": "Бот работает!",
-        "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-        "lava_shop_id": LAVA_SHOP_ID,
-        "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-    })
+            return jsonify({
+            "status": "ok",
+            "message": "Бот работает!",
+            "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
+            "lava_offer_id": LAVA_OFFER_ID_BASIC,
+            "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+        })
 
 # Тестовый endpoint для проверки webhook
 @app.route('/test-webhook', methods=['POST'])
@@ -425,52 +434,46 @@ def create_payment_api():
         print(f"📋 Полученные данные: {data}")
         
         if not data:
-            return jsonify({"status": "error", "message": "No data provided"}), 400
+            return jsonify({"ok": False, "error": "No data provided"}), 400
         
         # Извлекаем данные
         user_id = data.get('user_id') or data.get('userId')
         email = data.get('email')
         tariff = data.get('tariff')
         price = data.get('price')
+        bank = data.get('bank', 'russian')
         
         if not all([user_id, email, tariff, price]):
             return jsonify({
-                "status": "error", 
-                "message": "Missing required fields",
+                "ok": False, 
+                "error": "Missing required fields",
                 "received_data": data
             }), 400
         
         print(f"📋 Создаем платеж: user_id={user_id}, email={email}, tariff={tariff}, price={price}")
         
-        # Создаем инвойс через Lava Top API
+        # Создаем инвойс через Lava Top Seller API
         payment_url = create_lava_invoice(user_id, email, tariff, price)
         
         if payment_url:
             print(f"✅ Платеж создан успешно: {payment_url}")
             return jsonify({
-                "status": "success",
+                "ok": True,
                 "payment_url": payment_url,
-                "message": "Payment created successfully",
-                "data": {
-                    "user_id": user_id,
-                    "email": email,
-                    "tariff": tariff,
-                    "price": price,
-                    "order_id": f"order_{user_id}_{int(datetime.now().timestamp())}"
-                }
+                "message": "Payment created successfully"
             })
         else:
             print("❌ Не удалось создать платеж")
             return jsonify({
-                "status": "error",
-                "message": "Failed to create payment"
+                "ok": False,
+                "error": "Failed to create payment"
             }), 500
             
     except Exception as e:
         print(f"❌ Ошибка создания платежа: {e}")
         import traceback
         print(f"📋 Traceback: {traceback.format_exc()}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # Webhook endpoint для Lava Top
 @app.route('/lava-webhook', methods=['GET', 'POST'])
@@ -484,24 +487,14 @@ def lava_webhook():
         print(f"📋 URL: {request.url}")
         print(f"📋 Headers: {dict(request.headers)}")
         
-        # Проверка API key аутентификации
-        api_key_header = request.headers.get('X-API-Key') or request.headers.get('Authorization')
-        print(f"🔍 API Key: {api_key_header}")
+        # Проверка подписи вебхука (если включена)
+        if LAVA_TOP_WEBHOOK_SECRET:
+            signature = request.headers.get('X-Signature')
+            if signature:
+                # Здесь можно добавить проверку HMAC подписи
+                print(f"🔍 Проверка подписи: {signature}")
         
-        if api_key_header:
-            if api_key_header.startswith('Bearer '):
-                api_key_header = api_key_header[7:]
-            
-            expected_api_key = 'LavaTop_Webhook_Secret_2024_Formula_Private_Channel_8x9y2z'
-            if api_key_header != expected_api_key:
-                print(f"❌ Неверный API key")
-                return jsonify({"status": "error", "message": "Unauthorized"}), 401
-            else:
-                print("✅ API key верный")
-        else:
-            print("⚠️ API key не найден, но продолжаем обработку")
-        
-        # Получаем данные в зависимости от метода
+        # Получаем данные
         if request.method == 'GET':
             print("🔍 GET запрос - получаем данные из query параметров")
             data = request.args.to_dict()
@@ -515,76 +508,101 @@ def lava_webhook():
         
         print(f"📋 Полученные данные: {data}")
         
-        # Проверяем статус платежа
-        payment_status = data.get('status')
-        order_id = data.get('order_id')
+        # Проверяем статус платежа (seller API формат)
+        payment_status = data.get('status') or data.get('state')
+        order_id = data.get('order_id') or data.get('id')
         amount = data.get('amount')
         currency = data.get('currency')
-        metadata = data.get('metadata', {})
+        email = data.get('email')
         
-        # Если metadata это строка, пробуем распарсить JSON
-        if isinstance(metadata, str):
-            try:
-                metadata = json.loads(metadata)
-            except:
-                metadata = {}
+        print(f"📋 Статус платежа: {payment_status}")
         
-        print(f"📋 Metadata: {metadata}")
-        
-        if payment_status == 'success':
+        # Обрабатываем успешный платеж
+        if payment_status in ['success', 'paid', 'completed']:
             print("✅ Платеж успешен!")
             
-            # Извлекаем данные из metadata
-            user_id = metadata.get('user_id') or metadata.get('telegram_id')
-            email = metadata.get('email')
-            tariff = metadata.get('tariff')
+            # Определяем пользователя по email из вебхука
+            # Ищем пользователя в базе данных по email
+            user_id = None
             
-            print(f"📋 Извлеченные данные: user_id={user_id}, email={email}, tariff={tariff}")
+            if email:
+                try:
+                    # Ищем пользователя в базе данных по email
+                    result = supabase.table('bot_users').select('telegram_id').eq('email', email).execute()
+                    if result.data:
+                        user_id = result.data[0]['telegram_id']
+                        print(f"✅ Найден пользователь по email {email}: {user_id}")
+                    else:
+                        print(f"❌ Пользователь с email {email} не найден в базе")
+                except Exception as e:
+                    print(f"❌ Ошибка поиска пользователя по email: {e}")
+                    # Если таблица bot_users не существует или колонка email отсутствует
+                    if "relation" in str(e).lower() and "does not exist" in str(e).lower():
+                        print("⚠️ Таблица 'bot_users' не существует. Создайте таблицу bot_users в Supabase")
+                    elif "column" in str(e).lower() and "does not exist" in str(e).lower():
+                        print("⚠️ Колонка 'email' не существует в таблице bot_users. Проверьте структуру таблицы")
+                    else:
+                        print(f"⚠️ Неизвестная ошибка базы данных: {e}")
             
-            # Отправляем уведомление только в Telegram
             if user_id:
                 try:
-                    user_id = int(user_id)
-                    print(f"📱 Отправляем сообщение в Telegram пользователю {user_id}")
+                    print(f"📱 Отправляем инвайт пользователю {user_id}")
                     
-                    # Создаем подписку в базе данных
-                    subscription_id = create_subscription(user_id, email, tariff, amount, currency, order_id, metadata)
-                    
-                    # Отправляем сообщение пользователю
-                    success_message = f"""
-💳 <b>Оплата прошла успешно!</b>
-
-✅ Ваша подписка активирована
-📧 Email: {email}
-💳 Тариф: {tariff}
-💰 Сумма: {amount} {currency}
-🆔 ID подписки: {subscription_id}
-
-🔗 <a href="https://t.me/+6SQb4RwwAmZlMWQ6">Присоединиться к каналу</a>
-                    """
-                    
-                    keyboard = [[InlineKeyboardButton("🔗 Присоединиться к каналу", url="https://t.me/+6SQb4RwwAmZlMWQ6")]]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    
-                    bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
-                    send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    message_data = {
-                        "chat_id": user_id,
-                        "text": success_message,
-                        "parse_mode": "HTML",
-                        "reply_markup": reply_markup.to_dict()
+                    # Создаем одноразовую инвайт-ссылку
+                    bot_token = TELEGRAM_BOT_TOKEN
+                    invite_url = f"https://api.telegram.org/bot{bot_token}/createChatInviteLink"
+                    invite_data = {
+                        "chat_id": PRIVATE_CHANNEL_ID,
+                        "member_limit": 1,
+                        "creates_join_request": False
                     }
                     
-                    response = requests.post(send_message_url, json=message_data)
-                    if response.status_code == 200:
-                        print("✅ Сообщение отправлено в Telegram")
+                    invite_response = requests.post(invite_url, json=invite_data)
+                    if invite_response.status_code == 200:
+                        invite_result = invite_response.json()
+                        invite_link = invite_result['result']['invite_link']
+                        
+                        # Отправляем сообщение с инвайтом
+                        message_text = f"🎉 Оплата прошла!\n\n🔗 Ваша ссылка для входа в закрытый канал:\n{invite_link}"
+                        
+                        send_message_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                        message_data = {
+                            "chat_id": user_id,
+                            "text": message_text,
+                            "parse_mode": "HTML"
+                        }
+                        
+                        response = requests.post(send_message_url, json=message_data)
+                        if response.status_code == 200:
+                            print("✅ Инвайт отправлен пользователю")
+                        else:
+                            print(f"❌ Ошибка отправки инвайта: {response.text}")
                     else:
-                        print(f"❌ Ошибка отправки в Telegram: {response.text}")
+                        print(f"❌ Ошибка создания инвайт-ссылки: {invite_response.text}")
                         
                 except Exception as e:
                     print(f"❌ Ошибка обработки пользователя: {e}")
             else:
-                print("❌ user_id не найден в metadata")
+                print("❌ user_id не найден")
+                # Отправляем уведомление администраторам
+                for admin_id in ADMIN_IDS:
+                    try:
+                        message_text = f"⚠️ Платеж прошел, но пользователь не найден!\n\n📧 Email: {email}\n💰 Сумма: {amount} {currency}\n🆔 Order ID: {order_id}"
+                        
+                        send_message_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                        message_data = {
+                            "chat_id": admin_id,
+                            "text": message_text,
+                            "parse_mode": "HTML"
+                        }
+                        
+                        response = requests.post(send_message_url, json=message_data)
+                        if response.status_code == 200:
+                            print(f"✅ Уведомление отправлено администратору {admin_id}")
+                        else:
+                            print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {response.text}")
+                    except Exception as e:
+                        print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
             
             print("✅ Платеж обработан успешно")
         else:
@@ -636,25 +654,121 @@ def create_subscription(user_id, email, tariff, amount, currency, order_id, meta
         print(f"❌ Ошибка создания подписки: {e}")
         return 'error'
 
+# LAVA TOP Seller API функции
+OFFER_MAP = {
+    "basic": LAVA_OFFER_ID_BASIC,
+    "1_month": LAVA_OFFER_ID_BASIC,  # Алиас для совместимости
+}
+
+def _method_by(bank: str, currency: str = "RUB") -> str:
+    bank = (bank or "russian").lower()
+    currency = (currency or "RUB").upper()
+    if currency == "RUB":
+        return "BANK131"
+    return "UNLIMINT"  # на будущее (USD/EUR), не ломать текущую логику
+
+async def create_lava_top_invoice(*, email: str, tariff: str, price: int, bank: str, user_id: str = None, currency: str = "RUB") -> str:
+    if not LAVA_TOP_API_KEY:
+        raise RuntimeError("LAVA_TOP_API_KEY не установлен. Установите переменную окружения LAVA_TOP_API_KEY")
+    
+    # Нормализуем tariff к basic
+    tariff_normalized = (tariff or "basic").lower()
+    if tariff_normalized not in ["basic", "1_month"]:
+        tariff_normalized = "basic"
+    
+    offer_id = OFFER_MAP.get(tariff_normalized)
+    if not offer_id:
+        raise RuntimeError(f"No offerId for tariff={tariff}")
+
+    # Сохраняем пользователя в базе данных для последующего поиска по email
+    if user_id and email:
+        try:
+            # Проверяем, существует ли пользователь
+            existing_user = supabase.table('bot_users').select('id').eq('telegram_id', user_id).execute()
+            if not existing_user.data:
+                # Создаем нового пользователя
+                user_data = {
+                    'telegram_id': user_id,
+                    'email': email,
+                    'created_at': datetime.utcnow().isoformat()
+                }
+                supabase.table('bot_users').insert(user_data).execute()
+                print(f"✅ Пользователь {user_id} сохранен в базе с email {email}")
+            else:
+                # Обновляем email пользователя
+                supabase.table('bot_users').update({'email': email}).eq('telegram_id', user_id).execute()
+                print(f"✅ Email пользователя {user_id} обновлен: {email}")
+        except Exception as e:
+            print(f"⚠️ Ошибка сохранения пользователя: {e}")
+            # Если таблица bot_users не существует или колонка email отсутствует
+            if "relation" in str(e).lower() and "does not exist" in str(e).lower():
+                print("⚠️ Таблица 'bot_users' не существует. Создайте таблицу bot_users в Supabase")
+            elif "column" in str(e).lower() and "does not exist" in str(e).lower():
+                print("⚠️ Колонка 'email' не существует в таблице bot_users. Проверьте структуру таблицы")
+            else:
+                print(f"⚠️ Неизвестная ошибка базы данных: {e}")
+
+    url = f"{LAVA_TOP_API_BASE.rstrip('/')}/api/v2/invoice"
+    headers = {
+        "X-Api-Key": LAVA_TOP_API_KEY,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "email": email,
+        "offerId": offer_id,
+        "currency": currency,
+        "paymentMethod": _method_by(bank, currency),
+        "buyerLanguage": "RU"
+    }
+    
+    print(f"🔧 Создаем инвойс LAVA TOP:")
+    print(f"   URL: {url}")
+    print(f"   Offer ID: {offer_id}")
+    print(f"   Payload: {payload}")
+    
+    async with aiohttp.ClientSession() as s:
+        async with s.post(url, headers=headers, json=payload) as r:
+            txt = await r.text()
+            print(f"📡 LAVA TOP ответ: {r.status} - {txt}")
+            
+            if r.status != 200:
+                raise RuntimeError(f"Lava TOP {r.status}: {txt}")
+            
+            data = json.loads(txt)
+            pay_url = next((data.get(k) for k in ("payUrl","invoiceUrl","paymentUrl","url","link") if data.get(k)), None)
+            if not pay_url:
+                raise RuntimeError(f"No payment URL in response: {data}")
+            return pay_url
+
 def create_lava_invoice(user_id, email, tariff, price):
     """Создает инвойс через Lava Top API (синхронная версия)"""
     try:
         print(f"🔧 Создаем инвойс для пользователя {user_id}")
         print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
         
-        # Создаем прямую ссылку на оплату Lava Top
-        # Формат: https://app.lava.top/ru/products/{shop_id}/{product_id}?currency=RUB&amount={amount}&order_id={order_id}
-        order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        # Нормализуем tariff к basic
+        tariff_normalized = (tariff or "basic").lower()
+        if tariff_normalized not in ["basic", "1_month"]:
+            tariff_normalized = "basic"
         
-        # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
-        
-        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
-        
-        # Сохраняем информацию о заказе в базе данных или кэше
-        # Здесь можно добавить сохранение в Supabase
-        
-        return payment_url
+        # Используем асинхронную функцию в синхронном контексте
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            payment_url = loop.run_until_complete(
+                create_lava_top_invoice(
+                    email=email, 
+                    tariff=tariff_normalized, 
+                    price=price, 
+                    bank="russian",
+                    user_id=str(user_id)
+                )
+            )
+            print(f"✅ Создана ссылка на оплату: {payment_url}")
+            return payment_url
+        finally:
+            loop.close()
             
     except Exception as e:
         print(f"❌ Ошибка создания инвойса: {e}")
@@ -668,14 +782,21 @@ async def create_lava_invoice_async(user_id, email, tariff, price):
         print(f"🔧 Создаем инвойс для пользователя {user_id}")
         print(f"📋 Данные: email={email}, tariff={tariff}, price={price}")
         
-        # Создаем прямую ссылку на оплату Lava Top
-        order_id = f"order_{user_id}_{int(datetime.now().timestamp())}"
+        # Нормализуем tariff к basic
+        tariff_normalized = (tariff or "basic").lower()
+        if tariff_normalized not in ["basic", "1_month"]:
+            tariff_normalized = "basic"
         
-        # Создаем прямую ссылку на оплату
-        payment_url = f"https://app.lava.top/ru/products/{LAVA_SHOP_ID}/{LAVA_PRODUCT_ID}?currency=RUB&amount={int(price * 100)}&order_id={order_id}&metadata={json.dumps({'user_id': str(user_id), 'email': email, 'tariff': tariff})}"
+        # Используем новую функцию seller API
+        payment_url = await create_lava_top_invoice(
+            email=email, 
+            tariff=tariff_normalized, 
+            price=price, 
+            bank="russian",
+            user_id=str(user_id)
+        )
         
-        print(f"✅ Создана прямая ссылка на оплату: {payment_url}")
-        
+        print(f"✅ Создана ссылка на оплату: {payment_url}")
         return payment_url
         
     except Exception as e:
@@ -906,6 +1027,7 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
             tariff = payment_data.get('tariff')
             price = payment_data.get('price')
             user_id = payment_data.get('userId')
+            bank = payment_data.get('bank', 'russian')
             print(f"🎯 Обрабатываем финальные данные: email={email}, tariff={tariff}, price={price}, user_id={user_id}")
             
             # Проверяем, что все данные есть
@@ -919,64 +1041,42 @@ async def process_payment_data(update: Update, context: CallbackContext, payment
             
             print("✅ Все данные получены, создаем инвойс...")
             
-            # Создаем инвойс через наш API endpoint
+            # Создаем инвойс через LAVA TOP Seller API
             try:
-                api_data = {
-                    "user_id": str(user.id),
-                    "email": email,
-                    "tariff": tariff,
-                    "price": price
-                }
-                
-                print(f"📤 Отправляем данные в API: {api_data}")
-                
-                # Отправляем запрос к нашему API endpoint
-                api_response = requests.post(
-                    "https://formulaprivate-productionpaymentuknow.up.railway.app/api/create-payment",
-                    json=api_data,
-                    headers={"Content-Type": "application/json"}
+                payment_url = await create_lava_top_invoice(
+                    email=email,
+                    tariff=tariff,
+                    price=price,
+                    bank=bank,
+                    user_id=str(user.id)
                 )
                 
-                print(f"📡 API ответ: {api_response.status_code} - {api_response.text}")
-                
-                if api_response.status_code == 200:
-                    result = api_response.json()
-                    payment_url = result.get('payment_url')
+                if payment_url:
+                    print(f"✅ Инвойс создан успешно: {payment_url}")
                     
-                    if payment_url:
-                        print(f"✅ Платеж создан через API: {payment_url}")
-                    else:
-                        print("❌ URL не найден в API ответе")
-                        payment_url = None
+                    # Отправляем сообщение с кнопкой оплаты
+                    keyboard = [[InlineKeyboardButton("💳 Перейти к оплате", url=payment_url)]]
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    
+                    await message.reply_text(
+                        f"💳 <b>Оплата подписки</b>\n\n"
+                        f"✅ Ваши данные получены:\n"
+                        f"📧 Email: {email}\n"
+                        f"💳 Тариф: {tariff}\n"
+                        f"💰 Сумма: {price}₽\n\n"
+                        f"Нажмите кнопку ниже для перехода к оплате:",
+                        parse_mode='HTML',
+                        reply_markup=reply_markup
+                    )
+                    print("✅ Сообщение с кнопкой оплаты отправлено")
+                    return
                 else:
-                    print(f"❌ API ошибка: {api_response.status_code}")
-                    payment_url = None
+                    print("❌ Не удалось создать инвойс")
+                    await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
+                    return
                     
             except Exception as e:
-                print(f"❌ Ошибка API запроса: {e}")
-                payment_url = None
-            
-            if payment_url:
-                print(f"✅ Инвойс создан успешно: {payment_url}")
-                
-                # Отправляем сообщение с кнопкой оплаты
-                keyboard = [[InlineKeyboardButton("💳 Оплатить", url=payment_url)]]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                
-                await message.reply_text(
-                    f"💳 <b>Оплата подписки</b>\n\n"
-                    f"✅ Ваши данные получены:\n"
-                    f"📧 Email: {email}\n"
-                    f"💳 Тариф: {tariff}\n"
-                    f"💰 Сумма: {price}₽\n\n"
-                    f"Нажмите кнопку ниже для перехода к оплате:",
-                    parse_mode='HTML',
-                    reply_markup=reply_markup
-                )
-                print("✅ Сообщение с кнопкой оплаты отправлено")
-                return
-            else:
-                print(f"❌ Не удалось создать инвойс")
+                print(f"❌ Ошибка создания инвойса: {e}")
                 await message.reply_text("❌ Ошибка создания платежа. Попробуйте еще раз.")
                 return
         else:
@@ -1006,8 +1106,8 @@ def main() -> None:
     """Основная функция запуска бота"""
     print("🚀 Запуск бота с webhook...")
     print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
-    print(f"🔑 LAVA_SHOP_ID: {LAVA_SHOP_ID}")
-    print(f"🔑 LAVA_SECRET_KEY: {LAVA_SECRET_KEY[:20]}...")
+    print(f"🔑 LAVA_OFFER_ID_BASIC: {LAVA_OFFER_ID_BASIC}")
+    print(f"🔑 LAVA_TOP_API_KEY: {LAVA_TOP_API_KEY[:20] if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}...")
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     
     # Создаем приложение
