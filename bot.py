@@ -2,12 +2,12 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import Application, CommandHandler, CallbackContext, MessageHandler, filters
 from telegram.ext import ApplicationBuilder
 import pytz
-from telegram.ext import CallbackQueryHandler, ChatMemberHandler
+from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
-from channel_manager import channel_manager
+# channel_manager removed - not needed for this bot
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
@@ -553,12 +553,12 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
         return
     
     try:
-        # Запускаем проверку истекших подписок
-        await channel_manager.remove_expired_users(context)
+        # Проверка истекших подписок временно отключена
+        # await channel_manager.remove_expired_users(context)
         
         await update.effective_message.reply_text(
-            "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
-            "Все пользователи с истекшей подпиской удалены из канала.",
+            "✅ <b>Функция проверки подписок отключена</b>\n\n"
+            "Управление подписками происходит через LAVA API.",
             parse_mode='HTML'
         )
             
@@ -613,9 +613,9 @@ def main() -> None:
     application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
     application.add_handler(CallbackQueryHandler(button))
     
-    # Обработчик для управления каналом (принятие заявок, удаление пользователей)
-    application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
-    print("✅ Обработчик управления каналом зарегистрирован")
+    # Обработчик для управления каналом отключен
+    # application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
+    print("✅ Обработчик управления каналом отключен")
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
     # Обрабатываем ВСЕ сообщения от пользователей, включая медиа
