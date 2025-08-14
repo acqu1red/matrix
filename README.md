@@ -29,15 +29,33 @@ PAYMENT_MINIAPP_URL=https://your-host/payment.html
 
 ### 2. Установка зависимостей
 
+**Создание виртуального окружения (рекомендуется):**
+```bash
+python3 -m venv venv
+source venv/bin/activate  # На macOS/Linux
+# или
+venv\Scripts\activate     # На Windows
+```
+
+**Установка зависимостей:**
 ```bash
 pip install -r requirements.txt
 ```
 
+**Примечание:** Если у вас возникают проблемы с импортом `flask_cors`, убедитесь что вы используете виртуальное окружение и все зависимости установлены корректно.
+
 ### 3. Запуск
+
+**Активируйте виртуальное окружение (если используете):**
+```bash
+source venv/bin/activate  # На macOS/Linux
+# или
+venv\Scripts\activate     # На Windows
+```
 
 **Для продакшена (webhook):**
 ```bash
-python bot_webhook.py
+python bot_webhook_app.py
 ```
 
 **Для локальной разработки (polling):**

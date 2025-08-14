@@ -3,7 +3,7 @@ builder = "nixpacks"
 
 [deploy]
 # Main webhook bot start command
-startCommand = "python bot_webhook.py"
+startCommand = "python bot_webhook_app.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"

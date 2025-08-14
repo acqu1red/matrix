@@ -2,6 +2,7 @@
 venv/
 env/
 .venv/
+.env
 
 # Python
 __pycache__/
@@ -46,9 +47,9 @@ Thumbs.db
 logs/
 
 # Environment variables
-.env
 .env.local
 .env.production
+.env.staging
 
 # Temporary files
 *.tmp
