@@ -26,6 +26,7 @@
     h1 { font-size: 22px; margin: 0 0 14px; }
     p.lead { margin: 0 0 18px; color: var(--muted) }
     .grid { display: grid; gap: 12px; }
+    .grid.cols-1 { grid-template-columns: 1fr; }
     .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
     .opt {
       position: relative; border:1px solid #2a2e45; border-radius: 14px; padding: 12px; cursor: pointer;
@@ -84,24 +85,12 @@
       <div class="grid">
         <div class="field">
           <label>Тариф</label>
-          <div id="tariffs" class="grid cols-3">
+          <div id="tariffs" class="grid cols-1">
             <label class="opt" data-price="490" data-tariff="basic">
               <input type="radio" name="tariff" value="basic">
               <div class="title">Базовый</div>
               <div class="sub">30 дней</div>
               <div class="price">490 ₽</div>
-            </label>
-            <label class="opt" data-price="1290" data-tariff="pro">
-              <input type="radio" name="tariff" value="pro">
-              <div class="title">PRO</div>
-              <div class="sub">90 дней</div>
-              <div class="price">1 290 ₽</div>
-            </label>
-            <label class="opt" data-price="3990" data-tariff="vip">
-              <input type="radio" name="tariff" value="vip">
-              <div class="title">VIP</div>
-              <div class="sub">365 дней</div>
-              <div class="price">3 990 ₽</div>
             </label>
           </div>
           <div class="error" id="errTariff">Выберите тариф</div>
