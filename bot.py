@@ -8,6 +8,7 @@ from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
+from channel_manager import channel_manager
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
@@ -481,7 +482,7 @@ async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
                 if response.status == 200:
                     result = await response.json()
                     return result.get('data', {}).get('url', LAVA_TOP_PRODUCT_URL)
-                else:
+    else:
                     print(f"❌ Ошибка Lava Top API: {response.status}")
                     return LAVA_TOP_PRODUCT_URL
                     
@@ -550,18 +551,18 @@ async def check_expired_subscriptions(update: Update, context: CallbackContext) 
     # Проверяем, является ли пользователь администратором
     if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
         await update.effective_message.reply_text("У вас нет прав для выполнения этого действия!")
-        return
+                return
     
     try:
         # Запускаем проверку истекших подписок
-        # await channel_manager.remove_expired_users(context) # Удалено
+        await channel_manager.remove_expired_users(context)
         
         await update.effective_message.reply_text(
             "✅ <b>Проверка истекших подписок завершена!</b>\n\n"
             "Все пользователи с истекшей подпиской удалены из канала.",
             parse_mode='HTML'
         )
-        
+            
     except Exception as e:
         print(f"Ошибка проверки истекших подписок: {e}")
         await update.effective_message.reply_text(
@@ -603,7 +604,7 @@ def main() -> None:
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
     application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
-
+    
     print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("payment", payment))
@@ -614,7 +615,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(button))
     
     # Обработчик для управления каналом (принятие заявок, удаление пользователей)
-    # application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update)) # Удалено
+    application.add_handler(ChatMemberHandler(channel_manager.handle_chat_member_update))
     print("✅ Обработчик управления каналом зарегистрирован")
     
     # Обработчик для всех сообщений (уведомления администраторов и ответы от них)
