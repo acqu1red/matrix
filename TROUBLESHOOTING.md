@@ -27,7 +27,7 @@
 2. Перейдите в Variables
 3. Добавьте переменную:
    ```
-   LAVA_TOP_API_KEY=ваш_реальный_ключ_из_app_lava_top
+   LAVA_TOP_API_KEY=whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
    ```
 4. Перезапустите деплой
 
@@ -92,7 +92,7 @@ curl "https://formulaprivate-productionpaymentuknow.up.railway.app/test-invoice"
 ```bash
 # ОБЯЗАТЕЛЬНО
 TELEGRAM_BOT_TOKEN=7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
-LAVA_TOP_API_KEY=ваш_реальный_ключ_из_app_lava_top
+LAVA_TOP_API_KEY=whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
 PRIVATE_CHANNEL_ID=-100xxxxxxxxx
 LAVA_OFFER_ID_BASIC=302ecdcd-1581-45ad-8353-a168f347b8cc
 ```
