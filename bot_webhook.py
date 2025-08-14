@@ -13,6 +13,7 @@ from datetime import datetime
 import aiohttp
 import requests
 from flask import Flask, request, jsonify
+from supabase import create_client, Client
 
 # для телеграма
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -41,6 +42,11 @@ PRIVATE_CHANNEL_ID = int(os.getenv("PRIVATE_CHANNEL_ID", "-1001234567890"))
 
 # === MINI APPS ===
 PAYMENT_MINIAPP_URL = os.getenv("PAYMENT_MINIAPP_URL", "https://acqu1red.github.io/formulaprivate/payment.html")
+
+# === SUPABASE CONFIG ===
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://uhhsrtmmuwoxsdquimaa.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # === BASE URL ===
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "https://formulaprivate-productionpaymentuknow.up.railway.app")
