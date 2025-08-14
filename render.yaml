@@ -3,12 +3,28 @@ services:
     name: lava-webhook
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python lava_webhook.py
+    startCommand: python bot_webhook.py
     envVars:
-      - key: LAVA_WEBHOOK_SECRET
-        generateValue: true
       - key: TELEGRAM_BOT_TOKEN
         value: 7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
+      - key: PUBLIC_BASE_URL
+        value: https://formulaprivate-productionpaymentuknow.up.railway.app
+      - key: PRIVATE_CHANNEL_ID
+        value: -1002717275103
+      - key: ADMIN_IDS
+        value: 708907063,7365307696
+      - key: LAVA_API_KEY
+        value: whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
+      - key: LAVA_SHOP_ID
+        value: 1b9f3e05-86aa-4102-9648-268f0f586bb1
+      - key: LAVA_WEBHOOK_SECRET
+        generateValue: true
+      - key: SUCCESS_REDIRECT_URL
+        value: ""
+      - key: FAIL_REDIRECT_URL
+        value: ""
+      - key: PAYMENT_MINIAPP_URL
+        value: https://acqu1red.github.io/formulaprivate/payment.html
       - key: SUPABASE_URL
         value: https://uhhsrtmmuwoxsdquimaa.supabase.co
       - key: SUPABASE_KEY

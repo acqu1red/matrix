@@ -13,14 +13,14 @@ import os
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 
-# Lava Top API configuration
-LAVA_TOP_API_KEY = os.getenv("LAVA_API_KEY", "")
+# LAVA Top API configuration
+LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
 LAVA_TOP_BASE_URL = "https://api.lava.top"
 LAVA_TOP_PRODUCT_URL = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
 
 # Supabase configuration
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 # Список username администраторов
@@ -30,7 +30,7 @@ ADMIN_USERNAMES = [
 ]
 
 # Список ID администраторов (для проверки прав)
-ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()]
+ADMIN_IDS = [708907063, 7365307696]
 
 # ---------- Admin notification functions ----------
 
@@ -610,7 +610,7 @@ def main() -> None:
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
-    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    bot_token = "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc"
     if not bot_token:
         print("❌ TELEGRAM_BOT_TOKEN не установлен!")
         return

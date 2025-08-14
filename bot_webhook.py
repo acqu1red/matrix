@@ -25,26 +25,25 @@ from telegram.constants import ParseMode
 # -----------------------------
 # Environment
 # -----------------------------
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-PUBLIC_BASE_URL    = os.getenv("PUBLIC_BASE_URL", "")  # e.g. https://your-app.up.railway.app
+# Environment variables
+TELEGRAM_BOT_TOKEN = "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc"
+PUBLIC_BASE_URL    = "https://formulaprivate-productionpaymentuknow.up.railway.app"  # e.g. https://your-app.up.railway.app
 
-# LAVA Business API (Bearer token) and project
-LAVA_API_KEY = os.getenv("LAVA_API_KEY", "")
-LAVA_SHOP_ID = os.getenv("LAVA_SHOP_ID", "")
-
-# Optional: extra validation of incoming LAVA webhooks (shared secret if configured)
-LAVA_WEBHOOK_SECRET = os.getenv("LAVA_WEBHOOK_SECRET", "")  # optional HMAC secret
+# LAVA Business API
+LAVA_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
+LAVA_SHOP_ID = "1b9f3e05-86aa-4102-9648-268f0f586bb1"
+LAVA_WEBHOOK_SECRET = ""  # optional HMAC secret
 
 # Telegram
-PRIVATE_CHANNEL_ID = os.getenv("PRIVATE_CHANNEL_ID")  # e.g. -1001234567890 (string)
-ADMIN_IDS = [int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()]
+PRIVATE_CHANNEL_ID = "-1002717275103"  # e.g. -1001234567890 (string)
+ADMIN_IDS = [708907063, 7365307696]
 
-# Redirects after payment (optional)
-SUCCESS_REDIRECT_URL = os.getenv("SUCCESS_REDIRECT_URL", "")
-FAIL_REDIRECT_URL    = os.getenv("FAIL_REDIRECT_URL", "")
+# Redirects (optional)
+SUCCESS_REDIRECT_URL = ""
+FAIL_REDIRECT_URL    = ""
 
-# Miniapp URL
-PAYMENT_MINIAPP_URL = os.getenv("PAYMENT_MINIAPP_URL", "https://acqu1red.github.io/formulaprivate/payment.html")
+# MiniApp
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 
 # LAVA endpoints
 LAVA_ENDPOINTS = [
