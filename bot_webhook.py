@@ -39,6 +39,7 @@ ADMIN_IDS = [708907063, 7365307696]
 # Supabase конфигурация
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.co')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # LAVA TOP (seller API) конфигурация
 LAVA_TOP_API_BASE = os.getenv('LAVA_TOP_API_BASE', 'https://gate.lava.top')
@@ -54,10 +55,6 @@ ADMIN_IDS = [int(x.strip()) for x in os.getenv('ADMIN_IDS', '708907063,736530769
 # MiniApp
 PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/')
 
-# Инициализируем Supabase клиент
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-print(f"✅ Supabase клиент инициализирован: {SUPABASE_URL}")
-
 # Создаем Flask приложение для health check
 app = Flask(__name__)
 
@@ -65,99 +62,6 @@ app = Flask(__name__)
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
-
-# Endpoint для сброса webhook
-@app.route('/reset-webhook', methods=['POST'])
-def reset_webhook():
-    """Сбрасывает и переустанавливает webhook"""
-    try:
-        print("🔄 Сброс webhook...")
-        
-        # Получаем webhook URL
-        webhook_url = os.getenv('RAILWAY_STATIC_URL', '')
-        if not webhook_url:
-            webhook_url = os.getenv('PUBLIC_BASE_URL', '')
-        
-        if not webhook_url:
-            return jsonify({
-                "status": "error", 
-                "message": "PUBLIC_BASE_URL/RAILWAY_STATIC_URL не заданы"
-            }), 400
-        
-        # Убеждаемся, что URL начинается с https://
-        if not webhook_url.startswith('http'):
-            webhook_url = f"https://{webhook_url}"
-        
-        print(f"🌐 Устанавливаем webhook: {webhook_url}/webhook")
-        
-        # Удаляем старый webhook
-        delete_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
-        delete_response = requests.post(delete_url)
-        print(f"🗑️ Удаление старого webhook: {delete_response.status_code}")
-        
-        import time
-        time.sleep(2)
-        
-        # Устанавливаем новый webhook
-        set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
-        webhook_data = {
-            "url": f"{webhook_url}/webhook",
-            "secret_token": os.getenv('WEBHOOK_SECRET', ''),
-            "max_connections": 40,
-            "allowed_updates": ["message", "callback_query"]
-        }
-        
-        response = requests.post(set_url, json=webhook_data)
-        print(f"📡 Установка webhook: {response.status_code}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('ok'):
-                return jsonify({
-                    "status": "success",
-                    "message": "Webhook успешно установлен",
-                    "webhook_url": f"{webhook_url}/webhook"
-                })
-            else:
-                return jsonify({
-                    "status": "error",
-                    "message": f"Ошибка установки webhook: {result.get('description')}"
-                }), 400
-        else:
-            return jsonify({
-                "status": "error",
-                "message": f"HTTP ошибка: {response.status_code}"
-            }), 400
-            
-    except Exception as e:
-        print(f"❌ Ошибка сброса webhook: {e}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-
-# Endpoint для получения информации о webhook
-@app.route('/webhook-info', methods=['GET'])
-def webhook_info():
-    """Возвращает информацию о текущем webhook"""
-    try:
-        webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
-        response = requests.get(webhook_url)
-        
-        if response.status_code == 200:
-            return jsonify(response.json())
-        else:
-            return jsonify({
-                "status": "error",
-                "message": f"HTTP ошибка: {response.status_code}"
-            }), 400
-            
-    except Exception as e:
-        print(f"❌ Ошибка получения информации о webhook: {e}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
 
 
 
@@ -435,17 +339,13 @@ def lava_webhook():
         if payment_status in ['success', 'paid', 'completed']:
             print("✅ Платеж успешен!")
             
-            # Определяем пользователя
+            # Определяем пользователя по email из вебхука
+            # Ищем пользователя в базе данных по email
             user_id = None
             
-            # Сначала пробуем получить user_id из metadata
-            metadata = data.get('metadata', {})
-            if isinstance(metadata, dict) and metadata.get('tg_user_id'):
-                user_id = metadata['tg_user_id']
-                print(f"✅ Найден пользователь из metadata: {user_id}")
-            elif email:
-                # Fallback: ищем пользователя в базе данных по email
+            if email:
                 try:
+                    # Ищем пользователя в базе данных по email
                     result = supabase.table('bot_users').select('telegram_id').eq('email', email).execute()
                     if result.data:
                         user_id = result.data[0]['telegram_id']
@@ -461,8 +361,6 @@ def lava_webhook():
                         print("⚠️ Колонка 'email' не существует в таблице bot_users. Проверьте структуру таблицы")
                     else:
                         print(f"⚠️ Неизвестная ошибка базы данных: {e}")
-            else:
-                print("❌ Не удалось определить пользователя (нет metadata.tg_user_id)")
             
             if user_id:
                 try:
@@ -589,7 +487,10 @@ def _method_by(bank: str, currency: str = "RUB") -> str:
 
 async def create_lava_top_invoice(*, email: str, tariff: str, price: int, bank: str, user_id: str = None, currency: str = "RUB") -> str:
     print(f"🔍 Проверка LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
-    print(f"🔍 Префикс ключа: {LAVA_TOP_API_KEY[:10]}...")
+    if LAVA_TOP_API_KEY:
+        print(f"🔍 Префикс ключа: {LAVA_TOP_API_KEY[:10]}...")
+    else:
+        raise RuntimeError("LAVA_TOP_API_KEY не установлен. Установите переменную окружения LAVA_TOP_API_KEY в Railway")
     
     # Нормализуем tariff к basic
     tariff_normalized = (tariff or "basic").lower()
@@ -634,8 +535,6 @@ async def create_lava_top_invoice(*, email: str, tariff: str, price: int, bank: 
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
-    
-    # Добавляем metadata с telegram_user_id для упрощения сопоставления
     payload = {
         "email": email,
         "offerId": offer_id,
@@ -643,10 +542,6 @@ async def create_lava_top_invoice(*, email: str, tariff: str, price: int, bank: 
         "paymentMethod": _method_by(bank, currency),
         "buyerLanguage": "RU"
     }
-    
-    # Добавляем metadata если есть user_id
-    if user_id:
-        payload["metadata"] = {"tg_user_id": user_id}
     
     print(f"🔧 Создаем инвойс LAVA TOP:")
     print(f"   URL: {url}")
@@ -1139,6 +1034,11 @@ def main() -> None:
     if not webhook_url:
         webhook_url = os.getenv('PUBLIC_BASE_URL', '')
     
+    # Если мы в Railway, используем стандартный URL
+    if not webhook_url and os.getenv('RAILWAY_ENVIRONMENT'):
+        webhook_url = 'https://formulaprivate-productionpaymentuknow.up.railway.app'
+        print(f"🌐 Обнаружена среда Railway, используем стандартный URL: {webhook_url}")
+    
     if webhook_url:
         # Убеждаемся, что URL начинается с https://
         if not webhook_url.startswith('http'):
@@ -1149,7 +1049,7 @@ def main() -> None:
         webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
         webhook_data = {
             "url": f"{webhook_url}/webhook",
-            "secret_token": os.getenv('WEBHOOK_SECRET', '')
+            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
         }
         
         try:
@@ -1165,7 +1065,7 @@ def main() -> None:
             # Устанавливаем новый webhook с дополнительными параметрами
             webhook_data_with_params = {
                 "url": f"{webhook_url}/webhook",
-                "secret_token": os.getenv('WEBHOOK_SECRET', ''),
+                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
                 "max_connections": 40,
                 "allowed_updates": ["message", "callback_query"]
             }
@@ -1179,8 +1079,7 @@ def main() -> None:
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
     else:
-        print("❌ PUBLIC_BASE_URL/RAILWAY_STATIC_URL не заданы. Вебхук не установлен.")
-        print("🚀 Запустите POST /reset-webhook после установки переменных.")
+        print("❌ Не удалось настроить webhook URL")
         print("🚀 Запускаем Flask приложение без webhook")
     
     print("🚀 Запуск Flask приложения...")
