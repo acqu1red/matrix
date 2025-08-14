@@ -66,13 +66,63 @@ def health_check():
 # Тестовый endpoint для проверки работы бота
 @app.route('/test', methods=['GET'])
 def test_bot():
+    return jsonify({
+        "status": "ok",
+        "message": "Бот работает!",
+        "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
+        "lava_offer_id": LAVA_OFFER_ID_BASIC,
+        "lava_api_key_set": bool(LAVA_TOP_API_KEY),
+        "lava_api_key_preview": LAVA_TOP_API_KEY[:10] + "..." if LAVA_TOP_API_KEY else "НЕ УСТАНОВЛЕН",
+        "private_channel_id": PRIVATE_CHANNEL_ID,
+        "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
+    })
+
+# Тестовый endpoint для проверки создания инвойса
+@app.route('/test-invoice', methods=['GET'])
+def test_invoice():
+    """Тестирует создание инвойса"""
+    try:
+        print("🧪 Тестирование создания инвойса...")
+        
+        # Проверяем переменные
+        if not LAVA_TOP_API_KEY:
             return jsonify({
-            "status": "ok",
-            "message": "Бот работает!",
-            "telegram_token": TELEGRAM_BOT_TOKEN[:20] + "...",
-            "lava_offer_id": LAVA_OFFER_ID_BASIC,
-            "webhook_url": f"https://formulaprivate-productionpaymentuknow.up.railway.app/webhook"
-        })
+                "status": "error",
+                "message": "LAVA_TOP_API_KEY не установлен",
+                "lava_api_key_set": False
+            }), 400
+        
+        # Создаем тестовый инвойс
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            payment_url = loop.run_until_complete(
+                create_lava_top_invoice(
+                    email="test@example.com",
+                    tariff="basic",
+                    price=50,
+                    bank="russian",
+                    user_id="123456789"
+                )
+            )
+            
+            return jsonify({
+                "status": "success",
+                "message": "Инвойс создан успешно",
+                "payment_url": payment_url,
+                "lava_api_key_set": True
+            })
+        finally:
+            loop.close()
+            
+    except Exception as e:
+        print(f"❌ Ошибка тестирования инвойса: {e}")
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "lava_api_key_set": bool(LAVA_TOP_API_KEY)
+        }), 500
 
 # Тестовый endpoint для проверки webhook
 @app.route('/test-webhook', methods=['POST'])
@@ -668,8 +718,11 @@ def _method_by(bank: str, currency: str = "RUB") -> str:
     return "UNLIMINT"  # на будущее (USD/EUR), не ломать текущую логику
 
 async def create_lava_top_invoice(*, email: str, tariff: str, price: int, bank: str, user_id: str = None, currency: str = "RUB") -> str:
-    if not LAVA_TOP_API_KEY:
-        raise RuntimeError("LAVA_TOP_API_KEY не установлен. Установите переменную окружения LAVA_TOP_API_KEY")
+    print(f"🔍 Проверка LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
+    if LAVA_TOP_API_KEY:
+        print(f"🔍 Префикс ключа: {LAVA_TOP_API_KEY[:10]}...")
+    else:
+        raise RuntimeError("LAVA_TOP_API_KEY не установлен. Установите переменную окружения LAVA_TOP_API_KEY в Railway")
     
     # Нормализуем tariff к basic
     tariff_normalized = (tariff or "basic").lower()
