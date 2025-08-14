@@ -61,7 +61,7 @@ curl "https://formulaprivate-productionpaymentuknow.up.railway.app/test-invoice"
 # ОБЯЗАТЕЛЬНО
 TELEGRAM_BOT_TOKEN=7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
 LAVA_TOP_API_KEY=whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav
-PRIVATE_CHANNEL_ID=<ID-вашего-канала>
+PRIVATE_CHANNEL_ID=-1002717275103
 LAVA_OFFER_ID_BASIC=302ecdcd-1581-45ad-8353-a168f347b8cc
 
 # ОПЦИОНАЛЬНО

@@ -4,7 +4,6 @@ Telegram Bot with Webhook support for Railway deployment
 """
 
 import os
-import sys
 import logging
 import requests
 import json
@@ -22,25 +21,12 @@ def send_email_invitation(email, tariff, subscription_id):
     print(f"📧 Email отправка отключена: {email}, тариф: {tariff}")
     return True
 
-# Функция для принудительного вывода логов
-def log_print(message):
-    """Выводит сообщение с принудительным flush для Railway"""
-    print(message, flush=True)
-    sys.stdout.flush()
-
 # Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO,
-    force=True,
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-# Принудительный flush для Railway
-log_print("🔧 Настройка логирования завершена")
 
 # Конфигурация
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc')
@@ -53,7 +39,6 @@ ADMIN_IDS = [708907063, 7365307696]
 # Supabase конфигурация
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://uhhsrtmmuwoxsdquimaa.supabase.co')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8')
-supabase: Client = None
 
 # LAVA TOP (seller API) конфигурация
 LAVA_TOP_API_BASE = os.getenv('LAVA_TOP_API_BASE', 'https://gate.lava.top')
@@ -67,11 +52,11 @@ PRIVATE_CHANNEL_ID = os.getenv('PRIVATE_CHANNEL_ID', '-1001234567890')
 ADMIN_IDS = [int(x.strip()) for x in os.getenv('ADMIN_IDS', '708907063,7365307696').split(',') if x.strip()]
 
 # MiniApp
-PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', '')
+PAYMENT_MINIAPP_URL = os.getenv('PAYMENT_MINIAPP_URL', 'https://acqu1red.github.io/formulaprivate/')
 
 # Инициализируем Supabase клиент
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-log_print(f"✅ Supabase клиент инициализирован: {SUPABASE_URL}")
+print(f"✅ Supabase клиент инициализирован: {SUPABASE_URL}")
 
 # Создаем Flask приложение для health check
 app = Flask(__name__)
@@ -79,21 +64,7 @@ app = Flask(__name__)
 # Health check endpoint для Railway
 @app.route('/health', methods=['GET'])
 def health_check():
-    log_print("🏥 Health check endpoint вызван")
     return jsonify({"status": "healthy", "service": "telegram-bot-webhook"})
-
-# Test endpoint для проверки логов
-@app.route('/test-logs', methods=['GET'])
-def test_logs():
-    """Тестовый endpoint для проверки вывода логов"""
-    log_print("🧪 Тестовый endpoint для логов вызван")
-    log_print("📝 Это тестовое сообщение для проверки логов в Railway")
-    log_print("🕐 Время: " + datetime.now().isoformat())
-    return jsonify({
-        "status": "success", 
-        "message": "Логи отправлены",
-        "timestamp": datetime.now().isoformat()
-    })
 
 # Endpoint для сброса webhook
 @app.route('/reset-webhook', methods=['POST'])
@@ -131,7 +102,7 @@ def reset_webhook():
         set_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
         webhook_data = {
             "url": f"{webhook_url}/webhook",
-            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+            "secret_token": os.getenv('WEBHOOK_SECRET', ''),
             "max_connections": 40,
             "allowed_updates": ["message", "callback_query"]
         }
@@ -195,18 +166,18 @@ def webhook_info():
 def telegram_webhook():
     """Обрабатывает webhook от Telegram"""
     try:
-        log_print("=" * 50)
-        log_print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
-        log_print("=" * 50)
-        log_print(f"📋 Headers: {dict(request.headers)}")
-        log_print(f"📋 Method: {request.method}")
-        log_print(f"📋 URL: {request.url}")
-        log_print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
-        log_print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
+        print("=" * 50)
+        print("📥 ПОЛУЧЕН WEBHOOK ОТ TELEGRAM!")
+        print("=" * 50)
+        print(f"📋 Headers: {dict(request.headers)}")
+        print(f"📋 Method: {request.method}")
+        print(f"📋 URL: {request.url}")
+        print(f"📋 Content-Type: {request.headers.get('Content-Type')}")
+        print(f"📋 User-Agent: {request.headers.get('User-Agent')}")
         
         # Обрабатываем GET запросы (проверка доступности)
         if request.method == 'GET':
-            log_print("✅ GET запрос - проверка доступности webhook")
+            print("✅ GET запрос - проверка доступности webhook")
             
             # Проверяем и исправляем webhook при GET запросе
             try:
@@ -1116,14 +1087,10 @@ async def button(update: Update, context: CallbackContext):
 
 def main() -> None:
     """Основная функция запуска бота"""
-    # Принудительный flush для Railway
-    sys.stdout.flush()
-    sys.stderr.flush()
-    
-    log_print("🚀 Запуск бота с webhook...")
-    log_print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
-    log_print(f"🔑 LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
-    log_print(f"👥 Администраторы по ID: {ADMIN_IDS}")
+    print("🚀 Запуск бота с webhook...")
+    print(f"🔑 TELEGRAM_BOT_TOKEN: {TELEGRAM_BOT_TOKEN[:20]}...")
+    print(f"🔑 LAVA_TOP_API_KEY: {'УСТАНОВЛЕН' if LAVA_TOP_API_KEY else 'НЕ УСТАНОВЛЕН'}")
+    print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     
     # Создаем приложение
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
@@ -1172,11 +1139,6 @@ def main() -> None:
     if not webhook_url:
         webhook_url = os.getenv('PUBLIC_BASE_URL', '')
     
-    # Если мы в Railway, используем стандартный URL
-    if not webhook_url and os.getenv('RAILWAY_ENVIRONMENT'):
-        webhook_url = 'https://formulaprivate-productionpaymentuknow.up.railway.app'
-        print(f"🌐 Обнаружена среда Railway, используем стандартный URL: {webhook_url}")
-    
     if webhook_url:
         # Убеждаемся, что URL начинается с https://
         if not webhook_url.startswith('http'):
@@ -1187,7 +1149,7 @@ def main() -> None:
         webhook_setup_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook"
         webhook_data = {
             "url": f"{webhook_url}/webhook",
-            "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c')
+            "secret_token": os.getenv('WEBHOOK_SECRET', '')
         }
         
         try:
@@ -1203,7 +1165,7 @@ def main() -> None:
             # Устанавливаем новый webhook с дополнительными параметрами
             webhook_data_with_params = {
                 "url": f"{webhook_url}/webhook",
-                "secret_token": os.getenv('WEBHOOK_SECRET', 'Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c'),
+                "secret_token": os.getenv('WEBHOOK_SECRET', ''),
                 "max_connections": 40,
                 "allowed_updates": ["message", "callback_query"]
             }
@@ -1217,14 +1179,11 @@ def main() -> None:
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
     else:
-        print("❌ Не удалось настроить webhook URL")
+        print("❌ PUBLIC_BASE_URL/RAILWAY_STATIC_URL не заданы. Вебхук не установлен.")
+        print("🚀 Запустите POST /reset-webhook после установки переменных.")
         print("🚀 Запускаем Flask приложение без webhook")
     
-    log_print("🚀 Запуск Flask приложения...")
-    # Принудительный flush перед запуском Flask
-    sys.stdout.flush()
-    sys.stderr.flush()
-    
+    print("🚀 Запуск Flask приложения...")
     # Запускаем Flask приложение
     port = int(os.getenv('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
