@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, json, logging, requests
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+# from flask_cors import CORS  # Закомментировано для избежания проблем с импортом
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters
 from lava_app_client import create_invoice, LavaAppError
@@ -17,8 +17,16 @@ PAYMENT_MINIAPP_URL = os.environ.get("PAYMENT_MINIAPP_URL", "https://acqu1red.gi
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "Telegram_Webhook_Secret_2024_Formula_Bot_7a6b5c")
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)  # Закомментировано для избежания проблем с импортом
 app.telegram_app = None
+
+# Добавляем CORS заголовки вручную
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 async def start(update: Update, context: CallbackContext):
     kb = [[InlineKeyboardButton("Оплатить", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))]]
