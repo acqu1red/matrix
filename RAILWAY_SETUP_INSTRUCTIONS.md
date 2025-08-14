@@ -6,7 +6,7 @@
 
 ```
 TELEGRAM_BOT_TOKEN=<токен бота от BotFather>
-WEBHOOK_URL=https://<your-railway-app>.up.railway.app
+WEBHOOK_URL=https://formulaprivate-productionpaymentuknow.up.railway.app
 WEBHOOK_SECRET=<любой_строковый_секрет>
 LAVA_TOP_API_KEY=<ключ из app.lava.top>
 LAVA_OFFER_ID_BASIC=302ecdcd-1581-45ad-8353-a168f347b8cc
@@ -31,17 +31,17 @@ web: python bot_webhook_app.py
 
 ### Проверка токена бота:
 ```
-GET https://<your-railway-app>.up.railway.app/getme
+GET https://formulaprivate-productionpaymentuknow.up.railway.app/getme
 ```
 
 ### Проверка webhook:
 ```
-GET https://<your-railway-app>.up.railway.app/webhook-info
+GET https://formulaprivate-productionpaymentuknow.up.railway.app/webhook-info
 ```
 
 ### Принудительная установка webhook:
 ```
-POST https://<your-railway-app>.up.railway.app/force-set-webhook
+POST https://formulaprivate-productionpaymentuknow.up.railway.app/force-set-webhook
 ```
 
 ## 4. Проверка логов
