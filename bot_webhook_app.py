@@ -4,10 +4,11 @@ import json
 import uuid
 import hashlib
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import requests
+import urllib.parse
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_PRIVATE_CHANNEL_ID = os.getenv("TELEGRAM_PRIVATE_CHANNEL_ID", "").strip()
@@ -62,21 +63,36 @@ def _create_invite_link() -> str:
         log.error("createChatInviteLink failed: %s %s", r.status_code, r.text[:500])
         return ""
 
-def _verify_lava_top_signature(raw_body: bytes, auth_header: str) -> bool:
-    if not auth_header:
-        log.warning("No Authorization header in webhook")
-        return True
+def parse_tg_init_data(init_data: str) -> Tuple[int, bool]:
+    """Парсит Telegram WebApp initData. Возвращает (user_id, is_valid_hash)."""
+    if not init_data or not TELEGRAM_BOT_TOKEN:
+        return (None, False)
     try:
-        secret = (LAVA_TOP_API_KEY or "").encode()
-        digest = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()
-        header_clean = auth_header.replace("Signature ", "").replace("SHA256=", "").strip()
-        ok = hmac.compare_digest(digest, header_clean)
-        if not ok:
-            log.warning("Webhook signature mismatch; computed=%s header=%s", digest, header_clean)
-        return True
+        # Parse querystring into dict
+        pairs = urllib.parse.parse_qsl(init_data, keep_blank_values=True)
+        data = dict(pairs)
+        recv_hash = data.pop("hash", "")
+        # Build data_check_string: sorted "key=value" joined by "\n"
+        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(data.items()))
+        # secret_key = HMAC_SHA256("WebAppData", bot_token)
+        secret_key = hmac.new(b"WebAppData", TELEGRAM_BOT_TOKEN.encode(), hashlib.sha256).digest()
+        # Calculate hash
+        calc_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        is_valid = hmac.compare_digest(calc_hash, recv_hash)
+
+        user_id = None
+        user_json = data.get("user")
+        if user_json:
+            try:
+                user_obj = json.loads(user_json)
+                user_id = int(user_obj.get("id")) if user_obj and "id" in user_obj else None
+            except Exception:
+                user_id = None
+
+        return (user_id, is_valid)
     except Exception as e:
-        log.exception("Webhook signature check error: %s", e)
-        return True
+        log.exception("parse_tg_init_data failed: %s", e)
+        return (None, False)
 
 def _create_lava_top_invoice(email: str, offer_id: str, order_id: str, meta: Dict[str, Any]) -> Dict[str, Any]:
     base = "https://gate.lava.top"
@@ -99,11 +115,10 @@ def _create_lava_top_invoice(email: str, offer_id: str, order_id: str, meta: Dic
     log.info("→ lava.top create invoice req: %s", json.dumps(payload, ensure_ascii=False))
     r = requests.post(url, headers=headers, json=payload, timeout=20)
     log.info("← lava.top resp %s: %s", r.status_code, r.text[:1200])
-    data = {}
     try:
         data = r.json()
     except Exception:
-        pass
+        data = {}
     if r.ok:
         payment_url = data.get("paymentUrl") or data.get("url") or data.get("checkoutUrl")
         return {"ok": True, "payment_url": payment_url, "raw": data}
@@ -116,30 +131,39 @@ def health():
 
 @app.post("/api/pay/create")
 def api_pay_create():
-    try:
-        body = request.get_json(force=True, silent=False) or {}
-    except Exception:
-        return jsonify({"ok": False, "error": "invalid JSON"}), 400
-
-    tg_user_id = str(body.get("telegram_id", "")).strip()
+    body = request.get_json(force=True, silent=False) or {}
+    tg_user_id = str(body.get("telegram_id") or "").strip()
     email = str(body.get("email", "")).strip().lower()
     tariff = str(body.get("tariff", "")).strip().lower()
+    init_data = body.get("init_data") or ""
 
-    if not tg_user_id or not email:
-        return jsonify({"ok": False, "error": "telegram_id and email are required"}), 400
+    if (not tg_user_id) and init_data:
+        parsed_id, is_valid = parse_tg_init_data(init_data)
+        if parsed_id:
+            tg_user_id = str(parsed_id)
+            log.info("Telegram ID extracted from init_data (valid=%s): %s", is_valid, tg_user_id)
+        else:
+            log.warning("Failed to extract telegram_id from init_data")
+
+    if not email or not tariff:
+        return jsonify({"ok": False, "error": "email and tariff are required"}), 400
+    if not tg_user_id:
+        return jsonify({"ok": False, "error": "Cannot detect telegram_id. Open MiniApp from the bot button."}), 400
+    if not PUBLIC_BASE_URL:
+        return jsonify({"ok": False, "error": "PUBLIC_BASE_URL env is not set"}), 500
 
     order_id = f"tg{tg_user_id}-{uuid.uuid4().hex[:12]}"
     log.info("Create pay: tg=%s email=%s tariff=%s order=%s", tg_user_id, email, tariff, order_id)
-
-    if not PUBLIC_BASE_URL:
-        return jsonify({"ok": False, "error": "PUBLIC_BASE_URL env is not set"}), 500
 
     meta = {"telegram_id": tg_user_id, "tariff": tariff, "email": email}
     offer_id = LAVA_OFFER_ID_BASIC
     result = _create_lava_top_invoice(email=email, offer_id=offer_id, order_id=order_id, meta=meta)
 
     if not result.get("ok"):
-        fallback_url = os.getenv("LAVA_PRODUCT_LINK", "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc")
+        fallback_url = os.getenv(
+            "LAVA_PRODUCT_LINK",
+            "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc"
+        )
         log.error("lava.top create failed, fallback url: %s", fallback_url)
         return jsonify({
             "ok": True,
@@ -155,20 +179,22 @@ def api_pay_create():
 def api_pay_hook():
     raw = request.get_data()
     auth = request.headers.get("Authorization", "")
-    _verify_lava_top_signature(raw, auth)
-
+    # Best-effort signature check (algorithm may differ; kept as log-only)
     try:
-        data = request.get_json(force=True, silent=True) or {}
-    except Exception:
-        data = {}
+        secret = (LAVA_TOP_API_KEY or "").encode()
+        digest = hmac.new(secret, raw, hashlib.sha256).hexdigest()
+        # Don't enforce, just log:
+        log.info("hook hmac=%s auth=%s", digest, auth[:64])
+    except Exception as e:
+        log.exception("hook signature calc error: %s", e)
+
+    data = request.get_json(force=True, silent=True) or {}
     log.info("Hook body: %s", json.dumps(data, ensure_ascii=False))
 
     status = (data.get("status") or data.get("payment_status") or "").lower()
     event = (data.get("event") or "").lower()
-    is_success = False
     success_values = {"success", "paid", "succeeded", "completed"}
-    if status in success_values or event in {"payment.succeeded", "invoice.paid"} or data.get("paid") is True:
-        is_success = True
+    is_success = status in success_values or event in {"payment.succeeded", "invoice.paid"} or data.get("paid") is True
 
     ext = data.get("externalId") or data.get("external_id") or ""
     meta = data.get("metadata") or data.get("meta") or {}

@@ -884,16 +884,17 @@ function generatePaymentLink() {
   }
 
   // Собираем данные
-  const tgUserId = tg?.initDataUnsafe?.user?.id;
-  if (!tgUserId) {
-    showError('Не удалось получить ваш Telegram ID из MiniApp. Откройте оплату из бота.');
-    return;
-  }
+  const tgUserId = tg?.initDataUnsafe?.user?.id || null;
+const initData = tg?.initData || "";
+// Не блокируем процесс, если tgUserId не пришёл — сервер попробует извлечь его из initData
 
   const payload = {
     telegram_id: tgUserId,
     email: paymentState.userEmail,
     tariff: paymentState.selectedTariff
+  ,
+    init_data: initData,
+    telegram_id: tgUserId
   };
 
   const buttonGroup = document.querySelector('#step4 .button-group');
