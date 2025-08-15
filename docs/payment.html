@@ -874,24 +874,62 @@ function updateProgressBar(step) {
   });
 }
 
+
 function generatePaymentLink() {
-  // Автоматически устанавливаем метод оплаты если не выбран
-  if (!paymentState.selectedPaymentMethod) {
-    paymentState.selectedPaymentMethod = 'card';
-  }
-  if (!paymentState.selectedBank) {
-    paymentState.selectedBank = 'russian'; // Только российские банки
-  }
-  
-  // Validate required fields
+  if (!paymentState.selectedPaymentMethod) paymentState.selectedPaymentMethod = 'card';
+  if (!paymentState.selectedBank) paymentState.selectedBank = 'russian';
   if (!paymentState.selectedTariff || !paymentState.userEmail) {
     alert('Пожалуйста, заполните все обязательные поля');
     return;
   }
-  
-  // Отправляем данные напрямую в бот
-  sendFinalData();
+
+  // Собираем данные
+  const tgUserId = tg?.initDataUnsafe?.user?.id;
+  if (!tgUserId) {
+    showError('Не удалось получить ваш Telegram ID из MiniApp. Откройте оплату из бота.');
+    return;
+  }
+
+  const payload = {
+    telegram_id: tgUserId,
+    email: paymentState.userEmail,
+    tariff: paymentState.selectedTariff
+  };
+
+  const buttonGroup = document.querySelector('#step4 .button-group');
+  buttonGroup.innerHTML = `
+    <button class="btn btn-primary" disabled style="opacity: 0.7;">
+      ⏳ Создание платежа...
+    </button>
+    <button class="btn btn-secondary" onclick="goToStep(3)">Назад</button>
+  `;
+
+  // URL вашего Railway
+  const API_BASE = 'https://formulaprivate-production.up.railway.app';
+  fetch(API_BASE + '/api/pay/create', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(resp => {
+    console.log('Создание платежа ответ:', resp);
+    if (!resp.ok) throw new Error(resp.error || 'Ошибка создания платежа');
+    if (!resp.payment_url) throw new Error('Сервер не вернул ссылку на оплату');
+
+    // Переходим на оплату
+    window.location.href = resp.payment_url;
+  })
+  .catch(err => {
+    console.error('Ошибка создания платежа:', err);
+    showError('Не удалось создать ссылку на оплату: ' + err.message);
+
+    // Покажем кнопку fallback
+    const fb = document.getElementById('fallbackButton');
+    if (fb) fb.style.display = 'inline-block';
+  });
 }
+
 
 
 

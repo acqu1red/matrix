@@ -8,6 +8,7 @@ from supabase import create_client, Client
 import asyncio
 import aiohttp
 import json
+import os
 # channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
@@ -491,57 +492,21 @@ async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
         return LAVA_TOP_PRODUCT_URL
 
 
+
 async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
-    """Обрабатывает данные от miniapp"""
+    """(Legacy) Данные от старой версии MiniApp: больше не создаём платёж здесь.
+    Новый поток оплаты: MiniApp → Railway /api/pay/create → lava.top.
+    Этот обработчик оставлен только для мягкой миграции пользователей со старой версии.
+    """
     try:
-        webapp_data = update.message.web_app_data.data
-        user = update.effective_user
-        
-        print(f"📱 Получены данные от miniapp: {webapp_data}")
-        
-        # Парсим JSON данные
-        payment_data = json.loads(webapp_data)
-        
-        # Формируем сообщение для администраторов
-        admin_message = f"💳 <b>Новая заявка на оплату!</b>\n\n"
-        admin_message += f"👤 <b>Пользователь:</b> {user.first_name}"
-        if user.username:
-            admin_message += f" (@{user.username})"
-        admin_message += f"\n🆔 <b>ID:</b> {user.id}\n"
-        admin_message += f"📧 <b>Email:</b> {payment_data.get('email', 'Не указан')}\n"
-        admin_message += f"💵 <b>Тариф:</b> {payment_data.get('tariff', 'Не указан')}\n"
-        admin_message += f"🏦 <b>Банк:</b> {payment_data.get('bank', 'Не указан')}\n"
-        admin_message += f"💰 <b>Сумма:</b> {payment_data.get('price', 'Не указана')} RUB\n"
-        admin_message += f"💳 <b>Метод оплаты:</b> {payment_data.get('paymentMethod', 'Не указан')}\n\n"
-        admin_message += f"⏰ <b>Время:</b> {update.message.date.strftime('%d.%m.%Y %H:%M:%S')}\n\n"
-        admin_message += "ℹ️ Пользователь перенаправлен на Lava Top для оплаты"
-        
-        # Отправляем уведомление всем администраторам
-        for admin_id in ADMIN_IDS:
-            try:
-                await context.bot.send_message(
-                    chat_id=admin_id,
-                    text=admin_message,
-                    parse_mode='HTML'
-                )
-            except Exception as e:
-                print(f"❌ Ошибка отправки уведомления администратору {admin_id}: {e}")
-        
-        # Отправляем подтверждение пользователю
         await update.message.reply_text(
-            "✅ <b>Заявка принята!</b>\n\n"
-            "Вы были перенаправлены на страницу оплаты Lava Top.\n"
-            "После успешной оплаты вы получите доступ к закрытому каналу.",
+            "ℹ️ Оплата теперь происходит прямо в MiniApp (кнопка «Оплатить доступ»).\n"
+            "Если страница оплаты не открылась, нажмите сюда: " + PAYMENT_MINIAPP_URL,
             parse_mode='HTML'
         )
-        
     except Exception as e:
-        print(f"❌ Ошибка обработки данных miniapp: {e}")
-        await update.message.reply_text(
-            "❌ <b>Ошибка обработки заявки</b>\n\n"
-            "Пожалуйста, попробуйте еще раз или обратитесь в поддержку.",
-            parse_mode='HTML'
-        )
+        print(f"Ошибка legacy-webapp handler: {e}")
+
 
 
 async def check_expired_subscriptions(update: Update, context: CallbackContext) -> None:
@@ -601,7 +566,7 @@ def main() -> None:
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
-    application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
+    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
     
     print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))
