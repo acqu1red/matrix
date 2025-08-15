@@ -219,7 +219,10 @@ def delete_webhook():
 # ---------- Telegram webhook endpoint ----------
 @app.route("/webhook", methods=["GET", "POST"])
 def telegram_webhook():
+    print(f"🌐 WEBHOOK ЗАПРОС: {request.method} {request.path}")
+    
     if request.method == "GET":
+        print("🔧 GET /webhook - self-heal")
         # self-heal
         try:
             info = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo", timeout=10).json()
@@ -376,31 +379,47 @@ def main():
 
     # --- setWebhook на старте ---
     if TELEGRAM_BOT_TOKEN and WEBHOOK_URL:
-        print("🔗 УСТАНОВКА WEBHOOK")
+        print("🔗 ПРОВЕРКА WEBHOOK")
         try:
-            # Снести старый вебхук (на случай переезда домена)
-            print("🗑️  Удаляем старый webhook...")
-            r_del = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
-                          json={"drop_pending_updates": False}, timeout=10)
-            print(f"✅ Удаление webhook: {r_del.status_code}")
-
             target = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}"
-            print(f"🎯 Устанавливаем webhook: {target}")
-            payload = {
-                "url": target,
-                "secret_token": WEBHOOK_SECRET,
-                "max_connections": 40,
-                "allowed_updates": ["message", "callback_query"]  # web_app_data приходит внутри message
-            }
-            r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
-                              json=payload, timeout=10)
-            print(f"📡 setWebhook ответ: {r.status_code} {r.text}")
-            log.info("setWebhook: %s %s", r.status_code, r.text)
+            
+            # Проверяем текущий webhook
+            r_info = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo", timeout=10)
+            if r_info.ok:
+                info = r_info.json()
+                current_url = info.get('result', {}).get('url', '')
+                
+                if current_url == target:
+                    print(f"✅ Webhook уже установлен правильно: {target}")
+                else:
+                    print(f"🔄 Webhook неправильный, устанавливаем заново...")
+                    print(f"   Текущий: {current_url}")
+                    print(f"   Нужный:  {target}")
+                    
+                    # Удаляем старый webhook только если он неправильный
+                    if current_url:
+                        r_del = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
+                                      json={"drop_pending_updates": False}, timeout=10)
+                        print(f"🗑️  Удаление старого webhook: {r_del.status_code}")
+                    
+                    # Устанавливаем новый webhook
+                    payload = {
+                        "url": target,
+                        "secret_token": WEBHOOK_SECRET,
+                        "max_connections": 40,
+                        "allowed_updates": ["message", "callback_query"]
+                    }
+                    r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+                                      json=payload, timeout=10)
+                    print(f"📡 setWebhook ответ: {r.status_code} {r.text}")
+                    log.info("setWebhook: %s %s", r.status_code, r.text)
+            else:
+                print(f"❌ Ошибка получения информации о webhook: {r_info.status_code}")
         except Exception as e:
-            print(f"❌ Ошибка setWebhook: {e}")
-            log.error("Ошибка setWebhook: %s", e)
+            print(f"❌ Ошибка проверки webhook: {e}")
+            log.error("Ошибка webhook: %s", e)
     else:
-        print("⚠️  Пропускаем установку webhook из-за отсутствующих переменных")
+        print("⚠️  Пропускаем проверку webhook из-за отсутствующих переменных")
 
     if USE_POLLING:
         threading.Thread(target=_start_polling, args=(application,), daemon=True).start()
