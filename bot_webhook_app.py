@@ -40,10 +40,17 @@ if not LAVA_OFFER_ID_BASIC:
 # ---------- Logging ----------
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", force=True)
 log = logging.getLogger("app")
+
 def _redact(s: str) -> str:
     if not s: return s
     if len(s) <= 10: return "***"
     return s[:4] + "..." + s[-4:]
+
+print("🚀 ЗАПУСК ПРИЛОЖЕНИЯ")
+print(f"📡 WEBHOOK_URL: {WEBHOOK_URL}")
+print(f"🤖 TELEGRAM_BOT_TOKEN: {_redact(TELEGRAM_BOT_TOKEN)}")
+print(f"🔑 LAVA_TOP_API_KEY: {_redact(LAVA_TOP_API_KEY)}")
+print(f"🎯 LAVA_OFFER_ID_BASIC: {_redact(LAVA_OFFER_ID_BASIC)}")
 
 log.info("BOOT: TELEGRAM_BOT_TOKEN=%s WEBHOOK_URL=%s LAVA_TOP_API_KEY=%s OFFER_ID=%s",
          _redact(TELEGRAM_BOT_TOKEN), WEBHOOK_URL, _redact(LAVA_TOP_API_KEY), _redact(LAVA_OFFER_ID_BASIC))
@@ -133,7 +140,13 @@ async def any_msg(update: Update, context: CallbackContext):
 # ---------- Health/debug ----------
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok", "time": datetime.utcnow().isoformat()+"Z"})
+    return jsonify({
+        "status": "ok", 
+        "time": datetime.utcnow().isoformat()+"Z",
+        "webhook_url": WEBHOOK_URL,
+        "bot_token_set": bool(TELEGRAM_BOT_TOKEN),
+        "lava_key_set": bool(LAVA_TOP_API_KEY)
+    })
 
 @app.get("/webhook-info")
 def webhook_info():
@@ -261,6 +274,8 @@ def _start_polling(app_obj: Application):
     app_obj.run_polling(allowed_updates=["message", "callback_query"])
 
 def main():
+    print("🔧 ИНИЦИАЛИЗАЦИЯ TELEGRAM БОТА")
+    
     # PTB app
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(False).build()
     application.add_handler(CommandHandler("start", start))
@@ -280,12 +295,16 @@ def main():
         log.exception("Telegram diagnostics failed")
 
     # --- setWebhook на старте ---
+    print("🔗 УСТАНОВКА WEBHOOK")
     try:
         # Снести старый вебхук (на случай переезда домена)
-        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
+        print("🗑️  Удаляем старый webhook...")
+        r_del = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
                       json={"drop_pending_updates": False}, timeout=10)
+        print(f"✅ Удаление webhook: {r_del.status_code}")
 
         target = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}"
+        print(f"🎯 Устанавливаем webhook: {target}")
         payload = {
             "url": target,
             "secret_token": WEBHOOK_SECRET,
@@ -294,8 +313,10 @@ def main():
         }
         r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
                           json=payload, timeout=10)
+        print(f"📡 setWebhook ответ: {r.status_code} {r.text}")
         log.info("setWebhook: %s %s", r.status_code, r.text)
     except Exception as e:
+        print(f"❌ Ошибка setWebhook: {e}")
         log.error("Ошибка setWebhook: %s", e)
 
     if USE_POLLING:
