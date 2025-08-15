@@ -243,9 +243,18 @@ def telegram_webhook():
 
     update = Update.de_json(data, app.telegram_app.bot)
     try:
-        app.telegram_app.create_task(app.telegram_app.process_update(update))
-    except Exception:
-        asyncio.get_event_loop().run_until_complete(app.telegram_app.process_update(update))
+        # Используем синхронный способ обработки в Flask
+        asyncio.run(app.telegram_app.process_update(update))
+    except Exception as e:
+        log.error("Ошибка обработки update: %s", e)
+        # Fallback для старых версий Python
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(app.telegram_app.process_update(update))
+            loop.close()
+        except Exception as e2:
+            log.error("Fallback обработка тоже не удалась: %s", e2)
     return jsonify({"ok": True})
 
 # ---------- Direct MiniApp POST (optional) ----------
