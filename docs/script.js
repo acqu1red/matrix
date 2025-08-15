@@ -112,19 +112,20 @@ async function checkAdminRights() {
     if (!currentUserId) return;
     
     try {
-        const { data, error } = await supabaseClient
-            .rpc('is_admin', { user_telegram_id: currentUserId });
-            
-        if (error) throw error;
-        
-        isAdmin = data || false;
+        // Проверяем по ID администраторов из bot.py
+        const adminIds = [708907063, 7365307696];
+        isAdmin = adminIds.includes(currentUserId);
         
         if (isAdmin) {
             adminPanelBtn.classList.remove('hidden');
             document.getElementById('adminFooter').classList.add('active');
+            console.log('Пользователь является администратором');
+        } else {
+            console.log('Пользователь не является администратором');
         }
     } catch (error) {
         console.error('Ошибка при проверке прав админа:', error);
+        isAdmin = false;
     }
 }
 
@@ -278,6 +279,7 @@ async function sendMessage() {
         allMessages.push(newMessage);
         
         // Проверяем, нужно ли отправить уведомление администраторам
+        console.log('Отправляем уведомление администраторам...');
         await checkAndNotifyAdmins(conversationId, text, currentUserId);
         
     } catch (error) {
@@ -859,6 +861,7 @@ async function notifyUser(conversationId) {
 // Уведомление администраторов о новом сообщении пользователя
 async function notifyAdminsNewMessage(conversationId, messageText, userId) {
     try {
+        console.log('notifyAdminsNewMessage вызвана');
         // ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
         const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
@@ -991,6 +994,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
 // Проверка и отправка уведомлений администраторам
 async function checkAndNotifyAdmins(conversationId, messageText, userId) {
     try {
+        console.log('checkAndNotifyAdmins вызвана с параметрами:', { conversationId, messageText, userId });
         // Получаем информацию о диалоге
         const { data: conversation, error: convError } = await supabaseClient
             .from('conversations')
@@ -1055,15 +1059,9 @@ async function checkAndNotifyAdmins(conversationId, messageText, userId) {
 // Проверка, является ли пользователь администратором
 async function checkIfUserIsAdmin(userId) {
     try {
-        const { data, error } = await supabaseClient
-            .rpc('is_admin', { user_telegram_id: userId });
-            
-        if (error) {
-            console.error('Ошибка при проверке прав администратора:', error);
-            return false;
-        }
-        
-        return data || false;
+        // Проверяем по ID администраторов из bot.py
+        const adminIds = [708907063, 7365307696];
+        return adminIds.includes(userId);
     } catch (error) {
         console.error('Ошибка при проверке прав администратора:', error);
         return false;
