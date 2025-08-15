@@ -230,7 +230,7 @@ def telegram_webhook():
             expected = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}" if WEBHOOK_URL else ""
             if expected and current != expected:
                 set_r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
-                                      json={"url": expected, "secret_token": WEBHOOK_SECRET,
+                                      json={"url": expected,
                                             "max_connections": 40,
                                             "allowed_updates": ["message", "callback_query"]},
                                       timeout=10).json()
@@ -405,7 +405,6 @@ def main():
                     # Устанавливаем новый webhook
                     payload = {
                         "url": target,
-                        "secret_token": WEBHOOK_SECRET,
                         "max_connections": 40,
                         "allowed_updates": ["message", "callback_query"]
                     }
