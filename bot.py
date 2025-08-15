@@ -7,7 +7,6 @@ from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
 import json
-import os
 # channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
@@ -486,7 +485,7 @@ def main() -> None:
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
-    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
+    application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
     
     print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))
