@@ -28,14 +28,37 @@ USE_POLLING = os.environ.get("USE_POLLING", "0") == "1"
 LOG_JSON_BODY = os.environ.get("LOG_JSON_BODY", "1") == "1"
 
 # Проверки обязательных переменных
+print("🔍 ПРОВЕРКА ПЕРЕМЕННЫХ ОКРУЖЕНИЯ:")
+print(f"TELEGRAM_BOT_TOKEN: {'✅' if TELEGRAM_BOT_TOKEN else '❌'} {'задан' if TELEGRAM_BOT_TOKEN else 'НЕ ЗАДАН'}")
+print(f"WEBHOOK_URL: {'✅' if WEBHOOK_URL else '❌'} {'задан' if WEBHOOK_URL else 'НЕ ЗАДАН'}")
+print(f"LAVA_TOP_API_KEY: {'✅' if LAVA_TOP_API_KEY else '❌'} {'задан' if LAVA_TOP_API_KEY else 'НЕ ЗАДАН'}")
+print(f"LAVA_OFFER_ID_BASIC: {'✅' if LAVA_OFFER_ID_BASIC else '❌'} {'задан' if LAVA_OFFER_ID_BASIC else 'НЕ ЗАДАН'}")
+
 if not TELEGRAM_BOT_TOKEN:
-    raise RuntimeError("TELEGRAM_BOT_TOKEN не задан в переменных окружения Railway")
+    print("❌ ОШИБКА: TELEGRAM_BOT_TOKEN не задан в переменных окружения Railway")
+    # Не падаем сразу, чтобы увидеть остальные ошибки
 if not WEBHOOK_URL:
-    raise RuntimeError("WEBHOOK_URL не задан в переменных окружения Railway (пример: https://<app>.up.railway.app)")
+    print("❌ ОШИБКА: WEBHOOK_URL не задан в переменных окружения Railway (пример: https://<app>.up.railway.app)")
 if not LAVA_TOP_API_KEY:
-    raise RuntimeError("LAVA_TOP_API_KEY не задан (ключ из app.lava.top)")
+    print("❌ ОШИБКА: LAVA_TOP_API_KEY не задан (ключ из app.lava.top)")
 if not LAVA_OFFER_ID_BASIC:
-    raise RuntimeError("LAVA_OFFER_ID_BASIC не задан")
+    print("❌ ОШИБКА: LAVA_OFFER_ID_BASIC не задан")
+
+# Проверяем, есть ли критические ошибки
+critical_errors = []
+if not TELEGRAM_BOT_TOKEN:
+    critical_errors.append("TELEGRAM_BOT_TOKEN")
+if not WEBHOOK_URL:
+    critical_errors.append("WEBHOOK_URL")
+if not LAVA_TOP_API_KEY:
+    critical_errors.append("LAVA_TOP_API_KEY")
+if not LAVA_OFFER_ID_BASIC:
+    critical_errors.append("LAVA_OFFER_ID_BASIC")
+
+if critical_errors:
+    print(f"🚨 КРИТИЧЕСКИЕ ОШИБКИ: {', '.join(critical_errors)}")
+    print("💡 Установите эти переменные в Railway → Variables")
+    # Пока не падаем, чтобы приложение запустилось и показало health endpoint
 
 # ---------- Logging ----------
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", force=True)
@@ -276,14 +299,20 @@ def _start_polling(app_obj: Application):
 def main():
     print("🔧 ИНИЦИАЛИЗАЦИЯ TELEGRAM БОТА")
     
-    # PTB app
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(False).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("payment", payment))
-    application.add_handler(CallbackQueryHandler(lambda *_: None))
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
-    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, any_msg))
-    app.telegram_app = application
+    # Проверяем, есть ли все необходимые переменные
+    if not TELEGRAM_BOT_TOKEN or not WEBHOOK_URL or not LAVA_TOP_API_KEY or not LAVA_OFFER_ID_BASIC:
+        print("⚠️  Пропускаем инициализацию Telegram бота из-за отсутствующих переменных")
+        print("💡 Установите все переменные окружения в Railway → Variables")
+        app.telegram_app = None
+    else:
+        # PTB app
+        application = Application.builder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(False).build()
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("payment", payment))
+        application.add_handler(CallbackQueryHandler(lambda *_: None))
+        application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_web_app_data))
+        application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, any_msg))
+        app.telegram_app = application
 
     # quick diagnostics
     try:
@@ -295,29 +324,32 @@ def main():
         log.exception("Telegram diagnostics failed")
 
     # --- setWebhook на старте ---
-    print("🔗 УСТАНОВКА WEBHOOK")
-    try:
-        # Снести старый вебхук (на случай переезда домена)
-        print("🗑️  Удаляем старый webhook...")
-        r_del = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
-                      json={"drop_pending_updates": False}, timeout=10)
-        print(f"✅ Удаление webhook: {r_del.status_code}")
+    if TELEGRAM_BOT_TOKEN and WEBHOOK_URL:
+        print("🔗 УСТАНОВКА WEBHOOK")
+        try:
+            # Снести старый вебхук (на случай переезда домена)
+            print("🗑️  Удаляем старый webhook...")
+            r_del = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
+                          json={"drop_pending_updates": False}, timeout=10)
+            print(f"✅ Удаление webhook: {r_del.status_code}")
 
-        target = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}"
-        print(f"🎯 Устанавливаем webhook: {target}")
-        payload = {
-            "url": target,
-            "secret_token": WEBHOOK_SECRET,
-            "max_connections": 40,
-            "allowed_updates": ["message", "callback_query"]  # web_app_data приходит внутри message
-        }
-        r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
-                          json=payload, timeout=10)
-        print(f"📡 setWebhook ответ: {r.status_code} {r.text}")
-        log.info("setWebhook: %s %s", r.status_code, r.text)
-    except Exception as e:
-        print(f"❌ Ошибка setWebhook: {e}")
-        log.error("Ошибка setWebhook: %s", e)
+            target = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}"
+            print(f"🎯 Устанавливаем webhook: {target}")
+            payload = {
+                "url": target,
+                "secret_token": WEBHOOK_SECRET,
+                "max_connections": 40,
+                "allowed_updates": ["message", "callback_query"]  # web_app_data приходит внутри message
+            }
+            r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+                              json=payload, timeout=10)
+            print(f"📡 setWebhook ответ: {r.status_code} {r.text}")
+            log.info("setWebhook: %s %s", r.status_code, r.text)
+        except Exception as e:
+            print(f"❌ Ошибка setWebhook: {e}")
+            log.error("Ошибка setWebhook: %s", e)
+    else:
+        print("⚠️  Пропускаем установку webhook из-за отсутствующих переменных")
 
     if USE_POLLING:
         threading.Thread(target=_start_polling, args=(application,), daemon=True).start()
