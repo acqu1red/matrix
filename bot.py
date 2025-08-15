@@ -486,7 +486,7 @@ def main() -> None:
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
-    application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
+    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
     
     print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))

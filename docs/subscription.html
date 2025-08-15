@@ -14,7 +14,6 @@
     .val { font-weight:600; }
     .btn { padding: 12px 16px; border: none; border-radius: 10px; cursor: pointer; }
     .btn-primary { background: #2a77ff; color: #fff; }
-    .btn-ghost { background: transparent; border:1px solid #2a2f45; color:#e1e6ff; }
     a { color:#8bb2ff; text-decoration:none; }
   </style>
 </head>
@@ -44,7 +43,7 @@ async function load(){
   if (!resp.has_subscription){
     box.innerHTML = `<div class="card">
       <div class="row" style="margin-bottom:8px;"><div class="val">Нет активной подписки</div></div>
-      <button class="btn btn-primary" onclick="openPay()">Оформить подписку</button>
+      <a class="btn btn-primary" href="payment.html">Оформить подписку</a>
     </div>`;
     return;
   }
@@ -68,10 +67,6 @@ async function load(){
       ${row("Доступ", invite)}
     </div>`;
   box.innerHTML = html;
-}
-
-function openPay(){
-  window.location.href = "payment.html";
 }
 
 load();
