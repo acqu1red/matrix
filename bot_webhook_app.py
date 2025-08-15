@@ -243,18 +243,60 @@ def telegram_webhook():
 
     update = Update.de_json(data, app.telegram_app.bot)
     try:
-        # Используем синхронный способ обработки в Flask
-        asyncio.run(app.telegram_app.process_update(update))
+        # Простая обработка без asyncio
+        if update.message and update.message.text == '/start':
+            # Обрабатываем /start напрямую
+            kb = [[InlineKeyboardButton("Оплатить", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))]]
+            markup = InlineKeyboardMarkup(kb)
+            requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                          json={"chat_id": update.message.chat.id, 
+                                "text": "Выберите действие:", 
+                                "reply_markup": markup.to_dict()},
+                          timeout=10)
+            log.info("Обработан /start для chat_id: %s", update.message.chat.id)
+        elif update.message and hasattr(update.message, 'web_app_data') and update.message.web_app_data:
+            # Обрабатываем данные от Mini App синхронно
+            msg = update.message
+            user = update.effective_user
+            log.info("handle_web_app_data from %s", user.id if user else "unknown")
+            
+            if not (hasattr(msg, "web_app_data") and msg.web_app_data and msg.web_app_data.data):
+                requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                              json={"chat_id": msg.chat.id, "text": "Данные от Mini App не найдены"},
+                              timeout=10)
+                return jsonify({"ok": True})
+            
+            try:
+                data = json.loads(msg.web_app_data.data)
+                log.info("web_app_data payload: %s", data)
+                
+                email = data.get("email") or data.get("userEmail")
+                tariff = (data.get("tariff") or data.get("selectedTariff") or "basic").lower()
+                bank = (data.get("bank") or data.get("selectedBank") or "russian").lower()
+                currency = (data.get("currency") or ("RUB" if bank == "russian" else "USD")).upper()
+                
+                client_utm = {"tg_id": str(user.id), "tariff": tariff, "bank": bank}
+                
+                inv = create_invoice(api_key=LAVA_TOP_API_KEY, offer_id=LAVA_OFFER_ID_BASIC, email=email,
+                                     currency=currency, payment_method=None, buyer_language="RU",
+                                     client_utm=client_utm)
+                
+                requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                              json={"chat_id": msg.chat.id, "text": f"Ссылка на оплату:\n{inv['paymentUrl']}"},
+                              timeout=10)
+            except Exception as e:
+                log.error("Ошибка обработки web_app_data: %s", e)
+                requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                              json={"chat_id": msg.chat.id, "text": f"Ошибка: {e}"},
+                              timeout=10)
+        else:
+            # Обрабатываем другие сообщения
+            requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                          json={"chat_id": update.message.chat.id, 
+                                "text": "Я на месте. Нажмите «Оплатить»."},
+                          timeout=10)
     except Exception as e:
         log.error("Ошибка обработки update: %s", e)
-        # Fallback для старых версий Python
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(app.telegram_app.process_update(update))
-            loop.close()
-        except Exception as e2:
-            log.error("Fallback обработка тоже не удалась: %s", e2)
     return jsonify({"ok": True})
 
 # ---------- Direct MiniApp POST (optional) ----------
