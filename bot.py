@@ -6,18 +6,12 @@ import pytz
 from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
-import aiohttp
 import json
 import os
 # channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
-
-# Lava Top API configuration
-LAVA_TOP_API_KEY = "whjKvjpi2oqAjTOwfbt0YUkulXCxjU5PWUJDxlQXwOuhOCNSiRq2jSX7Gd2Zihav"
-LAVA_TOP_BASE_URL = "https://api.lava.top"
-LAVA_TOP_PRODUCT_URL = "https://app.lava.top/products/1b9f3e05-86aa-4102-9648-268f0f586bb1/302ecdcd-1581-45ad-8353-a168f347b8cc?currency=RUB"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -334,23 +328,7 @@ def build_start_content():
     return text, InlineKeyboardMarkup(keyboard)
 
 
-def build_payment_content():
-    text = (
-        "💵 Стоимость подписки на Базу\n"
-        "1 месяц 1500 рублей\n"
-        "6 месяцев 8000 рублей\n"
-        "12 месяцев 10 000 рублей\n\n"
-        "*цена в долларах/евро - конвертируется по нынешнему курсу\n"
-        "*оплачивай любой картой в долларах/евро/рублях, бот сконвертирует сам\n\n"
-        "Оплатить и получить доступ\n👇👇👇"
-    )
-    keyboard = [
-        [InlineKeyboardButton("1 месяц", callback_data='pay_1_month')],
-        [InlineKeyboardButton("6 месяцев", callback_data='pay_6_months')],
-        [InlineKeyboardButton("12 месяцев", callback_data='pay_12_months')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='back')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
+
 
 
 def build_more_info_content():
@@ -378,22 +356,7 @@ def build_more_info_content():
     return text, InlineKeyboardMarkup(keyboard)
 
 
-def build_checkout_content(duration_label: str):
-    text = (
-        f"🦍 ЗАКРЫТЫЙ КАНАЛ \"ФОРМУЛА\" на {duration_label}\n\n"
-        "Выберите удобный вид оплаты:\n"
-        "*если вы из Украины, включите vpn\n"
-        "*при оплате картой — оформляется автосписание каждые 30 дней\n"
-        "*далее — вы сможете управлять подпиской в Меню бота\n"
-        "*оплата криптой доступна на тарифах 6/12 мес"
-    )
-    keyboard = [
-        [InlineKeyboardButton("💳 Карта (любая валюта)", callback_data='noop')],
-        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
-        [InlineKeyboardButton("📄 Договор оферты", callback_data='noop')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='payment')]
-    ]
-    return text, InlineKeyboardMarkup(keyboard)
+
 
 
 # ---------- Command handlers (send new messages) ----------
@@ -403,11 +366,6 @@ async def start(update: Update, context: CallbackContext) -> None:
     text, markup = build_start_content()
     await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
 
-
-# Define the payment command handler
-async def payment(update: Update, context: CallbackContext) -> None:
-    text, markup = build_payment_content()
-    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
 
 
 # Define the more_info command handler
@@ -443,53 +401,7 @@ async def button(update: Update, context: CallbackContext) -> None:
     else:
         return
 
-async def create_lava_top_payment(payment_data: dict, user_id: int) -> str:
-    """Создает платеж в Lava Top и возвращает URL для оплаты"""
-    try:
-        # Конвертируем цену из рублей в евро (примерный курс)
-        rub_to_eur_rate = 0.009  # 1 RUB ≈ 0.009 EUR
-        price_rub = payment_data.get('price', 1500)
-        price_eur = round(price_rub * rub_to_eur_rate, 2)
-        
-        # Формируем данные для создания платежа
-        payment_request = {
-            "amount": price_rub,  # Используем цену в рублях
-            "currency": "RUB",    # Изменяем валюту на RUB
-            "order_id": f"formula_{user_id}_{int(asyncio.get_event_loop().time())}",
-            "hook_url": "https://your-webhook-url.com/lava-webhook",  # Замените на ваш webhook
-            "success_url": "https://t.me/acqu1red",
-            "fail_url": "https://t.me/acqu1red",
-            "metadata": {
-                "user_id": user_id,
-                "tariff": payment_data.get('tariff'),
-                "email": payment_data.get('email'),
-                "bank": payment_data.get('bank'),
-                "product": "Формула Успеха"
-            }
-        }
-        
-        # Отправляем запрос к Lava Top API
-        async with aiohttp.ClientSession() as session:
-            headers = {
-                "Authorization": f"Bearer {LAVA_TOP_API_KEY}",
-                "Content-Type": "application/json"
-            }
-            
-            async with session.post(
-                f"{LAVA_TOP_BASE_URL}/business/invoice/create",
-                headers=headers,
-                json=payment_request
-            ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get('data', {}).get('url', LAVA_TOP_PRODUCT_URL)
-                else:
-                    print(f"❌ Ошибка Lava Top API: {response.status}")
-                    return LAVA_TOP_PRODUCT_URL
-                    
-    except Exception as e:
-        print(f"❌ Ошибка создания платежа Lava Top: {e}")
-        return LAVA_TOP_PRODUCT_URL
+
 
 
 
@@ -570,7 +482,6 @@ def main() -> None:
     
     print("📝 Регистрация обработчиков...")
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("payment", payment))
     application.add_handler(CommandHandler("more_info", more_info))
     application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CommandHandler("messages", admin_messages))
