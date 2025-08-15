@@ -13,34 +13,30 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from urllib.parse import parse_qsl
 
-VERSION = "v2.4-2025-08-15"  # mark build so you can check it via /health
+VERSION = "v2.5-2025-08-15-clean"
 
-# ---------- ENV ----------
+# Required envs
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_PRIVATE_CHANNEL_ID = os.getenv("TELEGRAM_PRIVATE_CHANNEL_ID", "").strip()
 TELEGRAM_STATIC_INVITE_LINK = os.getenv("TELEGRAM_STATIC_INVITE_LINK", "").strip()
-
 LAVA_TOP_API_KEY = os.getenv("LAVA_TOP_API_KEY", "").strip()
 LAVA_OFFER_ID_BASIC = os.getenv("LAVA_OFFER_ID_BASIC", "").strip()
 
 app = Flask(__name__)
 CORS(app)
-
 logging.basicConfig(level=logging.INFO)
 log = app.logger
 log.info("=== FORMULA BACKEND %s ===", VERSION)
 
-# ---------- Helpers ----------
 def _verify_telegram_init_data(init_data: str, bot_token: str) -> Optional[dict]:
-    """Validate Telegram WebApp initData and return parsed dict with 'user' if valid."""
     try:
         data_pairs = dict(parse_qsl(init_data, strict_parsing=True))
         hash_from_telegram = data_pairs.pop("hash", None)
-        check_list = [f"{k}={data_pairs[k]}" for k in sorted(data_pairs.keys())]
-        data_check_string = "\n".join(check_list)
+        items = [f"{k}={data_pairs[k]}" for k in sorted(data_pairs.keys())]
+        data_check_string = "\n".join(items)
         secret_key = hashlib.sha256(("WebAppData" + bot_token).encode()).digest()
-        h = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(h, (hash_from_telegram or "")):
+        hmac_str = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(hmac_str, (hash_from_telegram or "")):
             log.warning("init_data HMAC mismatch")
             return None
         if "user" in data_pairs:
@@ -50,13 +46,13 @@ def _verify_telegram_init_data(init_data: str, bot_token: str) -> Optional[dict]
         log.exception("init_data validation failed: %s", e)
         return None
 
-def _pm_and_currency_from_bank(bank: str) -> Tuple[str, str]:
+def _pm_and_currency(bank: str) -> Tuple[str, str]:
     bank = (bank or "").lower()
     if bank in ("ru", "russian", "bank131"):
         return "BANK131", "RUB"
     return "UNLIMINT", "EUR"
 
-def _send_telegram_message(chat_id: int, text: str) -> None:
+def _send_tg(chat_id: int, text: str) -> None:
     if not TELEGRAM_BOT_TOKEN:
         log.error("No TELEGRAM_BOT_TOKEN; cannot send Telegram messages")
         return
@@ -66,7 +62,6 @@ def _send_telegram_message(chat_id: int, text: str) -> None:
         log.error("sendMessage failed %s %s", r.status_code, r.text[:800])
 
 def _create_invite_link() -> str:
-    """Create one-time invite link for the private channel (or return static if provided)."""
     if TELEGRAM_STATIC_INVITE_LINK:
         return TELEGRAM_STATIC_INVITE_LINK
     if not (TELEGRAM_BOT_TOKEN and TELEGRAM_PRIVATE_CHANNEL_ID):
@@ -80,9 +75,8 @@ def _create_invite_link() -> str:
     log.error("createChatInviteLink failed %s %s", r.status_code, r.text[:500])
     return ""
 
-def _create_lava_top_invoice(email: str, offer_id: str, bank: str, tariff: str, tg_user_id: str, order_id: str) -> Dict[str, Any]:
-    """Create invoice via lava.top API v2 (NO successUrl/webhookUrl/externalId!)."""
-    pm, currency = _pm_and_currency_from_bank(bank)
+def _create_invoice_v2(email: str, offer_id: str, bank: str, tariff: str, tg_user_id: str, order_id: str) -> Dict[str, Any]:
+    pm, currency = _pm_and_currency(bank)
     payload = {
         "email": email,
         "offerId": offer_id,
@@ -96,11 +90,7 @@ def _create_lava_top_invoice(email: str, offer_id: str, bank: str, tariff: str, 
             "utm_content": order_id
         }
     }
-    headers = {
-        "X-Api-Key": LAVA_TOP_API_KEY,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
+    headers = {"X-Api-Key": LAVA_TOP_API_KEY, "Content-Type": "application/json", "Accept": "application/json"}
     url = "https://gate.lava.top/api/v2/invoice"
     log.info("→ v2 invoice: %s", json.dumps(payload, ensure_ascii=False))
     r = requests.post(url, headers=headers, json=payload, timeout=25)
@@ -113,10 +103,9 @@ def _create_lava_top_invoice(email: str, offer_id: str, bank: str, tariff: str, 
         return {"ok": True, "payment_url": data.get("url") or data.get("payUrl") or data.get("paymentUrl")}
     return {"ok": False, "error": data or {"status_code": r.status_code, "body": r.text[:2000]}}
 
-# ---------- Routes ----------
 @app.get("/health")
 def health():
-    return {"ok": True, "version": VERSION, "notes": "No PUBLIC_BASE_URL used in this build"}
+    return {"ok": True, "version": VERSION}
 
 @app.post("/api/pay/create")
 def api_pay_create():
@@ -131,14 +120,13 @@ def api_pay_create():
         email = str(body.get("email", "")).strip().lower()
         tariff = str(body.get("tariff", "")).strip().lower() or "basic"
         bank = str(body.get("bank", "")).strip().lower() or "russian"
-
         if not tg_user_id or not email:
             return jsonify({"ok": False, "error": "telegram_id or init_data and email are required"}), 400
 
         order_id = f"tg{tg_user_id}-{uuid.uuid4().hex[:12]}"
         log.info("Create pay: tg=%s email=%s tariff=%s order=%s", tg_user_id, email, tariff, order_id)
 
-        res = _create_lava_top_invoice(email=email, offer_id=LAVA_OFFER_ID_BASIC, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id)
+        res = _create_invoice_v2(email=email, offer_id=LAVA_OFFER_ID_BASIC, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id)
         if not res.get("ok"):
             return jsonify({"ok": False, "error": f"lava invoice error: {res.get('error')}", "order_id": order_id}), 502
 
@@ -168,9 +156,9 @@ def api_pay_hook():
     if success and tg_id:
         invite = _create_invite_link() or ""
         if invite:
-            _send_telegram_message(int(tg_id), f"✅ Оплата прошла успешно!\n\nВот ваша ссылка-приглашение в закрытый канал:\n{invite}")
+            _send_tg(int(tg_id), f"✅ Оплата прошла успешно!\n\nВот ваша ссылка-приглашение в закрытый канал:\n{invite}")
         else:
-            _send_telegram_message(int(tg_id), "✅ Оплата прошла успешно! Но не удалось создать инвайт автоматически, напишите администратору.")
+            _send_tg(int(tg_id), "✅ Оплата прошла успешно! Но не удалось создать инвайт автоматически, напишите администратору.")
     else:
         log.warning("Webhook ignored: eventType=%s status=%s utm=%s", event_type, status, client_utm)
 
