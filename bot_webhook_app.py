@@ -3,19 +3,39 @@ import os, json, logging, requests, threading, asyncio
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+# Исправление для sched_getaffinity
+try:
+    import multiprocessing
+    multiprocessing.set_start_method('fork', force=True)
+except (ImportError, RuntimeError):
+    pass
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters
 from lava_app_client import create_invoice, LavaAppError
 
 # ---------- Config ----------
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
-WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "any")
-LAVA_TOP_API_KEY = os.environ.get("LAVA_TOP_API_KEY", "")
-LAVA_OFFER_ID_BASIC = os.environ.get("LAVA_OFFER_ID_BASIC", "")
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
+WEBHOOK_URL = os.getenv('WEBHOOK_URL', '').strip()  # без /webhook в конце; например: https://<app>.up.railway.app
+WEBHOOK_PATH = '/webhook'
+WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', 'FORMULA_TMP_SECRET')
+PUBLIC_BASE_URL = os.getenv('PUBLIC_BASE_URL', '').strip()  # если используется в ответах
+LAVA_TOP_API_KEY = os.getenv('LAVA_TOP_API_KEY', '').strip()
+LAVA_OFFER_ID_BASIC = os.getenv('LAVA_OFFER_ID_BASIC', '').strip()
 PAYMENT_MINIAPP_URL = os.environ.get("PAYMENT_MINIAPP_URL", "https://acqu1red.github.io/formulaprivate/payment.html")
 USE_POLLING = os.environ.get("USE_POLLING", "0") == "1"
 LOG_JSON_BODY = os.environ.get("LOG_JSON_BODY", "1") == "1"
+
+# Проверки обязательных переменных
+if not TELEGRAM_BOT_TOKEN:
+    raise RuntimeError("TELEGRAM_BOT_TOKEN не задан в переменных окружения Railway")
+if not WEBHOOK_URL:
+    raise RuntimeError("WEBHOOK_URL не задан в переменных окружения Railway (пример: https://<app>.up.railway.app)")
+if not LAVA_TOP_API_KEY:
+    raise RuntimeError("LAVA_TOP_API_KEY не задан (ключ из app.lava.top)")
+if not LAVA_OFFER_ID_BASIC:
+    raise RuntimeError("LAVA_OFFER_ID_BASIC не задан")
 
 # ---------- Logging ----------
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", force=True)
@@ -37,27 +57,20 @@ app.telegram_app = None
 
 # ---------- HTTP request logging ----------
 @app.before_request
-def _log_incoming():
+def _log_in():
     try:
-        hdr = request.headers
         meta = {
             "method": request.method,
             "path": request.path,
             "ip": request.headers.get("X-Forwarded-For") or request.remote_addr,
-            "ua": hdr.get("User-Agent"),
-            "cl": hdr.get("Content-Length"),
-            "ct": hdr.get("Content-Type"),
-            "tg-secret": "present" if hdr.get("X-Telegram-Bot-Api-Secret-Token") else "absent",
+            "ct": request.headers.get("Content-Type"),
+            "len": request.headers.get("Content-Length"),
         }
-        if LOG_JSON_BODY and request.method in ("POST", "PUT", "PATCH"):
-            try:
-                body = request.get_json(silent=True)
-            except Exception:
-                body = None
-            meta["json"] = body
-        log.info("HTTP %s", json.dumps(meta, ensure_ascii=False))
+        if request.method == "POST":
+            meta["json"] = request.get_json(silent=True)
+        print("HTTP IN:", meta)
     except Exception as e:
-        log.exception("before_request log failed: %s", e)
+        print("log error:", e)
 
 @app.after_request
 def _after(resp):
@@ -141,13 +154,20 @@ def getme():
 @app.post("/force-set-webhook")
 def force_set_webhook():
     try:
-        target = f"{WEBHOOK_URL.rstrip('/')}/webhook"
-        r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
-                          json={"url": target, "secret_token": WEBHOOK_SECRET,
-                                "max_connections": 40,
-                                "allowed_updates": ["message", "callback_query"]},
-                          timeout=10)
-        return jsonify({"target": target, "result": r.json()})
+        target = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}"
+        payload = {
+            "url": target,
+            "secret_token": WEBHOOK_SECRET,
+            "max_connections": 40,
+            "allowed_updates": ["message", "callback_query"]
+        }
+        r_del = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
+                              json={"drop_pending_updates": False}, timeout=10)
+        r_set = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+                              json=payload, timeout=10)
+        return jsonify({"delete": r_del.json() if r_del.ok else r_del.text,
+                        "set": r_set.json() if r_set.ok else r_set.text,
+                        "target": target})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -168,7 +188,7 @@ def telegram_webhook():
         try:
             info = requests.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo", timeout=10).json()
             current = info.get("result", {}).get("url", "")
-            expected = f"{WEBHOOK_URL.rstrip('/')}/webhook" if WEBHOOK_URL else ""
+            expected = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}" if WEBHOOK_URL else ""
             if expected and current != expected:
                 set_r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
                                       json={"url": expected, "secret_token": WEBHOOK_SECRET,
@@ -241,12 +261,8 @@ def _start_polling(app_obj: Application):
     app_obj.run_polling(allowed_updates=["message", "callback_query"])
 
 def main():
-    if not TELEGRAM_BOT_TOKEN: raise RuntimeError("TELEGRAM_BOT_TOKEN is required")
-    if not LAVA_TOP_API_KEY: raise RuntimeError("LAVA_TOP_API_KEY is required")
-    if not LAVA_OFFER_ID_BASIC: raise RuntimeError("LAVA_OFFER_ID_BASIC is required")
-
     # PTB app
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).concurrent_updates(False).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("payment", payment))
     application.add_handler(CallbackQueryHandler(lambda *_: None))
@@ -263,16 +279,24 @@ def main():
     except Exception:
         log.exception("Telegram diagnostics failed")
 
-    if WEBHOOK_URL:
-        try:
-            set_r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
-                                  json={"url": f"{WEBHOOK_URL.rstrip('/')}/webhook",
-                                        "secret_token": WEBHOOK_SECRET, "max_connections": 40,
-                                        "allowed_updates": ["message", "callback_query"]},
-                                  timeout=10).json()
-            log.info("setWebhook on start: %s", set_r)
-        except Exception:
-            log.exception("Failed to set webhook on start")
+    # --- setWebhook на старте ---
+    try:
+        # Снести старый вебхук (на случай переезда домена)
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
+                      json={"drop_pending_updates": False}, timeout=10)
+
+        target = f"{WEBHOOK_URL.rstrip('/')}{WEBHOOK_PATH}"
+        payload = {
+            "url": target,
+            "secret_token": WEBHOOK_SECRET,
+            "max_connections": 40,
+            "allowed_updates": ["message", "callback_query"]  # web_app_data приходит внутри message
+        }
+        r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+                          json=payload, timeout=10)
+        log.info("setWebhook: %s %s", r.status_code, r.text)
+    except Exception as e:
+        log.error("Ошибка setWebhook: %s", e)
 
     if USE_POLLING:
         threading.Thread(target=_start_polling, args=(application,), daemon=True).start()

@@ -155,3 +155,60 @@ SELECT * FROM bot_users ORDER BY created_at DESC LIMIT 10;
 2. Убедитесь, что все переменные установлены
 3. Проверьте структуру таблицы `bot_users`
 4. Убедитесь, что webhook LAVA настроен правильно
+
+# ✅ Исправления применены
+
+## Что было исправлено
+
+1. **Убраны хардкоды домена** - больше нет упоминаний `formulaprivate-productionpaymentuknow.up.railway.app`
+2. **Добавлены строгие проверки переменных окружения** - приложение не запустится без обязательных переменных
+3. **Улучшена установка webhook** - при старте удаляется старый webhook и устанавливается новый
+4. **Добавлен улучшенный логгер** - все входящие POST запросы будут видны в логах
+5. **Улучшены диагностические эндпоинты** - `/force-set-webhook` теперь удаляет старый webhook перед установкой нового
+
+## Обязательные переменные в Railway
+
+```
+TELEGRAM_BOT_TOKEN=ваш_токен_бота
+WEBHOOK_URL=https://ваше-приложение.up.railway.app
+WEBHOOK_SECRET=любая_строка_секрета
+PUBLIC_BASE_URL=https://ваше-приложение.up.railway.app
+LAVA_TOP_API_KEY=ваш_ключ_lava_top
+LAVA_OFFER_ID_BASIC=302ecdcd-1581-45ad-8353-a168f347b8cc
+```
+
+## Проверка после деплоя
+
+1. **Проверьте webhook:**
+   ```
+   GET https://ваше-приложение.up.railway.app/webhook-info
+   ```
+   В ответе `result.url` должен быть `https://ваше-приложение.up.railway.app/webhook`
+
+2. **Если webhook неправильный:**
+   ```
+   POST https://ваше-приложение.up.railway.app/force-set-webhook
+   ```
+
+3. **Тест бота:**
+   - Отправьте `/start` боту
+   - Нажмите "Оплатить"
+   - В логах Railway должно появиться: `HTTP IN: {"method":"POST","path":"/webhook", ...}`
+   - Бот должен отправить ссылку на оплату
+
+## Диагностические эндпоинты
+
+- `GET /health` - проверка работоспособности
+- `GET /webhook-info` - информация о webhook
+- `GET /getme` - информация о боте
+- `POST /force-set-webhook` - принудительная установка webhook
+- `POST /delete-webhook` - удаление webhook
+
+## Логирование
+
+Все входящие HTTP запросы теперь логируются в формате:
+```
+HTTP IN: {"method":"POST","path":"/webhook","ip":"...","ct":"application/json","len":"123","json":{...}}
+```
+
+Это поможет увидеть, приходят ли запросы от Telegram.
