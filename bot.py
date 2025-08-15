@@ -12,6 +12,7 @@ import os
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
+SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/subscription.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -322,6 +323,7 @@ def build_start_content():
     )
     keyboard = [
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
+        [InlineKeyboardButton("📋 Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
         [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
     ]
@@ -375,6 +377,12 @@ async def more_info(update: Update, context: CallbackContext) -> None:
 
 
 # ---------- Callback query handler (edits existing message) ----------
+
+
+
+async def menu(update: Update, context: CallbackContext) -> None:
+    text, markup = build_start_content()
+    await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
 
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
@@ -478,10 +486,10 @@ def main() -> None:
     print(f"👥 Администраторы по ID: {ADMIN_IDS}")
     print(f"👥 Администраторы по username: {ADMIN_USERNAMES}")
     
-    application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
+    application = ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN")).build()
     
     print("📝 Регистрация обработчиков...")
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("menu", menu))
     application.add_handler(CommandHandler("more_info", more_info))
     application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CommandHandler("messages", admin_messages))
