@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 import os
 import hmac
@@ -135,7 +136,7 @@ def api_pay_create():
 
     res = _create_lava_top_invoice(email=email, offer_id=LAVA_OFFER_ID_BASIC, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id)
     if not res.get("ok"):
-        # ВАЖНО: не уходим на статическую ссылку. Возвращаем ошибку, чтобы было видно причину.
+        # Не уходим на статическую ссылку. Возвращаем ошибку, чтобы было видно причину.
         return jsonify({"ok": False, "error": f"lava invoice error: {res.get('error')}", "order_id": order_id}), 502
 
     return jsonify({"ok": True, "payment_url": res["payment_url"], "order_id": order_id})
