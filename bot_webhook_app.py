@@ -13,6 +13,8 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from urllib.parse import parse_qsl
 
+VERSION = "v2.4-2025-08-15"  # mark build so you can check it via /health
+
 # ---------- ENV ----------
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_PRIVATE_CHANNEL_ID = os.getenv("TELEGRAM_PRIVATE_CHANNEL_ID", "").strip()
@@ -26,6 +28,7 @@ CORS(app)
 
 logging.basicConfig(level=logging.INFO)
 log = app.logger
+log.info("=== FORMULA BACKEND %s ===", VERSION)
 
 # ---------- Helpers ----------
 def _verify_telegram_init_data(init_data: str, bot_token: str) -> Optional[dict]:
@@ -113,33 +116,36 @@ def _create_lava_top_invoice(email: str, offer_id: str, bank: str, tariff: str, 
 # ---------- Routes ----------
 @app.get("/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "version": VERSION, "notes": "No PUBLIC_BASE_URL used in this build"}
 
 @app.post("/api/pay/create")
 def api_pay_create():
-    body = request.get_json(force=True, silent=False) or {}
-    tg_user_id = str(body.get("telegram_id") or "").strip()
-    init_data = body.get("init_data")
-    if not tg_user_id and init_data:
-        parsed = _verify_telegram_init_data(init_data, TELEGRAM_BOT_TOKEN)
-        if parsed and isinstance(parsed.get("user"), dict):
-            tg_user_id = str(parsed["user"].get("id") or "")
-    email = str(body.get("email", "")).strip().lower()
-    tariff = str(body.get("tariff", "")).strip().lower() or "basic"
-    bank = str(body.get("bank", "")).strip().lower() or "russian"
+    try:
+        body = request.get_json(force=True, silent=False) or {}
+        tg_user_id = str(body.get("telegram_id") or "").strip()
+        init_data = body.get("init_data")
+        if not tg_user_id and init_data:
+            parsed = _verify_telegram_init_data(init_data, TELEGRAM_BOT_TOKEN)
+            if parsed and isinstance(parsed.get("user"), dict):
+                tg_user_id = str(parsed["user"].get("id") or "")
+        email = str(body.get("email", "")).strip().lower()
+        tariff = str(body.get("tariff", "")).strip().lower() or "basic"
+        bank = str(body.get("bank", "")).strip().lower() or "russian"
 
-    if not tg_user_id or not email:
-        return jsonify({"ok": False, "error": "telegram_id or init_data and email are required"}), 400
+        if not tg_user_id or not email:
+            return jsonify({"ok": False, "error": "telegram_id or init_data and email are required"}), 400
 
-    order_id = f"tg{tg_user_id}-{uuid.uuid4().hex[:12]}"
-    log.info("Create pay: tg=%s email=%s tariff=%s order=%s", tg_user_id, email, tariff, order_id)
+        order_id = f"tg{tg_user_id}-{uuid.uuid4().hex[:12]}"
+        log.info("Create pay: tg=%s email=%s tariff=%s order=%s", tg_user_id, email, tariff, order_id)
 
-    res = _create_lava_top_invoice(email=email, offer_id=LAVA_OFFER_ID_BASIC, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id)
-    if not res.get("ok"):
-        # Не уходим на статическую ссылку. Возвращаем ошибку, чтобы было видно причину.
-        return jsonify({"ok": False, "error": f"lava invoice error: {res.get('error')}", "order_id": order_id}), 502
+        res = _create_lava_top_invoice(email=email, offer_id=LAVA_OFFER_ID_BASIC, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id)
+        if not res.get("ok"):
+            return jsonify({"ok": False, "error": f"lava invoice error: {res.get('error')}", "order_id": order_id}), 502
 
-    return jsonify({"ok": True, "payment_url": res["payment_url"], "order_id": order_id})
+        return jsonify({"ok": True, "payment_url": res["payment_url"], "order_id": order_id})
+    except Exception as e:
+        log.exception("api_pay_create crashed: %s", e)
+        return jsonify({"ok": False, "error": f"server exception: {e}"}), 500
 
 @app.post("/api/pay/hook")
 def api_pay_hook():
