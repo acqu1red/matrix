@@ -489,6 +489,7 @@ def main() -> None:
     application = ApplicationBuilder().token("7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc").build()
     
     print("📝 Регистрация обработчиков...")
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("menu", menu))
     application.add_handler(CommandHandler("more_info", more_info))
     application.add_handler(CommandHandler("cancel", cancel_reply))
