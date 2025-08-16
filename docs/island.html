@@ -103,7 +103,7 @@
     }
     
     // Загружаем Three.js
-    log('Загружаем Three.js и OrbitControls...');
+    log('Загружаем Three.js...');
     
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/three@0.152.2/build/three.min.js';
@@ -116,8 +116,8 @@
         initScene();
       };
       controlsScript.onerror = function() {
-        log('Ошибка загрузки OrbitControls');
-        initScene();
+        log('Ошибка загрузки OrbitControls, используем альтернативу');
+        initSceneWithoutControls();
       };
       document.head.appendChild(controlsScript);
     };
@@ -152,15 +152,19 @@
         log('Рендерер создан');
         
         // Добавляем OrbitControls для управления камерой
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.screenSpacePanning = false;
-        controls.minDistance = 2;
-        controls.maxDistance = 15;
-        controls.maxPolarAngle = Math.PI / 2;
-        
-        log('Управление камерой добавлено');
+        let controls = null;
+        if (typeof THREE.OrbitControls !== 'undefined') {
+          controls = new THREE.OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.dampingFactor = 0.05;
+          controls.screenSpacePanning = false;
+          controls.minDistance = 2;
+          controls.maxDistance = 15;
+          controls.maxPolarAngle = Math.PI / 2;
+          log('Управление камерой добавлено');
+        } else {
+          log('OrbitControls недоступен, используем базовое управление');
+        }
         
         // Освещение
         const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
@@ -500,7 +504,9 @@
             }
           });
           
-          controls.update();
+          if (controls) {
+            controls.update();
+          }
           renderer.render(scene, camera);
         }
         
@@ -515,6 +521,88 @@
         
       } catch (error) {
         log('Ошибка: ' + error.message);
+        console.error(error);
+        document.getElementById('loading').innerHTML = 'Ошибка: ' + error.message;
+      }
+    }
+    
+    // Функция инициализации без OrbitControls
+    function initSceneWithoutControls() {
+      try {
+        log('Инициализируем сцену без OrbitControls...');
+        if (typeof THREE === 'undefined') { throw new Error('THREE не определен'); }
+        
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 4, 6);
+        
+        const renderer = new THREE.WebGLRenderer({ 
+          canvas: document.getElementById('c'), 
+          antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x87ceeb);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        log('Рендерер создан (без OrbitControls)');
+        
+        // Освещение
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        directionalLight.position.set(5, 5, 3);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 512;
+        directionalLight.shadow.mapSize.height = 512;
+        scene.add(directionalLight);
+        
+        log('Освещение настроено');
+        
+        // Простой террейн
+        const terrainGeometry = new THREE.PlaneGeometry(4, 4, 20, 20);
+        terrainGeometry.rotateX(-Math.PI / 2);
+        const terrainMaterial = new THREE.MeshStandardMaterial({ color: 0x71c47f });
+        const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+        terrain.receiveShadow = true;
+        scene.add(terrain);
+        
+        // Простая вода
+        const waterGeometry = new THREE.PlaneGeometry(8, 8, 10, 10);
+        const waterMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0x006994, 
+          transparent: true, 
+          opacity: 0.7
+        });
+        const water = new THREE.Mesh(waterGeometry, waterMaterial);
+        water.rotation.x = -Math.PI / 2;
+        water.position.y = -0.05;
+        scene.add(water);
+        
+        // Простой замок
+        const castleGeometry = new THREE.BoxGeometry(0.4, 0.6, 0.4);
+        const castleMaterial = new THREE.MeshStandardMaterial({ color: 0x8B7355 });
+        const castle = new THREE.Mesh(castleGeometry, castleMaterial);
+        castle.position.set(0, 0.3, 0);
+        castle.castShadow = true;
+        scene.add(castle);
+        
+        log('Базовая сцена создана');
+        
+        // Простая анимация
+        function animate() {
+          requestAnimationFrame(animate);
+          water.position.y = -0.05 + Math.sin(Date.now() * 0.002) * 0.02;
+          renderer.render(scene, camera);
+        }
+        
+        animate();
+        document.getElementById('loading').style.display = 'none';
+        log('Остров готов (базовая версия)!');
+        
+      } catch (error) {
+        log('Ошибка в базовой версии: ' + error.message);
         console.error(error);
         document.getElementById('loading').innerHTML = 'Ошибка: ' + error.message;
       }
