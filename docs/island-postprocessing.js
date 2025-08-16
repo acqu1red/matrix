@@ -64,17 +64,28 @@ class IslandPostProcessing {
 
     // Создание эффектов
     createEffects() {
-        // Bloom эффект
-        this.createBloomEffect();
-        
-        // FXAA антиалиасинг
-        this.createFXAAEffect();
-        
-        // Lens flare эффект
-        this.createLensFlareEffect();
-        
-        // Vignette эффект
-        this.createVignetteEffect();
+        try {
+            // Bloom эффект
+            this.createBloomEffect();
+            
+            // FXAA антиалиасинг
+            this.createFXAAEffect();
+            
+            // Lens flare эффект
+            this.createLensFlareEffect();
+            
+            // Vignette эффект
+            this.createVignetteEffect();
+            
+            console.log('Все эффекты постобработки созданы');
+        } catch (error) {
+            console.error('Ошибка создания эффектов постобработки:', error);
+            // Устанавливаем null для всех эффектов в случае ошибки
+            this.effects.bloom = null;
+            this.effects.fxaa = null;
+            this.effects.lensFlare = null;
+            this.effects.vignette = null;
+        }
     }
 
     // Создание bloom эффекта
@@ -154,35 +165,73 @@ class IslandPostProcessing {
 
     // Создание FXAA эффекта
     createFXAAEffect() {
-        if (this.config.POST_PROCESSING.FXAA.ENABLED) {
+        if (!this.config.POST_PROCESSING.FXAA.ENABLED) {
+            this.effects.fxaa = null;
+            return;
+        }
+
+        // Проверка доступности FXAAShader
+        if (typeof THREE.FXAAShader === 'undefined') {
+            console.warn('FXAAShader недоступен, FXAA эффект отключен');
+            this.effects.fxaa = null;
+            return;
+        }
+
+        try {
             const fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
-            fxaaPass.material.uniforms['resolution'].value.x = 1 / (window.innerWidth * this.renderer.getPixelRatio());
-            fxaaPass.material.uniforms['resolution'].value.y = 1 / (window.innerHeight * this.renderer.getPixelRatio());
             
-            this.composer.addPass(fxaaPass);
-            this.effects.fxaa = fxaaPass;
+            // Проверка инициализации FXAA pass
+            if (fxaaPass && fxaaPass.material && fxaaPass.material.uniforms && 
+                fxaaPass.material.uniforms['resolution']) {
+                
+                fxaaPass.material.uniforms['resolution'].value.x = 1 / (window.innerWidth * this.renderer.getPixelRatio());
+                fxaaPass.material.uniforms['resolution'].value.y = 1 / (window.innerHeight * this.renderer.getPixelRatio());
+                
+                this.composer.addPass(fxaaPass);
+                this.effects.fxaa = fxaaPass;
+                console.log('FXAA эффект создан успешно');
+            } else {
+                console.warn('FXAA pass не инициализирован корректно, FXAA отключен');
+                this.effects.fxaa = null;
+            }
+        } catch (error) {
+            console.error('Ошибка создания FXAA эффекта:', error);
+            this.effects.fxaa = null;
         }
     }
 
     // Создание lens flare эффекта
     createLensFlareEffect() {
-        // Создание lens flare системы
-        const textureLoader = new THREE.TextureLoader();
-        
-        // Загрузка текстур для lens flare
-        const flareTexture = this.createLensFlareTexture();
-        
-        const lensFlare = new THREE.Lensflare();
-        lensFlare.addElement(new THREE.LensflareElement(flareTexture, 512, 0));
-        
-        // Добавление lens flare к солнцу
-        this.scene.traverse((object) => {
-            if (object.userData && object.userData.isSun) {
-                object.add(lensFlare);
-            }
-        });
-        
-        this.effects.lensFlare = lensFlare;
+        // Проверка доступности Lensflare
+        if (typeof THREE.Lensflare === 'undefined' || typeof THREE.LensflareElement === 'undefined') {
+            console.warn('Lensflare недоступен, эффект отключен');
+            this.effects.lensFlare = null;
+            return;
+        }
+
+        try {
+            // Создание lens flare системы
+            const textureLoader = new THREE.TextureLoader();
+            
+            // Загрузка текстур для lens flare
+            const flareTexture = this.createLensFlareTexture();
+            
+            const lensFlare = new THREE.Lensflare();
+            lensFlare.addElement(new THREE.LensflareElement(flareTexture, 512, 0));
+            
+            // Добавление lens flare к солнцу
+            this.scene.traverse((object) => {
+                if (object.userData && object.userData.isSun) {
+                    object.add(lensFlare);
+                }
+            });
+            
+            this.effects.lensFlare = lensFlare;
+            console.log('Lens flare эффект создан успешно');
+        } catch (error) {
+            console.error('Ошибка создания lens flare эффекта:', error);
+            this.effects.lensFlare = null;
+        }
     }
 
     // Создание текстуры для lens flare
@@ -490,8 +539,18 @@ class IslandPostProcessing {
 
     // Рендеринг сцены
     render() {
-        // Использование композера для рендеринга с эффектами
-        this.composer.render();
+        try {
+            // Использование композера для рендеринга с эффектами
+            if (this.composer) {
+                this.composer.render();
+            } else {
+                // Fallback на базовый рендеринг
+                this.renderer.render(this.scene, this.camera);
+            }
+        } catch (error) {
+            console.error('Ошибка рендеринга с эффектами, используем базовый рендеринг:', error);
+            this.renderer.render(this.scene, this.camera);
+        }
     }
 
     // Рендеринг без эффектов (для производительности)
