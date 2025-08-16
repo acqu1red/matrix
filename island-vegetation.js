@@ -62,7 +62,9 @@ class IslandVegetation {
             
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
-            const y = this.terrainData.getHeightAt(x, z);
+            const y = this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                ? this.terrainData.getHeightAt(x, z)
+                : 0;
 
             const position = new THREE.Vector3(x, y, z);
             const rotation = new THREE.Quaternion().setFromAxisAngle(
@@ -88,9 +90,12 @@ class IslandVegetation {
             do {
                 x = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
                 z = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
-                y = this.terrainData.getHeightAt(x, z);
+                y = this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                    ? this.terrainData.getHeightAt(x, z)
+                    : 0;
                 attempts++;
-            } while (this.terrainData.getBiomeAt(x, z) !== 'forest' && attempts < 100);
+            } while (this.terrainData && typeof this.terrainData.getBiomeAt === 'function' && 
+                     this.terrainData.getBiomeAt(x, z) !== 'forest' && attempts < 100);
 
             if (attempts < 100) {
                 const position = new THREE.Vector3(x, y, z);
@@ -170,9 +175,12 @@ class IslandVegetation {
             do {
                 x = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.3, this.config.SCALE.ISLAND_SIZE * 0.3);
                 z = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.3, this.config.SCALE.ISLAND_SIZE * 0.3);
-                y = this.terrainData.getHeightAt(x, z);
+                y = this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                    ? this.terrainData.getHeightAt(x, z)
+                    : 0;
                 attempts++;
-            } while (this.terrainData.getBiomeAt(x, z) !== 'tropical' && attempts < 50);
+            } while (this.terrainData && typeof this.terrainData.getBiomeAt === 'function' && 
+                     this.terrainData.getBiomeAt(x, z) !== 'tropical' && attempts < 50);
             
             if (attempts < 50) {
                 bananaTree.position.set(x, y, z);
@@ -207,9 +215,12 @@ class IslandVegetation {
             do {
                 x = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
                 z = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
-                y = this.terrainData.getHeightAt(x, z);
+                y = this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                    ? this.terrainData.getHeightAt(x, z)
+                    : 0;
                 attempts++;
-            } while (this.terrainData.getBiomeAt(x, z) !== 'forest' && attempts < 50);
+            } while (this.terrainData && typeof this.terrainData.getBiomeAt === 'function' && 
+                     this.terrainData.getBiomeAt(x, z) !== 'forest' && attempts < 50);
             
             if (attempts < 50) {
                 const position = new THREE.Vector3(x, y, z);
@@ -249,9 +260,13 @@ class IslandVegetation {
         for (let i = 0; i < grassCount; i++) {
             const x = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
             const z = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
-            const y = this.terrainData.getHeightAt(x, z);
+            const y = this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                ? this.terrainData.getHeightAt(x, z)
+                : 0;
 
-            const biome = this.terrainData.getBiomeAt(x, z);
+            const biome = this.terrainData && typeof this.terrainData.getBiomeAt === 'function'
+                ? this.terrainData.getBiomeAt(x, z)
+                : 'plains';
             if (biome === 'plains' || biome === 'forest') {
                 const position = new THREE.Vector3(x, y, z);
                 const rotation = new THREE.Quaternion().setFromAxisAngle(
@@ -291,9 +306,13 @@ class IslandVegetation {
         for (let i = 0; i < flowerCount; i++) {
             const x = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
             const z = this.utils.random(-this.config.SCALE.ISLAND_SIZE * 0.4, this.config.SCALE.ISLAND_SIZE * 0.4);
-            const y = this.terrainData.getHeightAt(x, z);
+            const y = this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                ? this.terrainData.getHeightAt(x, z)
+                : 0;
 
-            const biome = this.terrainData.getBiomeAt(x, z);
+            const biome = this.terrainData && typeof this.terrainData.getBiomeAt === 'function'
+                ? this.terrainData.getBiomeAt(x, z)
+                : 'plains';
             if (biome === 'plains' || biome === 'forest') {
                 const flowerMaterial = new THREE.MeshLambertMaterial({
                     color: flowerColors[Math.floor(this.utils.random(0, flowerColors.length))],

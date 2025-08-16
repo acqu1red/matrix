@@ -332,7 +332,8 @@ class IslandTerrain {
             material: this.material,
             getHeightAt: (x, z) => this.getHeightAt(x, z),
             getBiomeAt: (x, z) => this.getBiomeAt(x, z),
-            generateVillaPositions: () => this.generateVillaPositions()
+            generateVillaPositions: () => this.generateVillaPositions(),
+            createRoadNetwork: () => this.createRoadNetwork()
         };
     }
 }

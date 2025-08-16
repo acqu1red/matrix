@@ -70,7 +70,9 @@ class IslandArchitecture {
         // Позиционирование замка
         castleGroup.position.set(
             castleConfig.POSITION.x,
-            this.terrainData.getHeightAt(castleConfig.POSITION.x, castleConfig.POSITION.z),
+            this.terrainData && typeof this.terrainData.getHeightAt === 'function' 
+                ? this.terrainData.getHeightAt(castleConfig.POSITION.x, castleConfig.POSITION.z)
+                : 0,
             castleConfig.POSITION.z
         );
         
@@ -209,7 +211,9 @@ class IslandArchitecture {
     // Создание вилл
     createVillas() {
         const villaConfig = this.config.ARCHITECTURE.VILLAS;
-        const villaPositions = this.terrainData.generateVillaPositions();
+        const villaPositions = this.terrainData && typeof this.terrainData.generateVillaPositions === 'function'
+            ? this.terrainData.generateVillaPositions()
+            : this.generateDefaultVillaPositions();
         
         for (let i = 0; i < villaPositions.length; i++) {
             const position = villaPositions[i];
@@ -430,7 +434,9 @@ class IslandArchitecture {
         // Позиционирование вертолетной площадки
         helipadGroup.position.set(
             150,
-            this.terrainData.getHeightAt(150, 0),
+            this.terrainData && typeof this.terrainData.getHeightAt === 'function'
+                ? this.terrainData.getHeightAt(150, 0)
+                : 0,
             0
         );
         
@@ -516,8 +522,33 @@ class IslandArchitecture {
 
     // Создание дорожной сети
     createRoadNetwork() {
-        this.roads = this.terrainData.createRoadNetwork();
+        if (this.terrainData && typeof this.terrainData.createRoadNetwork === 'function') {
+            this.roads = this.terrainData.createRoadNetwork();
+        } else {
+            console.warn('createRoadNetwork недоступен в terrainData, создаем пустую дорожную сеть');
+            this.roads = new THREE.Group();
+        }
         return this.roads;
+    }
+
+    // Генерация позиций вилл по умолчанию
+    generateDefaultVillaPositions() {
+        const positions = [];
+        const count = this.config.ARCHITECTURE.VILLAS.COUNT;
+        const spacing = this.config.ARCHITECTURE.VILLAS.SPACING;
+
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            const distance = spacing + this.utils.random(0, spacing * 0.5);
+            
+            const x = Math.cos(angle) * distance;
+            const z = Math.sin(angle) * distance;
+            const y = 0; // По умолчанию на уровне земли
+
+            positions.push({ x, y, z });
+        }
+
+        return positions;
     }
 
     // Обновление архитектуры
