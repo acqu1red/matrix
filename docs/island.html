@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+<!-- BUILD_ID: island-noorbit-2025-08-16-01 -->
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <title>Остров • MiniApp (no-extern-controls)</title>
+  <title>Остров • MiniApp (NO ORBIT)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,9 +24,8 @@
     #err { position: fixed; inset: 10px; background: rgba(0,0,0,.75); border: 1px solid var(--glass); border-radius: 12px; padding: 12px; display:none; z-index: 20; overflow:auto; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- THREE only; no external controls dependency -->
   <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <!-- Без OrbitControls.js. Если у тебя где-то ещё подключается OrbitControls — УДАЛИ эти теги скриптов. -->
   <script src="https://unpkg.com/three@0.152.2/examples/js/loaders/RGBELoader.js"></script>
   <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/EffectComposer.js"></script>
   <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/RenderPass.js"></script>
@@ -53,13 +53,15 @@
   <script>
   (function(){
     const errBox = document.getElementById('err');
-    function showErr(msg) { errBox.style.display = 'block'; errBox.textContent = 'Ошибка:\\n' + msg; console.error(msg); }
+    function showErr(msg) { errBox.style.display = 'block'; errBox.textContent = 'Ошибка:\n' + msg; console.error(msg); }
     window.addEventListener('error', (e)=> showErr(e.message || e.error));
     window.addEventListener('unhandledrejection', (e)=> showErr(e.reason || 'unhandledrejection'));
 
+    console.log('BUILD_ID:', 'island-noorbit-2025-08-16-01');
     try { Telegram?.WebApp?.ready(); Telegram?.WebApp?.expand(); } catch(_) {}
 
     if (!window.THREE) { showErr('THREE.js не загрузился (CDN)'); return; }
+    if (window.THREE.OrbitControls) { console.warn('В глобалах обнаружен OrbitControls — но мы его НЕ используем. Удали лишнее подключение скрипта.'); }
 
     const KM = 1000, ISLAND_SIZE = KM, HALF = ISLAND_SIZE/2;
     const canvas = document.getElementById('c');
@@ -79,7 +81,7 @@
     scene.fog = new THREE.FogExp2(0x0b0f16, 0.002);
     const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 10000);
 
-    // --- Minimal Orbit (без внешнего OrbitControls) ---
+    // --- Встроенные орбитальные контролы (без OrbitControls.js) ---
     const target = new THREE.Vector3(0,0,0);
     let spherical = new THREE.Spherical(800, THREE.MathUtils.degToRad(60), THREE.MathUtils.degToRad(45));
     const minDistance = 100, maxDistance = 2000, maxPolar = THREE.MathUtils.degToRad(85);
@@ -116,7 +118,6 @@
       } else {
         const panX = -dx * panSpeed * (spherical.radius/800);
         const panZ =  dy * panSpeed * (spherical.radius/800);
-        // пан вдоль локальных осей камеры
         const mx = new THREE.Vector3(); const mz = new THREE.Vector3();
         camera.getWorldDirection(mz); mz.y = 0; mz.normalize(); // вперед-назад
         mx.crossVectors(camera.up, mz).normalize(); // вправо-влево
@@ -141,7 +142,7 @@
     canvas.addEventListener('touchend', onUp);
     canvas.addEventListener('contextmenu', (e)=> e.preventDefault());
 
-    // Env HDR (fail-safe, optional)
+    // Env HDR (optional)
     try {
       const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
       const hdr = new THREE.RGBELoader()
@@ -261,7 +262,7 @@
     water.rotation.x = -Math.PI/2;
     scene.add(water);
 
-    // Simple vegetation (instanced)
+    // Vegetation (instanced)
     const palmCount = 320;
     const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 8, 6, 1, false);
     const trunkMat = new THREE.MeshStandardMaterial({ color:'#6b4f2d', roughness:0.9 });
