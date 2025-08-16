@@ -8,7 +8,7 @@ from urllib.parse import parse_qsl
 
 VERSION = "v2.6-2025-08-16-submenu"
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN","").strip()
+TELEGRAM_BOT_TOKEN = "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc"
 TELEGRAM_PRIVATE_CHANNEL_ID = os.getenv("TELEGRAM_PRIVATE_CHANNEL_ID","").strip()
 TELEGRAM_STATIC_INVITE_LINK = os.getenv("TELEGRAM_STATIC_INVITE_LINK","").strip()
 LAVA_TOP_API_KEY = os.getenv("LAVA_TOP_API_KEY","").strip()
