@@ -91,69 +91,64 @@
       renderer.toneMappingExposure = 1.2;
 
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x0b0f16, 0.015);
+      scene.fog = new THREE.FogExp2(0x87ceeb, 0.008);
 
       camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 1000);
 
-      // Enhanced controls with smooth damping
+      // Enhanced controls with aerial view angle
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.screenSpacePanning = false;
-      controls.minDistance = 20;
-      controls.maxDistance = 100;
-      controls.maxPolarAngle = Math.PI / 2.2;
+      controls.minDistance = 80;
+      controls.maxDistance = 200;
+      controls.minPolarAngle = Math.PI / 3; // 60 degrees
+      controls.maxPolarAngle = Math.PI / 2.2; // ~82 degrees
 
-      // Enhanced lighting
-      const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+      // Realistic lighting based on photo
+      const ambientLight = new THREE.AmbientLight(0x87ceeb, 0.6);
       scene.add(ambientLight);
 
-      const hemi = new THREE.HemisphereLight(0xeae6de, 0x0b0f16, 0.8); 
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x1a1a2e, 0.8); 
       scene.add(hemi);
 
-      const dir = new THREE.DirectionalLight(0xffffff, 1.5); 
-      dir.position.set(20, 30, 20); 
+      const dir = new THREE.DirectionalLight(0xffffff, 1.2); 
+      dir.position.set(50, 100, 50); 
       dir.castShadow = true;
-      dir.shadow.mapSize.width = 2048;
-      dir.shadow.mapSize.height = 2048;
+      dir.shadow.mapSize.width = 4096;
+      dir.shadow.mapSize.height = 4096;
       dir.shadow.camera.near = 0.5;
-      dir.shadow.camera.far = 100;
-      dir.shadow.camera.left = -50;
-      dir.shadow.camera.right = 50;
-      dir.shadow.camera.top = 50;
-      dir.shadow.camera.bottom = -50;
+      dir.shadow.camera.far = 200;
+      dir.shadow.camera.left = -100;
+      dir.shadow.camera.right = 100;
+      dir.shadow.camera.top = 100;
+      dir.shadow.camera.bottom = -100;
       scene.add(dir);
 
-      // Add point lights for dramatic effect
-      const pointLight1 = new THREE.PointLight(0xd6c7b8, 0.8, 50);
-      pointLight1.position.set(-10, 15, -10);
-      scene.add(pointLight1);
+      // Create realistic ocean with depth
+      createOcean();
+      
+      // Create detailed island terrain
+      createDetailedIsland();
+      
+      // Create road network
+      createRoads();
+      
+      // Create buildings and structures
+      createBuildings();
+      
+      // Create vegetation
+      createVegetation();
+      
+      // Create beaches and coastal features
+      createCoastalFeatures();
+      
+      // Create small islets
+      createIslets();
 
-      const pointLight2 = new THREE.PointLight(0xf0eadf, 0.6, 40);
-      pointLight2.position.set(15, 12, 15);
-      scene.add(pointLight2);
-
-      // Create realistic water with waves
-      createWater();
-      
-      // Create island with detailed terrain
-      createIsland();
-      
-      // Create palm trees
-      createPalmTrees();
-      
-      // Create houses with enhanced details
-      createHouses();
-      
-      // Create river with flowing water
-      createRiver();
-      
-      // Add atmospheric particles
-      createAtmosphere();
-
-      // Set initial camera position
-      camera.position.set(0, 25, 45);
-      controls.target.set(0, 5, 0);
+      // Set initial camera position for aerial view
+      camera.position.set(0, 120, 80);
+      controls.target.set(0, 0, 0);
       controls.update();
 
       // Animation loop
@@ -165,17 +160,11 @@
         // Animate water
         animateWater(t);
         
-        // Animate palm trees
-        animatePalmTrees(t);
+        // Animate vegetation
+        animateVegetation(t);
         
-        // Animate houses
-        animateHouses(t);
-        
-        // Animate river
-        animateRiver(t);
-        
-        // Animate atmosphere
-        animateAtmosphere(t);
+        // Animate buildings
+        animateBuildings(t);
         
         controls.update();
         renderer.render(scene, camera); 
@@ -200,44 +189,52 @@
     }
   }
 
-  function createWater() {
-    const waterGeo = new THREE.PlaneGeometry(200, 200, 128, 128);
-    const waterMat = new THREE.ShaderMaterial({
+  function createOcean() {
+    // Create large ocean plane
+    const oceanGeo = new THREE.PlaneGeometry(400, 400, 256, 256);
+    const oceanMat = new THREE.ShaderMaterial({
       uniforms: { 
         uTime: { value: 0 }, 
-        uColor: { value: new THREE.Color("#0a416d") },
-        uWaveSpeed: { value: 0.5 },
-        uWaveHeight: { value: 0.3 }
+        uColor: { value: new THREE.Color("#006994") },
+        uShallowColor: { value: new THREE.Color("#40E0D0") },
+        uDeepColor: { value: new THREE.Color("#003366") }
       },
       vertexShader: `
         varying vec2 vUv;
+        varying float vDepth;
         uniform float uTime;
-        uniform float uWaveSpeed;
-        uniform float uWaveHeight;
         
         void main() {
           vUv = uv;
           vec3 p = position;
           
-          // Multiple wave layers for realistic water
-          float wave1 = sin((p.x + uTime * uWaveSpeed) * 0.25) * uWaveHeight;
-          float wave2 = cos((p.y - uTime * uWaveSpeed * 0.8) * 0.22) * uWaveHeight * 0.7;
-          float wave3 = sin((p.x + p.y + uTime * uWaveSpeed * 1.2) * 0.15) * uWaveHeight * 0.5;
+          // Complex wave pattern
+          float wave1 = sin((p.x + uTime * 0.3) * 0.1) * 0.5;
+          float wave2 = cos((p.y - uTime * 0.4) * 0.08) * 0.3;
+          float wave3 = sin((p.x + p.y + uTime * 0.2) * 0.05) * 0.2;
           
           p.z += wave1 + wave2 + wave3;
+          
+          // Calculate depth for color variation
+          float distFromCenter = length(p.xy);
+          vDepth = smoothstep(0.0, 200.0, distFromCenter);
+          
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
       fragmentShader: `
         varying vec2 vUv;
-        uniform vec3 uColor;
+        varying float vDepth;
+        uniform vec3 uShallowColor;
+        uniform vec3 uDeepColor;
         
         void main() {
-          vec3 waterColor = uColor;
-          float depth = 1.0 - vUv.y;
-          waterColor *= (0.7 + 0.3 * depth);
+          vec3 waterColor = mix(uShallowColor, uDeepColor, vDepth);
           
-          // Add some transparency for realistic water
+          // Add some transparency and foam
+          float foam = sin(vUv.x * 50.0) * sin(vUv.y * 50.0) * 0.1;
+          waterColor += foam;
+          
           gl_FragColor = vec4(waterColor, 0.9);
         }
       `,
@@ -245,20 +242,41 @@
       transparent: true
     });
     
-    const water = new THREE.Mesh(waterGeo, waterMat); 
-    water.rotation.x = -Math.PI/2; 
-    water.position.y = -0.5; 
-    water.receiveShadow = true;
-    scene.add(water);
+    const ocean = new THREE.Mesh(oceanGeo, oceanMat); 
+    ocean.rotation.x = -Math.PI/2; 
+    ocean.position.y = -2; 
+    ocean.receiveShadow = true;
+    scene.add(ocean);
     
-    waterParticles.push({ mesh: water, material: waterMat });
+    waterParticles.push({ mesh: ocean, material: oceanMat });
   }
 
-  function createIsland() {
-    // Main island with detailed geometry
-    const islandGeo = new THREE.CylinderGeometry(18, 28, 6, 64, 4, false);
+  function createDetailedIsland() {
+    // Create complex island shape using custom geometry
+    const islandShape = new THREE.Shape();
+    
+    // Define the irregular island outline based on photo
+    islandShape.moveTo(-25, -15);
+    islandShape.bezierCurveTo(-30, -10, -35, 0, -30, 10);
+    islandShape.bezierCurveTo(-25, 20, -15, 25, -5, 25);
+    islandShape.bezierCurveTo(5, 25, 15, 20, 20, 15);
+    islandShape.bezierCurveTo(25, 10, 30, 5, 30, -5);
+    islandShape.bezierCurveTo(30, -15, 25, -20, 15, -25);
+    islandShape.bezierCurveTo(5, -30, -5, -30, -15, -25);
+    islandShape.bezierCurveTo(-20, -20, -25, -15, -25, -15);
+    
+    const extrudeSettings = {
+      depth: 8,
+      bevelEnabled: true,
+      bevelSegments: 3,
+      steps: 2,
+      bevelSize: 1,
+      bevelThickness: 1
+    };
+    
+    const islandGeo = new THREE.ExtrudeGeometry(islandShape, extrudeSettings);
     const islandMat = new THREE.MeshStandardMaterial({ 
-      color: 0x394d2f, 
+      color: 0x8B7355, 
       roughness: 0.9, 
       metalness: 0.0 
     });
@@ -268,189 +286,282 @@
     island.receiveShadow = true; 
     scene.add(island);
 
-    // Sand beach around island
-    const sandGeo = new THREE.CylinderGeometry(25, 25, 0.3, 64);
-    const sandMat = new THREE.MeshStandardMaterial({ 
-      color: 0xb69d7d, 
-      roughness: 1.0 
-    });
-    const sand = new THREE.Mesh(sandGeo, sandMat); 
-    sand.position.y = 0.15; 
-    sand.receiveShadow = true;
-    scene.add(sand);
-
-    // Add some rocks and terrain details
-    for (let i = 0; i < 15; i++) {
-      const rockGeo = new THREE.DodecahedronGeometry(Math.random() * 0.5 + 0.3);
-      const rockMat = new THREE.MeshStandardMaterial({ 
-        color: 0x2a2f3a, 
-        roughness: 0.8 
-      });
-      const rock = new THREE.Mesh(rockGeo, rockMat);
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 20 + 8;
-      rock.position.set(
-        Math.cos(angle) * radius,
-        Math.random() * 2,
-        Math.sin(angle) * radius
-      );
-      rock.rotation.set(
-        Math.random() * Math.PI,
-        Math.random() * Math.PI,
-        Math.random() * Math.PI
-      );
-      rock.castShadow = true;
-      rock.receiveShadow = true;
-      scene.add(rock);
-    }
+    // Add elevation variations
+    createElevation();
   }
 
-  function createPalmTrees() {
-    for (let i = 0; i < 8; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 15 + 12;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
+  function createElevation() {
+    // Create hills and elevated areas
+    const hillPositions = [
+      { x: -10, z: 5, height: 6, radius: 8 },
+      { x: 5, z: 10, height: 8, radius: 10 },
+      { x: 15, z: -5, height: 4, radius: 6 },
+      { x: -5, z: -10, height: 5, radius: 7 }
+    ];
+
+    hillPositions.forEach(hill => {
+      const hillGeo = new THREE.ConeGeometry(hill.radius, hill.height, 16);
+      const hillMat = new THREE.MeshStandardMaterial({ 
+        color: 0x6B8E23, 
+        roughness: 0.8 
+      });
+      const hillMesh = new THREE.Mesh(hillGeo, hillMat);
+      hillMesh.position.set(hill.x, hill.height/2 + 2, hill.z);
+      hillMesh.castShadow = true;
+      hillMesh.receiveShadow = true;
+      scene.add(hillMesh);
+    });
+  }
+
+  function createRoads() {
+    // Create winding dirt roads
+    const roadPaths = [
+      // Main road around the island
+      [
+        new THREE.Vector3(-20, 2.1, -10),
+        new THREE.Vector3(-15, 2.1, -5),
+        new THREE.Vector3(-10, 2.1, 0),
+        new THREE.Vector3(-5, 2.1, 5),
+        new THREE.Vector3(0, 2.1, 10),
+        new THREE.Vector3(10, 2.1, 15),
+        new THREE.Vector3(20, 2.1, 10),
+        new THREE.Vector3(25, 2.1, 0),
+        new THREE.Vector3(20, 2.1, -10),
+        new THREE.Vector3(10, 2.1, -15),
+        new THREE.Vector3(0, 2.1, -20),
+        new THREE.Vector3(-10, 2.1, -15),
+        new THREE.Vector3(-20, 2.1, -10)
+      ],
+      // Secondary road to central area
+      [
+        new THREE.Vector3(-5, 2.1, -5),
+        new THREE.Vector3(0, 2.1, 0),
+        new THREE.Vector3(5, 2.1, 5),
+        new THREE.Vector3(10, 2.1, 10)
+      ]
+    ];
+
+    roadPaths.forEach(path => {
+      const roadGeo = new THREE.TubeGeometry(
+        new THREE.CatmullRomCurve3(path),
+        64, // tubular segments
+        1.5, // radius
+        8, // radial segments
+        false // closed
+      );
+      const roadMat = new THREE.MeshStandardMaterial({ 
+        color: 0xD2B48C, 
+        roughness: 1.0 
+      });
+      const road = new THREE.Mesh(roadGeo, roadMat);
+      road.receiveShadow = true;
+      scene.add(road);
+    });
+  }
+
+  function createBuildings() {
+    const buildingPositions = [
+      // Main resort complex (west side)
+      { x: -15, z: -8, type: 'resort', scale: [8, 4, 6], color: 0xF5F5DC },
+      { x: -12, z: -5, type: 'resort', scale: [6, 3, 5], color: 0xF5F5DC },
+      { x: -18, z: -3, type: 'resort', scale: [5, 2.5, 4], color: 0xF5F5DC },
       
+      // Southwestern tip building with pool
+      { x: -20, z: -20, type: 'pool', scale: [4, 2, 4], color: 0xFFFFFF },
+      
+      // Eastern tip building
+      { x: 25, z: -5, type: 'eastern', scale: [3, 2, 3], color: 0xFFFFFF },
+      
+      // Central structures
+      { x: 0, z: 0, type: 'central', scale: [2, 1, 2], color: 0xFFFFFF },
+      { x: 5, z: 5, type: 'central', scale: [2, 1, 2], color: 0xFFFFFF }
+    ];
+
+    buildingPositions.forEach((building, index) => {
+      // Main building
+      const buildingGeo = new THREE.BoxGeometry(...building.scale);
+      const buildingMat = new THREE.MeshStandardMaterial({ color: building.color });
+      const buildingMesh = new THREE.Mesh(buildingGeo, buildingMat);
+      buildingMesh.position.set(building.x, building.scale[1]/2 + 2, building.z);
+      buildingMesh.castShadow = true;
+      buildingMesh.receiveShadow = true;
+      scene.add(buildingMesh);
+
+      // Roof
+      const roofGeo = new THREE.BoxGeometry(building.scale[0] + 0.5, 0.5, building.scale[2] + 0.5);
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.position.set(building.x, building.scale[1] + 2.25, building.z);
+      roof.castShadow = true;
+      scene.add(roof);
+
+      // Special features
+      if (building.type === 'pool') {
+        // Swimming pool
+        const poolGeo = new THREE.BoxGeometry(6, 0.5, 4);
+        const poolMat = new THREE.MeshStandardMaterial({ 
+          color: 0x00CED1, 
+          transparent: true, 
+          opacity: 0.8 
+        });
+        const pool = new THREE.Mesh(poolGeo, poolMat);
+        pool.position.set(building.x, 2.25, building.z + 3);
+        scene.add(pool);
+      }
+
+      if (building.type === 'resort') {
+        // Pier/dock
+        const pierGeo = new THREE.BoxGeometry(1, 0.3, 8);
+        const pierMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const pier = new THREE.Mesh(pierGeo, pierMat);
+        pier.position.set(building.x, 1.15, building.z - 6);
+        pier.castShadow = true;
+        scene.add(pier);
+      }
+
+      // Add to houses array for interaction
+      if (building.type === 'resort') {
+        houses.push({
+          base: buildingMesh,
+          roof,
+          position: { x: building.x, z: building.z },
+          type: 'support',
+          label: 'Поддержка',
+          icon: '💬',
+          isHovered: false
+        });
+      }
+    });
+  }
+
+  function createVegetation() {
+    // Create sparse, scrubby vegetation
+    const vegetationPositions = [];
+    for (let i = 0; i < 50; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * 20 + 5;
+      vegetationPositions.push({
+        x: Math.cos(angle) * radius,
+        z: Math.sin(angle) * radius
+      });
+    }
+
+    vegetationPositions.forEach(pos => {
+      // Scrubby bushes
+      const bushGeo = new THREE.SphereGeometry(Math.random() * 0.5 + 0.3, 6, 4);
+      const bushMat = new THREE.MeshStandardMaterial({ 
+        color: Math.random() > 0.5 ? 0x6B8E23 : 0x8FBC8F 
+      });
+      const bush = new THREE.Mesh(bushGeo, bushMat);
+      bush.position.set(pos.x, Math.random() * 2 + 2, pos.z);
+      bush.castShadow = true;
+      scene.add(bush);
+    });
+
+    // Add some palm trees near buildings
+    const palmPositions = [
+      { x: -15, z: -8 },
+      { x: -12, z: -5 },
+      { x: -18, z: -3 },
+      { x: -20, z: -20 },
+      { x: 25, z: -5 }
+    ];
+
+    palmPositions.forEach(pos => {
       // Palm trunk
-      const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 8, 8);
-      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f2d });
+      const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 6, 8);
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
       const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-      trunk.position.set(x, 6, z);
+      trunk.position.set(pos.x, 5, pos.z);
       trunk.castShadow = true;
       scene.add(trunk);
       
       // Palm leaves
-      const leavesGeo = new THREE.SphereGeometry(3, 8, 6);
-      const leavesMat = new THREE.MeshStandardMaterial({ color: 0x1f7a4b });
+      const leavesGeo = new THREE.SphereGeometry(2, 8, 6);
+      const leavesMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
       const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-      leaves.position.set(x, 10, z);
-      leaves.scale.set(1, 1.5, 1);
+      leaves.position.set(pos.x, 8, pos.z);
+      leaves.scale.set(1, 1.2, 1);
       leaves.castShadow = true;
       scene.add(leaves);
       
-      palmTrees.push({ trunk, leaves, position: { x, z } });
-    }
+      palmTrees.push({ trunk, leaves, position: pos });
+    });
   }
 
-  function createHouses() {
-    const housePositions = [
-      { x: -8, z: -2, type: 'support', label: 'Поддержка', icon: '💬' },
-      { x: 4, z: 8, type: 'materials', label: 'Материалы', icon: '📚' },
-      { x: 10, z: -4, type: 'psychotypes', label: 'Психотипы', icon: '🧠' }
+  function createCoastalFeatures() {
+    // Create crescent beach
+    const beachShape = new THREE.Shape();
+    beachShape.moveTo(-25, -15);
+    beachShape.bezierCurveTo(-20, -20, -15, -25, -10, -25);
+    beachShape.bezierCurveTo(-5, -25, 0, -20, 5, -15);
+    beachShape.bezierCurveTo(10, -10, 15, -5, 20, -5);
+    
+    const beachGeo = new THREE.ShapeGeometry(beachShape);
+    const beachMat = new THREE.MeshStandardMaterial({ 
+      color: 0xF4A460, 
+      roughness: 1.0 
+    });
+    const beach = new THREE.Mesh(beachGeo, beachMat);
+    beach.rotation.x = -Math.PI/2;
+    beach.position.y = 2.05;
+    beach.receiveShadow = true;
+    scene.add(beach);
+
+    // Create rocky cliffs
+    const cliffPositions = [
+      { x: -30, z: 0, length: 15 },
+      { x: 30, z: -10, length: 12 },
+      { x: 0, z: 30, length: 10 }
     ];
 
-    housePositions.forEach((pos, index) => {
-      // House base
-      const baseGeo = new THREE.BoxGeometry(5, 3, 5);
-      const baseMat = new THREE.MeshStandardMaterial({ color: 0x2a2f3a });
-      const base = new THREE.Mesh(baseGeo, baseMat);
-      base.position.set(pos.x, 3.5, pos.z);
-      base.castShadow = true;
-      base.receiveShadow = true;
-      scene.add(base);
-
-      // Roof
-      const roofGeo = new THREE.ConeGeometry(4, 2, 4);
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x5b3a2f });
-      const roof = new THREE.Mesh(roofGeo, roofMat);
-      roof.position.set(pos.x, 6, pos.z);
-      roof.rotation.y = Math.PI / 4;
-      roof.castShadow = true;
-      scene.add(roof);
-
-      // Door
-      const doorGeo = new THREE.BoxGeometry(1.5, 2.5, 0.1);
-      const doorMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-      const door = new THREE.Mesh(doorGeo, doorMat);
-      door.position.set(pos.x, 2.25, pos.z + 2.6);
-      scene.add(door);
-
-      // Windows
-      const windowGeo = new THREE.BoxGeometry(1, 1, 0.1);
-      const windowMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb });
-      const window1 = new THREE.Mesh(windowGeo, windowMat);
-      window1.position.set(pos.x - 1.5, 4, pos.z + 2.6);
-      scene.add(window1);
-
-      const window2 = new THREE.Mesh(windowGeo, windowMat);
-      window2.position.set(pos.x + 1.5, 4, pos.z + 2.6);
-      scene.add(window2);
-
-      // Glowing effect for interactive houses
-      const glowGeo = new THREE.SphereGeometry(4, 16, 16);
-      const glowMat = new THREE.MeshBasicMaterial({ 
-        color: 0xd6c7b8, 
-        transparent: true, 
-        opacity: 0 
+    cliffPositions.forEach(cliff => {
+      const cliffGeo = new THREE.BoxGeometry(cliff.length, 4, 2);
+      const cliffMat = new THREE.MeshStandardMaterial({ 
+        color: 0x696969, 
+        roughness: 0.9 
       });
-      const glow = new THREE.Mesh(glowGeo, glowMat);
-      glow.position.set(pos.x, 5, pos.z);
-      scene.add(glow);
-
-      houses.push({
-        base,
-        roof,
-        door,
-        windows: [window1, window2],
-        glow,
-        position: pos,
-        type: pos.type,
-        label: pos.label,
-        icon: pos.icon,
-        isHovered: false
-      });
+      const cliffMesh = new THREE.Mesh(cliffGeo, cliffMat);
+      cliffMesh.position.set(cliff.x, 4, cliff.z);
+      cliffMesh.castShadow = true;
+      cliffMesh.receiveShadow = true;
+      scene.add(cliffMesh);
     });
   }
 
-  function createRiver() {
-    // Create a winding river around the island
-    const riverPoints = [];
-    for (let i = 0; i < 50; i++) {
-      const t = i / 49;
-      const angle = t * Math.PI * 2;
-      const radius = 35 + Math.sin(t * Math.PI * 4) * 5;
-      riverPoints.push(new THREE.Vector3(
-        Math.cos(angle) * radius,
-        0,
-        Math.sin(angle) * radius
-      ));
-    }
+  function createIslets() {
+    // Create small islets to the northwest
+    const isletPositions = [
+      { x: -35, z: -25, scale: 2 },
+      { x: -40, z: -20, scale: 1.5 },
+      { x: -30, z: -30, scale: 1 }
+    ];
 
-    const riverGeo = new THREE.TubeGeometry(
-      new THREE.CatmullRomCurve3(riverPoints),
-      64, // tubular segments
-      2,  // radius
-      8,  // radial segments
-      false // closed
-    );
-    const riverMat = new THREE.MeshStandardMaterial({ 
-      color: 0x4a90e2, 
-      transparent: true, 
-      opacity: 0.8 
-    });
-    const river = new THREE.Mesh(riverGeo, riverMat);
-    river.position.y = -0.2;
-    scene.add(river);
-  }
-
-  function createAtmosphere() {
-    // Add floating particles for atmosphere
-    for (let i = 0; i < 100; i++) {
-      const particleGeo = new THREE.SphereGeometry(0.1, 4, 4);
-      const particleMat = new THREE.MeshBasicMaterial({ 
-        color: 0xd6c7b8, 
-        transparent: true, 
-        opacity: 0.3 
+    isletPositions.forEach(islet => {
+      const isletGeo = new THREE.CylinderGeometry(islet.scale, islet.scale, 3, 8);
+      const isletMat = new THREE.MeshStandardMaterial({ 
+        color: 0x696969, 
+        roughness: 0.8 
       });
-      const particle = new THREE.Mesh(particleGeo, particleMat);
-      particle.position.set(
-        (Math.random() - 0.5) * 100,
-        Math.random() * 30 + 10,
-        (Math.random() - 0.5) * 100
-      );
-      scene.add(particle);
-    }
+      const isletMesh = new THREE.Mesh(isletGeo, isletMat);
+      isletMesh.position.set(islet.x, 1.5, islet.z);
+      isletMesh.castShadow = true;
+      isletMesh.receiveShadow = true;
+      scene.add(isletMesh);
+    });
+
+    // Create larger elongated island to the northeast
+    const largeIsletGeo = new THREE.CylinderGeometry(8, 8, 4, 16);
+    const largeIsletMat = new THREE.MeshStandardMaterial({ 
+      color: 0x8B7355, 
+      roughness: 0.9 
+    });
+    const largeIslet = new THREE.Mesh(largeIsletGeo, largeIsletMat);
+    largeIslet.position.set(45, 2, 0);
+    largeIslet.scale.set(1, 1, 2);
+    largeIslet.castShadow = true;
+    largeIslet.receiveShadow = true;
+    scene.add(largeIslet);
   }
 
   function animateWater(t) {
@@ -459,36 +570,21 @@
     });
   }
 
-  function animatePalmTrees(t) {
+  function animateVegetation(t) {
+    // Animate palm trees
     palmTrees.forEach(palm => {
       const sway = Math.sin(t * 0.5 + palm.position.x * 0.1) * 0.1;
       palm.leaves.rotation.z = sway;
     });
   }
 
-  function animateHouses(t) {
+  function animateBuildings(t) {
+    // Subtle building animations
     houses.forEach(house => {
       if (house.isHovered) {
-        house.glow.material.opacity = 0.3 + Math.sin(t * 3) * 0.1;
-        house.glow.scale.setScalar(1.2 + Math.sin(t * 4) * 0.1);
+        house.base.material.color.setHex(0x3a4f4a);
       } else {
-        house.glow.material.opacity = 0;
-        house.glow.scale.setScalar(1);
-      }
-    });
-  }
-
-  function animateRiver(t) {
-    // River animation could be added here
-  }
-
-  function animateAtmosphere(t) {
-    // Atmosphere particles animation
-    scene.children.forEach(child => {
-      if (child.geometry && child.geometry.type === 'SphereGeometry' && 
-          child.material && child.material.opacity === 0.3) {
-        child.position.y += Math.sin(t + child.position.x) * 0.01;
-        child.rotation.y += 0.01;
+        house.base.material.color.setHex(0xF5F5DC);
       }
     });
   }
@@ -509,14 +605,12 @@
       // Reset all houses
       houses.forEach(house => {
         house.isHovered = false;
-        house.base.material.color.setHex(0x2a2f3a);
       });
 
       if (intersects.length > 0) {
         const intersectedHouse = houses.find(h => h.base === intersects[0].object);
         if (intersectedHouse) {
           intersectedHouse.isHovered = true;
-          intersectedHouse.base.material.color.setHex(0x3a4f4a);
           showHouseLabel(intersectedHouse, event);
         }
       } else {
@@ -692,15 +786,15 @@
     function draw() {
       const W = canvas.width, H = canvas.height;
       const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, "#0a3d61");
-      g.addColorStop(1, "#0b2035");
+      g.addColorStop(0, "#87CEEB");
+      g.addColorStop(1, "#1E90FF");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
 
       // Simple island representation
       ctx.beginPath();
       ctx.ellipse(W * 0.5, H * 0.5, W * 0.3, H * 0.2, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "#394d2f";
+      ctx.fillStyle = "#8B7355";
       ctx.fill();
 
       // Simple houses
@@ -711,9 +805,9 @@
       ];
 
       houses.forEach(house => {
-        ctx.fillStyle = "#2a2f3a";
+        ctx.fillStyle = "#F5F5DC";
         ctx.fillRect(house.x - 20, house.y - 15, 40, 30);
-        ctx.fillStyle = "#5b3a2f";
+        ctx.fillStyle = "#8B4513";
         ctx.beginPath();
         ctx.moveTo(house.x - 20, house.y - 15);
         ctx.lineTo(house.x, house.y - 35);
