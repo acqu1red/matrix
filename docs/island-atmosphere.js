@@ -279,7 +279,8 @@ class IslandAtmosphere {
         
         if (timeConfig) {
             // Обновление цвета неба
-            if (this.sky && this.sky.material.uniforms) {
+            if (this.sky && this.sky.material && this.sky.material.uniforms && 
+                this.sky.material.uniforms.topColor && this.sky.material.uniforms.bottomColor) {
                 switch (timeOfDay) {
                     case 'dawn':
                         this.sky.material.uniforms.topColor.value.setHex(0xFF8C00);

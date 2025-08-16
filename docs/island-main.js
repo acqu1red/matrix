@@ -25,10 +25,38 @@ class IslandApp {
         };
     }
 
+    // Проверка доступности Three.js
+    checkThreeJS() {
+        if (typeof THREE === 'undefined') {
+            throw new Error('Three.js не загружен');
+        }
+        
+        // Проверка необходимых компонентов
+        const required = [
+            'Scene', 'PerspectiveCamera', 'WebGLRenderer', 'Clock',
+            'DirectionalLight', 'AmbientLight', 'FogExp2',
+            'PlaneGeometry', 'SphereGeometry', 'RingGeometry',
+            'ShaderMaterial', 'MeshBasicMaterial', 'MeshLambertMaterial',
+            'Mesh', 'Group', 'Points', 'PointsMaterial',
+            'Vector3', 'Vector2', 'Color', 'Math'
+        ];
+        
+        for (const component of required) {
+            if (!THREE[component]) {
+                throw new Error(`Компонент Three.js ${component} не найден`);
+            }
+        }
+        
+        console.log('Three.js проверен успешно');
+    }
+
     // Инициализация приложения
     async init() {
         try {
             console.log('Инициализация острова навигации...');
+            
+            // Проверка Three.js
+            this.checkThreeJS();
             
             // Создание утилит
             this.utils = new IslandUtils();
@@ -210,7 +238,9 @@ class IslandApp {
         }
         
         // Обновление vignette
-        if (this.postProcessing.effects.vignette) {
+        if (this.postProcessing.effects.vignette && this.postProcessing.effects.vignette.material && 
+            this.postProcessing.effects.vignette.material.uniforms && 
+            this.postProcessing.effects.vignette.material.uniforms['darkness']) {
             switch (timeOfDay) {
                 case 'dawn':
                 case 'sunset':
@@ -516,89 +546,5 @@ class IslandApp {
 
 // Глобальный экземпляр приложения
 let islandApp = null;
-
-// Инициализация приложения при загрузке страницы
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        islandApp = new IslandApp();
-        await islandApp.init();
-        
-        // Настройка обработчиков событий
-        setupEventHandlers();
-        
-        // Создание интерактивных элементов
-        islandApp.createInteractiveElements();
-        
-    } catch (error) {
-        console.error('Ошибка запуска приложения:', error);
-    }
-});
-
-// Настройка обработчиков событий
-function setupEventHandlers() {
-    // Обработка изменения размера окна
-    window.addEventListener('resize', () => {
-        if (islandApp) {
-            islandApp.onWindowResize();
-        }
-    });
-    
-    // Обработка изменения качества
-    window.addEventListener('qualityChanged', (event) => {
-        if (islandApp) {
-            islandApp.onQualityChanged(event.detail.quality);
-        }
-    });
-    
-    // Обработка сброса вида
-    window.addEventListener('resetView', () => {
-        if (islandApp) {
-            islandApp.onResetView();
-        }
-    });
-    
-    // Обработка изменения громкости
-    window.addEventListener('volumeChanged', (event) => {
-        if (islandApp) {
-            islandApp.onVolumeChanged(event.detail.volume);
-        }
-    });
-    
-    // Обработка закрытия страницы
-    window.addEventListener('beforeunload', () => {
-        if (islandApp) {
-            islandApp.dispose();
-        }
-    });
-}
-
-// Глобальные функции для отладки
-window.islandApp = islandApp;
-
-// Функция для получения статистики
-window.getIslandStats = () => {
-    return islandApp ? islandApp.getAppData() : null;
-};
-
-// Функция для сброса вида
-window.resetIslandView = () => {
-    if (islandApp && islandApp.cameraController) {
-        islandApp.cameraController.resetView();
-    }
-};
-
-// Функция для создания скриншота
-window.takeIslandScreenshot = () => {
-    if (islandApp && islandApp.cameraController) {
-        islandApp.cameraController.takeScreenshot();
-    }
-};
-
-// Функция для переключения качества
-window.setIslandQuality = (quality) => {
-    if (islandApp && islandApp.ui) {
-        islandApp.ui.setQuality(quality);
-    }
-};
 
 console.log('Остров навигации загружен и готов к инициализации!');

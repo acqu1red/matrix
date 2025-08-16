@@ -234,5 +234,106 @@
     <script src="island-audio.js"></script>
     <script src="island-ui.js"></script>
     <script src="island-main.js"></script>
+    
+    <script>
+        // Проверка загрузки всех зависимостей
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверка Three.js
+            if (typeof THREE === 'undefined') {
+                console.error('Three.js не загружен!');
+                document.getElementById('loading').innerHTML = '<div style="color: red;">Ошибка: Three.js не загружен</div>';
+                return;
+            }
+            
+            // Проверка необходимых компонентов
+            const requiredComponents = [
+                'Scene', 'PerspectiveCamera', 'WebGLRenderer', 'Clock',
+                'DirectionalLight', 'AmbientLight', 'FogExp2',
+                'PlaneGeometry', 'SphereGeometry', 'RingGeometry',
+                'ShaderMaterial', 'MeshBasicMaterial', 'MeshLambertMaterial',
+                'Mesh', 'Group', 'Points', 'PointsMaterial',
+                'Vector3', 'Vector2', 'Color', 'Math'
+            ];
+            
+            for (const component of requiredComponents) {
+                if (!THREE[component]) {
+                    console.error(`Компонент Three.js ${component} не найден!`);
+                    document.getElementById('loading').innerHTML = `<div style="color: red;">Ошибка: ${component} не найден</div>`;
+                    return;
+                }
+            }
+            
+            console.log('Все зависимости загружены успешно');
+            
+            // Инициализация приложения
+            islandApp = new IslandApp();
+            islandApp.init();
+            
+            // Настройка глобальных обработчиков событий
+            setupEventHandlers();
+            
+            // Создание интерактивных элементов
+            islandApp.createInteractiveElements();
+        });
+        
+        // Глобальные обработчики событий
+        function setupEventHandlers() {
+            // Обработка изменения размера окна
+            window.addEventListener('resize', () => {
+                if (islandApp) {
+                    islandApp.onWindowResize();
+                }
+            });
+            
+            // Обработка изменения качества
+            document.addEventListener('qualityChanged', (event) => {
+                if (islandApp) {
+                    islandApp.onQualityChanged(event.detail.quality);
+                }
+            });
+            
+            // Обработка сброса вида
+            document.addEventListener('resetView', () => {
+                if (islandApp) {
+                    islandApp.onResetView();
+                }
+            });
+            
+            // Обработка изменения громкости
+            document.addEventListener('volumeChanged', (event) => {
+                if (islandApp) {
+                    islandApp.onVolumeChanged(event.detail.volume);
+                }
+            });
+            
+            // Обработка закрытия страницы
+            window.addEventListener('beforeunload', () => {
+                if (islandApp) {
+                    islandApp.dispose();
+                }
+            });
+        }
+        
+        // Глобальные функции для отладки
+        window.islandApp = islandApp;
+        window.getIslandStats = () => {
+            return islandApp ? islandApp.getAppData() : null;
+        };
+        window.resetIslandView = () => {
+            if (islandApp) {
+                islandApp.onResetView();
+            }
+        };
+        window.takeIslandScreenshot = () => {
+            if (islandApp && islandApp.cameraController) {
+                return islandApp.cameraController.takeScreenshot();
+            }
+        };
+        window.setIslandQuality = (quality) => {
+            if (islandApp) {
+                islandApp.onQualityChanged(quality);
+            }
+        };
+    </script>
 </body>
 </html>

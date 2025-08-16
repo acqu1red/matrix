@@ -220,13 +220,15 @@ class IslandPostProcessing {
     // Обновление эффектов
     updateEffects() {
         // Обновление FXAA
-        if (this.effects.fxaa) {
+        if (this.effects.fxaa && this.effects.fxaa.material && this.effects.fxaa.material.uniforms && 
+            this.effects.fxaa.material.uniforms['resolution']) {
             this.effects.fxaa.material.uniforms['resolution'].value.x = 1 / (window.innerWidth * this.renderer.getPixelRatio());
             this.effects.fxaa.material.uniforms['resolution'].value.y = 1 / (window.innerHeight * this.renderer.getPixelRatio());
         }
         
         // Обновление vignette
-        if (this.effects.vignette) {
+        if (this.effects.vignette && this.effects.vignette.material && this.effects.vignette.material.uniforms && 
+            this.effects.vignette.material.uniforms['offset']) {
             this.effects.vignette.material.uniforms['offset'].value = 1.0;
         }
     }

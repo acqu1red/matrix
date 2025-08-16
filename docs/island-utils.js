@@ -420,7 +420,7 @@ class IslandUtils {
 
     // Обновление времени для шейдеров
     updateTime(material, time) {
-        if (material.uniforms && material.uniforms.time) {
+        if (material && material.uniforms && material.uniforms.time) {
             material.uniforms.time.value = time;
         }
     }

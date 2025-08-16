@@ -401,7 +401,8 @@ class IslandOcean {
     update(time, camera) {
         this.time = time;
         
-        if (this.material) {
+        if (this.material && this.material.uniforms && 
+            this.material.uniforms.time && this.material.uniforms.cameraPosition) {
             this.material.uniforms.time.value = time;
             this.material.uniforms.cameraPosition.value.copy(camera.position);
         }
