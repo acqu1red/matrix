@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Меню подписки</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
   * { box-sizing: border-box; }
@@ -34,16 +35,14 @@
   <header><h1>Меню подписки</h1></header>
   <main id="app"><div class="loading" id="loading">Загрузка...</div></main>
 
-<script type="module">
-import { createClient } from 'https://unpkg.com/@supabase/supabase-js@2/dist/esm/index.js';
-
+<script>
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
 
 // Supabase конфигурация
 const supabaseUrl = 'https://uhhsrtmmuwoxsdquimaa.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8';
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 function openPayment(){ const paymentUrl = new URL('payment.html', window.location.href).toString(); window.location.href = paymentUrl; }
 function fmtDate(ts){ try{ const d=new Date(ts); return d.toLocaleString('ru-RU'); }catch(e){ return ts; } }
