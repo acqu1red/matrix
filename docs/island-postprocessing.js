@@ -81,15 +81,75 @@ class IslandPostProcessing {
     createBloomEffect() {
         const bloomConfig = this.config.POST_PROCESSING.BLOOM;
         
-        const bloomPass = new THREE.UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            bloomConfig.INTENSITY,
-            bloomConfig.RADIUS,
-            bloomConfig.THRESHOLD
-        );
+        // Проверка доступности UnrealBloomPass
+        if (typeof THREE.UnrealBloomPass === 'undefined') {
+            console.warn('UnrealBloomPass недоступен, создаем простой bloom эффект');
+            this.createSimpleBloomEffect(bloomConfig);
+            return;
+        }
         
-        this.composer.addPass(bloomPass);
-        this.effects.bloom = bloomPass;
+        try {
+            const bloomPass = new THREE.UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                bloomConfig.INTENSITY,
+                bloomConfig.RADIUS,
+                bloomConfig.THRESHOLD
+            );
+            
+            // Проверка инициализации bloom pass
+            if (bloomPass && bloomPass.material && bloomPass.material.uniforms) {
+                this.composer.addPass(bloomPass);
+                this.effects.bloom = bloomPass;
+                console.log('Bloom эффект создан успешно');
+            } else {
+                console.warn('Bloom pass не инициализирован корректно, используем простой bloom');
+                this.createSimpleBloomEffect(bloomConfig);
+            }
+        } catch (error) {
+            console.error('Ошибка создания bloom эффекта:', error);
+            this.createSimpleBloomEffect(bloomConfig);
+        }
+    }
+
+    // Создание простого bloom эффекта
+    createSimpleBloomEffect(bloomConfig) {
+        const simpleBloomShader = {
+            uniforms: {
+                'tDiffuse': { value: null },
+                'intensity': { value: bloomConfig.INTENSITY },
+                'threshold': { value: bloomConfig.THRESHOLD }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tDiffuse;
+                uniform float intensity;
+                uniform float threshold;
+                varying vec2 vUv;
+                
+                void main() {
+                    vec4 texel = texture2D(tDiffuse, vUv);
+                    float brightness = (texel.r + texel.g + texel.b) / 3.0;
+                    
+                    if (brightness > threshold) {
+                        vec3 bloom = texel.rgb * intensity;
+                        gl_FragColor = vec4(texel.rgb + bloom, texel.a);
+                    } else {
+                        gl_FragColor = texel;
+                    }
+                }
+            `
+        };
+        
+        const simpleBloomPass = new THREE.ShaderPass(simpleBloomShader);
+        this.composer.addPass(simpleBloomPass);
+        this.effects.bloom = simpleBloomPass;
+        console.log('Простой bloom эффект создан');
     }
 
     // Создание FXAA эффекта

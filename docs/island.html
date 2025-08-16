@@ -255,11 +255,24 @@
                 'Vector3', 'Vector2', 'Color', 'Math'
             ];
             
+            // Проверка дополнительных компонентов (опциональные)
+            const optionalComponents = [
+                'UnrealBloomPass', 'FXAAShader', 'ShaderPass', 'EffectComposer',
+                'RenderPass', 'Lensflare', 'LensflareElement'
+            ];
+            
             for (const component of requiredComponents) {
                 if (!THREE[component]) {
                     console.error(`Компонент Three.js ${component} не найден!`);
                     document.getElementById('loading').innerHTML = `<div style="color: red;">Ошибка: ${component} не найден</div>`;
                     return;
+                }
+            }
+            
+            // Проверка опциональных компонентов
+            for (const component of optionalComponents) {
+                if (!THREE[component]) {
+                    console.warn(`Опциональный компонент Three.js ${component} не найден, некоторые эффекты будут отключены`);
                 }
             }
             

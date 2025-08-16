@@ -223,17 +223,30 @@ class IslandApp {
         
         // Обновление bloom в зависимости от времени суток
         if (this.postProcessing.effects.bloom) {
+            let intensity = 1.5; // значение по умолчанию
+            
             switch (timeOfDay) {
                 case 'dawn':
                 case 'sunset':
-                    this.postProcessing.effects.bloom.strength = 2.0;
+                    intensity = 2.0;
                     break;
                 case 'day':
-                    this.postProcessing.effects.bloom.strength = 1.5;
+                    intensity = 1.5;
                     break;
                 case 'night':
-                    this.postProcessing.effects.bloom.strength = 0.8;
+                    intensity = 0.8;
                     break;
+            }
+            
+            // Обновление для UnrealBloomPass
+            if (this.postProcessing.effects.bloom.strength !== undefined) {
+                this.postProcessing.effects.bloom.strength = intensity;
+            }
+            // Обновление для простого bloom
+            else if (this.postProcessing.effects.bloom.material && 
+                     this.postProcessing.effects.bloom.material.uniforms && 
+                     this.postProcessing.effects.bloom.material.uniforms.intensity) {
+                this.postProcessing.effects.bloom.material.uniforms.intensity.value = intensity;
             }
         }
         
