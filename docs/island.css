@@ -1,0 +1,26 @@
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;font-family:'Inter',system-ui,-apple-system}
+body{background:#0b0f16;color:#eae6de}
+#overlayTop{position:fixed;top:10px;left:0;right:0;display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:5}
+.islandTitle{font-weight:800;letter-spacing:2px;text-align:center;
+  text-shadow:0 2px 6px rgba(0,0,0,.6), 0 0 18px rgba(255,255,255,.12);}
+@media (max-width:480px){.islandTitle{font-size:18px}}
+@media (min-width:481px){.islandTitle{font-size:24px}}
+.subTitle{opacity:.75;font-size:12px;margin-top:6px}
+#canvasWrap{position:fixed;inset:0}
+#scene, #interior{width:100%;height:100%;display:block}
+#hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;opacity:.65;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:10px;backdrop-filter: blur(6px);z-index:3}
+.hidden{display:none!important}
+/* Interior overlay */
+#interiorOverlay{position:fixed;inset:0;background:radial-gradient(1200px 800px at 50% 30%, rgba(255,255,255,.06), rgba(0,0,0,.92) 70%), #0c0c0f;z-index:10;display:flex;flex-direction:column}
+.interiorHeader{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.interiorTitle{font-weight:800;letter-spacing:.5px}
+.btn{border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn.ghost{background:#16161b;color:#eae6de;border:1px solid rgba(255,255,255,.08)}
+.btn.primary{background:linear-gradient(135deg,#e5d7c8,#fff3e2);color:#0c0c0f;box-shadow:0 6px 18px rgba(255,240,220,.15)}
+#interiorCanvasWrap{position:relative;flex:1}
+#bookPanel{position:absolute;inset:auto 0 18px 0;display:flex;justify-content:center;z-index:20}
+.bookCard{min-width:240px;max-width:360px;width:80%;background:linear-gradient(160deg,#1a1b22,#121319);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;
+  box-shadow:0 16px 48px rgba(0,0,0,.45), inset 0 0 30px rgba(255,255,255,.04);backdrop-filter: blur(10px);animation:pop .2s ease-out}
+.bookTitle{text-align:center;margin-bottom:12px;font-weight:800;letter-spacing:.3px}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
