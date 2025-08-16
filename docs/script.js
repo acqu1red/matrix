@@ -112,20 +112,19 @@ async function checkAdminRights() {
     if (!currentUserId) return;
     
     try {
-        // Проверяем по ID администраторов из bot.py
-        const adminIds = [708907063, 7365307696];
-        isAdmin = adminIds.includes(currentUserId);
+        const { data, error } = await supabaseClient
+            .rpc('is_admin', { user_telegram_id: currentUserId });
+            
+        if (error) throw error;
+        
+        isAdmin = data || false;
         
         if (isAdmin) {
             adminPanelBtn.classList.remove('hidden');
             document.getElementById('adminFooter').classList.add('active');
-            console.log('Пользователь является администратором');
-        } else {
-            console.log('Пользователь не является администратором');
         }
     } catch (error) {
         console.error('Ошибка при проверке прав админа:', error);
-        isAdmin = false;
     }
 }
 
@@ -279,7 +278,6 @@ async function sendMessage() {
         allMessages.push(newMessage);
         
         // Проверяем, нужно ли отправить уведомление администраторам
-        console.log('Отправляем уведомление администраторам...');
         await checkAndNotifyAdmins(conversationId, text, currentUserId);
         
     } catch (error) {
@@ -819,7 +817,7 @@ async function notifyUser(conversationId) {
             return;
         }
         
-        const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
+        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
         const userId = conversation.user_id;
         
         const message = {
@@ -831,7 +829,7 @@ async function notifyUser(conversationId) {
                     {
                         text: '👀 Посмотреть ответ',
                         web_app: {
-                            url: `https://acqu1red.github.io/formulaprivate/?conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/tourmalineGG/?conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -861,10 +859,9 @@ async function notifyUser(conversationId) {
 // Уведомление администраторов о новом сообщении пользователя
 async function notifyAdminsNewMessage(conversationId, messageText, userId) {
     try {
-        console.log('notifyAdminsNewMessage вызвана');
         // ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
-        const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
+        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
         
         // Получаем информацию о пользователе
         const { data: user, error: userError } = await supabaseClient
@@ -889,7 +886,7 @@ async function notifyAdminsNewMessage(conversationId, messageText, userId) {
                     {
                         text: '💬 Ответить',
                         web_app: {
-                            url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -930,7 +927,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
     try {
         // ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
-        const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
+        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
         
         // Получаем информацию о пользователе
         const { data: user, error: userError } = await supabaseClient
@@ -955,7 +952,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
                     {
                         text: '💬 Ответить',
                         web_app: {
-                            url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -994,7 +991,6 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
 // Проверка и отправка уведомлений администраторам
 async function checkAndNotifyAdmins(conversationId, messageText, userId) {
     try {
-        console.log('checkAndNotifyAdmins вызвана с параметрами:', { conversationId, messageText, userId });
         // Получаем информацию о диалоге
         const { data: conversation, error: convError } = await supabaseClient
             .from('conversations')
@@ -1059,9 +1055,15 @@ async function checkAndNotifyAdmins(conversationId, messageText, userId) {
 // Проверка, является ли пользователь администратором
 async function checkIfUserIsAdmin(userId) {
     try {
-        // Проверяем по ID администраторов из bot.py
-        const adminIds = [708907063, 7365307696];
-        return adminIds.includes(userId);
+        const { data, error } = await supabaseClient
+            .rpc('is_admin', { user_telegram_id: userId });
+            
+        if (error) {
+            console.error('Ошибка при проверке прав администратора:', error);
+            return false;
+        }
+        
+        return data || false;
     } catch (error) {
         console.error('Ошибка при проверке прав администратора:', error);
         return false;
