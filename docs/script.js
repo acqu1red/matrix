@@ -49,21 +49,32 @@ let isScrolledToBottom = true;
 
 // Инициализация приложения
 async function initApp() {
+    console.log('initApp вызвана');
+    console.log('tg объект:', tg);
+    
     if (tg) {
+        console.log('Telegram WebApp доступен');
         tg.expand();
         tg.enableClosingConfirmation();
         
         // Получаем данные пользователя
         const user = tg.initDataUnsafe?.user;
+        console.log('Данные пользователя:', user);
+        
         if (user) {
             currentUserId = user.id;
+            console.log('Установлен currentUserId:', currentUserId);
             
             // Создаем или получаем пользователя в базе
             await createOrGetUser(user);
             
             // Проверяем права админа
             await checkAdminRights();
+        } else {
+            console.log('Данные пользователя не найдены');
         }
+    } else {
+        console.log('Telegram WebApp недоступен');
     }
     
     // Проверяем URL параметры для прямого перехода к диалогу
@@ -131,22 +142,36 @@ async function checkAdminRights() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Обычный чат
-    sendBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!sendBtn.disabled) {
-            sendMessage();
-        }
-    });
+    console.log('setupEventListeners вызвана');
+    console.log('sendBtn:', sendBtn);
+    console.log('messageInput:', messageInput);
     
-    messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    // Обычный чат
+    if (sendBtn) {
+        sendBtn.addEventListener('click', (e) => {
+            console.log('Кнопка отправки нажата');
             e.preventDefault();
             if (!sendBtn.disabled) {
                 sendMessage();
             }
-        }
-    });
+        });
+    } else {
+        console.error('Кнопка отправки не найдена!');
+    }
+    
+    if (messageInput) {
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                console.log('Enter нажат в поле ввода');
+                e.preventDefault();
+                if (!sendBtn.disabled) {
+                    sendMessage();
+                }
+            }
+        });
+    } else {
+        console.error('Поле ввода сообщения не найдено!');
+    }
     
     attachBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileAttach);
@@ -195,8 +220,15 @@ function setFilter(filter) {
 
 // Функции отправки сообщений
 async function sendMessage() {
+    console.log('sendMessage вызвана');
     const text = messageInput.value.trim();
-    if (!text || !currentUserId) return;
+    console.log('Текст сообщения:', text);
+    console.log('currentUserId:', currentUserId);
+    
+    if (!text || !currentUserId) {
+        console.log('Сообщение не отправлено: нет текста или currentUserId');
+        return;
+    }
     
     // Блокируем кнопку и показываем состояние загрузки
     const sendBtn = document.getElementById('sendBtn');
@@ -408,6 +440,8 @@ async function sendAdminMessage() {
 // Создание или получение диалога
 async function createOrGetConversation() {
     try {
+        console.log('createOrGetConversation вызвана, currentUserId:', currentUserId);
+        
         // Проверяем существующий открытый диалог
         const { data: existing, error: existingError } = await supabaseClient
             .from('conversations')
@@ -416,9 +450,14 @@ async function createOrGetConversation() {
             .eq('status', 'open')
             .single();
             
+        console.log('Поиск существующего диалога:', { existing, existingError });
+            
         if (existing) {
+            console.log('Найден существующий диалог:', existing.id);
             return existing.id;
         }
+        
+        console.log('Создаем новый диалог...');
         
         // Создаем новый диалог
         const { data, error } = await supabaseClient
@@ -430,7 +469,10 @@ async function createOrGetConversation() {
             .select()
             .single();
             
+        console.log('Результат создания диалога:', { data, error });
+            
         if (error) throw error;
+        console.log('Новый диалог создан:', data.id);
         return data.id;
         
     } catch (error) {
