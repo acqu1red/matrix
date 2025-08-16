@@ -9,12 +9,14 @@
   const bookPanel = $("#bookPanel");
   const bookReader = $("#bookReader");
   const loadingScreen = $("#loadingScreen");
+  const islandInfo = $("#islandInfo");
+  const progressIndicator = $("#progressIndicator");
 
   // Enhanced books with more realistic data
   const BOOKS = [
     { 
       id: 'psychotypes-intro',
-      title: "Введение в психотипы", 
+      title: "Введение в психотипы",
       author: "ФОРМУЛА",
       description: "Основы психотипирования и анализа личности",
       url: "https://t.me/c/1928787715/128",
@@ -67,12 +69,25 @@
   let waterParticles = [];
   let currentHoveredHouse = null;
   let selectedBook = null;
+  let isFullscreen = false;
 
-  // Loading simulation
-  setTimeout(() => {
-    loadingScreen.classList.add('hidden');
-    setTimeout(() => loadingScreen.remove(), 500);
-  }, 2000);
+  // Loading simulation with progress
+  let loadingProgress = 0;
+  const loadingInterval = setInterval(() => {
+    loadingProgress += Math.random() * 15;
+    if (loadingProgress >= 100) {
+      loadingProgress = 100;
+      clearInterval(loadingInterval);
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => loadingScreen.remove(), 500);
+      }, 500);
+    }
+    const progressBar = document.querySelector('.loading-progress');
+    if (progressBar) {
+      progressBar.style.width = loadingProgress + '%';
+    }
+  }, 200);
 
   function startThree(){
     try {
@@ -707,6 +722,7 @@
 
   function openBookReader(book) {
     document.getElementById('bookReaderTitle').textContent = book.title;
+    document.getElementById('bookReaderAuthor').textContent = book.author;
     document.getElementById('coverTitle').textContent = book.title;
     document.getElementById('coverSubtitle').textContent = book.description;
     document.getElementById('coverAuthor').textContent = book.author;
@@ -730,6 +746,45 @@
         window.open(selectedBook.url, '_blank');
       }
     }
+  }
+
+  function bookmarkBook() {
+    if (selectedBook) {
+      toast(`Книга "${selectedBook.title}" добавлена в закладки`);
+    }
+  }
+
+  function showIslandInfo() {
+    islandInfo.classList.remove('hidden');
+  }
+
+  function hideIslandInfo() {
+    islandInfo.classList.add('hidden');
+  }
+
+  function resetView() {
+    camera.position.set(0, 120, 80);
+    controls.target.set(0, 0, 0);
+    controls.update();
+    toast("Вид сброшен");
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      isFullscreen = true;
+    } else {
+      document.exitFullscreen();
+      isFullscreen = false;
+    }
+  }
+
+  function showProgressIndicator() {
+    progressIndicator.classList.remove('hidden');
+  }
+
+  function hideProgressIndicator() {
+    progressIndicator.classList.add('hidden');
   }
 
   function toast(msg) {
@@ -765,6 +820,13 @@
 
   document.getElementById('closeBook').addEventListener('click', closeBookReader);
   document.getElementById('readInChannelBtn').addEventListener('click', readInChannel);
+  document.getElementById('bookmarkBtn').addEventListener('click', bookmarkBook);
+  
+  // Control panel
+  document.getElementById('infoBtn').addEventListener('click', showIslandInfo);
+  document.getElementById('closeInfo').addEventListener('click', hideIslandInfo);
+  document.getElementById('resetViewBtn').addEventListener('click', resetView);
+  document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
 
   // Initialize
   if (hasThree) {

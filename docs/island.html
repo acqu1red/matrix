@@ -17,11 +17,16 @@
   <!-- Loading Screen -->
   <div id="loadingScreen">
     <div class="loading-content">
-      <div class="loading-logo">💎</div>
-      <div class="loading-title">ФОРМУЛА</div>
-      <div class="loading-subtitle">Загрузка острова знаний...</div>
+      <div class="loading-logo">🏝️</div>
+      <div class="loading-title">ОСТРОВ ЗНАНИЙ</div>
+      <div class="loading-subtitle">Загрузка реалистичного 3D мира...</div>
       <div class="loading-bar">
         <div class="loading-progress"></div>
+      </div>
+      <div class="loading-tips">
+        <div class="tip">💡 Нажмите на здания для входа в разделы</div>
+        <div class="tip">🌊 Двигайте пальцем для осмотра острова</div>
+        <div class="tip">📚 Изучайте знания в библиотеке</div>
       </div>
     </div>
   </div>
@@ -29,34 +34,91 @@
   <!-- Main Island Interface -->
   <div id="overlayTop">
     <div class="islandTitle">ОСТРОВ ЗНАНИЙ</div>
-    <div class="subTitle">Нажмите на дом для входа в раздел знаний</div>
+    <div class="subTitle">Реалистичный 3D мир психологии и анализа личности</div>
+    <div class="island-stats">
+      <div class="stat">
+        <span class="stat-icon">🏠</span>
+        <span class="stat-text">3 здания</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">🌴</span>
+        <span class="stat-text">5 пальм</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">📚</span>
+        <span class="stat-text">5 книг</span>
+      </div>
+    </div>
   </div>
 
   <div id="canvasWrap">
     <canvas id="scene"></canvas>
   </div>
 
-  <!-- House Labels (appear on hover) -->
+  <!-- Enhanced House Labels -->
   <div id="houseLabels">
     <div class="house-label" id="support-label" style="display: none;">
       <div class="label-content">
         <div class="label-icon">💬</div>
-        <div class="label-text">Поддержка</div>
-        <div class="label-desc">Прямое общение с экспертами</div>
+        <div class="label-info">
+          <div class="label-text">Поддержка</div>
+          <div class="label-desc">Прямое общение с экспертами</div>
+          <div class="label-features">
+            <span class="feature">24/7</span>
+            <span class="feature">Эксперты</span>
+            <span class="feature">Консультации</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="house-label" id="materials-label" style="display: none;">
       <div class="label-content">
         <div class="label-icon">📚</div>
-        <div class="label-text">Материалы</div>
-        <div class="label-desc">Эксклюзивные знания</div>
+        <div class="label-info">
+          <div class="label-text">Материалы</div>
+          <div class="label-desc">Эксклюзивные знания</div>
+          <div class="label-features">
+            <span class="feature">Эксклюзив</span>
+            <span class="feature">Практика</span>
+            <span class="feature">Теория</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="house-label" id="psychotypes-label" style="display: none;">
       <div class="label-content">
         <div class="label-icon">🧠</div>
-        <div class="label-text">Психотипы</div>
-        <div class="label-desc">Глубокий анализ личности</div>
+        <div class="label-info">
+          <div class="label-text">Психотипы</div>
+          <div class="label-desc">Глубокий анализ личности</div>
+          <div class="label-features">
+            <span class="feature">Анализ</span>
+            <span class="feature">Профайлинг</span>
+            <span class="feature">Практика</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Island Info Panel -->
+  <div id="islandInfo" class="hidden">
+    <div class="info-header">
+      <div class="info-title">Информация об острове</div>
+      <button id="closeInfo" class="btn ghost">×</button>
+    </div>
+    <div class="info-content">
+      <div class="info-section">
+        <h3>🏝️ География</h3>
+        <p>Остров знаний расположен в тропических водах. Общая площадь составляет около 2.5 км². Остров имеет сложную форму с множеством бухт и скалистых мысов.</p>
+      </div>
+      <div class="info-section">
+        <h3>🏠 Инфраструктура</h3>
+        <p>На острове расположены 3 основных здания: курортный комплекс на западе, библиотека в центре и исследовательский центр на востоке.</p>
+      </div>
+      <div class="info-section">
+        <h3>🌿 Природа</h3>
+        <p>Остров покрыт тропической растительностью с пальмами, кустарниками и травой. Вокруг острова расположены мелкие островки и коралловые рифы.</p>
       </div>
     </div>
   </div>
@@ -65,6 +127,7 @@
   <div id="interiorOverlay" class="hidden">
     <div class="interior-header">
       <div class="interior-title">Библиотека знаний</div>
+      <div class="interior-subtitle">Выберите раздел для изучения</div>
       <button id="closeInterior" class="btn ghost">× Закрыть</button>
     </div>
     <div id="interiorCanvasWrap">
@@ -73,15 +136,19 @@
     <div id="bookPanel" class="hidden">
       <div class="book-shelf">
         <div class="shelf-title">Выберите книгу знаний</div>
+        <div class="shelf-subtitle">Каждая книга содержит уникальные знания по психологии и анализу личности</div>
         <div class="books-grid" id="booksGrid"></div>
       </div>
     </div>
   </div>
 
-  <!-- Book Reading Interface -->
+  <!-- Enhanced Book Reading Interface -->
   <div id="bookReader" class="hidden">
     <div class="book-header">
-      <div class="book-title" id="bookReaderTitle">Название книги</div>
+      <div class="book-info">
+        <div class="book-title" id="bookReaderTitle">Название книги</div>
+        <div class="book-author" id="bookReaderAuthor">Автор</div>
+      </div>
       <button id="closeBook" class="btn ghost">× Закрыть</button>
     </div>
     <div class="book-content">
@@ -89,8 +156,13 @@
         <div class="page-content">
           <div class="book-cover">
             <div class="cover-title" id="coverTitle">Психотипы</div>
-            <div class="cover-subtitle">Глубокий анализ личности</div>
-            <div class="cover-author">ФОРМУЛА</div>
+            <div class="cover-subtitle" id="coverSubtitle">Глубокий анализ личности</div>
+            <div class="cover-author" id="coverAuthor">ФОРМУЛА</div>
+            <div class="cover-decoration">
+              <div class="decoration-line"></div>
+              <div class="decoration-symbol">🧠</div>
+              <div class="decoration-line"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -99,11 +171,45 @@
           <span class="btn-icon">📖</span>
           Читать в канале
         </button>
+        <button class="btn secondary" id="bookmarkBtn">
+          <span class="btn-icon">🔖</span>
+          Добавить в закладки
+        </button>
       </div>
     </div>
   </div>
 
-  <div id="hint">Двигайте пальцем для осмотра • Нажмите на дом для входа</div>
+  <!-- Control Panel -->
+  <div id="controlPanel">
+    <button id="infoBtn" class="control-btn" title="Информация об острове">
+      <span class="control-icon">ℹ️</span>
+    </button>
+    <button id="resetViewBtn" class="control-btn" title="Сбросить вид">
+      <span class="control-icon">🔄</span>
+    </button>
+    <button id="fullscreenBtn" class="control-btn" title="Полноэкранный режим">
+      <span class="control-icon">⛶</span>
+    </button>
+  </div>
+
+  <!-- Enhanced Hint -->
+  <div id="hint">
+    <div class="hint-content">
+      <span class="hint-icon">💡</span>
+      <span class="hint-text">Двигайте пальцем для осмотра • Нажмите на здание для входа</span>
+    </div>
+  </div>
+
+  <!-- Progress Indicator -->
+  <div id="progressIndicator" class="hidden">
+    <div class="progress-content">
+      <div class="progress-icon">📚</div>
+      <div class="progress-text">Загрузка знаний...</div>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+  </div>
 
   <script src="island.js"></script>
 </body>
