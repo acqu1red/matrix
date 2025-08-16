@@ -31,24 +31,15 @@ const CONFIG = {
         if (!this.currentUserId) return;
         
         try {
-            // Создаем клиент Supabase
-            const { createClient } = supabase;
-            const supabaseClient = createClient(
-                'https://uhhsrtmmuwoxsdquimaa.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8'
-            );
+            // Проверяем по ID администраторов из bot.py
+            const adminIds = [708907063, 7365307696];
+            this.isAdmin = adminIds.includes(this.currentUserId);
             
-            // Проверяем права администратора
-            const { data, error } = await supabaseClient
-                .rpc('is_admin', { user_telegram_id: this.currentUserId });
-                
-            if (error) {
-                console.error('Ошибка при проверке прав админа:', error);
-                this.isAdmin = false;
-                return;
+            if (this.isAdmin) {
+                console.log('Пользователь является администратором');
+            } else {
+                console.log('Пользователь не является администратором');
             }
-            
-            this.isAdmin = data || false;
             
         } catch (error) {
             console.error('Ошибка при проверке прав админа:', error);
