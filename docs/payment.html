@@ -120,7 +120,7 @@
 
     <div class="step" id="step2">
       <div class="progress-bar"><div class="progress-step completed"></div><div class="progress-step active"></div><div class="progress-step"></div><div class="progress-step"></div></div>
-      <div class="tariff-title-block"><div class="tariff-badge">ВЫБРАН</div><div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ «ОСНОВА» на 1 месяц</div></div>
+      <div class="tariff-title-block"><div class="tariff-badge">ВЫБРАН</div><div class="tariff-title-text" id="selectedTariffTitle">ЗАКРЫТЫЙ КАНАЛ «ФОРМУЛА» на 1 месяц</div></div>
       <div class="content-block">
         <div class="content-text"><em>*если вы из Украины, включите VPN</em><br><em>*при оплате картой — оформляется автосписание каждые 30 дней</em><br><em>*далее — вы сможете управлять подпиской в Меню</em></div>
         <div class="content-text">Теперь тебе осталось выбрать способ оплаты (банк):</div>
@@ -186,7 +186,7 @@ function initUI(){
       document.querySelectorAll('.tariff-option').forEach(o=>o.style.borderColor='#444');
       opt.style.borderColor='#d6c7b8';
       const tName = state.tariffNames[state.selectedTariff] || '';
-      document.getElementById('selectedTariffTitle').textContent = `ЗАКРЫТЫЙ КАНАЛ «ОСНОВА» на ${tName}`;
+      document.getElementById('selectedTariffTitle').textContent = `ЗАКРЫТЫЙ КАНАЛ «ФОРМУЛА» на ${tName}`;
       document.getElementById('productTitle').textContent = `Канал ФОРМУЛА / ${tName}`;
       document.getElementById('productNameText').textContent = `Канал ФОРМУЛА / ${tName}`;
       document.getElementById('finalPrice').textContent = `${price} RUB`;
