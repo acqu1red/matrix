@@ -685,11 +685,11 @@
     }
 
     // Load BufferGeometryUtils for merge (via dynamic import)
-    let BufferGeometryUtils;
-    try {
-      BufferGeometryUtils = await import('https://unpkg.com/three@0.128.0/examples/jsm/utils/BufferGeometryUtils.js');
-    } catch(e){ /* fallback defined above */ }
-    if(BufferGeometryUtils) THREE.BufferGeometryUtils = BufferGeometryUtils;
+    // BufferGeometryUtils optional; some WebViews don't support top-level await.
+// We'll rely on fallback merger (no external import here).
+// If needed later, load via dynamic promise without awaiting top-level:
+// import('https://unpkg.com/three@0.128.0/examples/jsm/utils/BufferGeometryUtils.js').then(m=>{ THREE.BufferGeometryUtils = m; });
+
 
     const palmGeo = mergedGeometryFrom(palmBase);
     const palmMat = new THREE.MeshStandardMaterial({ color:0x2a8a57, roughness:0.75 });
