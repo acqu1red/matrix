@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Меню подписки</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script type="module">
+import { createClient } from 'https://unpkg.com/@supabase/supabase-js@2/dist/esm/index.js';
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
   * { box-sizing: border-box; }
@@ -34,50 +37,118 @@
   <header><h1>Меню подписки</h1></header>
   <main id="app"><div class="loading" id="loading">Загрузка...</div></main>
 
-<script>
+</script>
+
+<script type="module">
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
+
+// Supabase конфигурация
+const supabaseUrl = 'https://uhhsrtmmuwoxsdquimaa.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8';
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 function openPayment(){ const paymentUrl = new URL('payment.html', window.location.href).toString(); window.location.href = paymentUrl; }
 function fmtDate(ts){ try{ const d=new Date(ts); return d.toLocaleString('ru-RU'); }catch(e){ return ts; } }
 function diffDH(toTs){ const now=Date.now(); const to=new Date(toTs).getTime(); let ms=Math.max(0,to-now); const days=Math.floor(ms/86400000); ms-=days*86400000; const hours=Math.floor(ms/3600000); return {days, hours}; }
 
 async function loadStatus(){
-  const app = document.getElementById('app'); const loading=document.getElementById('loading');
-  const apiBase = "https://formulaprivate-production.up.railway.app";
+  const app = document.getElementById('app'); 
+  const loading=document.getElementById('loading');
+  
   const telegram_id = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id : null;
-  const init_data = tg ? tg.initData : null;
-
-  const r = await fetch(apiBase + "/api/subscription/status", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ telegram_id, init_data }) });
-  const resp = await r.json().catch(()=>({ok:false, error:"Bad JSON"}));
-  loading.remove();
-
-  if(!resp.ok){ const e=document.createElement('div'); e.className='error'; e.textContent="Ошибка загрузки статуса: " + (resp.error || "unknown"); app.appendChild(e); return; }
-
-  if(!resp.has_subscription){
-    const card=document.createElement('div'); card.className='card neon'; card.innerHTML='<h2>У вас ещё нет подписки</h2>';
-    const cta=document.createElement('div'); cta.className='cta';
-    const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='Оформить подписку'; btn.onclick=openPayment;
-    cta.appendChild(btn); app.appendChild(card); app.appendChild(cta); app.appendChild(Object.assign(document.createElement('div'), {className:'small', textContent:'Подписка оформляется в пару кликов'})); return;
+  
+  if (!telegram_id) {
+    loading.remove();
+    const e=document.createElement('div'); 
+    e.className='error'; 
+    e.textContent="Ошибка: не удалось получить ID пользователя"; 
+    app.appendChild(e); 
+    return;
   }
 
-  const d = resp.data || {}; const expires = d.expires_at || d.next_payment_at || d.started_at; const left = expires ? diffDH(expires) : {days:0,hours:0};
-  const block=document.createElement('div'); block.className='card';
-  block.innerHTML = `
-    <div style="margin-bottom:10px; font-weight:700; font-size:1.1rem;">Данные подписки</div>
-    <div class="grid">
-      <div class="row"><div class="label">E-mail</div><div class="value">${d.email || '—'}</div></div>
-      <div class="row"><div class="label">Telegram ID</div><div class="value">${d.tg_id || '—'}</div></div>
-      <div class="row"><div class="label">Username</div><div class="value">${d.username ? '@'+d.username : '—'}</div></div>
-      <div class="row"><div class="label">Оформлено</div><div class="value">${fmtDate(d.started_at)}</div></div>
-      <div class="row"><div class="label">До окончания</div><div class="value">${left.days} д. ${left.hours} ч.</div></div>
-      <div class="row"><div class="label">Следующий платёж</div><div class="value">${fmtDate(d.next_payment_at)}</div></div>
-    </div>`;
-  const cta=document.createElement('div'); cta.className='cta';
-  const linkBtn=document.createElement('a'); linkBtn.className='btn btn-primary'; linkBtn.textContent='Перейти в канал'; linkBtn.href=resp.channel_invite_link || '#'; linkBtn.target='_blank';
-  cta.appendChild(linkBtn); const small=document.createElement('div'); small.className='small'; small.textContent='Если ссылка не открывается — напишите в поддержку';
-  app.appendChild(block); app.appendChild(cta); app.appendChild(small);
+  try {
+    // Получаем данные подписки из таблицы subscriptions
+    const { data: subscriptions, error } = await supabaseClient
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', telegram_id.toString())
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    loading.remove();
+
+    if (error) {
+      const e=document.createElement('div'); 
+      e.className='error'; 
+      e.textContent="Ошибка загрузки статуса: " + error.message; 
+      app.appendChild(e); 
+      return;
+    }
+
+    if (!subscriptions || subscriptions.length === 0) {
+      const card=document.createElement('div'); 
+      card.className='card neon'; 
+      card.innerHTML='<h2>У вас ещё нет подписки</h2>';
+      const cta=document.createElement('div'); 
+      cta.className='cta';
+      const btn=document.createElement('button'); 
+      btn.className='btn btn-primary'; 
+      btn.textContent='Оформить подписку'; 
+      btn.onclick=openPayment;
+      cta.appendChild(btn); 
+      app.appendChild(card); 
+      app.appendChild(cta); 
+      app.appendChild(Object.assign(document.createElement('div'), {className:'small', textContent:'Подписка оформляется в пару кликов'})); 
+      return;
+    }
+
+    const subscription = subscriptions[0];
+    const endDate = new Date(subscription.end_date);
+    const startDate = new Date(subscription.start_date);
+    const now = new Date();
+    const left = diffDH(endDate);
+    
+    const block=document.createElement('div'); 
+    block.className='card';
+    block.innerHTML = `
+      <div style="margin-bottom:10px; font-weight:700; font-size:1.1rem;">Данные подписки</div>
+      <div class="grid">
+        <div class="row"><div class="label">E-mail</div><div class="value">Не заполнено</div></div>
+        <div class="row"><div class="label">Telegram ID</div><div class="value">${subscription.user_id || 'Не заполнено'}</div></div>
+        <div class="row"><div class="label">Username</div><div class="value">${tg.initDataUnsafe.user.username ? '@'+tg.initDataUnsafe.user.username : 'Не заполнено'}</div></div>
+        <div class="row"><div class="label">Тариф</div><div class="value">${subscription.tariff || 'Не заполнено'}</div></div>
+        <div class="row"><div class="label">Сумма</div><div class="value">${subscription.amount || 0} ${subscription.currency || 'RUB'}</div></div>
+        <div class="row"><div class="label">Оформлено</div><div class="value">${fmtDate(startDate)}</div></div>
+        <div class="row"><div class="label">До окончания</div><div class="value">${left.days} д. ${left.hours} ч.</div></div>
+        <div class="row"><div class="label">Дата окончания</div><div class="value">${fmtDate(endDate)}</div></div>
+      </div>`;
+    
+    const cta=document.createElement('div'); 
+    cta.className='cta';
+    const linkBtn=document.createElement('a'); 
+    linkBtn.className='btn btn-primary'; 
+    linkBtn.textContent='Перейти в канал'; 
+    linkBtn.href='https://t.me/formulaprivate'; 
+    linkBtn.target='_blank';
+    cta.appendChild(linkBtn); 
+    const small=document.createElement('div'); 
+    small.className='small'; 
+    small.textContent='Если ссылка не открывается — напишите в поддержку';
+    app.appendChild(block); 
+    app.appendChild(cta); 
+    app.appendChild(small);
+    
+  } catch (error) {
+    loading.remove();
+    const e=document.createElement('div'); 
+    e.className='error'; 
+    e.textContent="Ошибка загрузки статуса: " + error.message; 
+    app.appendChild(e);
+  }
 }
+
 document.addEventListener('DOMContentLoaded', loadStatus);
 </script>
 </body>
