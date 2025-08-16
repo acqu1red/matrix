@@ -24,3 +24,5 @@ body{background:#0b0f16;color:#eae6de}
   box-shadow:0 16px 48px rgba(0,0,0,.45), inset 0 0 30px rgba(255,255,255,.04);backdrop-filter: blur(10px);animation:pop .2s ease-out}
 .bookTitle{text-align:center;margin-bottom:12px;font-weight:800;letter-spacing:.3px}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+#bookPanel.bookGrid{flex-wrap:wrap;gap:12px;align-items:flex-end}
