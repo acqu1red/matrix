@@ -1,0 +1,48 @@
+/* Glass UI and responsive layout */
+:root{
+  --glass: rgba(255,255,255,0.68);
+  --mint: #36c2b6;
+  --text: #0b1220;
+}
+*{ box-sizing: border-box; }
+html,body{ margin:0; height:100%; background:#0d3b66; overflow:hidden; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; color:var(--text); }
+#c{ position:fixed; inset:0; width:100%; height:100%; display:block; }
+
+.glass{
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+  border-radius: 18px;
+}
+
+.ui-top{ position:fixed; left:12px; right:12px; top:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+.brand{ pointer-events:none; }
+.brand h1{ margin:0; font-size:20px; letter-spacing:0.3px; }
+.brand p{ margin:2px 0 0; font-size:12px; opacity:0.85; }
+
+.quality{ display:flex; gap:8px; align-items:center; padding:8px 10px; pointer-events:auto; }
+.quality label{ font-size:12px; opacity:0.8; }
+select, button{
+  appearance:none; border:none; outline:none;
+  padding:8px 10px; border-radius:12px; font-size:13px;
+  background:#ffffffcc; color:#0b1220; cursor:pointer;
+}
+button.ghost{ background:transparent; border:1px solid rgba(0,0,0,0.1); }
+button:hover, select:hover{ filter:brightness(0.98); }
+button:active{ transform: translateY(1px); }
+
+.tip{ position:fixed; left:50%; transform:translateX(-50%); bottom:22px; padding:10px 14px; font-size:12px; opacity:0; transition: opacity .6s ease-out; }
+.tip.show{ opacity:1; }
+.hud-bottom-right{ position:fixed; right:12px; bottom:12px; padding:8px 10px; font-size:12px; }
+.hud-bottom-right div{ line-height: 1.2; }
+
+.sound{ position:fixed; left:12px; bottom:12px; padding:10px 14px; font-size:12px; display:none; }
+
+/* Mobile adjustments */
+@media (max-width: 768px){
+  .brand h1{ font-size:16px; }
+  .brand p{ display:none; }
+  .quality label{ display:none; }
+}
