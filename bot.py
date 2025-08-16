@@ -12,7 +12,7 @@ import json
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
-ISLAND_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/island.html"
+ISLAND_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/island.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
