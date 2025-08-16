@@ -1,234 +1,550 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Остров знаний - Формула</title>
+  <meta charset="utf-8" />
+  <title>Остров • MiniApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0b0f16; --fg:#eae6de; --glass:rgba(255,255,255,.08);
+      --accent:#36c2b6;
+    }
+    * { box-sizing: border-box }
+    html, body { height:100%; margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--fg); overflow:hidden }
+    #app { position:fixed; inset:0; }
+    canvas { display:block; width:100%; height:100%; }
+    #hud {
+      position: fixed; top:10px; left: 50%; transform: translateX(-50%);
+      display:flex; align-items:center; gap:10px; z-index:10; pointer-events:none;
+    }
+    .tag {
+      pointer-events:auto;
+      background: rgba(0,0,0,.45); border:1px solid var(--glass); color:var(--fg);
+      padding:6px 10px; border-radius:12px; font-weight:700; backdrop-filter: blur(6px);
+      box-shadow: 0 4px 18px rgba(0,0,0,.35);
+    }
+    #legend { pointer-events:auto; position: fixed; right:10px; bottom:10px; z-index:10;
+      background: rgba(0,0,0,.45); border:1px solid var(--glass); border-radius:12px; padding:10px 12px; font-size:12px;
+    }
+    #audioBtn {
+      pointer-events:auto; cursor:pointer; border:none; border-radius:12px; padding:8px 12px; font-weight:800;
+      background:linear-gradient(135deg, #eef9f3, #e6faf7); color:#0c0d10; box-shadow:0 8px 22px rgba(0,0,0,.35);
+    }
+    #hint {
+      position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:10;
+      font-size:12px; opacity:.7; background: rgba(0,0,0,.4); border:1px solid var(--glass); border-radius:10px; padding:6px 10px; backdrop-filter: blur(6px);
+    }
+    #perf {
+      position:fixed; left:10px; bottom:10px; font-size:11px; opacity:.7;
+      background: rgba(0,0,0,.35); border:1px solid var(--glass); padding:6px 10px; border-radius:10px;
+    }
+  </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
-  <!-- Three.js CDN with proper version -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
-  <!-- OrbitControls for camera control -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  
-  <!-- GLTFLoader for 3D models -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="island.css" />
 </head>
 <body>
-  <!-- Loading Screen -->
-  <div id="loadingScreen">
-    <div class="loading-content">
-      <div class="loading-logo">🏝️</div>
-      <div class="loading-title">ОСТРОВ ЗНАНИЙ</div>
-      <div class="loading-subtitle">Загрузка реалистичного 3D мира...</div>
-      <div class="loading-bar">
-        <div class="loading-progress"></div>
-      </div>
-      <div class="loading-tips">
-        <div class="tip">💡 Нажмите на здания для входа в разделы</div>
-        <div class="tip">🌊 Двигайте пальцем для осмотра острова</div>
-        <div class="tip">📚 Изучайте знания в библиотеке</div>
-      </div>
-      <div id="webglStatus" class="webgl-status">
-        <div class="status-text">Проверка WebGL...</div>
-      </div>
-    </div>
-  </div>
+  <div id="app"><canvas id="c"></canvas></div>
 
-  <!-- Main Island Interface -->
-  <div id="overlayTop">
-    <div class="islandTitle">ОСТРОВ ЗНАНИЙ</div>
-    <div class="subTitle">Реалистичный 3D мир психологии и анализа личности</div>
-    <div class="island-stats">
-      <div class="stat">
-        <span class="stat-icon">🏠</span>
-        <span class="stat-text">3 здания</span>
-      </div>
-      <div class="stat">
-        <span class="stat-icon">🌴</span>
-        <span class="stat-text">5 пальм</span>
-      </div>
-      <div class="stat">
-        <span class="stat-icon">📚</span>
-        <span class="stat-text">5 книг</span>
-      </div>
-    </div>
+  <div id="hud">
+    <div class="tag">JEFFREY EPSTEIN ISLAND · 1 км²</div>
+    <button id="audioBtn" class="tag">Включить звуки</button>
   </div>
-
-  <div id="canvasWrap">
-    <canvas id="scene"></canvas>
-    <!-- Fallback message if WebGL fails -->
-    <div id="webglFallback" class="webgl-fallback hidden">
-      <div class="fallback-content">
-        <div class="fallback-icon">⚠️</div>
-        <div class="fallback-title">WebGL не поддерживается</div>
-        <div class="fallback-text">Ваш браузер не поддерживает 3D графику. Обновите браузер или включите аппаратное ускорение.</div>
-      </div>
-    </div>
+  <div id="hint">Управление: ЛКМ — вращение · Колёсико — зум · ПКМ/Shift — панорамирование</div>
+  <div id="legend">
+    <div><b>Время суток:</b> авто по системному</div>
+    <div><b>FPS target:</b> 60 · <b>WebGL:</b> v2→v1 fallback</div>
+    <div><b>Water:</b> Ocean.js → Water2 fallback</div>
   </div>
+  <div id="perf">FPS: <span id="fps">—</span></div>
 
-  <!-- Enhanced House Labels -->
-  <div id="houseLabels">
-    <div class="house-label" id="support-label" style="display: none;">
-      <div class="label-content">
-        <div class="label-icon">💬</div>
-        <div class="label-info">
-          <div class="label-text">Поддержка</div>
-          <div class="label-desc">Прямое общение с экспертами</div>
-          <div class="label-features">
-            <span class="feature">24/7</span>
-            <span class="feature">Эксперты</span>
-            <span class="feature">Консультации</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="house-label" id="materials-label" style="display: none;">
-      <div class="label-content">
-        <div class="label-icon">📚</div>
-        <div class="label-info">
-          <div class="label-text">Материалы</div>
-          <div class="label-desc">Эксклюзивные знания</div>
-          <div class="label-features">
-            <span class="feature">Эксклюзив</span>
-            <span class="feature">Практика</span>
-            <span class="feature">Теория</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="house-label" id="psychotypes-label" style="display: none;">
-      <div class="label-content">
-        <div class="label-icon">🧠</div>
-        <div class="label-info">
-          <div class="label-text">Психотипы</div>
-          <div class="label-desc">Глубокий анализ личности</div>
-          <div class="label-features">
-            <span class="feature">Анализ</span>
-            <span class="feature">Профайлинг</span>
-            <span class="feature">Практика</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+    import { TDSLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/TDSLoader.js';
+    import { RGBELoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/RGBELoader.js';
+    import { EffectComposer } from 'https://unpkg.com/three@0.152.2/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'https://unpkg.com/three@0.152.2/examples/jsm/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'https://unpkg.com/three@0.152.2/examples/jsm/postprocessing/ShaderPass.js';
+    import { UnrealBloomPass } from 'https://unpkg.com/three@0.152.2/examples/jsm/postprocessing/UnrealBloomPass.js';
+    import { FXAAShader } from 'https://unpkg.com/three@0.152.2/examples/jsm/shaders/FXAAShader.js';
+    import { Lensflare, LensflareElement } from 'https://unpkg.com/three@0.152.2/examples/jsm/objects/Lensflare.js';
+    import { Water } from 'https://unpkg.com/three@0.152.2/examples/jsm/objects/Water2.js';
 
-  <!-- Island Info Panel -->
-  <div id="islandInfo" class="hidden">
-    <div class="info-header">
-      <div class="info-title">Информация об острове</div>
-      <button id="closeInfo" class="btn ghost">×</button>
-    </div>
-    <div class="info-content">
-      <div class="info-section">
-        <h3>🏝️ География</h3>
-        <p>Остров знаний расположен в тропических водах. Общая площадь составляет около 2.5 км². Остров имеет сложную форму с множеством бухт и скалистых мысов.</p>
-      </div>
-      <div class="info-section">
-        <h3>🏠 Инфраструктура</h3>
-        <p>На острове расположены 3 основных здания: курортный комплекс на западе, библиотека в центре и исследовательский центр на востоке.</p>
-      </div>
-      <div class="info-section">
-        <h3>🌿 Природа</h3>
-        <p>Остров покрыт тропической растительностью с пальмами, кустарниками и травой. Вокруг острова расположены мелкие островки и коралловые рифы.</p>
-      </div>
-    </div>
-  </div>
+    const oceanOK = await (async () => {
+      try {
+        await import('https://cdn.jsdelivr.net/gh/jbouny/ocean/ocean.js');
+        return !!window.Ocean;
+      } catch (e) { return false; }
+    })();
 
-  <!-- Interior overlay -->
-  <div id="interiorOverlay" class="hidden">
-    <div class="interior-header">
-      <div class="interior-title">Библиотека знаний</div>
-      <div class="interior-subtitle">Выберите раздел для изучения</div>
-      <button id="closeInterior" class="btn ghost">× Закрыть</button>
-    </div>
-    <div id="interiorCanvasWrap">
-      <canvas id="interior"></canvas>
-    </div>
-    <div id="bookPanel" class="hidden">
-      <div class="book-shelf">
-        <div class="shelf-title">Выберите книгу знаний</div>
-        <div class="shelf-subtitle">Каждая книга содержит уникальные знания по психологии и анализу личности</div>
-        <div class="books-grid" id="booksGrid"></div>
-      </div>
-    </div>
-  </div>
+    try { Telegram?.WebApp?.ready(); Telegram?.WebApp?.expand(); } catch(_) {}
 
-  <!-- Enhanced Book Reading Interface -->
-  <div id="bookReader" class="hidden">
-    <div class="book-header">
-      <div class="book-info">
-        <div class="book-title" id="bookReaderTitle">Название книги</div>
-        <div class="book-author" id="bookReaderAuthor">Автор</div>
-      </div>
-      <button id="closeBook" class="btn ghost">× Закрыть</button>
-    </div>
-    <div class="book-content">
-      <div class="book-page" id="bookPage">
-        <div class="page-content">
-          <div class="book-cover">
-            <div class="cover-title" id="coverTitle">Психотипы</div>
-            <div class="cover-subtitle" id="coverSubtitle">Глубокий анализ личности</div>
-            <div class="cover-author" id="coverAuthor">ФОРМУЛА</div>
-            <div class="cover-decoration">
-              <div class="decoration-line"></div>
-              <div class="decoration-symbol">🧠</div>
-              <div class="decoration-line"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="book-actions">
-        <button class="btn primary" id="readInChannelBtn">
-          <span class="btn-icon">📖</span>
-          Читать в канале
-        </button>
-        <button class="btn secondary" id="bookmarkBtn">
-          <span class="btn-icon">🔖</span>
-          Добавить в закладки
-        </button>
-      </div>
-    </div>
-  </div>
+    const KM = 1000;
+    const ISLAND_SIZE = KM;
+    const HALF = ISLAND_SIZE/2;
+    const TARGET_FPS = 60;
 
-  <!-- Control Panel -->
-  <div id="controlPanel">
-    <button id="infoBtn" class="control-btn" title="Информация об острове">
-      <span class="control-icon">ℹ️</span>
-    </button>
-    <button id="resetViewBtn" class="control-btn" title="Сбросить вид">
-      <span class="control-icon">🔄</span>
-    </button>
-    <button id="fullscreenBtn" class="control-btn" title="Полноэкранный режим">
-      <span class="control-icon">⛶</span>
-    </button>
-  </div>
+    const PATHS = {
+      hdr: 'https://rawcdn.githack.com/mrdoob/three.js/r152/examples/textures/equirectangular/venice_sunset_1k.hdr',
+      waterNormals: 'assets/waternormals.jpg',
+      cloud: 'assets/cloud.png',
+      lensflare: 'assets/lensflare0.png',
+      villaGLTF: null,
+      bungalowGLTF: null,
+      palmGLTF: null,
+      helipadGLTF: null,
+    };
 
-  <!-- Enhanced Hint -->
-  <div id="hint">
-    <div class="hint-content">
-      <span class="hint-icon">💡</span>
-      <span class="hint-text">Двигайте пальцем для осмотра • Нажмите на здание для входа</span>
-    </div>
-  </div>
+    const canvas = document.getElementById('c');
+    let context = canvas.getContext('webgl2', { antialias:true, alpha:false, stencil:false, depth:true, powerPreference:'high-performance', preserveDrawingBuffer:false });
+    if (!context) context = canvas.getContext('webgl', { antialias:true, alpha:false, stencil:false, depth:true, preserveDrawingBuffer:false });
 
-  <!-- Progress Indicator -->
-  <div id="progressIndicator" class="hidden">
-    <div class="progress-content">
-      <div class="progress-icon">📚</div>
-      <div class="progress-text">Загрузка знаний...</div>
-      <div class="progress-bar">
-        <div class="progress-fill"></div>
-      </div>
-    </div>
-  </div>
+    const renderer = new THREE.WebGLRenderer({ canvas, context, logarithmicDepthBuffer:false });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = false;
 
-  <script src="island.js"></script>
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0b0f16, 0.002);
+    const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 10000);
+    camera.position.set(HALF*0.7, 500, HALF*0.7);
+    camera.lookAt(new THREE.Vector3(0,0,0));
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.minDistance = 100;
+    controls.maxDistance = 2000;
+    controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    new RGBELoader().load(PATHS.hdr, (hdr) => {
+      hdr.mapping = THREE.EquirectangularReflectionMapping;
+      const env = pmrem.fromEquirectangular(hdr).texture;
+      scene.environment = env;
+      hdr.dispose();
+    });
+
+    const hour = new Date().getHours();
+    const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+    sun.castShadow = false; sun.position.set(-500, 800, 200); scene.add(sun);
+    const hemi = new THREE.HemisphereLight(0x93b6ff, 0x1b2838, 0.35); scene.add(hemi);
+    function setupLightingByHour(h) {
+      if (h >= 6 && h < 9) { sun.intensity = 0.9; sun.color.set('#ffd9a3'); hemi.intensity = 0.35; renderer.toneMappingExposure = 0.95; }
+      else if (h >= 9 && h < 16) { sun.intensity = 1.2; sun.color.set('#ffffff'); hemi.intensity = 0.4; renderer.toneMappingExposure = 1.0; }
+      else if (h >= 16 && h < 19) { sun.intensity = 0.85; sun.color.set('#ffb36b'); hemi.intensity = 0.35; renderer.toneMappingExposure = 0.92; }
+      else { sun.intensity = 0.25; sun.color.set('#cfdfff'); hemi.intensity = 0.2; renderer.toneMappingExposure = 0.8; }
+    }
+    setupLightingByHour(hour);
+
+    const textureFlare = new THREE.TextureLoader().load(PATHS.lensflare);
+    const flare = new Lensflare();
+    flare.addElement(new LensflareElement(textureFlare, 100, 0.0, new THREE.Color(1,1,1)));
+    sun.add(flare);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const fxaa = new ShaderPass(FXAAShader);
+    fxaa.material.uniforms['resolution'].value.set(1/innerWidth, 1/innerHeight);
+    composer.addPass(fxaa);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85);
+    composer.addPass(bloom);
+
+    function rand(seed){ const x = Math.sin(seed)*10000; return x - Math.floor(x); }
+    function makePerlin(seed=1){
+      const p = new Uint8Array(512);
+      for (let i=0;i<256;i++) p[i]=i;
+      for (let i=255;i>0;i--){ const j = Math.floor(rand(seed+i)*256); [p[i],p[j]]=[p[j],p[i]]; }
+      for (let i=0;i<256;i++) p[256+i]=p[i];
+      const grad = (h,x,y)=>{ switch(h&3){ case 0:return x+y; case 1:return -x+y; case 2:return x-y; default:return -x-y; } };
+      const fade = (t)=> t*t*t*(t*(t*6-15)+10);
+      const lerp = (a,b,t)=> a+(b-a)*t;
+      return function(x,y){
+        const X = Math.floor(x)&255, Y=Math.floor(y)&255;
+        const xf=x-Math.floor(x), yf=y-Math.floor(y);
+        const tr = p[p[X+1]+Y+1], tl=p[p[X]+Y+1], br=p[p[X+1]+Y], bl=p[p[X]+Y];
+        const u=fade(xf), v=fade(yf);
+        const x1=lerp(grad(bl, xf, yf), grad(br, xf-1, yf), u);
+        const x2=lerp(grad(tl, xf, yf-1), grad(tr, xf-1, yf-1), u);
+        return (lerp(x1, x2, v)+1)/2;
+      }
+    }
+    const perlin = makePerlin(42);
+
+    function buildTerrain(res, scaleH){
+      const geo = new THREE.PlaneGeometry(ISLAND_SIZE, ISLAND_SIZE, res, res);
+      geo.rotateX(-Math.PI/2);
+      const pos = geo.attributes.position;
+      const colors = [];
+      const v = new THREE.Vector3();
+      for (let i=0;i<pos.count;i++){
+        v.fromBufferAttribute(pos, i);
+        const nx = (v.x + HALF)/ISLAND_SIZE;
+        const nz = (v.z + HALF)/ISLAND_SIZE;
+        const h1 = perlin(nx*4, nz*4), h2=perlin(nx*8+100, nz*8-30), h3=perlin(nx*16-50, nz*16+50);
+        let h = (h1*0.6 + h2*0.3 + h3*0.1);
+        const ridge = Math.exp(-Math.pow((nx-0.5)*2.4, 2))*Math.exp(-Math.pow((nz-0.5)*2.4, 2));
+        h += ridge*0.35;
+        const edge = Math.min(nx, nz, 1-nx, 1-nz);
+        let heightM = (h*100) * scaleH;
+        if (edge < 0.07) heightM *= 0.5;
+        pos.setY(i, heightM);
+
+        const c = new THREE.Color();
+        if (edge < 0.07) c.set('#cdb896');
+        else if (heightM > 50) c.set('#4b4e57');
+        else {
+          const biomeNoise = perlin(nx*2+10, nz*2-10);
+          if (biomeNoise > 0.55) c.set('#184a2c');
+          else c.set('#8b6f4a');
+        }
+        colors.push(c.r,c.g,c.b);
+      }
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+      geo.computeVertexNormals();
+      const mat = new THREE.MeshStandardMaterial({ vertexColors:true, metalness:0.0, roughness:0.95 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.frustumCulled = true;
+      return mesh;
+    }
+
+    const terrainLOD = new THREE.LOD();
+    const tHigh = buildTerrain(512, 1.0);
+    const tMid  = buildTerrain(256, 1.0);
+    const tLow  = buildTerrain(128, 1.0);
+    terrainLOD.addLevel(tHigh, 0);
+    terrainLOD.addLevel(tMid,  400);
+    terrainLOD.addLevel(tLow,  900);
+    scene.add(terrainLOD);
+
+    let ocean = null;
+    if (oceanOK) {
+      try {
+        const oceanPlane = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4, 64, 64);
+        const oceanMaterial = new THREE.MeshStandardMaterial({ color: '#0d3b66', metalness:0.0, roughness:0.8 });
+        ocean = new THREE.Mesh(oceanPlane, oceanMaterial);
+        ocean.rotation.x = -Math.PI/2;
+        scene.add(ocean);
+      } catch(e) { ocean = null; }
+    }
+    if (!ocean) {
+      const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4);
+      const normalTex = new THREE.TextureLoader().load(PATHS.waterNormals, t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping });
+      const water = new Water(waterGeom, {
+        color: '#0d3b66', scale: 8, flowDirection: new THREE.Vector2(1, 1),
+        textureWidth: 1024, textureHeight: 1024, normalMap0: normalTex, normalMap1: normalTex
+      });
+      water.rotation.x = -Math.PI/2;
+      scene.add(water);
+      ocean = water;
+    }
+
+    const palmCount = 320;
+    const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 8, 6, 1, false);
+    const trunkMat = new THREE.MeshStandardMaterial({ color:'#6b4f2d', roughness:0.9 });
+    const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, palmCount);
+    trunkInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    trunkInst.frustumCulled = true;
+
+    const leafGeo = new THREE.ConeGeometry(1.4, 2.8, 6);
+    const leafMat = new THREE.MeshStandardMaterial({ color:'#1f7a4b', roughness:0.7, metalness:0.0 });
+    const leafInst = new THREE.InstancedMesh(leafGeo, leafMat, palmCount*4);
+    leafInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    leafInst.frustumCulled = true;
+
+    const m4 = new THREE.Matrix4();
+    function sampleHeightAt(x, z) {
+      const nx = (x + HALF)/ISLAND_SIZE, nz = (z + HALF)/ISLAND_SIZE;
+      const h1 = perlin(nx*4, nz*4), h2 = perlin(nx*8+100, nz*8-30), h3 = perlin(nx*16-50, nz*16+50);
+      let h = (h1*0.6 + h2*0.3 + h3*0.1);
+      const ridge = Math.exp(-Math.pow((nx-0.5)*2.4, 2))*Math.exp(-Math.pow((nz-0.5)*2.4, 2));
+      h += ridge*0.35;
+      const edge = Math.min(nx, nz, 1-nx, 1-nz);
+      let heightM = (h*100);
+      if (edge < 0.07) heightM *= 0.5;
+      return heightM;
+    }
+    let leafIndex = 0;
+    for (let i=0; i<palmCount; i++) {
+      let x, z, tries=0, nearBeach=false;
+      while (true) {
+        tries++; if (tries>1000) break;
+        x = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.9);
+        z = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.9);
+        const nx = (x + HALF)/ISLAND_SIZE, nz=(z+HALF)/ISLAND_SIZE;
+        const edge = Math.min(nx, nz, 1-nx, 1-nz);
+        nearBeach = edge < 0.12;
+        const ok = THREE.MathUtils.randFloat(0,1) < (nearBeach? 0.7 : 0.3);
+        const h = sampleHeightAt(x,z);
+        if (ok && h > 1 && h < 40) break;
+      }
+      const y = sampleHeightAt(x,z);
+      const s = THREE.MathUtils.randFloat(0.9, 1.25);
+      const rotY = THREE.MathUtils.randFloat(0, Math.PI*2);
+      m4.compose(new THREE.Vector3(x, y+4*s, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), rotY), new THREE.Vector3(1, s, 1));
+      trunkInst.setMatrixAt(i, m4);
+      for (let k=0;k<4;k++) {
+        const ry = rotY + k*(Math.PI/2) + THREE.MathUtils.randFloat(-0.15,0.15);
+        const up = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.6+THREE.MathUtils.randFloat(-0.2,0.2), ry, 0));
+        const scale = THREE.MathUtils.randFloat(0.8,1.2);
+        m4.compose(new THREE.Vector3(x, y+8.5*s, z), up, new THREE.Vector3(scale, scale, scale));
+        leafInst.setMatrixAt(leafIndex++, m4);
+      }
+    }
+    scene.add(trunkInst, leafInst);
+
+    const fernCount = 100;
+    const fernGeo = new THREE.ConeGeometry(0.8, 1.2, 7);
+    const fernMat = new THREE.MeshStandardMaterial({ color:'#2b7a53', roughness:0.8 });
+    const fernInst = new THREE.InstancedMesh(fernGeo, fernMat, fernCount);
+    for (let i=0;i<fernCount;i++){
+      const x = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.8);
+      const z = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.8);
+      const y = sampleHeightAt(x,z);
+      m4.compose(new THREE.Vector3(x, y+0.6, z), new THREE.Quaternion(), new THREE.Vector3(1,1,1));
+      fernInst.setMatrixAt(i, m4);
+    }
+    scene.add(fernInst);
+
+    const grassGroup = new THREE.Group(); scene.add(grassGroup);
+    {
+      const plane = new THREE.PlaneGeometry(0.8, 1.2);
+      const mat = new THREE.MeshBasicMaterial({ color:'#6aa84f', transparent:true, opacity:0.85, side:THREE.DoubleSide });
+      for (let i=0;i<800;i++){
+        const x = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6);
+        const z = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6);
+        const y = sampleHeightAt(x,z);
+        if (y>2 && y<50){
+          const m = new THREE.Mesh(plane, mat);
+          m.position.set(x, y+0.6, z);
+          m.rotation.y = THREE.MathUtils.randFloat(0,Math.PI*2);
+          grassGroup.add(m);
+        }
+      }
+    }
+
+    function buildCastle(){
+      const castle = new THREE.Group();
+      const baseMat = new THREE.MeshStandardMaterial({ color:'#8a8f96', metalness:0.1, roughness:0.45 });
+      const glassMat = new THREE.MeshPhysicalMaterial({ color:'#bcd4f7', metalness:0.0, roughness:0.1, transmission:0.5, thickness:0.2, envMapIntensity:1.0 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(60, 30, 40), baseMat);
+      body.position.y = 15; castle.add(body);
+      for (let i=0;i<5;i++){
+        const slab = new THREE.Mesh(new THREE.BoxGeometry(62, 1.2, 42), baseMat);
+        slab.position.y = 6*(i+1); castle.add(slab);
+      }
+      const r = 35;
+      for (let t=0;t<8;t++){
+        const ang = t*(Math.PI/4);
+        const x = Math.cos(ang)*r, z=Math.sin(ang)*r;
+        const cyl = new THREE.Mesh(new THREE.CylinderGeometry(4,4, 28, 18), baseMat);
+        cyl.position.set(x, 14, z); castle.add(cyl);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(4.8,0.5,10,24), baseMat);
+        ring.position.set(x, 24, z); ring.rotation.x = Math.PI/2; castle.add(ring);
+      }
+      const glass = new THREE.Mesh(new THREE.PlaneGeometry(50, 22), glassMat);
+      glass.position.set(0, 14, 21.1); castle.add(glass);
+      const smokeGroup = new THREE.Group(); castle.add(smokeGroup);
+      for (let k=0;k<3;k++){
+        const chim = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 6, 10), baseMat);
+        chim.position.set(-10 + k*10, 18, -8); castle.add(chim);
+        for (let i=0;i<24;i++){
+          const s = new THREE.Sprite(new THREE.SpriteMaterial({ color:0xffffff, opacity:0.15 }));
+          s.position.set(-10 + k*10 + THREE.MathUtils.randFloat(-0.5,0.5), 20+ i*0.6, -8 + THREE.MathUtils.randFloat(-0.5,0.5));
+          const sc = 1 + i*0.06; s.scale.set(sc, sc, 1);
+          smokeGroup.add(s);
+        }
+      }
+      castle.position.set(0, sampleHeightAt(0,0), 0);
+      castle.frustumCulled = true; scene.add(castle);
+
+      const low = new THREE.Mesh(new THREE.BoxGeometry(60, 30, 40), baseMat);
+      const castleLOD = new THREE.LOD();
+      castleLOD.addLevel(castle, 0);
+      const lowWrap = new THREE.Group(); low.position.y = 15; lowWrap.add(low); lowWrap.position.copy(castle.position);
+      castleLOD.addLevel(lowWrap, 600);
+      scene.add(castleLOD);
+
+      return { castle, smokeGroup };
+    }
+    const { castle, smokeGroup } = buildCastle();
+
+    const gltfLoader = new GLTFLoader();
+    const villaPositions = [];
+    for (let i=0;i<5;i++){ villaPositions.push(new THREE.Vector3(-200 + i*60, 0, -140 + THREE.MathUtils.randFloat(-40,40))); }
+    const bungalowPositions = [];
+    for (let i=0;i<7;i++){ bungalowPositions.push(new THREE.Vector3(180 + i*40, 0, 120 + THREE.MathUtils.randFloat(-50,50))); }
+    async function loadGLTForBox(url, pos, color='#9aa3a8', scale=8){
+      try {
+        if (!url) throw new Error('no-url');
+        const gltf = await gltfLoader.loadAsync(url);
+        const obj = gltf.scene;
+        obj.scale.setScalar(scale);
+        obj.traverse(n=>{ if (n.isMesh){ n.castShadow=false; n.receiveShadow=false; n.frustumCulled=true; if (n.material) { n.material.metalness=0.1; n.material.roughness=0.6; } }});
+        obj.position.copy(pos); obj.position.y = sampleHeightAt(pos.x, pos.z);
+        scene.add(obj);
+      } catch (e) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(18,8,12), new THREE.MeshStandardMaterial({ color, roughness:0.6, metalness:0.1 }));
+        m.position.copy(pos); m.position.y = sampleHeightAt(pos.x, pos.z)+4;
+        scene.add(m);
+      }
+    }
+    for (const p of villaPositions) loadGLTForBox(PATHS.villaGLTF, p, '#adb5bd', 1.5);
+    for (const p of bungalowPositions) loadGLTForBox(PATHS.bungalowGLTF, p, '#b8996f', 0.7);
+
+    const tdsLoader = new TDSLoader();
+    async function loadHelipad(){
+      try {
+        if (!PATHS.helipadGLTF) throw new Error('no-tds');
+        const obj = await tdsLoader.loadAsync(PATHS.helipadGLTF);
+        obj.scale.setScalar(1);
+        obj.position.set(-120, sampleHeightAt(-120, 210)+1, 210);
+        scene.add(obj);
+      } catch (e) {
+        const g = new THREE.CircleGeometry(18, 48);
+        const m = new THREE.MeshStandardMaterial({ color:'#3a3f47', roughness:0.9 });
+        const pad = new THREE.Mesh(g, m);
+        pad.rotation.x = -Math.PI/2;
+        pad.position.set(-120, sampleHeightAt(-120, 210)+0.2, 210);
+        scene.add(pad);
+        for (let i=0;i<6;i++){
+          const ang = i*(Math.PI*2/6);
+          const x = -120 + Math.cos(ang)*16, z = 210 + Math.sin(ang)*16;
+          const light = new THREE.PointLight('#a7c7ff', 0.7, 40);
+          light.position.set(x, sampleHeightAt(x,z)+1.2, z);
+          scene.add(light);
+        }
+      }
+    }
+    loadHelipad();
+
+    {
+      const pierMat = new THREE.MeshStandardMaterial({ color:'#6d5a45', roughness:0.9 });
+      const pier = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 40), pierMat);
+      const px = HALF*0.7, pz = HALF*0.7;
+      pier.position.set(px, sampleHeightAt(px, pz)+0.5, pz);
+      scene.add(pier);
+
+      const boatMat = new THREE.MeshStandardMaterial({ color:'#c9d6de', roughness:0.7 });
+      const boats = [];
+      for (let i=0;i<3;i++){
+        const b = new THREE.Mesh(new THREE.CapsuleGeometry(3.2, 6, 4, 8), boatMat);
+        b.position.set(px+8+i*5, 1.2, pz+10+i*2);
+        scene.add(b); boats.push(b);
+      }
+      const wakeMat = new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.15 });
+      boats.forEach((b,idx)=>{
+        const w = new THREE.Mesh(new THREE.PlaneGeometry(4, 12), wakeMat);
+        w.rotation.x = -Math.PI/2;
+        w.position.set(b.position.x, 0.3, b.position.z-6);
+        scene.add(w);
+        b.userData.wake = w;
+      });
+    }
+
+    const cloudTex = new THREE.TextureLoader().load(PATHS.cloud, t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
+    const cloudGroup = new THREE.Group(); scene.add(cloudGroup);
+    for (let i=0;i<16;i++){
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, color:0xffffff, opacity: (i%2?0.45:0.35) }));
+      sp.position.set(THREE.MathUtils.randFloatSpread(ISLAND_SIZE), 250+THREE.MathUtils.randFloat(-40,60), THREE.MathUtils.randFloatSpread(ISLAND_SIZE));
+      sp.scale.setScalar(120 + Math.random()*180);
+      cloudGroup.add(sp);
+    }
+
+    const birdGroup = new THREE.Group(); scene.add(birdGroup);
+    for (let f=0;f<5;f++){
+      const flock = new THREE.Group(); birdGroup.add(flock);
+      const count = 24;
+      for (let i=0;i<count;i++){
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({ color:0xffffff, opacity:0.85 }));
+        s.scale.setScalar(0.9); flock.add(s);
+      }
+      flock.userData.center = new THREE.Vector3(THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6), 140+Math.random()*70, THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6));
+      flock.userData.radius = 20 + Math.random()*40;
+      flock.userData.speed = 0.2 + Math.random()*0.3;
+    }
+
+    const fishGroup = new THREE.Group(); scene.add(fishGroup);
+    for (let g=0; g<10; g++){
+      const school = new THREE.Group(); fishGroup.add(school);
+      const count=30;
+      for (let i=0;i<count;i++){
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({ color:'#b7e3ff', opacity:0.8 }));
+        s.scale.set(0.6,0.6,1); school.add(s);
+      }
+      school.userData.center = new THREE.Vector3(THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6), -1+Math.random()*1.5, THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6));
+      school.userData.radius = 10 + Math.random()*20;
+      school.userData.speed = 0.6 + Math.random()*0.5;
+    }
+
+    let audioReady = false;
+    let audioCtx, gainMaster;
+    const audioBtn = document.getElementById('audioBtn');
+    audioBtn.addEventListener('click', () => {
+      if (audioReady) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.25; gainMaster.connect(audioCtx.destination);
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.6;
+      const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+      const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 400; filter.Q.value = 0.5;
+      noise.connect(filter); filter.connect(gainMaster); noise.start();
+      function playGull(){
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type='sine'; osc.frequency.value = 1200 + Math.random()*600;
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.03, audioCtx.currentTime+0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.35);
+        osc.connect(gain); gain.connect(gainMaster);
+        osc.start(); osc.stop(audioCtx.currentTime+0.4);
+        setTimeout(playGull, 1500+Math.random()*3500);
+      }
+      playGull();
+      audioReady = true; audioBtn.textContent = 'Звуки включены'; audioBtn.disabled = true;
+    });
+
+    window.addEventListener('resize', onResize);
+    function onResize(){
+      const dpr = Math.min(2, window.devicePixelRatio||1);
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setPixelRatio(dpr); renderer.setSize(w, h);
+      camera.aspect = w/h; camera.updateProjectionMatrix();
+      composer.setSize(w,h);
+      fxaa.material.uniforms['resolution'].value.set(1/w, 1/h);
+      bloom.setSize(w,h);
+    }
+
+    const fpsEl = document.getElementById('fps');
+    const clock = new THREE.Clock();
+    const windStrength = 0.5;
+    let frameTimeAcc=0, frameCount=0, lastT=performance.now();
+
+    function animate() {
+      const now = performance.now();
+      const dt = clock.getDelta();
+      controls.update();
+      composer.render();
+      frameTimeAcc += now - lastT; frameCount++; lastT = now;
+      if (frameTimeAcc > 500){
+        const fps = Math.round(1000*(frameCount/frameTimeAcc)*100)/100;
+        fpsEl.textContent = String(fps);
+        frameTimeAcc = 0; frameCount = 0;
+      }
+      requestAnimationFrame(animate);
+    }
+    onResize(); animate();
+
+    try {
+      Telegram.WebApp.onEvent('backButtonClicked', () => Telegram.WebApp.close());
+      Telegram.WebApp.BackButton.show();
+    } catch(_) {}
+  </script>
 </body>
 </html>
