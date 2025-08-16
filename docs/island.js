@@ -16,7 +16,7 @@ import { BuildingSystem } from './island-buildings.js';
 import { AnimationSystem } from './island-animations.js';
 
 // Telegram WebApp
-const tg = window.Telegram?.WebApp;
+  const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
