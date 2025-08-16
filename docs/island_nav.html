@@ -1,16 +1,25 @@
 <!DOCTYPE html>
 <html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Навигация · Храмы — MiniApp</title><meta name="color-scheme" content="dark light">
+<title>Храмовая навигация — MiniApp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/island_nav2.css">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Three r128 classic -->
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-</head><body>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+</head>
+<body>
 <div id="app"><canvas id="c"></canvas></div>
-<div class="hud"><div id="title" class="title">Нажми на постройку для выбора темы</div></div>
+<div class="hud">
+  <div id="title" class="title">Нажмите «Войти в режим» и идите к храмам</div>
+  <div class="actions">
+    <button id="enter" class="btn">Войти в режим</button>
+    <button id="exit" class="btn ghost">Выйти</button>
+  </div>
+</div>
 <div id="label" class="tooltip">Тема</div>
-<script src="js/island_nav_nomodule.js"></script>
+<script src="js/island_fp_nomodule.js"></script>
 </body></html>
