@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Комната · Книжная полка — MiniApp</title><meta name="color-scheme" content="dark light">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shelf_room.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head><body>
+<div id="app"><canvas id="c"></canvas></div>
+<div class="hud"><div id="title" class="title">Выберите книгу (подсвечено 5)</div></div>
+<button id="backBtn" class="back">← Назад</button>
+<div id="book" class="book" aria-hidden="true">
+  <div class="paper">
+    <h2 id="bookTitle">Пост 1</h2>
+    <p id="bookLead">Эта книга открывает доступ к материалу по выбранной теме. Нажмите «Читать», чтобы перейти к посту в канале. Приятного чтения!</p>
+    <div class="cta">
+      <button id="readBtn" class="btn alt">Читать</button>
+      <button id="closeBook" class="btn">Закрыть</button>
+    </div>
+  </div>
+</div>
+<div id="vortex" class="vortex"></div>
+<script type="module" src="js/shelf_room.js"></script>
+</body></html>
