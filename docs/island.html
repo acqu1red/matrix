@@ -3,43 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Остров навигации</title>
+  <title>Остров знаний - Формула</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Only Three.js; no OrbitControls to avoid CDN/module issues in WebView -->
   <script src="https://unpkg.com/three@0.164.1/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.164.1/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/three@0.164.1/examples/js/controls/OrbitControls.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="island.css" />
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="loading-content">
+      <div class="loading-logo">💎</div>
+      <div class="loading-title">ФОРМУЛА</div>
+      <div class="loading-subtitle">Загрузка острова знаний...</div>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Island Interface -->
   <div id="overlayTop">
-    <div class="islandTitle">JEFFREY EPSTEIN ISLAND</div>
-    <div class="subTitle">Tap a house · Нажмите на дом</div>
+    <div class="islandTitle">ОСТРОВ ЗНАНИЙ</div>
+    <div class="subTitle">Нажмите на дом для входа в раздел знаний</div>
   </div>
 
   <div id="canvasWrap">
     <canvas id="scene"></canvas>
   </div>
 
+  <!-- House Labels (appear on hover) -->
+  <div id="houseLabels">
+    <div class="house-label" id="support-label" style="display: none;">
+      <div class="label-content">
+        <div class="label-icon">💬</div>
+        <div class="label-text">Поддержка</div>
+        <div class="label-desc">Прямое общение с экспертами</div>
+      </div>
+    </div>
+    <div class="house-label" id="materials-label" style="display: none;">
+      <div class="label-content">
+        <div class="label-icon">📚</div>
+        <div class="label-text">Материалы</div>
+        <div class="label-desc">Эксклюзивные знания</div>
+      </div>
+    </div>
+    <div class="house-label" id="psychotypes-label" style="display: none;">
+      <div class="label-content">
+        <div class="label-icon">🧠</div>
+        <div class="label-text">Психотипы</div>
+        <div class="label-desc">Глубокий анализ личности</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Interior overlay -->
   <div id="interiorOverlay" class="hidden">
-    <div class="interiorHeader">
-      <div class="interiorTitle">Психотипы</div>
+    <div class="interior-header">
+      <div class="interior-title">Библиотека знаний</div>
       <button id="closeInterior" class="btn ghost">× Закрыть</button>
     </div>
     <div id="interiorCanvasWrap">
       <canvas id="interior"></canvas>
     </div>
     <div id="bookPanel" class="hidden">
-      <div class="bookCard">
-        <div class="bookTitle" id="bookTitle">Книга</div>
-        <button class="btn primary" id="bookLinkBtn">Читать в канал</button>
+      <div class="book-shelf">
+        <div class="shelf-title">Выберите книгу знаний</div>
+        <div class="books-grid" id="booksGrid"></div>
       </div>
     </div>
   </div>
 
-  <div id="hint">Двигайте одним пальцем — поворот · Пинч — зум</div>
+  <!-- Book Reading Interface -->
+  <div id="bookReader" class="hidden">
+    <div class="book-header">
+      <div class="book-title" id="bookReaderTitle">Название книги</div>
+      <button id="closeBook" class="btn ghost">× Закрыть</button>
+    </div>
+    <div class="book-content">
+      <div class="book-page" id="bookPage">
+        <div class="page-content">
+          <div class="book-cover">
+            <div class="cover-title" id="coverTitle">Психотипы</div>
+            <div class="cover-subtitle">Глубокий анализ личности</div>
+            <div class="cover-author">ФОРМУЛА</div>
+          </div>
+        </div>
+      </div>
+      <div class="book-actions">
+        <button class="btn primary" id="readInChannelBtn">
+          <span class="btn-icon">📖</span>
+          Читать в канале
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hint">Двигайте пальцем для осмотра • Нажмите на дом для входа</div>
 
   <script src="island.js"></script>
 </body>
