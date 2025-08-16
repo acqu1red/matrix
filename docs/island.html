@@ -15,11 +15,6 @@
       --fg: #eae6de; 
       --glass: rgba(255,255,255,.08);
       --accent: #36c2b6;
-      --ocean: #0d3b66;
-      --sand: #f5e3be;
-      --forest: #2a8a57;
-      --jungle: #71c47f;
-      --rock: #5e6673;
     }
     
     * { box-sizing: border-box }
@@ -60,75 +55,6 @@
       transition: all 0.3s ease;
     }
     
-    .tag:hover {
-      background: rgba(0,0,0,.6);
-      transform: translateY(-1px);
-    }
-    
-    #legend { 
-      pointer-events: auto; 
-      position: fixed; 
-      right: 10px; 
-      bottom: 10px; 
-      z-index: 10;
-      background: rgba(0,0,0,.45); 
-      border: 1px solid var(--glass); 
-      border-radius: 12px; 
-      padding: 10px 12px; 
-      font-size: 12px;
-      backdrop-filter: blur(6px);
-    }
-    
-    #audioBtn {
-      pointer-events: auto; 
-      cursor: pointer; 
-      border: none; 
-      border-radius: 12px; 
-      padding: 8px 12px; 
-      font-weight: 800;
-      background: linear-gradient(135deg, #eef9f3, #e6faf7); 
-      color: #0c0d10; 
-      box-shadow: 0 8px 22px rgba(0,0,0,.35);
-      transition: all 0.3s ease;
-    }
-    
-    #audioBtn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(0,0,0,.4);
-    }
-    
-    #audioBtn.playing {
-      background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-      color: white;
-    }
-    
-    #hint {
-      position: fixed; 
-      bottom: 12px; 
-      left: 50%; 
-      transform: translateX(-50%); 
-      z-index: 10;
-      font-size: 12px; 
-      opacity: .7; 
-      background: rgba(0,0,0,.4); 
-      border: 1px solid var(--glass); 
-      border-radius: 10px; 
-      padding: 6px 10px; 
-      backdrop-filter: blur(6px);
-    }
-    
-    #perf {
-      position: fixed; 
-      left: 10px; 
-      bottom: 10px; 
-      font-size: 11px; 
-      opacity: .7;
-      background: rgba(0,0,0,.35); 
-      border: 1px solid var(--glass); 
-      padding: 6px 10px; 
-      border-radius: 10px;
-    }
-    
     #loading {
       position: fixed;
       inset: 0;
@@ -155,6 +81,18 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    
+    #perf {
+      position: fixed; 
+      left: 10px; 
+      bottom: 10px; 
+      font-size: 11px; 
+      opacity: .7;
+      background: rgba(0,0,0,.35); 
+      border: 1px solid var(--glass); 
+      padding: 6px 10px; 
+      border-radius: 10px;
+    }
   </style>
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -169,18 +107,96 @@
   <div id="app"><canvas id="c"></canvas></div>
   
   <div id="hud">
-    <div class="tag">JEFFREY EPSTEIN ISLAND · 1 км²</div>
-    <button id="audioBtn" class="tag">Включить звуки</button>
+    <div class="tag">JEFFREY EPSTEIN ISLAND · Тест</div>
   </div>
   
-  <div id="hint">Управление: ЛКМ — вращение · Колёсико — зум · ПКМ/Shift — панорамирование</div>
-  <div id="legend">
-    <div><b>Время суток:</b> авто по системному</div>
-    <div><b>FPS target:</b> 60 · <b>WebGL:</b> v2→v1 fallback</div>
-    <div><b>Water:</b> Ocean.js → Water2 fallback</div>
-  </div>
   <div id="perf">FPS: <span id="fps">—</span></div>
 
-  <script type="module" src="island.js"></script>
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+
+    // Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    // Простая сцена для тестирования
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 5, 10);
+    
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: document.getElementById('c'), 
+      antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x87ceeb);
+
+    // Освещение
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(10, 10, 5);
+    scene.add(directionalLight);
+
+    // Простой остров (плоскость)
+    const geometry = new THREE.PlaneGeometry(20, 20);
+    const material = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+    const island = new THREE.Mesh(geometry, material);
+    island.rotation.x = -Math.PI / 2;
+    scene.add(island);
+
+    // Вода
+    const waterGeometry = new THREE.PlaneGeometry(50, 50);
+    const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x006994, transparent: true, opacity: 0.7 });
+    const water = new THREE.Mesh(waterGeometry, waterMaterial);
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = -0.1;
+    scene.add(water);
+
+    // Контролы
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // Анимация
+    const clock = new THREE.Clock();
+    const fpsElement = document.getElementById('fps');
+    let frameCount = 0;
+    let lastTime = performance.now();
+    
+    function animate() {
+      const delta = clock.getDelta();
+      
+      controls.update();
+      renderer.render(scene, camera);
+      
+      // FPS счетчик
+      frameCount++;
+      const currentTime = performance.now();
+      if (currentTime - lastTime >= 1000) {
+        fpsElement.textContent = Math.round((frameCount * 1000) / (currentTime - lastTime));
+        frameCount = 0;
+        lastTime = currentTime;
+      }
+      
+      requestAnimationFrame(animate);
+    }
+
+    // Обработка изменения размера
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Убираем экран загрузки и запускаем
+    document.getElementById('loading').style.display = 'none';
+    animate();
+  </script>
 </body>
 </html>
