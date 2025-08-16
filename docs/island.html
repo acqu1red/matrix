@@ -5,9 +5,6 @@
   <title>Остров • MiniApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   
   <style>
     :root { 
@@ -29,31 +26,6 @@
     
     #app { position: fixed; inset: 0; }
     canvas { display: block; width: 100%; height: 100%; }
-    
-    #hud {
-      position: fixed; 
-      top: 10px; 
-      left: 50%; 
-      transform: translateX(-50%);
-      display: flex; 
-      align-items: center; 
-      gap: 10px; 
-      z-index: 10; 
-      pointer-events: none;
-    }
-    
-    .tag {
-      pointer-events: auto;
-      background: rgba(0,0,0,.45); 
-      border: 1px solid var(--glass); 
-      color: var(--fg);
-      padding: 6px 10px; 
-      border-radius: 12px; 
-      font-weight: 700; 
-      backdrop-filter: blur(6px);
-      box-shadow: 0 4px 18px rgba(0,0,0,.35);
-      transition: all 0.3s ease;
-    }
     
     #loading {
       position: fixed;
@@ -82,16 +54,17 @@
       100% { transform: rotate(360deg); }
     }
     
-    #perf {
-      position: fixed; 
-      left: 10px; 
-      bottom: 10px; 
-      font-size: 11px; 
-      opacity: .7;
-      background: rgba(0,0,0,.35); 
-      border: 1px solid var(--glass); 
-      padding: 6px 10px; 
-      border-radius: 10px;
+    #debug {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 200;
     }
   </style>
   
@@ -104,241 +77,122 @@
     Загрузка острова...
   </div>
   
+  <div id="debug">Debug: Инициализация...</div>
+  
   <div id="app"><canvas id="c"></canvas></div>
-  
-  <div id="hud">
-    <div class="tag">JEFFREY EPSTEIN ISLAND · Тест</div>
-  </div>
-  
-  <div id="perf">FPS: <span id="fps">—</span></div>
 
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
-
-    // Telegram WebApp
+  <script>
+    // Простая версия без модулей для диагностики
+    const debug = document.getElementById('debug');
+    
+    function log(message) {
+      console.log(message);
+      debug.textContent = 'Debug: ' + message;
+    }
+    
+    log('Скрипт начал выполнение');
+    
+    // Проверяем Telegram WebApp
     const tg = window.Telegram?.WebApp;
     if (tg) {
+      log('Telegram WebApp найден');
       tg.ready();
       tg.expand();
-    }
-
-    // Простая сцена для тестирования
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 15, 20);
-    
-    const renderer = new THREE.WebGLRenderer({ 
-      canvas: document.getElementById('c'), 
-      antialias: true
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x87ceeb);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // Освещение
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-    scene.add(ambientLight);
-    
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    directionalLight.position.set(10, 10, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 1024;
-    directionalLight.shadow.mapSize.height = 1024;
-    scene.add(directionalLight);
-
-    // Простой террейн с Perlin noise
-    function makePerlin(seed) {
-      const p = new Uint8Array(512);
-      for (let i = 0; i < 256; i++) p[i] = i;
-      for (let i = 255; i > 0; i--) {
-        const j = Math.floor(Math.random() * 256);
-        const t = p[i];
-        p[i] = p[j];
-        p[j] = t;
-      }
-      for (let i = 0; i < 256; i++) p[256 + i] = p[i];
-      
-      return function(x, y) {
-        const X = Math.floor(x) & 255;
-        const Y = Math.floor(y) & 255;
-        const xf = x - Math.floor(x);
-        const yf = y - Math.floor(y);
-        
-        const tr = p[p[X + 1] + Y + 1];
-        const tl = p[p[X] + Y + 1];
-        const br = p[p[X + 1] + Y];
-        const bl = p[p[X] + Y];
-        
-        const u = xf * xf * xf * (xf * (xf * 6 - 15) + 10);
-        const v = yf * yf * yf * (yf * (yf * 6 - 15) + 10);
-        
-        const x1 = (tr - br) * u + br;
-        const x2 = (tl - bl) * u + bl;
-        
-        return (x1 - x2) * v + x2;
-      };
+    } else {
+      log('Telegram WebApp не найден');
     }
     
-    const perlin = makePerlin(42);
+    // Загружаем Three.js
+    log('Загружаем Three.js...');
     
-    // Создаем террейн
-    const terrainGeometry = new THREE.PlaneGeometry(40, 40, 50, 50);
-    terrainGeometry.rotateX(-Math.PI / 2);
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/three@0.152.2/build/three.min.js';
+    script.onload = function() {
+      log('Three.js загружен');
+      initScene();
+    };
+    script.onerror = function() {
+      log('Ошибка загрузки Three.js');
+      document.getElementById('loading').innerHTML = 'Ошибка загрузки Three.js';
+    };
+    document.head.appendChild(script);
     
-    const positions = terrainGeometry.attributes.position;
-    const colors = [];
-    
-    for (let i = 0; i < positions.count; i++) {
-      const x = positions.getX(i);
-      const z = positions.getZ(i);
-      
-      const noise1 = perlin(x * 0.05, z * 0.05) * 8;
-      const noise2 = perlin(x * 0.1, z * 0.1) * 4;
-      
-      let height = noise1 + noise2;
-      
-      // Создаем форму острова
-      const distance = Math.sqrt(x * x + z * z);
-      const islandRadius = 15;
-      if (distance > islandRadius) {
-        height *= Math.max(0, 1 - (distance - islandRadius) / 5);
+    function initScene() {
+      try {
+        log('Инициализируем сцену...');
+        
+        // Проверяем, что THREE доступен
+        if (typeof THREE === 'undefined') {
+          throw new Error('THREE не определен');
+        }
+        
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 10);
+        
+        const renderer = new THREE.WebGLRenderer({ 
+          canvas: document.getElementById('c'), 
+          antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x87ceeb);
+        
+        log('Рендерер создан');
+        
+        // Освещение
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(10, 10, 5);
+        scene.add(directionalLight);
+        
+        log('Освещение настроено');
+        
+        // Простой куб для тестирования
+        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        const material = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+        
+        log('Куб создан');
+        
+        // Простая анимация
+        function animate() {
+          requestAnimationFrame(animate);
+          
+          cube.rotation.x += 0.01;
+          cube.rotation.y += 0.01;
+          
+          renderer.render(scene, camera);
+        }
+        
+        log('Анимация запущена');
+        animate();
+        
+        // Убираем экран загрузки
+        log('Убираем экран загрузки');
+        document.getElementById('loading').style.display = 'none';
+        
+        log('Сцена готова!');
+        
+      } catch (error) {
+        log('Ошибка: ' + error.message);
+        console.error(error);
+        document.getElementById('loading').innerHTML = 'Ошибка: ' + error.message;
       }
-      
-      positions.setY(i, height);
-      
-      // Цвета по высоте
-      let color = new THREE.Color();
-      if (distance > islandRadius - 2) {
-        color.setHex(0xf5e3be); // Пляж
-      } else if (height > 6) {
-        color.setHex(0x5e6673); // Горы
-      } else if (height > 3) {
-        color.setHex(0x2a8a57); // Лес
-      } else {
-        color.setHex(0x71c47f); // Равнины
-      }
-      
-      colors.push(color.r, color.g, color.b);
     }
     
-    terrainGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    terrainGeometry.computeVertexNormals();
-    
-    const terrainMaterial = new THREE.MeshStandardMaterial({ 
-      vertexColors: true, 
-      roughness: 0.8
+    // Обработка ошибок
+    window.addEventListener('error', function(e) {
+      log('Ошибка: ' + e.message);
+      console.error(e);
     });
     
-    const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
-    terrain.receiveShadow = true;
-    terrain.castShadow = true;
-    scene.add(terrain);
-
-    // Вода
-    const waterGeometry = new THREE.PlaneGeometry(80, 80, 20, 20);
-    const waterMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x006994, 
-      transparent: true, 
-      opacity: 0.7,
-      roughness: 0.1,
-      metalness: 0.8
+    window.addEventListener('unhandledrejection', function(e) {
+      log('Необработанная ошибка: ' + e.reason);
+      console.error(e);
     });
-    const water = new THREE.Mesh(waterGeometry, waterMaterial);
-    water.rotation.x = -Math.PI / 2;
-    water.position.y = -0.5;
-    scene.add(water);
-
-    // Добавляем пальмы
-    for (let i = 0; i < 15; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const distance = Math.random() * 10 + 2;
-      const x = Math.cos(angle) * distance;
-      const z = Math.sin(angle) * distance;
-      
-      // Ствол
-      const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.5, 4, 8);
-      const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-      const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-      trunk.position.set(x, 2, z);
-      trunk.castShadow = true;
-      scene.add(trunk);
-      
-      // Листья
-      for (let j = 0; j < 6; j++) {
-        const leafGeometry = new THREE.ConeGeometry(0.2, 1.5, 6);
-        const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
-        const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
-        
-        const leafAngle = (j / 6) * Math.PI * 2;
-        leaf.position.set(
-          x + Math.cos(leafAngle) * 0.3,
-          4.5,
-          z + Math.sin(leafAngle) * 0.3
-        );
-        leaf.rotation.x = -0.3;
-        leaf.rotation.y = leafAngle;
-        leaf.castShadow = true;
-        scene.add(leaf);
-      }
-    }
-
-    // Замок в центре
-    const castleGeometry = new THREE.BoxGeometry(3, 4, 3);
-    const castleMaterial = new THREE.MeshStandardMaterial({ color: 0x8B7355 });
-    const castle = new THREE.Mesh(castleGeometry, castleMaterial);
-    castle.position.set(0, 2, 0);
-    castle.castShadow = true;
-    castle.receiveShadow = true;
-    scene.add(castle);
-
-    // Контролы
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minDistance = 5;
-    controls.maxDistance = 50;
-    controls.maxPolarAngle = Math.PI / 2.2;
-
-    // Анимация
-    const clock = new THREE.Clock();
-    const fpsElement = document.getElementById('fps');
-    let frameCount = 0;
-    let lastTime = performance.now();
-    
-    function animate() {
-      const delta = clock.getDelta();
-      const time = clock.getElapsedTime();
-      
-      // Анимация воды
-      water.position.y = -0.5 + Math.sin(time * 0.5) * 0.1;
-      
-      controls.update();
-      renderer.render(scene, camera);
-      
-      // FPS счетчик
-      frameCount++;
-      const currentTime = performance.now();
-      if (currentTime - lastTime >= 1000) {
-        fpsElement.textContent = Math.round((frameCount * 1000) / (currentTime - lastTime));
-        frameCount = 0;
-        lastTime = currentTime;
-      }
-      
-      requestAnimationFrame(animate);
-    }
-
-    // Обработка изменения размера
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Убираем экран загрузки и запускаем
-    document.getElementById('loading').style.display = 'none';
-    animate();
   </script>
 </body>
 </html>
