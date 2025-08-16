@@ -3,7 +3,6 @@ import { SUPABASE_CONFIG, CONFIG, tg } from './config.js';
 // Инициализация Supabase
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-console.log('Supabase клиент создан:', { url: SUPABASE_CONFIG.url, key: SUPABASE_CONFIG.key.substring(0, 20) + '...' });
 
 // Элементы DOM
 const chat = document.getElementById('chat');
@@ -50,32 +49,21 @@ let isScrolledToBottom = true;
 
 // Инициализация приложения
 async function initApp() {
-    console.log('initApp вызвана');
-    console.log('tg объект:', tg);
-    
     if (tg) {
-        console.log('Telegram WebApp доступен');
         tg.expand();
         tg.enableClosingConfirmation();
         
         // Получаем данные пользователя
         const user = tg.initDataUnsafe?.user;
-        console.log('Данные пользователя:', user);
-        
         if (user) {
             currentUserId = user.id;
-            console.log('Установлен currentUserId:', currentUserId);
             
             // Создаем или получаем пользователя в базе
             await createOrGetUser(user);
             
             // Проверяем права админа
             await checkAdminRights();
-        } else {
-            console.log('Данные пользователя не найдены');
         }
-    } else {
-        console.log('Telegram WebApp недоступен');
     }
     
     // Проверяем URL параметры для прямого перехода к диалогу
@@ -93,9 +81,6 @@ async function initApp() {
     
     setupEventListeners();
     setupScrollTracking();
-    
-    // Тестируем подключение к базе данных
-    await testDatabaseConnection();
     
     // Запускаем автоматическое обновление сообщений
     startMessagePolling();
@@ -122,101 +107,45 @@ async function createOrGetUser(userData) {
     }
 }
 
-// Тестирование подключения к базе данных
-async function testDatabaseConnection() {
-    try {
-        console.log('Тестируем подключение к базе данных...');
-        
-        // Простой запрос к таблице users
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('count')
-            .limit(1);
-            
-        if (error) {
-            console.error('Ошибка подключения к базе данных:', error);
-        } else {
-            console.log('Подключение к базе данных успешно');
-        }
-    } catch (error) {
-        console.error('Ошибка при тестировании базы данных:', error);
-    }
-}
-
 // Проверка прав администратора
 async function checkAdminRights() {
-    console.log('checkAdminRights вызвана, currentUserId:', currentUserId);
-    
-    if (!currentUserId) {
-        console.log('currentUserId не установлен, пропускаем проверку');
-        return;
-    }
+    if (!currentUserId) return;
     
     try {
-        // Проверяем по ID администраторов из bot.py
-        const adminIds = [708907063, 7365307696];
-        console.log('Проверяем ID:', currentUserId, 'против списка:', adminIds);
+        const { data, error } = await supabaseClient
+            .rpc('is_admin', { user_telegram_id: currentUserId });
+            
+        if (error) throw error;
         
-        isAdmin = adminIds.includes(currentUserId);
-        console.log('Результат проверки isAdmin:', isAdmin);
+        isAdmin = data || false;
         
         if (isAdmin) {
-            console.log('Пользователь является администратором, показываем панель');
-            if (adminPanelBtn) {
-                adminPanelBtn.classList.remove('hidden');
-                console.log('Класс hidden удален с кнопки админ панели');
-            } else {
-                console.error('adminPanelBtn не найден!');
-            }
-            
-            const adminFooter = document.getElementById('adminFooter');
-            if (adminFooter) {
-                adminFooter.classList.add('active');
-                console.log('Класс active добавлен к adminFooter');
-            } else {
-                console.error('adminFooter не найден!');
-            }
-        } else {
-            console.log('Пользователь не является администратором');
+            adminPanelBtn.classList.remove('hidden');
+            document.getElementById('adminFooter').classList.add('active');
         }
     } catch (error) {
         console.error('Ошибка при проверке прав админа:', error);
-        isAdmin = false;
     }
 }
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    console.log('setupEventListeners вызвана');
-    console.log('sendBtn:', sendBtn);
-    console.log('messageInput:', messageInput);
-    
     // Обычный чат
-    if (sendBtn) {
-        sendBtn.addEventListener('click', (e) => {
-            console.log('Кнопка отправки нажата');
+    sendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!sendBtn.disabled) {
+            sendMessage();
+        }
+    });
+    
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (!sendBtn.disabled) {
                 sendMessage();
             }
-        });
-    } else {
-        console.error('Кнопка отправки не найдена!');
-    }
-    
-    if (messageInput) {
-        messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                console.log('Enter нажат в поле ввода');
-                e.preventDefault();
-                if (!sendBtn.disabled) {
-                    sendMessage();
-                }
-            }
-        });
-    } else {
-        console.error('Поле ввода сообщения не найдено!');
-    }
+        }
+    });
     
     attachBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileAttach);
@@ -265,15 +194,8 @@ function setFilter(filter) {
 
 // Функции отправки сообщений
 async function sendMessage() {
-    console.log('sendMessage вызвана');
     const text = messageInput.value.trim();
-    console.log('Текст сообщения:', text);
-    console.log('currentUserId:', currentUserId);
-    
-    if (!text || !currentUserId) {
-        console.log('Сообщение не отправлено: нет текста или currentUserId');
-        return;
-    }
+    if (!text || !currentUserId) return;
     
     // Блокируем кнопку и показываем состояние загрузки
     const sendBtn = document.getElementById('sendBtn');
@@ -314,12 +236,9 @@ async function sendMessage() {
     
     try {
         // Создаем или получаем диалог
-        console.log('Создаем или получаем диалог...');
         const conversationId = await createOrGetConversation();
-        console.log('ID диалога:', conversationId);
         
         if (!conversationId) {
-            console.error('Не удалось создать диалог');
             throw new Error('Не удалось создать диалог');
         }
         
@@ -359,7 +278,6 @@ async function sendMessage() {
         allMessages.push(newMessage);
         
         // Проверяем, нужно ли отправить уведомление администраторам
-        console.log('Отправляем уведомление администраторам...');
         await checkAndNotifyAdmins(conversationId, text, currentUserId);
         
     } catch (error) {
@@ -488,8 +406,6 @@ async function sendAdminMessage() {
 // Создание или получение диалога
 async function createOrGetConversation() {
     try {
-        console.log('createOrGetConversation вызвана, currentUserId:', currentUserId);
-        
         // Проверяем существующий открытый диалог
         const { data: existing, error: existingError } = await supabaseClient
             .from('conversations')
@@ -498,14 +414,9 @@ async function createOrGetConversation() {
             .eq('status', 'open')
             .single();
             
-        console.log('Поиск существующего диалога:', { existing, existingError });
-            
         if (existing) {
-            console.log('Найден существующий диалог:', existing.id);
             return existing.id;
         }
-        
-        console.log('Создаем новый диалог...');
         
         // Создаем новый диалог
         const { data, error } = await supabaseClient
@@ -517,10 +428,7 @@ async function createOrGetConversation() {
             .select()
             .single();
             
-        console.log('Результат создания диалога:', { data, error });
-            
         if (error) throw error;
-        console.log('Новый диалог создан:', data.id);
         return data.id;
         
     } catch (error) {
@@ -951,7 +859,6 @@ async function notifyUser(conversationId) {
 // Уведомление администраторов о новом сообщении пользователя
 async function notifyAdminsNewMessage(conversationId, messageText, userId) {
     try {
-        console.log('notifyAdminsNewMessage вызвана');
         // ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
         const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
@@ -1084,7 +991,6 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
 // Проверка и отправка уведомлений администраторам
 async function checkAndNotifyAdmins(conversationId, messageText, userId) {
     try {
-        console.log('checkAndNotifyAdmins вызвана с параметрами:', { conversationId, messageText, userId });
         // Получаем информацию о диалоге
         const { data: conversation, error: convError } = await supabaseClient
             .from('conversations')
@@ -1149,9 +1055,15 @@ async function checkAndNotifyAdmins(conversationId, messageText, userId) {
 // Проверка, является ли пользователь администратором
 async function checkIfUserIsAdmin(userId) {
     try {
-        // Проверяем по ID администраторов из bot.py
-        const adminIds = [708907063, 7365307696];
-        return adminIds.includes(userId);
+        const { data, error } = await supabaseClient
+            .rpc('is_admin', { user_telegram_id: userId });
+            
+        if (error) {
+            console.error('Ошибка при проверке прав администратора:', error);
+            return false;
+        }
+        
+        return data || false;
     } catch (error) {
         console.error('Ошибка при проверке прав администратора:', error);
         return false;
