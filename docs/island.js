@@ -1,3 +1,5 @@
+// Isla Viva • MiniApp Hardened • build 2025-08-16 17:15:27Z
+window.__ISLA_VIVA_BUILD__ = 'Isla Viva • MiniApp Hardened • build 2025-08-16 17:15:27Z';
 // Isla Viva — zero-config 3D island (Three.js r160 UMD).
 // No OrbitControls/Water.js. Custom shaders + controls.
 // Designed for Telegram WebView / GitHub Pages.
