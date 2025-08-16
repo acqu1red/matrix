@@ -10,9 +10,9 @@ import json
 # channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
-SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
-ISLAND_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/") + "/docs/island.html"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
+SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/subscription.html"
+ISLAND_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/island.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -323,9 +323,10 @@ def build_start_content():
     )
     keyboard = [
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
+        [InlineKeyboardButton("🏝️ Остров навигации", web_app=WebAppInfo(url=ISLAND_MINIAPP_URL))]
         [InlineKeyboardButton("📋 Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
-        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))]
+        [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
     ]
     return text, InlineKeyboardMarkup(keyboard)
 
