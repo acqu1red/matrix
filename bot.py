@@ -9,10 +9,10 @@ import asyncio
 import json
 # channel_manager import removed - not needed for webhook version
 
-MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/index.html"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
-SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/subscription.html"
-ISLAND_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/island.html"
+MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
+SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
+ISLAND_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/island.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"

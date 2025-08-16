@@ -61,6 +61,7 @@
   <div id="perf">FPS: <span id="fps">—</span></div>
 
   <script type="module">
+    // ============= Imports (Three r152, r128+) =============
     import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
     import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
     import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
@@ -74,31 +75,37 @@
     import { Lensflare, LensflareElement } from 'https://unpkg.com/three@0.152.2/examples/jsm/objects/Lensflare.js';
     import { Water } from 'https://unpkg.com/three@0.152.2/examples/jsm/objects/Water2.js';
 
+    // Try to load Ocean.js (not ESM). If fails, we use Water2 fallback.
     const oceanOK = await (async () => {
       try {
-        await import('https://cdn.jsdelivr.net/gh/jbouny/ocean/ocean.js');
+        await import('https://cdn.jsdelivr.net/gh/jbouny/ocean/ocean.js'); // exposes window.Ocean if compatible
         return !!window.Ocean;
       } catch (e) { return false; }
     })();
 
+    // Telegram UI
     try { Telegram?.WebApp?.ready(); Telegram?.WebApp?.expand(); } catch(_) {}
 
-    const KM = 1000;
-    const ISLAND_SIZE = KM;
+    // ============= Constants & Asset Paths =============
+    const KM = 1000;                // 1 км в игровых метрах
+    const ISLAND_SIZE = KM;         // 1000 x 1000 м
     const HALF = ISLAND_SIZE/2;
     const TARGET_FPS = 60;
 
+    // ASSET PATHS (положите свои ассеты в docs/assets/ и замените пути)
     const PATHS = {
-      hdr: 'https://rawcdn.githack.com/mrdoob/three.js/r152/examples/textures/equirectangular/venice_sunset_1k.hdr',
+      hdr: 'https://rawcdn.githack.com/mrdoob/three.js/r152/examples/textures/equirectangular/venice_sunset_1k.hdr', // placeholder HDR
       waterNormals: 'assets/waternormals.jpg',
       cloud: 'assets/cloud.png',
-      lensflare: 'assets/lensflare0.png',
-      villaGLTF: null,
-      bungalowGLTF: null,
-      palmGLTF: null,
-      helipadGLTF: null,
+      // Placeholder GLTFs (подменятся на ваши при наличии)
+      villaGLTF: 'https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoxAnimated/glTF/BoxAnimated.gltf',
+      bungalowGLTF: 'https://rawcdn.githack.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF/CesiumMilkTruck.gltf',
+      palmGLTF: null, // когда появится palm_coconut.gltf => 'assets/palm_coconut.gltf'
+      helipadGLTF: null, // 'assets/helipad.gltf'
+      // Звуки: сделаем процедурный White Noise + птички синусом (не нужны файлы)
     };
 
+    // ============= Renderer (WebGL2 → WebGL1 fallback) =============
     const canvas = document.getElementById('c');
     let context = canvas.getContext('webgl2', { antialias:true, alpha:false, stencil:false, depth:true, powerPreference:'high-performance', preserveDrawingBuffer:false });
     if (!context) context = canvas.getContext('webgl', { antialias:true, alpha:false, stencil:false, depth:true, preserveDrawingBuffer:false });
@@ -109,11 +116,15 @@
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
-    renderer.shadowMap.enabled = false;
+    renderer.shadowMap.enabled = false; // производительность
+    let frameTimeAcc = 0, frameCount = 0, lastT = performance.now();
 
+    // ============= Scene & Camera =============
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x0b0f16, 0.002);
     const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 10000);
+
+    // Start camera at 500 m height, 45°
     camera.position.set(HALF*0.7, 500, HALF*0.7);
     camera.lookAt(new THREE.Vector3(0,0,0));
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -122,6 +133,7 @@
     controls.maxDistance = 2000;
     controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
 
+    // ============= Environment / HDRI =============
     const pmrem = new THREE.PMREMGenerator(renderer);
     pmrem.compileEquirectangularShader();
     new RGBELoader().load(PATHS.hdr, (hdr) => {
@@ -131,23 +143,40 @@
       hdr.dispose();
     });
 
-    const hour = new Date().getHours();
+    // ============= Time of Day (lighting) =============
+    const hour = new Date().getHours(); // 0..23
     const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-    sun.castShadow = false; sun.position.set(-500, 800, 200); scene.add(sun);
-    const hemi = new THREE.HemisphereLight(0x93b6ff, 0x1b2838, 0.35); scene.add(hemi);
+    sun.castShadow = false;
+    sun.position.set(-500, 800, 200);
+    scene.add(sun);
+
+    const hemi = new THREE.HemisphereLight(0x93b6ff, 0x1b2838, 0.35);
+    scene.add(hemi);
+
     function setupLightingByHour(h) {
-      if (h >= 6 && h < 9) { sun.intensity = 0.9; sun.color.set('#ffd9a3'); hemi.intensity = 0.35; renderer.toneMappingExposure = 0.95; }
-      else if (h >= 9 && h < 16) { sun.intensity = 1.2; sun.color.set('#ffffff'); hemi.intensity = 0.4; renderer.toneMappingExposure = 1.0; }
-      else if (h >= 16 && h < 19) { sun.intensity = 0.85; sun.color.set('#ffb36b'); hemi.intensity = 0.35; renderer.toneMappingExposure = 0.92; }
-      else { sun.intensity = 0.25; sun.color.set('#cfdfff'); hemi.intensity = 0.2; renderer.toneMappingExposure = 0.8; }
+      if (h >= 6 && h < 9) { // dawn
+        sun.intensity = 0.9; sun.color.set('#ffd9a3'); hemi.intensity = 0.35;
+        renderer.toneMappingExposure = 0.95;
+      } else if (h >= 9 && h < 16) { // day
+        sun.intensity = 1.2; sun.color.set('#ffffff'); hemi.intensity = 0.4;
+        renderer.toneMappingExposure = 1.0;
+      } else if (h >= 16 && h < 19) { // sunset
+        sun.intensity = 0.85; sun.color.set('#ffb36b'); hemi.intensity = 0.35;
+        renderer.toneMappingExposure = 0.92;
+      } else { // night
+        sun.intensity = 0.25; sun.color.set('#cfdfff'); hemi.intensity = 0.2;
+        renderer.toneMappingExposure = 0.8;
+      }
     }
     setupLightingByHour(hour);
 
-    const textureFlare = new THREE.TextureLoader().load(PATHS.lensflare);
+    // Lens flare on sun (subtle)
+    const textureFlare = new THREE.TextureLoader().load('https://rawcdn.githack.com/mrdoob/three.js/r152/examples/textures/lensflare/lensflare0.png');
     const flare = new Lensflare();
     flare.addElement(new LensflareElement(textureFlare, 100, 0.0, new THREE.Color(1,1,1)));
     sun.add(flare);
 
+    // ============= Postprocessing (Composer) =============
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     const fxaa = new ShaderPass(FXAAShader);
@@ -156,64 +185,86 @@
     const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85);
     composer.addPass(bloom);
 
+    // ============= Perlin Noise (terrain) =============
     function rand(seed){ const x = Math.sin(seed)*10000; return x - Math.floor(x); }
+    // Classic Perlin 2D
     function makePerlin(seed=1){
       const p = new Uint8Array(512);
       for (let i=0;i<256;i++) p[i]=i;
+      // shuffle
       for (let i=255;i>0;i--){ const j = Math.floor(rand(seed+i)*256); [p[i],p[j]]=[p[j],p[i]]; }
       for (let i=0;i<256;i++) p[256+i]=p[i];
       const grad = (h,x,y)=>{ switch(h&3){ case 0:return x+y; case 1:return -x+y; case 2:return x-y; default:return -x-y; } };
-      const fade = (t)=> t*t*t*(t*(t*6-15)+10);
-      const lerp = (a,b,t)=> a+(b-a)*t;
+      function fade(t){ return t*t*t*(t*(t*6-15)+10); }
+      function lerp(a,b,t){ return a+(b-a)*t; }
       return function(x,y){
         const X = Math.floor(x)&255, Y=Math.floor(y)&255;
         const xf=x-Math.floor(x), yf=y-Math.floor(y);
-        const tr = p[p[X+1]+Y+1], tl=p[p[X]+Y+1], br=p[p[X+1]+Y], bl=p[p[X]+Y];
+        const topRight = p[p[X+1]+Y+1], topLeft=p[p[X]+Y+1], bottomRight=p[p[X+1]+Y], bottomLeft=p[p[X]+Y];
         const u=fade(xf), v=fade(yf);
-        const x1=lerp(grad(bl, xf, yf), grad(br, xf-1, yf), u);
-        const x2=lerp(grad(tl, xf, yf-1), grad(tr, xf-1, yf-1), u);
-        return (lerp(x1, x2, v)+1)/2;
+        const x1=lerp(grad(bottomLeft, xf, yf), grad(bottomRight, xf-1, yf), u);
+        const x2=lerp(grad(topLeft, xf, yf-1), grad(topRight, xf-1, yf-1), u);
+        return (lerp(x1, x2, v)+1)/2; // 0..1
       }
     }
     const perlin = makePerlin(42);
 
+    // ============= Terrain (LOD, vertex colors for biomes) =============
     function buildTerrain(res, scaleH){
       const geo = new THREE.PlaneGeometry(ISLAND_SIZE, ISLAND_SIZE, res, res);
       geo.rotateX(-Math.PI/2);
       const pos = geo.attributes.position;
       const colors = [];
-      const v = new THREE.Vector3();
+      const scratch = new THREE.Vector3();
       for (let i=0;i<pos.count;i++){
-        v.fromBufferAttribute(pos, i);
-        const nx = (v.x + HALF)/ISLAND_SIZE;
-        const nz = (v.z + HALF)/ISLAND_SIZE;
-        const h1 = perlin(nx*4, nz*4), h2=perlin(nx*8+100, nz*8-30), h3=perlin(nx*16-50, nz*16+50);
+        scratch.fromBufferAttribute(pos, i);
+        const nx = (scratch.x + HALF)/ISLAND_SIZE;
+        const nz = (scratch.z + HALF)/ISLAND_SIZE;
+
+        // Height from multi-octave noise
+        const h1 = perlin(nx*4, nz*4);
+        const h2 = perlin(nx*8+100, nz*8-30);
+        const h3 = perlin(nx*16-50, nz*16+50);
         let h = (h1*0.6 + h2*0.3 + h3*0.1);
+        // Central mountain ridge bias
         const ridge = Math.exp(-Math.pow((nx-0.5)*2.4, 2))*Math.exp(-Math.pow((nz-0.5)*2.4, 2));
         h += ridge*0.35;
+        // Beaches near rim
         const edge = Math.min(nx, nz, 1-nx, 1-nz);
-        let heightM = (h*100) * scaleH;
-        if (edge < 0.07) heightM *= 0.5;
+        const beachFactor = THREE.MathUtils.smoothstep(edge, 0.02, 0.15);
+        // scale height
+        let heightM = (h*100) * scaleH; // up to ~100 m
+        if (beachFactor < 0.2) heightM *= 0.5;
+
         pos.setY(i, heightM);
 
-        const c = new THREE.Color();
-        if (edge < 0.07) c.set('#cdb896');
-        else if (heightM > 50) c.set('#4b4e57');
-        else {
+        // Biomes by height & edge:
+        // beaches (15%), mountains (20%, >50m), forest (30%), dry plains (35%)
+        let c = new THREE.Color();
+        if (edge < 0.07) {
+          // sand (fine_sand_4k placeholder color)
+          c.set('#cdb896');
+        } else if (heightM > 50) {
+          // basalt cliffs (basalt_cliff_4k placeholder color)
+          c.set('#4b4e57');
+        } else {
+          // split forest vs dry plains using noise
           const biomeNoise = perlin(nx*2+10, nz*2-10);
-          if (biomeNoise > 0.55) c.set('#184a2c');
-          else c.set('#8b6f4a');
+          if (biomeNoise > 0.55) c.set('#184a2c'); // tropical forest dark green
+          else c.set('#8b6f4a'); // dry soil brown
         }
-        colors.push(c.r,c.g,c.b);
+        colors.push(c.r, c.g, c.b);
       }
-      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
       geo.computeVertexNormals();
-      const mat = new THREE.MeshStandardMaterial({ vertexColors:true, metalness:0.0, roughness:0.95 });
+      const mat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness:0.0, roughness:0.95 });
       const mesh = new THREE.Mesh(geo, mat);
+      mesh.receiveShadow = false;
       mesh.frustumCulled = true;
       return mesh;
     }
 
+    // Terrain LOD: high (512), mid (256), low (128)
     const terrainLOD = new THREE.LOD();
     const tHigh = buildTerrain(512, 1.0);
     const tMid  = buildTerrain(256, 1.0);
@@ -223,28 +274,40 @@
     terrainLOD.addLevel(tLow,  900);
     scene.add(terrainLOD);
 
+    // ============= Ocean (Ocean.js → Water2) =============
     let ocean = null;
     if (oceanOK) {
+      // Ocean.js API can vary; guard in try/catch
       try {
         const oceanPlane = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4, 64, 64);
-        const oceanMaterial = new THREE.MeshStandardMaterial({ color: '#0d3b66', metalness:0.0, roughness:0.8 });
+        const oceanMaterial = new THREE.MeshStandardMaterial({ color: '#0d3b66', metalness:0.0, roughness:0.8, transparent:false });
         ocean = new THREE.Mesh(oceanPlane, oceanMaterial);
         ocean.rotation.x = -Math.PI/2;
+        ocean.position.y = 0.0;
         scene.add(ocean);
-      } catch(e) { ocean = null; }
+      } catch(e) {
+        // fallback to Water2 below
+        ocean = null;
+      }
     }
     if (!ocean) {
       const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4);
-      const normalTex = new THREE.TextureLoader().load(PATHS.waterNormals, t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping });
       const water = new Water(waterGeom, {
-        color: '#0d3b66', scale: 8, flowDirection: new THREE.Vector2(1, 1),
-        textureWidth: 1024, textureHeight: 1024, normalMap0: normalTex, normalMap1: normalTex
+        color: '#0d3b66',
+        scale: 8,
+        flowDirection: new THREE.Vector2(1, 1),
+        textureWidth: 1024, textureHeight: 1024,
+        normalMap0: new THREE.TextureLoader().load(PATHS.waterNormals, t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping }),
+        normalMap1: new THREE.TextureLoader().load(PATHS.waterNormals, t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping }),
       });
       water.rotation.x = -Math.PI/2;
+      water.position.y = 0.0;
       scene.add(water);
       ocean = water;
     }
 
+    // ============= Vegetation (Instancing) =============
+    // Procedural palm (trunk + crown) as instanced meshes; 300+
     const palmCount = 320;
     const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 8, 6, 1, false);
     const trunkMat = new THREE.MeshStandardMaterial({ color:'#6b4f2d', roughness:0.9 });
@@ -258,18 +321,23 @@
     leafInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     leafInst.frustumCulled = true;
 
-    const m4 = new THREE.Matrix4();
     function sampleHeightAt(x, z) {
-      const nx = (x + HALF)/ISLAND_SIZE, nz = (z + HALF)/ISLAND_SIZE;
+      // positions in world coords (-HALF..+HALF)
+      const nx = (x + HALF)/ISLAND_SIZE;
+      const nz = (z + HALF)/ISLAND_SIZE;
       const h1 = perlin(nx*4, nz*4), h2 = perlin(nx*8+100, nz*8-30), h3 = perlin(nx*16-50, nz*16+50);
       let h = (h1*0.6 + h2*0.3 + h3*0.1);
       const ridge = Math.exp(-Math.pow((nx-0.5)*2.4, 2))*Math.exp(-Math.pow((nz-0.5)*2.4, 2));
       h += ridge*0.35;
+      // beach softness
       const edge = Math.min(nx, nz, 1-nx, 1-nz);
       let heightM = (h*100);
       if (edge < 0.07) heightM *= 0.5;
       return heightM;
     }
+
+    // Distribute palms: 70% near beaches, 30% inland
+    const m4 = new THREE.Matrix4();
     let leafIndex = 0;
     for (let i=0; i<palmCount; i++) {
       let x, z, tries=0, nearBeach=false;
@@ -282,13 +350,15 @@
         nearBeach = edge < 0.12;
         const ok = THREE.MathUtils.randFloat(0,1) < (nearBeach? 0.7 : 0.3);
         const h = sampleHeightAt(x,z);
-        if (ok && h > 1 && h < 40) break;
+        if (ok && h > 1 && h < 40) break; // not in water; not on high cliff
       }
       const y = sampleHeightAt(x,z);
       const s = THREE.MathUtils.randFloat(0.9, 1.25);
       const rotY = THREE.MathUtils.randFloat(0, Math.PI*2);
       m4.compose(new THREE.Vector3(x, y+4*s, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), rotY), new THREE.Vector3(1, s, 1));
       trunkInst.setMatrixAt(i, m4);
+
+      // 4 simple leaves per palm
       for (let k=0;k<4;k++) {
         const ry = rotY + k*(Math.PI/2) + THREE.MathUtils.randFloat(-0.15,0.15);
         const up = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.6+THREE.MathUtils.randFloat(-0.2,0.2), ry, 0));
@@ -299,6 +369,7 @@
     }
     scene.add(trunkInst, leafInst);
 
+    // Ferns (instanced 100)
     const fernCount = 100;
     const fernGeo = new THREE.ConeGeometry(0.8, 1.2, 7);
     const fernMat = new THREE.MeshStandardMaterial({ color:'#2b7a53', roughness:0.8 });
@@ -312,6 +383,7 @@
     }
     scene.add(fernInst);
 
+    // Grass "particles" (cheap) — billboard planes in groups
     const grassGroup = new THREE.Group(); scene.add(grassGroup);
     {
       const plane = new THREE.PlaneGeometry(0.8, 1.2);
@@ -329,16 +401,20 @@
       }
     }
 
+    // ============= Architecture (procedural placeholders + loaders) =============
+    // Modern castle (6 floors, 8 cylindrical towers) — procedural PBR
     function buildCastle(){
       const castle = new THREE.Group();
       const baseMat = new THREE.MeshStandardMaterial({ color:'#8a8f96', metalness:0.1, roughness:0.45 });
       const glassMat = new THREE.MeshPhysicalMaterial({ color:'#bcd4f7', metalness:0.0, roughness:0.1, transmission:0.5, thickness:0.2, envMapIntensity:1.0 });
       const body = new THREE.Mesh(new THREE.BoxGeometry(60, 30, 40), baseMat);
       body.position.y = 15; castle.add(body);
+      // floors
       for (let i=0;i<5;i++){
         const slab = new THREE.Mesh(new THREE.BoxGeometry(62, 1.2, 42), baseMat);
         slab.position.y = 6*(i+1); castle.add(slab);
       }
+      // towers (8)
       const r = 35;
       for (let t=0;t<8;t++){
         const ang = t*(Math.PI/4);
@@ -348,8 +424,12 @@
         const ring = new THREE.Mesh(new THREE.TorusGeometry(4.8,0.5,10,24), baseMat);
         ring.position.set(x, 24, z); ring.rotation.x = Math.PI/2; castle.add(ring);
       }
+      // glass front
       const glass = new THREE.Mesh(new THREE.PlaneGeometry(50, 22), glassMat);
-      glass.position.set(0, 14, 21.1); castle.add(glass);
+      glass.position.set(0, 14, 21.1);
+      castle.add(glass);
+
+      // chimneys with smoke particles
       const smokeGroup = new THREE.Group(); castle.add(smokeGroup);
       for (let k=0;k<3;k++){
         const chim = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 6, 10), baseMat);
@@ -361,9 +441,13 @@
           smokeGroup.add(s);
         }
       }
-      castle.position.set(0, sampleHeightAt(0,0), 0);
-      castle.frustumCulled = true; scene.add(castle);
 
+      // put castle on central ridge
+      castle.position.set(0, sampleHeightAt(0,0), 0);
+      castle.frustumCulled = true;
+      scene.add(castle);
+
+      // LOD for castle (simple low mesh)
       const low = new THREE.Mesh(new THREE.BoxGeometry(60, 30, 40), baseMat);
       const castleLOD = new THREE.LOD();
       castleLOD.addLevel(castle, 0);
@@ -375,11 +459,16 @@
     }
     const { castle, smokeGroup } = buildCastle();
 
+    // Villas & bungalows — try GLTFs else procedural boxes
     const gltfLoader = new GLTFLoader();
     const villaPositions = [];
-    for (let i=0;i<5;i++){ villaPositions.push(new THREE.Vector3(-200 + i*60, 0, -140 + THREE.MathUtils.randFloat(-40,40))); }
+    for (let i=0;i<5;i++){
+      villaPositions.push(new THREE.Vector3(-200 + i*60, 0, -140 + THREE.MathUtils.randFloat(-40,40)));
+    }
     const bungalowPositions = [];
-    for (let i=0;i<7;i++){ bungalowPositions.push(new THREE.Vector3(180 + i*40, 0, 120 + THREE.MathUtils.randFloat(-50,50))); }
+    for (let i=0;i<7;i++){
+      bungalowPositions.push(new THREE.Vector3(180 + i*40, 0, 120 + THREE.MathUtils.randFloat(-50,50)));
+    }
     async function loadGLTForBox(url, pos, color='#9aa3a8', scale=8){
       try {
         if (!url) throw new Error('no-url');
@@ -398,6 +487,7 @@
     for (const p of villaPositions) loadGLTForBox(PATHS.villaGLTF, p, '#adb5bd', 1.5);
     for (const p of bungalowPositions) loadGLTForBox(PATHS.bungalowGLTF, p, '#b8996f', 0.7);
 
+    // Helipad (TDSLoader optional)
     const tdsLoader = new TDSLoader();
     async function loadHelipad(){
       try {
@@ -407,12 +497,14 @@
         obj.position.set(-120, sampleHeightAt(-120, 210)+1, 210);
         scene.add(obj);
       } catch (e) {
+        // procedural helipad
         const g = new THREE.CircleGeometry(18, 48);
         const m = new THREE.MeshStandardMaterial({ color:'#3a3f47', roughness:0.9 });
         const pad = new THREE.Mesh(g, m);
         pad.rotation.x = -Math.PI/2;
         pad.position.set(-120, sampleHeightAt(-120, 210)+0.2, 210);
         scene.add(pad);
+        // beacons
         for (let i=0;i<6;i++){
           const ang = i*(Math.PI*2/6);
           const x = -120 + Math.cos(ang)*16, z = 210 + Math.sin(ang)*16;
@@ -424,6 +516,16 @@
     }
     loadHelipad();
 
+    // Roads (asphalt texture placeholder)
+    {
+      const roadMat = new THREE.MeshStandardMaterial({ color:'#2d2f32', roughness:0.95 });
+      const road = new THREE.Mesh(new THREE.PlaneGeometry(4*ISLAND_SIZE/5, 6), roadMat);
+      road.rotation.x = -Math.PI/2;
+      road.position.set(0, sampleHeightAt(0, -50)+0.05, -50);
+      scene.add(road);
+    }
+
+    // Pier + 3 boats
     {
       const pierMat = new THREE.MeshStandardMaterial({ color:'#6d5a45', roughness:0.9 });
       const pier = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 40), pierMat);
@@ -436,8 +538,10 @@
       for (let i=0;i<3;i++){
         const b = new THREE.Mesh(new THREE.CapsuleGeometry(3.2, 6, 4, 8), boatMat);
         b.position.set(px+8+i*5, 1.2, pz+10+i*2);
-        scene.add(b); boats.push(b);
+        scene.add(b);
+        boats.push(b);
       }
+      // simple wakes (decals substitute)
       const wakeMat = new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.15 });
       boats.forEach((b,idx)=>{
         const w = new THREE.Mesh(new THREE.PlaneGeometry(4, 12), wakeMat);
@@ -448,6 +552,7 @@
       });
     }
 
+    // ============= Sky / Clouds =============
     const cloudTex = new THREE.TextureLoader().load(PATHS.cloud, t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
     const cloudGroup = new THREE.Group(); scene.add(cloudGroup);
     for (let i=0;i<16;i++){
@@ -457,32 +562,37 @@
       cloudGroup.add(sp);
     }
 
+    // Birds (5 flocks)
     const birdGroup = new THREE.Group(); scene.add(birdGroup);
     for (let f=0;f<5;f++){
       const flock = new THREE.Group(); birdGroup.add(flock);
       const count = 24;
       for (let i=0;i<count;i++){
         const s = new THREE.Sprite(new THREE.SpriteMaterial({ color:0xffffff, opacity:0.85 }));
-        s.scale.setScalar(0.9); flock.add(s);
+        s.scale.setScalar(0.9);
+        flock.add(s);
       }
       flock.userData.center = new THREE.Vector3(THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6), 140+Math.random()*70, THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6));
       flock.userData.radius = 20 + Math.random()*40;
       flock.userData.speed = 0.2 + Math.random()*0.3;
     }
 
+    // Fish (underwater sprites)
     const fishGroup = new THREE.Group(); scene.add(fishGroup);
     for (let g=0; g<10; g++){
       const school = new THREE.Group(); fishGroup.add(school);
       const count=30;
       for (let i=0;i<count;i++){
         const s = new THREE.Sprite(new THREE.SpriteMaterial({ color:'#b7e3ff', opacity:0.8 }));
-        s.scale.set(0.6,0.6,1); school.add(s);
+        s.scale.set(0.6,0.6,1);
+        school.add(s);
       }
       school.userData.center = new THREE.Vector3(THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6), -1+Math.random()*1.5, THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6));
       school.userData.radius = 10 + Math.random()*20;
       school.userData.speed = 0.6 + Math.random()*0.5;
     }
 
+    // ============= WebAudio (no files; procedural)
     let audioReady = false;
     let audioCtx, gainMaster;
     const audioBtn = document.getElementById('audioBtn');
@@ -490,12 +600,15 @@
       if (audioReady) return;
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.25; gainMaster.connect(audioCtx.destination);
+      // wind noise
       const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.6;
       const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
       const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 400; filter.Q.value = 0.5;
       noise.connect(filter); filter.connect(gainMaster); noise.start();
+
+      // gulls (sine blips)
       function playGull(){
         const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
         osc.type='sine'; osc.frequency.value = 1200 + Math.random()*600;
@@ -507,30 +620,72 @@
         setTimeout(playGull, 1500+Math.random()*3500);
       }
       playGull();
-      audioReady = true; audioBtn.textContent = 'Звуки включены'; audioBtn.disabled = true;
+
+      audioReady = true;
+      audioBtn.textContent = 'Звуки включены';
+      audioBtn.disabled = true;
     });
 
+    // ============= Resize
     window.addEventListener('resize', onResize);
     function onResize(){
       const dpr = Math.min(2, window.devicePixelRatio||1);
       const w = window.innerWidth, h = window.innerHeight;
-      renderer.setPixelRatio(dpr); renderer.setSize(w, h);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(w, h);
       camera.aspect = w/h; camera.updateProjectionMatrix();
       composer.setSize(w,h);
       fxaa.material.uniforms['resolution'].value.set(1/w, 1/h);
       bloom.setSize(w,h);
     }
 
+    // ============= Animation loop
     const fpsEl = document.getElementById('fps');
     const clock = new THREE.Clock();
     const windStrength = 0.5;
-    let frameTimeAcc=0, frameCount=0, lastT=performance.now();
 
     function animate() {
       const now = performance.now();
       const dt = clock.getDelta();
       controls.update();
+
+      // animate smoke
+      smokeGroup.children.forEach((s,i)=>{
+        s.position.y += 0.2*dt*60;
+        s.position.x += Math.sin(now*0.0005 + i)*0.005;
+        s.position.z += Math.cos(now*0.0006 + i)*0.005;
+        if (s.position.y > 40) s.position.y = 20;
+      });
+
+      // sway palms (rotate leaves slightly)
+      leafInst.rotation.z = Math.sin(now*0.0015)*0.03*windStrength;
+
+      // clouds drift
+      cloudGroup.children.forEach((sp, i) => { sp.position.x += (i%2? 0.4:0.25)*dt*10; if (sp.position.x > HALF) sp.position.x = -HALF; });
+
+      // birds flocking circles
+      birdGroup.children.forEach(flock=>{
+        const { center, radius, speed } = flock.userData;
+        const n = flock.children.length;
+        for (let i=0;i<n;i++){
+          const a = now*0.0005*speed + i*(Math.PI*2/n);
+          flock.children[i].position.set(center.x + Math.cos(a)*radius, center.y + Math.sin(a*2)*5, center.z + Math.sin(a)*radius);
+        }
+      });
+
+      // fish under water
+      fishGroup.children.forEach(school=>{
+        const { center, radius, speed } = school.userData;
+        const n = school.children.length;
+        for (let i=0;i<n;i++){
+          const a = now*0.0006*speed + i*(Math.PI*2/n);
+          school.children[i].position.set(center.x + Math.cos(a)*radius, center.y + Math.sin(a*3)*0.2, center.z + Math.sin(a)*radius);
+        }
+      });
+
       composer.render();
+
+      // perf counter
       frameTimeAcc += now - lastT; frameCount++; lastT = now;
       if (frameTimeAcc > 500){
         const fps = Math.round(1000*(frameCount/frameTimeAcc)*100)/100;
@@ -541,10 +696,12 @@
     }
     onResize(); animate();
 
+    // ============= Telegram safety (close on back) =============
     try {
       Telegram.WebApp.onEvent('backButtonClicked', () => Telegram.WebApp.close());
       Telegram.WebApp.BackButton.show();
     } catch(_) {}
+
   </script>
 </body>
 </html>
