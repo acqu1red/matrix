@@ -1,6 +1,7 @@
 
 (function(){
   try{Telegram && Telegram.WebApp && Telegram.WebApp.ready(); Telegram.WebApp.expand();}catch(e){}
+
   var canvas = document.getElementById('c');
   var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:false, powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
@@ -13,92 +14,139 @@
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 7, 22);
-
+  var camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 4000);
+  camera.position.set(0, 55, 110);
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enablePan = false;
-  controls.minDistance = 8; controls.maxDistance = 45; controls.maxPolarAngle = Math.PI * 0.47;
-  controls.target.set(0,2,-10); controls.update();
+  controls.enablePan = false; controls.enableDamping = true;
+  controls.minDistance = 40; controls.maxDistance = 180; controls.maxPolarAngle = Math.PI * 0.47;
+  controls.target.set(0,10,0); controls.update();
 
-  // Lights
-  scene.add(new THREE.HemisphereLight(0xbcd9ff, 0x22334a, 0.8));
-  var sun = new THREE.DirectionalLight(0xffffff, 1.2);
-  sun.position.set(-30,60,20); sun.castShadow = true; sun.shadow.mapSize.set(1024,1024);
-  sun.shadow.camera.left=-50; sun.shadow.camera.right=50; sun.shadow.camera.top=50; sun.shadow.camera.bottom=-50;
+  var hemi = new THREE.HemisphereLight(0xcfe8ff, 0x224155, 0.9); scene.add(hemi);
+  var sun = new THREE.DirectionalLight(0xffffff, 1.15);
+  sun.position.set(-150,200,80); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left=-200; sun.shadow.camera.right=200; sun.shadow.camera.top=200; sun.shadow.camera.bottom=-200;
   scene.add(sun);
 
-  // Ground (fallback colors if textures not available)
-  var groundMat = new THREE.MeshStandardMaterial({color:0xdacaa8, roughness:.95, metalness:.02});
-  var ground = new THREE.Mesh(new THREE.CylinderGeometry(60,60,0.6,64), groundMat);
-  ground.receiveShadow = true; ground.position.set(0,0,-10); scene.add(ground);
+  var loader = new THREE.TextureLoader();
+  function tex(url, repX, repY){
+    var t = loader.load(url); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(repX||1, repY||1); return t;
+  }
+  var sandTex  = tex('assets/sand.jpg', 6,6);
+  var grassTex = tex('assets/grass.jpg', 6,6);
+  var rockTex  = tex('assets/rock.jpg', 4,4);
+  var barkTex  = tex('assets/bark.jpg', 1,2);
+  var leafTex  = loader.load('assets/palm_leaf.png'); leafTex.flipY=false; leafTex.premultiplyAlpha=true;
 
-  // Ocean ring
-  var ocean = new THREE.Mesh(new THREE.RingGeometry(62, 90, 64, 1), new THREE.MeshBasicMaterial({ color:0x0d3b66, transparent:true, opacity:0.9 }));
-  ocean.rotation.x = -Math.PI/2; ocean.position.set(0,0.31,-10); scene.add(ocean);
+  function perlin(x,y){
+    function rnd(ix,iy){ var s = Math.sin(ix*127.1 + iy*311.7)*43758.5453; return s - Math.floor(s); }
+    function mix(a,b,t){ return a*(1-t)+b*t; }
+    var ix = Math.floor(x), fx = x-ix;
+    var iy = Math.floor(y), fy = y-iy;
+    var v00 = rnd(ix,iy), v10=rnd(ix+1,iy), v01=rnd(ix,iy+1), v11=rnd(ix+1,iy+1);
+    var i1 = mix(v00,v10,fx), i2 = mix(v01,v11,fx);
+    return mix(i1,i2,fy);
+  }
+  function fractal(x,y){
+    var a=0, amp=1, freq=1, sumAmp=0;
+    for (var o=0;o<5;o++){ a += perlin(x*freq,y*freq)*amp; sumAmp+=amp; amp*=0.5; freq*=2.0; }
+    return a/sumAmp;
+  }
 
-  // Palms
+  var size=300, seg=240;
+  var geo = new THREE.PlaneGeometry(size,size,seg,seg);
+  geo.rotateX(-Math.PI/2);
+  var pos = geo.attributes.position;
+  var colors = [];
+  for (var i=0;i<pos.count;i++){
+    var x = pos.getX(i), z = pos.getZ(i);
+    var nx = (x+size*0.5)/size*3.0, nz=(z+size*0.5)/size*3.0;
+    var r = Math.sqrt((x*x+z*z))/ (size*0.5);
+    var mask = Math.max(0.0, 1.0 - Math.pow(r, 2.5));
+    var h = fractal(nx,nz)*35*mask;
+    pos.setY(i, h*0.6);
+    var c;
+    if (mask<0.05){ c = new THREE.Color(0x0d3b66); }
+    else if (h<3){ c = new THREE.Color(0xe6d6a8); }
+    else if (h<12){ c = new THREE.Color(0x7fb36a); }
+    else if (h<22){ c = new THREE.Color(0x2c7a4b); }
+    else { c = new THREE.Color(0x84898f); }
+    colors.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  var mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: .02 });
+  var terrain = new THREE.Mesh(geo, mat); terrain.receiveShadow = true; scene.add(terrain);
+
+  var waterGeo = new THREE.RingGeometry(size*0.5+2, size*0.5+80, 128,1);
+  var waterMat = new THREE.MeshPhysicalMaterial({ color:0x0d3b66, transmission:0.4, transparent:true, opacity:0.9, roughness:0.2, metalness:0.0, clearcoat:0.6 });
+  var water = new THREE.Mesh(waterGeo, waterMat); water.rotation.x=-Math.PI/2; water.position.y=0.1; scene.add(water);
+
+  function makePalm(sx,sz,scale){
+    var g = new THREE.Group();
+    var segs = 7; var angle = (Math.random()*0.6 - 0.3);
+    var y=0, tilt=0;
+    for (var i=0;i<segs;i++){
+      var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.30,3.2,10,1,true), new THREE.MeshStandardMaterial({map:barkTex, roughness:.9}));
+      trunk.position.set(0, y+1.6, 0);
+      trunk.castShadow=true; trunk.receiveShadow=true;
+      trunk.rotation.z = tilt;
+      g.add(trunk);
+      y += 3.2; tilt += angle/segs;
+    }
+    var leafMat = new THREE.MeshStandardMaterial({ map:leafTex, transparent:true, side:THREE.DoubleSide, roughness:.6, color:0xffffff });
+    var leafGeo = new THREE.PlaneGeometry(5.2, 5.2);
+    for (var k=0;k<10;k++){
+      var leaf = new THREE.Mesh(leafGeo, leafMat);
+      leaf.position.set(0, y, 0);
+      leaf.rotation.set(-0.9 + Math.random()*0.25, k*(Math.PI*2/10), 0);
+      leaf.castShadow=true; g.add(leaf);
+    }
+    g.position.set(sx, 0, sz); g.scale.setScalar(scale);
+    return g;
+  }
   var palms = new THREE.Group(); scene.add(palms);
-  function makePalm(x,z,s){
-    var g = new THREE.Group();
-    var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.35,4.2,8), new THREE.MeshStandardMaterial({color:0x7b5a39, roughness:.9}));
-    trunk.position.y = 2.1; trunk.castShadow = true; trunk.receiveShadow = true; g.add(trunk);
-    for (var i=0;i<6;i++){
-      var leaf = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.8, 10), new THREE.MeshStandardMaterial({color:0x2c9c62, roughness:.7}));
-      leaf.position.y = 3.9; leaf.rotation.set(-0.7 + Math.random()*0.25, i*Math.PI*2/6, 0);
-      leaf.castShadow = true; g.add(leaf);
-    }
-    g.position.set(x, 0.35, z); g.scale.set(s,s,s);
-    g.userData.sway = Math.random()*Math.PI*2;
-    return g;
-  }
-  for (var i=0;i<28;i++){
+  for (var i=0;i<80;i++){
     var a = Math.random()*Math.PI*2;
-    var r = 12 + Math.random()*16;
-    palms.add(makePalm(Math.cos(a)*r*0.75, -10 + Math.sin(a)*r*0.75, 0.9+Math.random()*0.5));
+    var r = 100 + Math.random()*30;
+    var x = Math.cos(a)*r;
+    var z = Math.sin(a)*r;
+    palms.add(makePalm(x,z, 0.9+Math.random()*0.5));
   }
 
-  // Temples
-  var temples = new THREE.Group(); scene.add(temples);
-  var templesArr = [];
-  function makeTemple(i){
-    var color = new THREE.Color().setHSL(0.53 + i*0.05, 0.25, 0.65);
-    var mat = new THREE.MeshStandardMaterial({ color: color, roughness:0.6, metalness:0.1 });
+  var glowTex = loader.load('assets/glow.png');
+  function temple(index){
     var g = new THREE.Group();
-    var base = new THREE.Mesh(new THREE.BoxGeometry(4, 1.2, 4), mat); base.position.y = 0.6; base.receiveShadow = true; base.castShadow = true; g.add(base);
-    var body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.6, 3.0 + i*0.2, 20), mat); body.position.y = 2.2; body.castShadow = true; g.add(body);
-    var roof = new THREE.Mesh(new THREE.ConeGeometry(2.2 + i*0.08, 1.2 + i*0.12, 24), mat); roof.position.y = 3.8 + i*0.2; roof.castShadow = true; g.add(roof);
-    var colMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.5 });
-    for (var k=0;k<8;k++){
-      var col = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 1.8, 14), colMat);
-      var ang = k*Math.PI/4;
-      col.position.set(Math.cos(ang)*2.0, 1.3, Math.sin(ang)*2.0); col.castShadow = true; g.add(col);
+    var stone = new THREE.MeshStandardMaterial({color: new THREE.Color().setHSL(0.12+index*0.04, 0.25, 0.70), roughness:0.7, metalness:0.08});
+    var base = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 14), stone); base.position.y = 1.5; base.castShadow=base.receiveShadow=true; g.add(base);
+    var colMat = new THREE.MeshStandardMaterial({color:0xf3f0ea, roughness:0.55});
+    for (var k=0;k<10;k++){
+      var col = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.9,6,18), colMat);
+      var ang = k*Math.PI*2/10; col.position.set(Math.cos(ang)*5.5, 5, Math.sin(ang)*5.5);
+      col.castShadow=true; g.add(col);
     }
-    var glowMat = new THREE.SpriteMaterial({ color:0x36c2b6, transparent:true, opacity:0.0, depthWrite:false });
-    var glow = new THREE.Sprite(glowMat); glow.scale.set(3.8,3.8,1); glow.position.y = roof.position.y + 0.8; g.add(glow);
-    g.position.set((i-2)*6.2, 0, -12 - Math.abs(i-2)*1.2);
-    g.userData = { kind:'temple', index:i, label:'Тема ' + (i+1), glow:glow };
-    templesArr.push(g);
+    var roof;
+    if (index%5===0) roof = new THREE.Mesh(new THREE.ConeGeometry(7.5,4.5,24), stone);
+    if (index%5===1) roof = new THREE.Mesh(new THREE.CylinderGeometry(0,7.5,4.5,24), stone);
+    if (index%5===2) roof = new THREE.Mesh(new THREE.DodecahedronGeometry(4.5), stone);
+    if (index%5===3){ roof = new THREE.Mesh(new THREE.TorusGeometry(6.5, 1.2, 12, 48), stone); roof.rotation.x=Math.PI/2; roof.position.y=9; }
+    if (index%5===4) roof = new THREE.Mesh(new THREE.ConeGeometry(7.5,5.5,4), stone);
+    roof.position.y = 8.5; roof.castShadow=true; g.add(roof);
+    var spriteMat = new THREE.SpriteMaterial({ map:glowTex, color:0x36c2b6, transparent:true, opacity:0.0, depthWrite:false });
+    var glow = new THREE.Sprite(spriteMat); glow.scale.set(16,16,1); glow.position.y = 12; g.add(glow);
+    g.userData = { kind:'temple', index:index, label:'Тема '+(index+1), glow:glow };
     return g;
   }
-  for (var t=0;t<5;t++) temples.add(makeTemple(t));
-
-  // Label
-  var labelEl = document.getElementById('label');
-  function showLabelForTemple(g){
-    var pos = g.position.clone(); pos.y += 5.2;
-    var sp = pos.project(camera);
-    var sx = (sp.x*0.5+0.5)*window.innerWidth;
-    var sy = (-sp.y*0.5+0.5)*window.innerHeight;
-    labelEl.style.left = sx+'px'; labelEl.style.top = sy+'px';
-    labelEl.textContent = g.userData.label; labelEl.style.opacity = 1;
-    labelEl.style.transform = 'translate(-50%,-120%) scale(1)';
+  var temples = new THREE.Group(); scene.add(temples);
+  for (var t=0;t<5;t++){
+    var g = temple(t);
+    g.position.set((t-2)*40, 0, -20 - Math.abs(t-2)*2);
+    temples.add(g);
   }
 
-  // Interaction
+  var labelEl = document.getElementById('label');
   var titleEl = document.getElementById('title');
-  var raycaster = new THREE.Raycaster(); var pointer = new THREE.Vector2();
-  var CLICK = {x:0,y:0,time:0}; var selected = null;
+  var ray = new THREE.Raycaster(); var pointer = new THREE.Vector2();
+  var CLICK = {x:0,y:0,time:0}; var selected=null;
   function setPointer(e){
     var rect = canvas.getBoundingClientRect();
     var clientX = (e.touches? e.touches[0].clientX:e.clientX);
@@ -108,9 +156,18 @@
     pointer.set(x*2-1, -(y*2-1));
   }
   function pick(){
-    raycaster.setFromCamera(pointer, camera);
-    var hits = raycaster.intersectObjects([temples], true);
+    ray.setFromCamera(pointer, camera);
+    var hits = ray.intersectObjects(temples.children, true);
     return hits[0]||null;
+  }
+  function showLabelFor(g){
+    var pos = g.position.clone(); pos.y += 18;
+    var sp = pos.project(camera);
+    var sx = (sp.x*0.5+0.5)*window.innerWidth;
+    var sy = (-sp.y*0.5+0.5)*window.innerHeight;
+    labelEl.style.left = sx+'px'; labelEl.style.top = sy+'px';
+    labelEl.textContent = g.userData.label; labelEl.style.opacity = 1;
+    labelEl.style.transform = 'translate(-50%,-120%) scale(1)';
   }
   function onDown(e){ setPointer(e); CLICK.x=pointer.x; CLICK.y=pointer.y; CLICK.time=performance.now(); }
   function onUp(e){
@@ -126,20 +183,24 @@
         try{ Telegram && Telegram.WebApp && Telegram.WebApp.openLink(url, {try_instant_view:true}); }catch(err){ location.href=url; }
       } else {
         if (selected) selected.userData.glow.material.opacity = 0.0;
-        selected = g; selected.userData.glow.material.opacity = 0.85;
+        selected = g; selected.userData.glow.material.opacity = 0.9;
         titleEl.textContent = 'Нажми ещё раз для подтверждения выбора';
-        showLabelForTemple(selected);
+        showLabelFor(selected);
       }
     }
   }
   canvas.addEventListener('mousedown', onDown); canvas.addEventListener('mouseup', onUp);
   canvas.addEventListener('touchstart', onDown, {passive:false}); canvas.addEventListener('touchend', onUp);
 
-  // Loop
   var clock = new THREE.Clock();
   function loop(){
     var t = clock.getElapsedTime();
-    renderer.render(scene, camera);
+    for (var i=0;i<palms.children.length;i++){
+      var p = palms.children[i];
+      p.rotation.z = Math.sin(t*0.6 + i)*0.03;
+    }
+    controls.update();
+    renderer.render(scene,camera);
     requestAnimationFrame(loop);
   }
   loop();
