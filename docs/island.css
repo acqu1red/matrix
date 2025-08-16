@@ -80,6 +80,27 @@ body{background:#87CEEB;color:#eae6de}
   backdrop-filter: blur(5px);
 }
 
+.webgl-status {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.status-text {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.status-text.success {
+  color: #4ade80;
+}
+
+.status-text.error {
+  color: #f87171;
+}
+
 @keyframes loading {
   0% { width: 0%; }
   50% { width: 70%; }
@@ -129,6 +150,43 @@ body{background:#87CEEB;color:#eae6de}
 
 #canvasWrap{position:fixed;inset:0}
 #scene, #interior{width:100%;height:100%;display:block}
+
+/* WebGL Fallback */
+.webgl-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #ffffff;
+  z-index: 10;
+}
+
+.fallback-content {
+  background: rgba(0,0,0,0.8);
+  padding: 30px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  max-width: 400px;
+}
+
+.fallback-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.fallback-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.fallback-text {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.5;
+}
 
 /* Enhanced Hint */
 #hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;opacity:.75;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:12px;backdrop-filter: blur(8px);z-index:3;color:#ffffff}

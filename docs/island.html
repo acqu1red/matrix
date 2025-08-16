@@ -5,9 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Остров знаний - Формула</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://unpkg.com/three@0.164.1/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.164.1/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://unpkg.com/three@0.164.1/examples/js/controls/OrbitControls.js"></script>
+  
+  <!-- Three.js CDN with proper version -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <!-- OrbitControls for camera control -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <!-- GLTFLoader for 3D models -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -27,6 +34,9 @@
         <div class="tip">💡 Нажмите на здания для входа в разделы</div>
         <div class="tip">🌊 Двигайте пальцем для осмотра острова</div>
         <div class="tip">📚 Изучайте знания в библиотеке</div>
+      </div>
+      <div id="webglStatus" class="webgl-status">
+        <div class="status-text">Проверка WebGL...</div>
       </div>
     </div>
   </div>
@@ -53,6 +63,14 @@
 
   <div id="canvasWrap">
     <canvas id="scene"></canvas>
+    <!-- Fallback message if WebGL fails -->
+    <div id="webglFallback" class="webgl-fallback hidden">
+      <div class="fallback-content">
+        <div class="fallback-icon">⚠️</div>
+        <div class="fallback-title">WebGL не поддерживается</div>
+        <div class="fallback-text">Ваш браузер не поддерживает 3D графику. Обновите браузер или включите аппаратное ускорение.</div>
+      </div>
+    </div>
   </div>
 
   <!-- Enhanced House Labels -->
