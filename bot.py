@@ -36,15 +36,27 @@ ADMIN_IDS = [
 async def check_user_subscription(user_id: int) -> bool:
     """Проверяет, есть ли у пользователя активная подписка"""
     try:
-        result = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
+        result = supabase.table('subscriptions').select('*').eq('user_id', str(user_id)).eq('status', 'active').execute()
         
         if not result.data:
             return False
         
-        # Проверяем, есть ли активная подписка
+        # Проверяем, есть ли активная подписка с неистекшей датой
+        from datetime import datetime
+        now = datetime.now()
+        
         for subscription in result.data:
-            if subscription.get('is_active', False):
-                return True
+            if subscription.get('status') == 'active':
+                end_date_str = subscription.get('end_date')
+                if end_date_str:
+                    # Парсим дату из строки
+                    if isinstance(end_date_str, str):
+                        end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+                    else:
+                        end_date = end_date_str
+                    
+                    if end_date > now:
+                        return True
         
         return False
     except Exception as e:
@@ -60,20 +72,27 @@ async def grant_subscription(user_id: int, days: int) -> bool:
         end_date = datetime.now() + timedelta(days=days)
         
         # Проверяем, есть ли уже подписка у пользователя
-        existing_result = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
+        existing_result = supabase.table('subscriptions').select('*').eq('user_id', str(user_id)).execute()
         
         subscription_data = {
-            'user_id': user_id,
+            'user_id': str(user_id),
+            'tariff': f'admin_grant_{days}_days',
+            'amount': 0.00,
+            'currency': 'RUB',
+            'order_id': f'admin_{user_id}_{int(datetime.now().timestamp())}',
             'start_date': datetime.now().isoformat(),
             'end_date': end_date.isoformat(),
-            'is_active': True,
-            'days_granted': days,
-            'granted_by': 'admin_command'
+            'status': 'active',
+            'metadata': {
+                'granted_by': 'admin_command',
+                'days_granted': days,
+                'admin_id': 'bot_command'
+            }
         }
         
         if existing_result.data:
             # Обновляем существующую подписку
-            result = supabase.table('subscriptions').update(subscription_data).eq('user_id', user_id).execute()
+            result = supabase.table('subscriptions').update(subscription_data).eq('user_id', str(user_id)).execute()
         else:
             # Создаем новую подписку
             result = supabase.table('subscriptions').insert(subscription_data).execute()
@@ -88,12 +107,69 @@ async def grant_subscription(user_id: int, days: int) -> bool:
 async def revoke_subscription(user_id: int) -> bool:
     """Отзывает подписку у пользователя"""
     try:
-        result = supabase.table('subscriptions').update({'is_active': False}).eq('user_id', user_id).execute()
+        result = supabase.table('subscriptions').update({'status': 'cancelled'}).eq('user_id', str(user_id)).execute()
         print(f"✅ Подписка отозвана у пользователя {user_id}")
         return True
     except Exception as e:
         print(f"❌ Ошибка отзыва подписки у пользователя {user_id}: {e}")
         return False
+
+async def get_subscription_info(user_id: int) -> dict:
+    """Получает информацию о подписке пользователя"""
+    try:
+        result = supabase.table('subscriptions').select('*').eq('user_id', str(user_id)).eq('status', 'active').execute()
+        
+        if not result.data:
+            return {
+                'has_subscription': False,
+                'end_date': None,
+                'days_remaining': 0,
+                'tariff': None,
+                'amount': None
+            }
+        
+        from datetime import datetime
+        now = datetime.now()
+        
+        for subscription in result.data:
+            if subscription.get('status') == 'active':
+                end_date_str = subscription.get('end_date')
+                if end_date_str:
+                    # Парсим дату из строки
+                    if isinstance(end_date_str, str):
+                        end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+                    else:
+                        end_date = end_date_str
+                    
+                    if end_date > now:
+                        days_remaining = (end_date - now).days
+                        return {
+                            'has_subscription': True,
+                            'end_date': end_date,
+                            'days_remaining': days_remaining,
+                            'tariff': subscription.get('tariff'),
+                            'amount': subscription.get('amount'),
+                            'currency': subscription.get('currency'),
+                            'start_date': subscription.get('start_date')
+                        }
+        
+        return {
+            'has_subscription': False,
+            'end_date': None,
+            'days_remaining': 0,
+            'tariff': None,
+            'amount': None
+        }
+        
+    except Exception as e:
+        print(f"Ошибка получения информации о подписке пользователя {user_id}: {e}")
+        return {
+            'has_subscription': False,
+            'end_date': None,
+            'days_remaining': 0,
+            'tariff': None,
+            'amount': None
+        }
 
 # ---------- Admin notification functions ----------
 
@@ -651,14 +727,23 @@ async def check_subscription_command(update: Update, context: CallbackContext) -
     try:
         user_id = int(context.args[0])
         
-        # Проверяем подписку
-        has_subscription = await check_user_subscription(user_id)
+        # Получаем подробную информацию о подписке
+        subscription_info = await get_subscription_info(user_id)
         
-        if has_subscription:
+        if subscription_info['has_subscription']:
+            end_date_str = subscription_info['end_date'].strftime('%d.%m.%Y %H:%M') if subscription_info['end_date'] else 'Неизвестно'
+            tariff = subscription_info['tariff'] or 'Не указан'
+            amount = subscription_info['amount'] or 0
+            currency = subscription_info['currency'] or 'RUB'
+            
             await update.effective_message.reply_text(
                 f"✅ <b>Пользователь имеет активную подписку!</b>\n\n"
                 f"👤 <b>Пользователь:</b> {user_id}\n"
-                f"🎯 <b>Статус:</b> Активна\n\n"
+                f"🎯 <b>Статус:</b> Активна\n"
+                f"📅 <b>Тариф:</b> {tariff}\n"
+                f"💰 <b>Сумма:</b> {amount} {currency}\n"
+                f"📆 <b>Дата окончания:</b> {end_date_str}\n"
+                f"⏰ <b>Осталось дней:</b> {subscription_info['days_remaining']}\n\n"
                 f"Пользователь имеет доступ к закрытому контенту.",
                 parse_mode='HTML'
             )
