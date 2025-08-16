@@ -447,97 +447,73 @@ async function loadAdminConversations() {
         // Загружаем статистику
         await loadAdminStats();
         
-        // Получаем все диалоги напрямую из таблицы
-        const { data: conversations, error: convError } = await supabaseClient
-            .from('conversations')
+        // Сначала попробуем простой запрос к таблице
+        const { data: testData, error: testError } = await supabaseClient
+            .from('users')
             .select('*')
-            .order('created_at', { ascending: false });
+            .limit(1);
             
-        if (convError) {
-            console.error('Ошибка при загрузке диалогов:', convError);
-            conversationsList.innerHTML = '<div class="loading">Ошибка загрузки диалогов</div>';
-            return;
-        }
+        console.log('Тест подключения:', { testData, testError });
         
-        console.log('Диалоги загружены:', conversations);
+        // Сначала тестируем простую функцию
+        const { data: testRpc, error: testRpcError } = await supabaseClient
+            .rpc('test_connection');
+            
+        console.log('Тест RPC:', { testRpc, testRpcError });
         
-        if (!conversations || conversations.length === 0) {
+        // Проверяем таблицы
+        const { data: tableCheck, error: tableError } = await supabaseClient
+            .rpc('check_tables');
+            
+        console.log('Проверка таблиц:', { tableCheck, tableError });
+        
+        // Пробуем простую функцию диалогов
+        const { data: simpleData, error: simpleError } = await supabaseClient
+            .rpc('get_conversations_simple');
+            
+        console.log('Простые диалоги:', { simpleData, simpleError });
+        
+        // Теперь пробуем основную RPC
+        const { data, error } = await supabaseClient
+            .rpc('get_admin_conversations');
+            
+        console.log('RPC результат:', { data, error });
+        console.log('Данные диалогов:', data);
+        
+        if (error) {
+            console.error('RPC ошибка:', error);
+            // Показываем простые диалоги если основная функция не работает
+            if (simpleData && simpleData.length > 0) {
+                console.log('Используем простые диалоги');
+                renderConversationsList(simpleData.map(conv => ({
+                    ...conv,
+                    username: `Пользователь #${conv.user_id}`,
+                    first_name: `Пользователь #${conv.user_id}`,
+                    last_name: null,
+                    last_message_at: conv.created_at,
+                    message_count: 0,
+                    last_message: 'Нет сообщений',
+                    status: 'open'
+                })));
+                return;
+            }
+            // Если нет диалогов вообще - показываем пустое состояние
             conversationsList.innerHTML = '<div class="loading">Нет активных диалогов</div>';
             return;
         }
         
-        // Получаем информацию о пользователях для каждого диалога
-        const conversationsWithUsers = await Promise.all(
-            conversations.map(async (conv) => {
-                try {
-                    // Получаем информацию о пользователе
-                    const { data: user, error: userError } = await supabaseClient
-                        .from('users')
-                        .select('*')
-                        .eq('telegram_id', conv.user_id)
-                        .single();
-                        
-                    if (userError) {
-                        console.error('Ошибка получения пользователя:', userError);
-                        return {
-                            ...conv,
-                            username: `Пользователь #${conv.user_id}`,
-                            first_name: `Пользователь #${conv.user_id}`,
-                            last_name: null,
-                            last_message_at: conv.created_at,
-                            message_count: 0,
-                            last_message: 'Нет сообщений',
-                            status: conv.status || 'open'
-                        };
-                    }
-                    
-                    // Получаем количество сообщений в диалоге
-                    const { data: messages, error: msgError } = await supabaseClient
-                        .from('messages')
-                        .select('id')
-                        .eq('conversation_id', conv.id);
-                        
-                    const messageCount = msgError ? 0 : (messages ? messages.length : 0);
-                    
-                    // Получаем последнее сообщение
-                    const { data: lastMessage, error: lastMsgError } = await supabaseClient
-                        .from('messages')
-                        .select('content')
-                        .eq('conversation_id', conv.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
-                        
-                    const lastMessageText = lastMsgError ? 'Нет сообщений' : (lastMessage ? lastMessage.content : 'Нет сообщений');
-                    
-                    return {
-                        ...conv,
-                        username: user.username || user.first_name || `Пользователь #${user.telegram_id}`,
-                        first_name: user.first_name,
-                        last_name: user.last_name,
-                        last_message_at: conv.updated_at || conv.created_at,
-                        message_count: messageCount,
-                        last_message: lastMessageText,
-                        status: conv.status || 'open'
-                    };
-                } catch (error) {
-                    console.error('Ошибка при обработке диалога:', error);
-                    return {
-                        ...conv,
-                        username: `Пользователь #${conv.user_id}`,
-                        first_name: `Пользователь #${conv.user_id}`,
-                        last_name: null,
-                        last_message_at: conv.created_at,
-                        message_count: 0,
-                        last_message: 'Нет сообщений',
-                        status: conv.status || 'open'
-                    };
-                }
-            })
-        );
+        console.log('Диалоги загружены:', data);
         
-        console.log('Диалоги с пользователями:', conversationsWithUsers);
-        renderConversationsList(conversationsWithUsers);
+        // Проверяем структуру данных
+        if (data && data.length > 0) {
+            console.log('Первый диалог:', data[0]);
+            console.log('Поля первого диалога:', Object.keys(data[0]));
+            console.log('Username первого диалога:', data[0].username);
+            console.log('Message count первого диалога:', data[0].message_count);
+            console.log('Last message первого диалога:', data[0].last_message);
+        }
+        
+        renderConversationsList(data);
         
     } catch (error) {
         console.error('Ошибка при загрузке диалогов:', error);
@@ -548,34 +524,20 @@ async function loadAdminConversations() {
 // Загрузка статистики для админ-панели
 async function loadAdminStats() {
     try {
-        // Получаем общее количество диалогов
-        const { data: conversations, error: convError } = await supabaseClient
-            .from('conversations')
-            .select('id, status');
+        const { data, error } = await supabaseClient
+            .rpc('get_conversations_stats');
             
-        if (convError) {
-            console.error('Ошибка при загрузке статистики диалогов:', convError);
+        if (error) {
+            console.error('Ошибка при загрузке статистики:', error);
             return;
         }
         
-        // Получаем общее количество сообщений
-        const { data: messages, error: msgError } = await supabaseClient
-            .from('messages')
-            .select('id');
-            
-        if (msgError) {
-            console.error('Ошибка при загрузке статистики сообщений:', msgError);
-            return;
+        if (data && data.length > 0) {
+            const stats = data[0];
+            document.getElementById('totalConversations').textContent = stats.total_conversations || 0;
+            document.getElementById('openConversations').textContent = stats.open_conversations || 0;
+            document.getElementById('totalMessages').textContent = stats.total_messages || 0;
         }
-        
-        const totalConversations = conversations ? conversations.length : 0;
-        const openConversations = conversations ? conversations.filter(c => c.status === 'open').length : 0;
-        const totalMessages = messages ? messages.length : 0;
-        
-        document.getElementById('totalConversations').textContent = totalConversations;
-        document.getElementById('openConversations').textContent = openConversations;
-        document.getElementById('totalMessages').textContent = totalMessages;
-        
     } catch (error) {
         console.error('Ошибка при загрузке статистики:', error);
     }
@@ -705,43 +667,73 @@ async function openConversationDialog(conversationId, userId) {
         
         console.log('Пользователь найден:', user);
         
-        // Получаем сообщения диалога напрямую из таблицы
-        console.log('Получаем сообщения диалога...');
-        const { data: messages, error: messagesError } = await supabaseClient
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: true });
-            
-        if (messagesError) {
-            console.error('Ошибка при получении сообщений:', messagesError);
-            throw messagesError;
+        // Получаем сообщения диалога
+        let messages = null;
+        let messagesError = null;
+        
+        try {
+            const result = await supabaseClient
+                .rpc('get_conversation_messages', { conv_id: conversationId });
+            messages = result.data;
+            messagesError = result.error;
+        } catch (error) {
+            console.error('Ошибка при вызове RPC:', error);
+            messagesError = error;
         }
         
-        // Определяем, какие сообщения от администраторов
-        const adminIds = [708907063, 7365307696];
+        if (messagesError) {
+            console.error('Ошибка RPC get_conversation_messages:', messagesError);
+            
+            // Попробуем альтернативный способ получения сообщений
+            console.log('Пробуем альтернативный способ получения сообщений...');
+            try {
+                const { data: altMessages, error: altError } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .eq('conversation_id', conversationId)
+                    .order('created_at', { ascending: true });
+                
+                if (altError) {
+                    console.error('Ошибка альтернативного запроса:', altError);
+                    throw messagesError; // Возвращаемся к оригинальной ошибке
+                }
+                
+                // Получаем список администраторов для определения sender_is_admin
+                const { data: admins } = await supabaseClient
+                    .from('admins')
+                    .select('telegram_id')
+                    .eq('is_active', true);
+                
+                const adminIds = admins ? admins.map(a => a.telegram_id) : [];
+                
+                // Преобразуем данные в нужный формат
+                messages = altMessages.map(msg => ({
+                    id: msg.id,
+                    content: msg.content,
+                    sender_id: msg.sender_id,
+                    sender_is_admin: adminIds.includes(msg.sender_id),
+                    message_type: msg.message_type,
+                    is_read: msg.is_read,
+                    created_at: msg.created_at
+                }));
+                
+                console.log('Сообщения получены альтернативным способом:', messages);
+            } catch (altError) {
+                console.error('Альтернативный способ тоже не сработал:', altError);
+                throw messagesError;
+            }
+        }
         
-        // Преобразуем данные в нужный формат
-        const formattedMessages = messages ? messages.map(msg => ({
-            id: msg.id,
-            content: msg.content,
-            sender_id: msg.sender_id,
-            sender_is_admin: adminIds.includes(msg.sender_id),
-            message_type: msg.message_type,
-            is_read: msg.is_read,
-            created_at: msg.created_at
-        })) : [];
-        
-        console.log('Сообщения получены:', formattedMessages);
+        console.log('Сообщения получены:', messages);
         
         // Отображаем информацию о пользователе
         const username = user.username || user.first_name || `Пользователь #${user.telegram_id}`;
         dialogUsername.textContent = username;
-        dialogMeta.textContent = `Сообщений: ${formattedMessages ? formattedMessages.length : 0}`;
+        dialogMeta.textContent = `Сообщений: ${messages ? messages.length : 0}`;
         
         // Отображаем сообщения
-        if (formattedMessages && formattedMessages.length > 0) {
-            renderDialogMessages(formattedMessages);
+        if (messages && messages.length > 0) {
+            renderDialogMessages(messages);
         } else {
             // Если сообщений нет, показываем пустое состояние
             dialogChat.innerHTML = '<div class="empty-state">Нет сообщений в этом диалоге</div>';
