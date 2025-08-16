@@ -9,9 +9,9 @@ import asyncio
 import json
 # channel_manager import removed - not needed for webhook version
 
-MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
-SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
+MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/index.html"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
+SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/subscription.html"
 ISLAND_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/island.html"
 
 # Supabase configuration
@@ -30,6 +30,70 @@ ADMIN_IDS = [
     708907063,  # Замените на реальные ID администраторов
     7365307696,
 ]
+
+# ---------- Subscription management functions ----------
+
+async def check_user_subscription(user_id: int) -> bool:
+    """Проверяет, есть ли у пользователя активная подписка"""
+    try:
+        result = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
+        
+        if not result.data:
+            return False
+        
+        # Проверяем, есть ли активная подписка
+        for subscription in result.data:
+            if subscription.get('is_active', False):
+                return True
+        
+        return False
+    except Exception as e:
+        print(f"Ошибка проверки подписки пользователя {user_id}: {e}")
+        return False
+
+async def grant_subscription(user_id: int, days: int) -> bool:
+    """Выдает подписку пользователю на указанное количество дней"""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Вычисляем дату окончания подписки
+        end_date = datetime.now() + timedelta(days=days)
+        
+        # Проверяем, есть ли уже подписка у пользователя
+        existing_result = supabase.table('subscriptions').select('*').eq('user_id', user_id).execute()
+        
+        subscription_data = {
+            'user_id': user_id,
+            'start_date': datetime.now().isoformat(),
+            'end_date': end_date.isoformat(),
+            'is_active': True,
+            'days_granted': days,
+            'granted_by': 'admin_command'
+        }
+        
+        if existing_result.data:
+            # Обновляем существующую подписку
+            result = supabase.table('subscriptions').update(subscription_data).eq('user_id', user_id).execute()
+        else:
+            # Создаем новую подписку
+            result = supabase.table('subscriptions').insert(subscription_data).execute()
+        
+        print(f"✅ Подписка выдана пользователю {user_id} на {days} дней")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Ошибка выдачи подписки пользователю {user_id}: {e}")
+        return False
+
+async def revoke_subscription(user_id: int) -> bool:
+    """Отзывает подписку у пользователя"""
+    try:
+        result = supabase.table('subscriptions').update({'is_active': False}).eq('user_id', user_id).execute()
+        print(f"✅ Подписка отозвана у пользователя {user_id}")
+        return True
+    except Exception as e:
+        print(f"❌ Ошибка отзыва подписки у пользователя {user_id}: {e}")
+        return False
 
 # ---------- Admin notification functions ----------
 
@@ -430,6 +494,197 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
 
 
 
+async def galdin_command(update: Update, context: CallbackContext) -> None:
+    """Команда для выдачи подписки пользователю: /galdin <user_id> <days>"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text(
+            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
+            parse_mode='HTML'
+        )
+        return
+    
+    # Проверяем аргументы команды
+    if not context.args or len(context.args) != 2:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверный формат команды!</b>\n\n"
+            "Использование: <code>/galdin &lt;user_id&gt; &lt;days&gt;</code>\n\n"
+            "Пример: <code>/galdin 889935420 90</code>\n"
+            "Выдает пользователю 889935420 подписку на 90 дней",
+            parse_mode='HTML'
+        )
+        return
+    
+    try:
+        user_id = int(context.args[0])
+        days = int(context.args[1])
+        
+        # Проверяем валидность дней
+        if days <= 0 or days > 3650:  # Максимум 10 лет
+            await update.effective_message.reply_text(
+                "❌ <b>Неверное количество дней!</b>\n\n"
+                "Количество дней должно быть от 1 до 3650 (10 лет)",
+                parse_mode='HTML'
+            )
+            return
+        
+        # Выдаем подписку
+        success = await grant_subscription(user_id, days)
+        
+        if success:
+            await update.effective_message.reply_text(
+                f"✅ <b>Подписка успешно выдана!</b>\n\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"📅 <b>Срок:</b> {days} дней\n"
+                f"🎯 <b>Статус:</b> Активна\n\n"
+                f"Пользователь теперь имеет доступ к:\n"
+                f"• 📋 Меню подписки\n"
+                f"• 🏝️ Остров навигации\n"
+                f"• 💬 Поддержке\n"
+                f"• 🔒 Закрытому каналу",
+                parse_mode='HTML'
+            )
+        else:
+            await update.effective_message.reply_text(
+                "❌ <b>Ошибка выдачи подписки!</b>\n\n"
+                "Проверьте правильность ID пользователя и попробуйте снова.",
+                parse_mode='HTML'
+            )
+            
+    except ValueError:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверные параметры!</b>\n\n"
+            "ID пользователя и количество дней должны быть числами.\n\n"
+            "Пример: <code>/galdin 889935420 90</code>",
+            parse_mode='HTML'
+        )
+    except Exception as e:
+        print(f"Ошибка команды galdin: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Произошла ошибка:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
+async def revoke_command(update: Update, context: CallbackContext) -> None:
+    """Команда для отзыва подписки: /revoke <user_id>"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text(
+            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
+            parse_mode='HTML'
+        )
+        return
+    
+    # Проверяем аргументы команды
+    if not context.args or len(context.args) != 1:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверный формат команды!</b>\n\n"
+            "Использование: <code>/revoke &lt;user_id&gt;</code>\n\n"
+            "Пример: <code>/revoke 889935420</code>\n"
+            "Отзывает подписку у пользователя 889935420",
+            parse_mode='HTML'
+        )
+        return
+    
+    try:
+        user_id = int(context.args[0])
+        
+        # Отзываем подписку
+        success = await revoke_subscription(user_id)
+        
+        if success:
+            await update.effective_message.reply_text(
+                f"✅ <b>Подписка отозвана!</b>\n\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"🎯 <b>Статус:</b> Неактивна\n\n"
+                f"Пользователь больше не имеет доступа к закрытому контенту.",
+                parse_mode='HTML'
+            )
+        else:
+            await update.effective_message.reply_text(
+                "❌ <b>Ошибка отзыва подписки!</b>\n\n"
+                "Проверьте правильность ID пользователя и попробуйте снова.",
+                parse_mode='HTML'
+            )
+            
+    except ValueError:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверный ID пользователя!</b>\n\n"
+            "ID пользователя должен быть числом.\n\n"
+            "Пример: <code>/revoke 889935420</code>",
+            parse_mode='HTML'
+        )
+    except Exception as e:
+        print(f"Ошибка команды revoke: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Произошла ошибка:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
+async def check_subscription_command(update: Update, context: CallbackContext) -> None:
+    """Команда для проверки подписки: /check <user_id>"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text(
+            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
+            parse_mode='HTML'
+        )
+        return
+    
+    # Проверяем аргументы команды
+    if not context.args or len(context.args) != 1:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверный формат команды!</b>\n\n"
+            "Использование: <code>/check &lt;user_id&gt;</code>\n\n"
+            "Пример: <code>/check 889935420</code>\n"
+            "Проверяет статус подписки пользователя 889935420",
+            parse_mode='HTML'
+        )
+        return
+    
+    try:
+        user_id = int(context.args[0])
+        
+        # Проверяем подписку
+        has_subscription = await check_user_subscription(user_id)
+        
+        if has_subscription:
+            await update.effective_message.reply_text(
+                f"✅ <b>Пользователь имеет активную подписку!</b>\n\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"🎯 <b>Статус:</b> Активна\n\n"
+                f"Пользователь имеет доступ к закрытому контенту.",
+                parse_mode='HTML'
+            )
+        else:
+            await update.effective_message.reply_text(
+                f"❌ <b>Пользователь не имеет активной подписки!</b>\n\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"🎯 <b>Статус:</b> Неактивна\n\n"
+                f"Пользователь не имеет доступа к закрытому контенту.",
+                parse_mode='HTML'
+            )
+            
+    except ValueError:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверный ID пользователя!</b>\n\n"
+            "ID пользователя должен быть числом.\n\n"
+            "Пример: <code>/check 889935420</code>",
+            parse_mode='HTML'
+        )
+    except Exception as e:
+        print(f"Ошибка команды check: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Произошла ошибка:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
 async def check_expired_subscriptions(update: Update, context: CallbackContext) -> None:
     """Проверяет и удаляет пользователей с истекшей подпиской"""
     user = update.effective_user
@@ -496,6 +751,12 @@ def main() -> None:
     application.add_handler(CommandHandler("cancel", cancel_reply))
     application.add_handler(CommandHandler("messages", admin_messages))
     application.add_handler(CommandHandler("check_expired", check_expired_subscriptions))
+    
+    # Команды управления подписками
+    application.add_handler(CommandHandler("galdin", galdin_command))
+    application.add_handler(CommandHandler("revoke", revoke_command))
+    application.add_handler(CommandHandler("check", check_subscription_command))
+    
     application.add_handler(CallbackQueryHandler(button))
     
     # Обработчик для управления каналом отключен - используем webhook версию
