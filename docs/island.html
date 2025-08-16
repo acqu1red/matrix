@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<!-- BUILD_ID: island-noorbit-2025-08-16-01 -->
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <title>Остров • MiniApp (NO ORBIT)</title>
+  <title>Остров • MiniApp (water-fallback)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,16 +23,10 @@
     #err { position: fixed; inset: 10px; background: rgba(0,0,0,.75); border: 1px solid var(--glass); border-radius: 12px; padding: 12px; display:none; z-index: 20; overflow:auto; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Only THREE core + minimal extras (no Water.js dependency) -->
   <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-  <!-- Без OrbitControls.js. Если у тебя где-то ещё подключается OrbitControls — УДАЛИ эти теги скриптов. -->
   <script src="https://unpkg.com/three@0.152.2/examples/js/loaders/RGBELoader.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/EffectComposer.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/RenderPass.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/ShaderPass.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/shaders/FXAAShader.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/UnrealBloomPass.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/objects/Water.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/objects/Lensflare.js"></script>
 </head>
 <body>
   <div id="app"><canvas id="c"></canvas></div>
@@ -44,8 +37,8 @@
   <div id="hint">Управление: ЛКМ — вращение · Колёсико — зум · ПКМ/Shift — панорамирование</div>
   <div id="legend">
     <div><b>Время суток:</b> авто по системному</div>
-    <div><b>FPS target:</b> 60 · <b>WebGL:</b> v2→v1 fallback</div>
-    <div><b>Water:</b> Water.js (classic)</div>
+    <div><b>WebGL:</b> v2→v1 fallback</div>
+    <div><b>Water:</b> custom shader</div>
   </div>
   <div id="perf">FPS: <span id="fps">—</span></div>
   <div id="err"></div>
@@ -53,15 +46,13 @@
   <script>
   (function(){
     const errBox = document.getElementById('err');
-    function showErr(msg) { errBox.style.display = 'block'; errBox.textContent = 'Ошибка:\n' + msg; console.error(msg); }
+    function showErr(msg) { errBox.style.display = 'block'; errBox.textContent = 'Ошибка:\\n' + msg; console.error(msg); }
     window.addEventListener('error', (e)=> showErr(e.message || e.error));
     window.addEventListener('unhandledrejection', (e)=> showErr(e.reason || 'unhandledrejection'));
 
-    console.log('BUILD_ID:', 'island-noorbit-2025-08-16-01');
     try { Telegram?.WebApp?.ready(); Telegram?.WebApp?.expand(); } catch(_) {}
 
     if (!window.THREE) { showErr('THREE.js не загрузился (CDN)'); return; }
-    if (window.THREE.OrbitControls) { console.warn('В глобалах обнаружен OrbitControls — но мы его НЕ используем. Удали лишнее подключение скрипта.'); }
 
     const KM = 1000, ISLAND_SIZE = KM, HALF = ISLAND_SIZE/2;
     const canvas = document.getElementById('c');
@@ -79,9 +70,9 @@
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x0b0f16, 0.002);
-    const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 10000);
+    const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 20000);
 
-    // --- Встроенные орбитальные контролы (без OrbitControls.js) ---
+    // Minimal orbit (no external OrbitControls)
     const target = new THREE.Vector3(0,0,0);
     let spherical = new THREE.Spherical(800, THREE.MathUtils.degToRad(60), THREE.MathUtils.degToRad(45));
     const minDistance = 100, maxDistance = 2000, maxPolar = THREE.MathUtils.degToRad(85);
@@ -118,9 +109,8 @@
       } else {
         const panX = -dx * panSpeed * (spherical.radius/800);
         const panZ =  dy * panSpeed * (spherical.radius/800);
-        const mx = new THREE.Vector3(); const mz = new THREE.Vector3();
-        camera.getWorldDirection(mz); mz.y = 0; mz.normalize(); // вперед-назад
-        mx.crossVectors(camera.up, mz).normalize(); // вправо-влево
+        const mz = new THREE.Vector3(); camera.getWorldDirection(mz); mz.y=0; mz.normalize();
+        const mx = new THREE.Vector3().crossVectors(camera.up, mz).normalize();
         target.addScaledVector(mx, panX).addScaledVector(mz, panZ);
       }
       updateCamera(); e.preventDefault();
@@ -145,13 +135,11 @@
     // Env HDR (optional)
     try {
       const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
-      const hdr = new THREE.RGBELoader()
-        .setDataType(THREE.UnsignedByteType)
+      new THREE.RGBELoader().setDataType(THREE.UnsignedByteType)
         .load('https://rawcdn.githack.com/mrdoob/three.js/r152/examples/textures/equirectangular/venice_sunset_1k.hdr',
           function(tex){ tex.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(tex).texture; tex.dispose(); },
-          undefined,
-          function(){ /* ignore env errors */ });
-    } catch(e) { /* ignore */ }
+          undefined, function(){ /* ignore */ });
+    } catch(e) {}
 
     // Lights
     const hour = new Date().getHours();
@@ -166,27 +154,7 @@
     }
     setupLightingByHour(hour);
 
-    // Lensflare
-    try {
-      const textureFlare = new THREE.TextureLoader().load('assets/lensflare0.png');
-      const flare = new THREE.Lensflare();
-      flare.addElement(new THREE.LensflareElement(textureFlare, 100, 0.0, new THREE.Color(1,1,1)));
-      sun.add(flare);
-    } catch(_) {}
-
-    // Post-processing (optional)
-    let composer = null, fxaa = null, bloom = null;
-    try {
-      composer = new THREE.EffectComposer(renderer);
-      composer.addPass(new THREE.RenderPass(scene, camera));
-      fxaa = new THREE.ShaderPass(THREE.FXAAShader);
-      fxaa.material.uniforms['resolution'].value.set(1/innerWidth, 1/innerHeight);
-      composer.addPass(fxaa);
-      bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85);
-      composer.addPass(bloom);
-    } catch(e) { composer = null; }
-
-    // Perlin
+    // Terrain via Perlin (colored by biomes)
     function rand(seed){ const x = Math.sin(seed)*10000; return x - Math.floor(x); }
     function makePerlin(seed){
       const p = new Uint8Array(512);
@@ -228,9 +196,9 @@
         pos.setY(i, heightM);
 
         const c = new THREE.Color();
-        if (edge < 0.07) c.set('#cdb896');
-        else if (heightM > 50) c.set('#4b4e57');
-        else { const bN = perlin(nx*2+10, nz*2-10); c.set(bN>0.55 ? '#184a2c' : '#8b6f4a'); }
+        if (edge < 0.07) c.set('#cdb896'); // beach
+        else if (heightM > 50) c.set('#4b4e57'); // rock
+        else { const bN = perlin(nx*2+10, nz*2-10); c.set(bN>0.55 ? '#184a2c' : '#8b6f4a'); } // forest vs plain
         colors.push(c.r,c.g,c.b);
       }
       geo.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
@@ -247,33 +215,58 @@
     terrainLOD.addLevel(buildTerrain(128, 1.0), 900);
     scene.add(terrainLOD);
 
-    // Water.js
-    const waterNormals = new THREE.TextureLoader().load('assets/waternormals.jpg', function(t){ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
-    const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4, 1, 1);
-    const water = new THREE.Water(waterGeom, {
-      textureWidth: 1024, textureHeight: 1024,
-      waterNormals: waterNormals,
-      sunDirection: new THREE.Vector3().copy(sun.position).normalize(),
-      sunColor: 0xffffff,
-      waterColor: 0x0d3b66,
-      distortionScale: 2.0,
-      fog: true
+    // Custom water (no Water.js dependency)
+    const waterTex = new THREE.TextureLoader().load('assets/waternormals.jpg'); 
+    waterTex.wrapS = waterTex.wrapT = THREE.RepeatWrapping;
+    const waterUniforms = {
+      uTime: { value: 0.0 },
+      uColor: { value: new THREE.Color('#0d3b66') },
+      uNormalMap: { value: waterTex },
+      uSunDir: { value: new THREE.Vector3(0.3,1,0.2).normalize() }
+    };
+    const waterMat = new THREE.ShaderMaterial({
+      uniforms: waterUniforms,
+      transparent: false,
+      vertexShader: `
+        uniform float uTime;
+        varying vec2 vUv;
+        void main(){
+          vUv = uv * 20.0 + vec2(uTime*0.02, uTime*0.015);
+          vec3 pos = position;
+          // лёгкая синусоида
+          pos.z += sin((position.x + uTime*2.0)*0.02)*0.8;
+          pos.x += cos((position.y + uTime*1.6)*0.02)*0.8;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform sampler2D uNormalMap;
+        uniform vec3 uSunDir;
+        varying vec2 vUv;
+        void main(){
+          vec3 n = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
+          n = normalize(vec3(n.x, n.z, n.y));
+          float ndl = clamp(dot(n, normalize(uSunDir)), 0.0, 1.0);
+          vec3 col = uColor * (0.55 + 0.45*ndl);
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
     });
+    const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4, 256, 256);
+    const water = new THREE.Mesh(waterGeom, waterMat);
     water.rotation.x = -Math.PI/2;
+    water.position.y = 0.2;
     scene.add(water);
 
-    // Vegetation (instanced)
-    const palmCount = 320;
+    // Simple vegetation (instanced palms)
+    const palmCount = 220;
     const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 8, 6, 1, false);
     const trunkMat = new THREE.MeshStandardMaterial({ color:'#6b4f2d', roughness:0.9 });
     const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, palmCount);
-    trunkInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-
     const leafGeo = new THREE.ConeGeometry(1.4, 2.8, 6);
     const leafMat = new THREE.MeshStandardMaterial({ color:'#1f7a4b', roughness:0.7, metalness:0.0 });
     const leafInst = new THREE.InstancedMesh(leafGeo, leafMat, palmCount*4);
-    leafInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-
     const m4 = new THREE.Matrix4();
     function sampleHeightAt(x, z) {
       const nx = (x + HALF)/ISLAND_SIZE, nz = (z + HALF)/ISLAND_SIZE;
@@ -314,25 +307,25 @@
     }
     scene.add(trunkInst, leafInst);
 
-    // Clouds
+    // Clouds (sprite-based)
     const cloudTex = new THREE.TextureLoader().load('assets/cloud.png', function(t){ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
     const cloudGroup = new THREE.Group(); scene.add(cloudGroup);
-    for (let i=0;i<10;i++){
+    for (let i=0;i<12;i++){
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, color:0xffffff, opacity: (i%2?0.45:0.35) }));
       sp.position.set(THREE.MathUtils.randFloatSpread(ISLAND_SIZE), 250+THREE.MathUtils.randFloat(-40,60), THREE.MathUtils.randFloatSpread(ISLAND_SIZE));
-      sp.scale.setScalar(120 + Math.random()*180);
+      sp.scale.setScalar(180 + Math.random()*220);
       cloudGroup.add(sp);
     }
 
-    // Audio
-    let audioReady = false;
-    let audioCtx, gainMaster;
+    // Audio toggle
+    let audioReady = false, audioCtx, gainMaster;
     const audioBtn = document.getElementById('audioBtn');
     audioBtn.addEventListener('click', () => {
       if (audioReady) return;
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.2; gainMaster.connect(audioCtx.destination);
+        // море (розовый шум)
         const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.6;
@@ -343,21 +336,22 @@
       } catch(e) { showErr('Audio init failed: ' + e); }
     });
 
+    // Animate
     function onResize(){
       const dpr = Math.min(2, window.devicePixelRatio||1);
       const w = window.innerWidth, h = window.innerHeight;
       renderer.setPixelRatio(dpr); renderer.setSize(w, h);
       camera.aspect = w/h; camera.updateProjectionMatrix();
-      if (composer) { composer.setSize(w,h); fxaa.material.uniforms['resolution'].value.set(1/w, 1/h); bloom.setSize(w,h); }
     }
     window.addEventListener('resize', onResize);
-
     const fpsEl = document.getElementById('fps');
-    let lastTime = performance.now(), frames = 0;
+    let lastTime = performance.now(), frames = 0, t = 0;
     function loop(){
-      if (composer) composer.render(); else renderer.render(scene, camera);
-      frames++; const t = performance.now();
-      if (t - lastTime > 500) { fpsEl.textContent = Math.round(1000*frames/(t-lastTime)); frames = 0; lastTime = t; }
+      t += 0.016;
+      waterUniforms.uTime.value = t;
+      renderer.render(scene, camera);
+      frames++; const now = performance.now();
+      if (now - lastTime > 500) { fpsEl.textContent = Math.round(1000*frames/(now-lastTime)); frames = 0; lastTime = now; }
       requestAnimationFrame(loop);
     }
     onResize(); loop();
