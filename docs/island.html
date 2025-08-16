@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <title>Остров • MiniApp (water-fallback)</title>
+  <title>Остров • MiniApp (scaled + bounds)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,22 +23,20 @@
     #err { position: fixed; inset: 10px; background: rgba(0,0,0,.75); border: 1px solid var(--glass); border-radius: 12px; padding: 12px; display:none; z-index: 20; overflow:auto; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Only THREE core + minimal extras (no Water.js dependency) -->
+  <!-- Only THREE core + minimal extras -->
   <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.152.2/examples/js/loaders/RGBELoader.js"></script>
 </head>
 <body>
   <div id="app"><canvas id="c"></canvas></div>
   <div id="hud">
-    <div class="tag">JEFFREY EPSTEIN ISLAND · 1 км²</div>
+    <div class="tag">JEFFREY EPSTEIN ISLAND · scaled</div>
     <button id="audioBtn" class="tag">Включить звуки</button>
   </div>
   <div id="hint">Управление: ЛКМ — вращение · Колёсико — зум · ПКМ/Shift — панорамирование</div>
   <div id="legend">
-    <div><b>Время суток:</b> авто по системному</div>
-    <div><b>WebGL:</b> v2→v1 fallback</div>
-    <div><b>Water:</b> custom shader</div>
+    <div><b>Время суток:</b> авто</div>
+    <div><b>Границы камеры:</b> сдержаны в пределах острова</div>
   </div>
   <div id="perf">FPS: <span id="fps">—</span></div>
   <div id="err"></div>
@@ -54,7 +52,10 @@
 
     if (!window.THREE) { showErr('THREE.js не загрузился (CDN)'); return; }
 
-    const KM = 1000, ISLAND_SIZE = KM, HALF = ISLAND_SIZE/2;
+    // === Масштаб уменьшен ===
+    const ISLAND_SIZE = 480; // было 1000 — теперь остров ~0.23 км^2
+    const HALF = ISLAND_SIZE/2;
+
     const canvas = document.getElementById('c');
     let gl = canvas.getContext('webgl2', { antialias:true, alpha:false });
     if (!gl) gl = canvas.getContext('webgl', { antialias:true, alpha:false });
@@ -69,14 +70,22 @@
     renderer.setClearColor(0x0b0f16, 1);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0f16, 0.002);
+    // === Уменьшил туман, чтобы не «дымило» весь экран ===
+    scene.fog = new THREE.FogExp2(0x0b0f16, 0.0006);
+
     const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 20000);
 
-    // Minimal orbit (no external OrbitControls)
+    // --- Встроенный Orbit с жёсткими границами острова ---
     const target = new THREE.Vector3(0,0,0);
-    let spherical = new THREE.Spherical(800, THREE.MathUtils.degToRad(60), THREE.MathUtils.degToRad(45));
-    const minDistance = 100, maxDistance = 2000, maxPolar = THREE.MathUtils.degToRad(85);
+    let spherical = new THREE.Spherical(HALF*1.2, THREE.MathUtils.degToRad(55), THREE.MathUtils.degToRad(45));
+    const minDistance = 80, maxDistance = HALF*2.2, maxPolar = THREE.MathUtils.degToRad(85);
+    const PAN_MARGIN = 8; // небольшой внутренний отступ
+    function clampTarget() {
+      target.x = THREE.MathUtils.clamp(target.x, -HALF+PAN_MARGIN, HALF-PAN_MARGIN);
+      target.z = THREE.MathUtils.clamp(target.z, -HALF+PAN_MARGIN, HALF-PAN_MARGIN);
+    }
     function updateCamera(){
+      clampTarget();
       const sinPhiRadius = spherical.radius * Math.sin(spherical.phi);
       camera.position.set(
         target.x + sinPhiRadius * Math.sin(spherical.theta),
@@ -132,7 +141,7 @@
     canvas.addEventListener('touchend', onUp);
     canvas.addEventListener('contextmenu', (e)=> e.preventDefault());
 
-    // Env HDR (optional)
+    // HDR окружение опционально
     try {
       const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
       new THREE.RGBELoader().setDataType(THREE.UnsignedByteType)
@@ -141,20 +150,20 @@
           undefined, function(){ /* ignore */ });
     } catch(e) {}
 
-    // Lights
+    // Освещение по времени суток
     const hour = new Date().getHours();
     const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-    sun.position.set(-500, 800, 200); scene.add(sun);
+    sun.position.set(-300, 600, 200); scene.add(sun);
     const hemi = new THREE.HemisphereLight(0x93b6ff, 0x1b2838, 0.35); scene.add(hemi);
     function setupLightingByHour(h) {
       if (h >= 6 && h < 9) { sun.intensity = 0.9; sun.color.set('#ffd9a3'); hemi.intensity = 0.35; renderer.toneMappingExposure = 0.95; }
       else if (h >= 9 && h < 16) { sun.intensity = 1.2; sun.color.set('#ffffff'); hemi.intensity = 0.4; renderer.toneMappingExposure = 1.0; }
       else if (h >= 16 && h < 19) { sun.intensity = 0.85; sun.color.set('#ffb36b'); hemi.intensity = 0.35; renderer.toneMappingExposure = 0.92; }
-      else { sun.intensity = 0.25; sun.color.set('#cfdfff'); hemi.intensity = 0.2; renderer.toneMappingExposure = 0.8; }
+      else { sun.intensity = 0.25; sun.color.set('#cfdfff'); hemi.intensity = 0.2; renderer.toneMappingExposure = 0.85; }
     }
     setupLightingByHour(hour);
 
-    // Terrain via Perlin (colored by biomes)
+    // Перлин
     function rand(seed){ const x = Math.sin(seed)*10000; return x - Math.floor(x); }
     function makePerlin(seed){
       const p = new Uint8Array(512);
@@ -191,14 +200,14 @@
         const ridge = Math.exp(-Math.pow((nx-0.5)*2.4, 2))*Math.exp(-Math.pow((nz-0.5)*2.4, 2));
         h += ridge*0.35;
         const edge = Math.min(nx, nz, 1-nx, 1-nz);
-        let heightM = (h*100) * scaleH;
-        if (edge < 0.07) heightM *= 0.5;
+        let heightM = (h*65) * scaleH; // было 100 → уменьшил высоты
+        if (edge < 0.09) heightM *= 0.5; // пляжи чуть шире из-за меньшего острова
         pos.setY(i, heightM);
 
         const c = new THREE.Color();
-        if (edge < 0.07) c.set('#cdb896'); // beach
-        else if (heightM > 50) c.set('#4b4e57'); // rock
-        else { const bN = perlin(nx*2+10, nz*2-10); c.set(bN>0.55 ? '#184a2c' : '#8b6f4a'); } // forest vs plain
+        if (edge < 0.09) c.set('#cdb896');         // beach ~15–18%
+        else if (heightM > 35) c.set('#4b4e57');   // rock
+        else { const bN = perlin(nx*2+10, nz*2-10); c.set(bN>0.55 ? '#184a2c' : '#8b6f4a'); }
         colors.push(c.r,c.g,c.b);
       }
       geo.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
@@ -209,14 +218,15 @@
       return mesh;
     }
 
+    // LOD под новый размер
     const terrainLOD = new THREE.LOD();
-    terrainLOD.addLevel(buildTerrain(512, 1.0), 0);
-    terrainLOD.addLevel(buildTerrain(256, 1.0), 400);
-    terrainLOD.addLevel(buildTerrain(128, 1.0), 900);
+    terrainLOD.addLevel(buildTerrain(256, 1.0), 0);
+    terrainLOD.addLevel(buildTerrain(160, 1.0), 240);
+    terrainLOD.addLevel(buildTerrain(96,  1.0), 520);
     scene.add(terrainLOD);
 
-    // Custom water (no Water.js dependency)
-    const waterTex = new THREE.TextureLoader().load('assets/waternormals.jpg'); 
+    // Вода: кастомный шейдер (без Water.js), ограничена рамками острова
+    const waterTex = new THREE.TextureLoader().load('assets/waternormals.jpg');
     waterTex.wrapS = waterTex.wrapT = THREE.RepeatWrapping;
     const waterUniforms = {
       uTime: { value: 0.0 },
@@ -231,11 +241,10 @@
         uniform float uTime;
         varying vec2 vUv;
         void main(){
-          vUv = uv * 20.0 + vec2(uTime*0.02, uTime*0.015);
+          vUv = uv * 10.0 + vec2(uTime*0.02, uTime*0.015);
           vec3 pos = position;
-          // лёгкая синусоида
-          pos.z += sin((position.x + uTime*2.0)*0.02)*0.8;
-          pos.x += cos((position.y + uTime*1.6)*0.02)*0.8;
+          pos.z += sin((position.x + uTime*2.0)*0.03)*0.6;
+          pos.x += cos((position.y + uTime*1.6)*0.03)*0.6;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
         }
       `,
@@ -248,26 +257,27 @@
           vec3 n = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
           n = normalize(vec3(n.x, n.z, n.y));
           float ndl = clamp(dot(n, normalize(uSunDir)), 0.0, 1.0);
-          vec3 col = uColor * (0.55 + 0.45*ndl);
+          vec3 col = uColor * (0.6 + 0.4*ndl);
           gl_FragColor = vec4(col, 1.0);
         }
       `
     });
-    const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4, 256, 256);
+    const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE + 40, ISLAND_SIZE + 40, 96, 96);
     const water = new THREE.Mesh(waterGeom, waterMat);
     water.rotation.x = -Math.PI/2;
     water.position.y = 0.2;
     scene.add(water);
 
-    // Simple vegetation (instanced palms)
-    const palmCount = 220;
-    const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 8, 6, 1, false);
+    // Простая растительность (уменьшено количество под размер острова)
+    const palmCount = 180;
+    const trunkGeo = new THREE.CylinderGeometry(0.22, 0.35, 6.5, 6, 1, false);
     const trunkMat = new THREE.MeshStandardMaterial({ color:'#6b4f2d', roughness:0.9 });
     const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, palmCount);
-    const leafGeo = new THREE.ConeGeometry(1.4, 2.8, 6);
+    const leafGeo = new THREE.ConeGeometry(1.2, 2.2, 6);
     const leafMat = new THREE.MeshStandardMaterial({ color:'#1f7a4b', roughness:0.7, metalness:0.0 });
     const leafInst = new THREE.InstancedMesh(leafGeo, leafMat, palmCount*4);
     const m4 = new THREE.Matrix4();
+
     function sampleHeightAt(x, z) {
       const nx = (x + HALF)/ISLAND_SIZE, nz = (z + HALF)/ISLAND_SIZE;
       const h1 = perlin(nx*4, nz*4), h2 = perlin(nx*8+100, nz*8-30), h3 = perlin(nx*16-50, nz*16+50);
@@ -275,68 +285,67 @@
       const ridge = Math.exp(-Math.pow((nx-0.5)*2.4, 2))*Math.exp(-Math.pow((nz-0.5)*2.4, 2));
       h += ridge*0.35;
       const edge = Math.min(nx, nz, 1-nx, 1-nz);
-      let heightM = (h*100);
-      if (edge < 0.07) heightM *= 0.5;
+      let heightM = (h*65);
+      if (edge < 0.09) heightM *= 0.5;
       return heightM;
     }
     let leafIndex = 0;
     for (let i=0; i<palmCount; i++) {
-      let x, z, nearBeach=false;
+      let x, z;
       for (let tries=0; tries<1000; tries++){
         x = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.9);
         z = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.9);
         const nx = (x + HALF)/ISLAND_SIZE, nz=(z+HALF)/ISLAND_SIZE;
         const edge = Math.min(nx, nz, 1-nx, 1-nz);
-        nearBeach = edge < 0.12;
+        const nearBeach = edge < 0.12;
         const ok = Math.random() < (nearBeach? 0.7 : 0.3);
         const h = sampleHeightAt(x,z);
-        if (ok && h > 1 && h < 40) break;
+        if (ok && h > 1 && h < 32) break;
       }
       const y = sampleHeightAt(x,z);
       const s = THREE.MathUtils.randFloat(0.9, 1.25);
       const rotY = THREE.MathUtils.randFloat(0, Math.PI*2);
-      m4.compose(new THREE.Vector3(x, y+4*s, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), rotY), new THREE.Vector3(1, s, 1));
+      m4.compose(new THREE.Vector3(x, y+3.2*s, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), rotY), new THREE.Vector3(1, s, 1));
       trunkInst.setMatrixAt(i, m4);
       for (let k=0;k<4;k++) {
         const ry = rotY + k*(Math.PI/2) + THREE.MathUtils.randFloat(-0.15,0.15);
         const up = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.6+THREE.MathUtils.randFloat(-0.2,0.2), ry, 0));
         const scale = THREE.MathUtils.randFloat(0.8,1.2);
-        m4.compose(new THREE.Vector3(x, y+8.5*s, z), up, new THREE.Vector3(scale, scale, scale));
+        m4.compose(new THREE.Vector3(x, y+6.9*s, z), up, new THREE.Vector3(scale, scale, scale));
         leafInst.setMatrixAt(leafIndex++, m4);
       }
     }
     scene.add(trunkInst, leafInst);
 
-    // Clouds (sprite-based)
+    // Облака выше, чтобы не казались «дымом» у камеры
     const cloudTex = new THREE.TextureLoader().load('assets/cloud.png', function(t){ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
     const cloudGroup = new THREE.Group(); scene.add(cloudGroup);
-    for (let i=0;i<12;i++){
-      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, color:0xffffff, opacity: (i%2?0.45:0.35) }));
-      sp.position.set(THREE.MathUtils.randFloatSpread(ISLAND_SIZE), 250+THREE.MathUtils.randFloat(-40,60), THREE.MathUtils.randFloatSpread(ISLAND_SIZE));
-      sp.scale.setScalar(180 + Math.random()*220);
+    for (let i=0;i<8;i++){
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, color:0xffffff, opacity: (i%2?0.4:0.3) }));
+      sp.position.set(THREE.MathUtils.randFloatSpread(ISLAND_SIZE), 320+THREE.MathUtils.randFloat(-20,50), THREE.MathUtils.randFloatSpread(ISLAND_SIZE));
+      sp.scale.setScalar(160 + Math.random()*200);
       cloudGroup.add(sp);
     }
 
-    // Audio toggle
+    // Аудио
     let audioReady = false, audioCtx, gainMaster;
     const audioBtn = document.getElementById('audioBtn');
     audioBtn.addEventListener('click', () => {
       if (audioReady) return;
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.2; gainMaster.connect(audioCtx.destination);
-        // море (розовый шум)
+        gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.18; gainMaster.connect(audioCtx.destination);
         const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
-        for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.6;
+        for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.55;
         const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
-        const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 400; filter.Q.value = 0.5;
+        const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 420; filter.Q.value = 0.6;
         noise.connect(filter); filter.connect(gainMaster); noise.start();
         audioReady = true; audioBtn.textContent = 'Звуки включены'; audioBtn.disabled = true;
       } catch(e) { showErr('Audio init failed: ' + e); }
     });
 
-    // Animate
+    // Анимация/рендер
     function onResize(){
       const dpr = Math.min(2, window.devicePixelRatio||1);
       const w = window.innerWidth, h = window.innerHeight;
@@ -348,7 +357,13 @@
     let lastTime = performance.now(), frames = 0, t = 0;
     function loop(){
       t += 0.016;
-      waterUniforms.uTime.value = t;
+      // ограничение цели на каждом кадре, чтобы нельзя было «выпихнуть» панорамой
+      clampTarget();
+      // вода
+      scene.fog.density = 0.0006; // стабильно
+      // обновление uniforms
+      // (вода может быть не видна на слабых устройствах, но падать не будет)
+      if (typeof waterUniforms !== 'undefined') waterUniforms.uTime.value = t;
       renderer.render(scene, camera);
       frames++; const now = performance.now();
       if (now - lastTime > 500) { fpsEl.textContent = Math.round(1000*frames/(now-lastTime)); frames = 0; lastTime = now; }
