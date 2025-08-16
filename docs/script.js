@@ -3,6 +3,7 @@ import { SUPABASE_CONFIG, CONFIG, tg } from './config.js';
 // Инициализация Supabase
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+console.log('Supabase клиент создан:', { url: SUPABASE_CONFIG.url, key: SUPABASE_CONFIG.key.substring(0, 20) + '...' });
 
 // Элементы DOM
 const chat = document.getElementById('chat');
@@ -93,6 +94,9 @@ async function initApp() {
     setupEventListeners();
     setupScrollTracking();
     
+    // Тестируем подключение к базе данных
+    await testDatabaseConnection();
+    
     // Запускаем автоматическое обновление сообщений
     startMessagePolling();
 }
@@ -118,19 +122,60 @@ async function createOrGetUser(userData) {
     }
 }
 
+// Тестирование подключения к базе данных
+async function testDatabaseConnection() {
+    try {
+        console.log('Тестируем подключение к базе данных...');
+        
+        // Простой запрос к таблице users
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('count')
+            .limit(1);
+            
+        if (error) {
+            console.error('Ошибка подключения к базе данных:', error);
+        } else {
+            console.log('Подключение к базе данных успешно');
+        }
+    } catch (error) {
+        console.error('Ошибка при тестировании базы данных:', error);
+    }
+}
+
 // Проверка прав администратора
 async function checkAdminRights() {
-    if (!currentUserId) return;
+    console.log('checkAdminRights вызвана, currentUserId:', currentUserId);
+    
+    if (!currentUserId) {
+        console.log('currentUserId не установлен, пропускаем проверку');
+        return;
+    }
     
     try {
         // Проверяем по ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
+        console.log('Проверяем ID:', currentUserId, 'против списка:', adminIds);
+        
         isAdmin = adminIds.includes(currentUserId);
+        console.log('Результат проверки isAdmin:', isAdmin);
         
         if (isAdmin) {
-            adminPanelBtn.classList.remove('hidden');
-            document.getElementById('adminFooter').classList.add('active');
-            console.log('Пользователь является администратором');
+            console.log('Пользователь является администратором, показываем панель');
+            if (adminPanelBtn) {
+                adminPanelBtn.classList.remove('hidden');
+                console.log('Класс hidden удален с кнопки админ панели');
+            } else {
+                console.error('adminPanelBtn не найден!');
+            }
+            
+            const adminFooter = document.getElementById('adminFooter');
+            if (adminFooter) {
+                adminFooter.classList.add('active');
+                console.log('Класс active добавлен к adminFooter');
+            } else {
+                console.error('adminFooter не найден!');
+            }
         } else {
             console.log('Пользователь не является администратором');
         }
@@ -269,9 +314,12 @@ async function sendMessage() {
     
     try {
         // Создаем или получаем диалог
+        console.log('Создаем или получаем диалог...');
         const conversationId = await createOrGetConversation();
+        console.log('ID диалога:', conversationId);
         
         if (!conversationId) {
+            console.error('Не удалось создать диалог');
             throw new Error('Не удалось создать диалог');
         }
         
