@@ -82,7 +82,7 @@
   <div id="app"><canvas id="c"></canvas></div>
 
   <script>
-    // Простая версия без модулей для диагностики
+    // НОВАЯ ВЕРСИЯ ОСТРОВА - v2.0
     const debug = document.getElementById('debug');
     
     function log(message) {
@@ -90,7 +90,7 @@
       debug.textContent = 'Debug: ' + message;
     }
     
-    log('Скрипт начал выполнение - v2.1');
+    log('НОВАЯ ВЕРСИЯ ОСТРОВА v2.0');
     
     // Проверяем Telegram WebApp
     const tg = window.Telegram?.WebApp;
@@ -340,7 +340,7 @@
         log('Убираем экран загрузки');
         document.getElementById('loading').style.display = 'none';
         
-        log('Остров готов! v2.1');
+        log('Остров готов! v2.0');
         
       } catch (error) {
         log('Ошибка: ' + error.message);
