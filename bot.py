@@ -10,8 +10,9 @@ import json
 # channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/?type=support"
-PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/payment.html"
-SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/docs/subscription.html"
+PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
+SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
+ISLAND_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/") + "/docs/island.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
