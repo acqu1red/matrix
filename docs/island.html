@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <title>Остров • MiniApp (strict compat)</title>
+  <title>Остров • MiniApp (no-extern-controls)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,9 +24,8 @@
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- STRICT COMPAT: only non-module "examples/js" APIs -->
+  <!-- THREE only; no external controls dependency -->
   <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/three@0.152.2/examples/js/loaders/RGBELoader.js"></script>
   <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/EffectComposer.js"></script>
   <script src="https://unpkg.com/three@0.152.2/examples/js/postprocessing/RenderPass.js"></script>
@@ -79,14 +78,70 @@
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x0b0f16, 0.002);
     const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.5, 10000);
-    camera.position.set(HALF*0.7, 500, HALF*0.7);
-    camera.lookAt(0,0,0);
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 100; controls.maxDistance = 2000; controls.maxPolarAngle = THREE.MathUtils.degToRad(85);
+    // --- Minimal Orbit (без внешнего OrbitControls) ---
+    const target = new THREE.Vector3(0,0,0);
+    let spherical = new THREE.Spherical(800, THREE.MathUtils.degToRad(60), THREE.MathUtils.degToRad(45));
+    const minDistance = 100, maxDistance = 2000, maxPolar = THREE.MathUtils.degToRad(85);
+    function updateCamera(){
+      const sinPhiRadius = spherical.radius * Math.sin(spherical.phi);
+      camera.position.set(
+        target.x + sinPhiRadius * Math.sin(spherical.theta),
+        target.y + spherical.radius * Math.cos(spherical.phi),
+        target.z + sinPhiRadius * Math.cos(spherical.theta)
+      );
+      camera.lookAt(target);
+    }
+    updateCamera();
 
-    // Env HDR (fail-safe)
+    let state = null; // 'ROTATE' | 'PAN'
+    let lastX=0, lastY=0;
+    const rotateSpeed = 0.005, panSpeed = 0.002, zoomSpeed = 1.0;
+    function onDown(e){
+      const btn = (e.touches?0:e.button);
+      state = (btn===2 || e.shiftKey) ? 'PAN' : 'ROTATE';
+      const p = e.touches? e.touches[0] : e;
+      lastX = p.clientX; lastY = p.clientY;
+      e.preventDefault();
+    }
+    function onMove(e){
+      if (!state) return;
+      const p = e.touches? e.touches[0] : e;
+      const dx = (p.clientX - lastX), dy = (p.clientY - lastY);
+      lastX = p.clientX; lastY = p.clientY;
+      if (state==='ROTATE'){
+        spherical.theta -= dx * rotateSpeed;
+        spherical.phi   -= dy * rotateSpeed;
+        spherical.phi = Math.max(0.001, Math.min(maxPolar, spherical.phi));
+      } else {
+        const panX = -dx * panSpeed * (spherical.radius/800);
+        const panZ =  dy * panSpeed * (spherical.radius/800);
+        // пан вдоль локальных осей камеры
+        const mx = new THREE.Vector3(); const mz = new THREE.Vector3();
+        camera.getWorldDirection(mz); mz.y = 0; mz.normalize(); // вперед-назад
+        mx.crossVectors(camera.up, mz).normalize(); // вправо-влево
+        target.addScaledVector(mx, panX).addScaledVector(mz, panZ);
+      }
+      updateCamera(); e.preventDefault();
+    }
+    function onUp(){ state = null; }
+    function onWheel(e){
+      const delta = Math.sign(e.deltaY);
+      spherical.radius *= (1 + zoomSpeed * 0.1 * delta);
+      spherical.radius = Math.max(minDistance, Math.min(maxDistance, spherical.radius));
+      updateCamera(); e.preventDefault();
+    }
+    canvas.addEventListener('mousedown', onDown);
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseup', onUp);
+    canvas.addEventListener('mouseleave', onUp);
+    canvas.addEventListener('wheel', onWheel, {passive:false});
+    canvas.addEventListener('touchstart', onDown, {passive:false});
+    canvas.addEventListener('touchmove', onMove, {passive:false});
+    canvas.addEventListener('touchend', onUp);
+    canvas.addEventListener('contextmenu', (e)=> e.preventDefault());
+
+    // Env HDR (fail-safe, optional)
     try {
       const pmrem = new THREE.PMREMGenerator(renderer); pmrem.compileEquirectangularShader();
       const hdr = new THREE.RGBELoader()
@@ -118,7 +173,7 @@
       sun.add(flare);
     } catch(_) {}
 
-    // Post-processing (with renderer fallback)
+    // Post-processing (optional)
     let composer = null, fxaa = null, bloom = null;
     try {
       composer = new THREE.EffectComposer(renderer);
@@ -172,8 +227,8 @@
         pos.setY(i, heightM);
 
         const c = new THREE.Color();
-        if (edge < 0.07) c.set('#cdb896'); // beach
-        else if (heightM > 50) c.set('#4b4e57'); // rock
+        if (edge < 0.07) c.set('#cdb896');
+        else if (heightM > 50) c.set('#4b4e57');
         else { const bN = perlin(nx*2+10, nz*2-10); c.set(bN>0.55 ? '#184a2c' : '#8b6f4a'); }
         colors.push(c.r,c.g,c.b);
       }
@@ -191,7 +246,7 @@
     terrainLOD.addLevel(buildTerrain(128, 1.0), 900);
     scene.add(terrainLOD);
 
-    // Classic Water.js (not Water2) — fully non-module
+    // Water.js
     const waterNormals = new THREE.TextureLoader().load('assets/waternormals.jpg', function(t){ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
     const waterGeom = new THREE.PlaneGeometry(ISLAND_SIZE*4, ISLAND_SIZE*4, 1, 1);
     const water = new THREE.Water(waterGeom, {
@@ -206,19 +261,17 @@
     water.rotation.x = -Math.PI/2;
     scene.add(water);
 
-    // Vegetation (instanced) — same as before
+    // Simple vegetation (instanced)
     const palmCount = 320;
     const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 8, 6, 1, false);
     const trunkMat = new THREE.MeshStandardMaterial({ color:'#6b4f2d', roughness:0.9 });
     const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, palmCount);
     trunkInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    trunkInst.frustumCulled = true;
 
     const leafGeo = new THREE.ConeGeometry(1.4, 2.8, 6);
     const leafMat = new THREE.MeshStandardMaterial({ color:'#1f7a4b', roughness:0.7, metalness:0.0 });
     const leafInst = new THREE.InstancedMesh(leafGeo, leafMat, palmCount*4);
     leafInst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    leafInst.frustumCulled = true;
 
     const m4 = new THREE.Matrix4();
     function sampleHeightAt(x, z) {
@@ -260,48 +313,6 @@
     }
     scene.add(trunkInst, leafInst);
 
-    // Ferns + grass (same)
-    const fernCount = 100;
-    const fernGeo = new THREE.ConeGeometry(0.8, 1.2, 7);
-    const fernMat = new THREE.MeshStandardMaterial({ color:'#2b7a53', roughness:0.8 });
-    const fernInst = new THREE.InstancedMesh(fernGeo, fernMat, fernCount);
-    for (let i=0;i<fernCount;i++){
-      const x = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.8);
-      const z = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.8);
-      const y = sampleHeightAt(x,z);
-      m4.compose(new THREE.Vector3(x, y+0.6, z), new THREE.Quaternion(), new THREE.Vector3(1,1,1));
-      fernInst.setMatrixAt(i, m4);
-    }
-    scene.add(fernInst);
-
-    const grassGroup = new THREE.Group(); scene.add(grassGroup);
-    {
-      const plane = new THREE.PlaneGeometry(0.8, 1.2);
-      const mat = new THREE.MeshBasicMaterial({ color:'#6aa84f', transparent:true, opacity:0.85, side:THREE.DoubleSide });
-      for (let i=0;i<800;i++){
-        const x = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6);
-        const z = THREE.MathUtils.randFloatSpread(ISLAND_SIZE*0.6);
-        const y = sampleHeightAt(x,z);
-        if (y>2 && y<50){
-          const m = new THREE.Mesh(plane, mat);
-          m.position.set(x, y+0.6, z);
-          m.rotation.y = THREE.MathUtils.randFloat(0,Math.PI*2);
-          grassGroup.add(m);
-        }
-      }
-    }
-
-    // Simple castle
-    function buildCastle(){
-      const castle = new THREE.Group();
-      const baseMat = new THREE.MeshStandardMaterial({ color:'#8a8f96', metalness:0.1, roughness:0.45 });
-      const body = new THREE.Mesh(new THREE.BoxGeometry(60, 30, 40), baseMat);
-      body.position.y = 15; castle.add(body);
-      castle.position.set(0, sampleHeightAt(0,0), 0);
-      scene.add(castle);
-    }
-    buildCastle();
-
     // Clouds
     const cloudTex = new THREE.TextureLoader().load('assets/cloud.png', function(t){ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
     const cloudGroup = new THREE.Group(); scene.add(cloudGroup);
@@ -320,7 +331,7 @@
       if (audioReady) return;
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.25; gainMaster.connect(audioCtx.destination);
+        gainMaster = audioCtx.createGain(); gainMaster.gain.value = 0.2; gainMaster.connect(audioCtx.destination);
         const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i=0;i<data.length;i++) data[i] = (Math.random()*2-1)*0.6;
@@ -343,7 +354,6 @@
     const fpsEl = document.getElementById('fps');
     let lastTime = performance.now(), frames = 0;
     function loop(){
-      controls.update();
       if (composer) composer.render(); else renderer.render(scene, camera);
       frames++; const t = performance.now();
       if (t - lastTime > 500) { fpsEl.textContent = Math.round(1000*frames/(t-lastTime)); frames = 0; lastTime = t; }
