@@ -14,7 +14,6 @@
   const webglStatus = $("#webglStatus");
   const webglFallback = $("#webglFallback");
 
-  // Enhanced books with more realistic data
   const BOOKS = [
     { 
       id: 'psychotypes-intro',
@@ -67,26 +66,23 @@
   let houses = [];
   let palmTrees = [];
   let waterParticles = [];
+  let animatedObjects = [];
   let currentHoveredHouse = null;
   let selectedBook = null;
   let isFullscreen = false;
   let animationId;
 
-  // Check WebGL support
   function checkWebGL() {
     const statusText = webglStatus.querySelector('.status-text');
-    
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      
       if (!gl) {
         statusText.textContent = 'WebGL не поддерживается';
         statusText.className = 'status-text error';
         webglFallback.classList.remove('hidden');
         return false;
       }
-      
       statusText.textContent = 'WebGL поддерживается ✓';
       statusText.className = 'status-text success';
       return true;
@@ -98,7 +94,6 @@
     }
   }
 
-  // Loading simulation with progress
   let loadingProgress = 0;
   const loadingInterval = setInterval(() => {
     loadingProgress += Math.random() * 15;
@@ -116,14 +111,10 @@
     }
   }, 200);
 
-  // Initialize 3D scene
   function initThreeJS() {
-    if (!checkWebGL()) {
-      return false;
-    }
+    if (!checkWebGL()) return false;
 
     try {
-      // Create renderer with maximum quality
       renderer = new THREE.WebGLRenderer({ 
         canvas: canvas,
         antialias: true, 
@@ -138,65 +129,40 @@
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
+      renderer.toneMappingExposure = 1.4;
       renderer.outputEncoding = THREE.sRGBEncoding;
 
-      // Create scene
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x87ceeb, 0.005);
+      scene.fog = new THREE.FogExp2(0x87ceeb, 0.003);
 
-      // Create camera
       camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 150, 100);
+      camera.position.set(0, 180, 120);
 
-      // Create controls
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.screenSpacePanning = false;
-      controls.minDistance = 80;
-      controls.maxDistance = 300;
-      controls.minPolarAngle = Math.PI / 3;
-      controls.maxPolarAngle = Math.PI / 2.2;
+      controls.minDistance = 100;
+      controls.maxDistance = 400;
+      controls.minPolarAngle = Math.PI / 3.5;
+      controls.maxPolarAngle = Math.PI / 2.1;
       controls.target.set(0, 0, 0);
       controls.update();
 
-      // Create lighting
       createLighting();
-      
-      // Create ocean
       createOcean();
-      
-      // Create detailed island
-      createDetailedIsland();
-      
-      // Create roads
+      createColorfulIsland();
       createRoads();
-      
-      // Create buildings
-      createBuildings();
-      
-      // Create vegetation
-      createVegetation();
-      
-      // Create coastal features
+      createAnimatedBuildings();
+      createLushVegetation();
       createCoastalFeatures();
-      
-      // Create islets
       createIslets();
-      
-      // Create atmospheric effects
       createAtmosphere();
+      createParticleEffects();
 
-      // Start animation loop
       animate();
-
-      // Handle window resize
       window.addEventListener('resize', onWindowResize);
-
-      // Setup interaction
       setupInteraction();
-
       return true;
     } catch (error) {
       console.error('Three.js initialization failed:', error);
@@ -206,51 +172,49 @@
   }
 
   function createLighting() {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0x87ceeb, 0.4);
+    const ambientLight = new THREE.AmbientLight(0x87ceeb, 0.6);
     scene.add(ambientLight);
 
-    // Hemisphere light for sky/ground
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1a1a2e, 0.6);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x2d5a27, 0.8);
     scene.add(hemiLight);
 
-    // Main directional light (sun)
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    dirLight.position.set(50, 100, 50);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    dirLight.position.set(50, 120, 50);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 4096;
     dirLight.shadow.mapSize.height = 4096;
     dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 300;
-    dirLight.shadow.camera.left = -150;
-    dirLight.shadow.camera.right = 150;
-    dirLight.shadow.camera.top = 150;
-    dirLight.shadow.camera.bottom = -150;
+    dirLight.shadow.camera.far = 400;
+    dirLight.shadow.camera.left = -200;
+    dirLight.shadow.camera.right = 200;
+    dirLight.shadow.camera.top = 200;
+    dirLight.shadow.camera.bottom = -200;
     scene.add(dirLight);
 
-    // Additional point lights for dramatic effect
-    const pointLight1 = new THREE.PointLight(0xffd700, 0.8, 100);
-    pointLight1.position.set(-20, 30, -20);
+    const pointLight1 = new THREE.PointLight(0xffd700, 1.2, 150);
+    pointLight1.position.set(-30, 40, -30);
     scene.add(pointLight1);
 
-    const pointLight2 = new THREE.PointLight(0x87ceeb, 0.6, 80);
-    pointLight2.position.set(30, 20, 30);
+    const pointLight2 = new THREE.PointLight(0x87ceeb, 0.8, 120);
+    pointLight2.position.set(40, 30, 40);
     scene.add(pointLight2);
+
+    const pointLight3 = new THREE.PointLight(0xff6b6b, 0.6, 100);
+    pointLight3.position.set(0, 25, 0);
+    scene.add(pointLight3);
   }
 
   function createOcean() {
-    // Create large ocean plane with detailed geometry
-    const oceanGeometry = new THREE.PlaneGeometry(600, 600, 256, 256);
+    const oceanGeometry = new THREE.PlaneGeometry(800, 800, 256, 256);
     
-    // Create custom shader material for realistic water
     const oceanMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
-        uShallowColor: { value: new THREE.Color(0x40E0D0) },
+        uShallowColor: { value: new THREE.Color(0x00d4ff) },
         uDeepColor: { value: new THREE.Color(0x006994) },
-        uWaveSpeed: { value: 0.5 },
-        uWaveHeight: { value: 0.8 },
-        uWaveFrequency: { value: 0.1 }
+        uWaveSpeed: { value: 0.6 },
+        uWaveHeight: { value: 1.2 },
+        uWaveFrequency: { value: 0.08 }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -264,17 +228,15 @@
           vUv = uv;
           vec3 p = position;
           
-          // Multiple wave layers for realistic water
           float wave1 = sin((p.x + uTime * uWaveSpeed) * uWaveFrequency) * uWaveHeight;
-          float wave2 = cos((p.y - uTime * uWaveSpeed * 0.8) * uWaveFrequency * 0.8) * uWaveHeight * 0.7;
-          float wave3 = sin((p.x + p.y + uTime * uWaveSpeed * 1.2) * uWaveFrequency * 0.6) * uWaveHeight * 0.5;
-          float wave4 = cos((p.x - p.y + uTime * uWaveSpeed * 0.6) * uWaveFrequency * 0.4) * uWaveHeight * 0.3;
+          float wave2 = cos((p.y - uTime * uWaveSpeed * 0.7) * uWaveFrequency * 0.9) * uWaveHeight * 0.8;
+          float wave3 = sin((p.x + p.y + uTime * uWaveSpeed * 1.3) * uWaveFrequency * 0.7) * uWaveHeight * 0.6;
+          float wave4 = cos((p.x - p.y + uTime * uWaveSpeed * 0.5) * uWaveFrequency * 0.5) * uWaveHeight * 0.4;
           
           p.z += wave1 + wave2 + wave3 + wave4;
           
-          // Calculate depth for color variation
           float distFromCenter = length(p.xy);
-          vDepth = smoothstep(0.0, 300.0, distFromCenter);
+          vDepth = smoothstep(0.0, 400.0, distFromCenter);
           
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
@@ -288,12 +250,10 @@
         void main() {
           vec3 waterColor = mix(uShallowColor, uDeepColor, vDepth);
           
-          // Add foam and transparency
-          float foam = sin(vUv.x * 100.0) * sin(vUv.y * 100.0) * 0.15;
+          float foam = sin(vUv.x * 120.0) * sin(vUv.y * 120.0) * 0.2;
           waterColor += foam;
           
-          // Add some transparency
-          gl_FragColor = vec4(waterColor, 0.85);
+          gl_FragColor = vec4(waterColor, 0.9);
         }
       `,
       side: THREE.DoubleSide,
@@ -302,119 +262,157 @@
     
     const ocean = new THREE.Mesh(oceanGeometry, oceanMaterial);
     ocean.rotation.x = -Math.PI / 2;
-    ocean.position.y = -5;
+    ocean.position.y = -8;
     ocean.receiveShadow = true;
     scene.add(ocean);
     
     waterParticles.push({ mesh: ocean, material: oceanMaterial });
   }
 
-  function createDetailedIsland() {
-    // Create complex island shape using custom geometry
+  function createColorfulIsland() {
     const islandShape = new THREE.Shape();
     
-    // Define the irregular island outline with more detail
-    islandShape.moveTo(-30, -20);
-    islandShape.bezierCurveTo(-40, -15, -45, 0, -40, 15);
-    islandShape.bezierCurveTo(-35, 30, -25, 35, -15, 35);
-    islandShape.bezierCurveTo(-5, 35, 5, 30, 15, 25);
-    islandShape.bezierCurveTo(25, 20, 35, 15, 40, 5);
-    islandShape.bezierCurveTo(45, -5, 45, -15, 40, -25);
-    islandShape.bezierCurveTo(35, -35, 25, -40, 15, -40);
-    islandShape.bezierCurveTo(5, -40, -5, -40, -15, -35);
-    islandShape.bezierCurveTo(-25, -30, -30, -20, -30, -20);
+    islandShape.moveTo(-40, -25);
+    islandShape.bezierCurveTo(-50, -20, -55, 0, -50, 20);
+    islandShape.bezierCurveTo(-45, 40, -35, 45, -25, 45);
+    islandShape.bezierCurveTo(-15, 45, -5, 40, 5, 35);
+    islandShape.bezierCurveTo(15, 30, 25, 25, 35, 15);
+    islandShape.bezierCurveTo(45, 5, 50, -5, 50, -20);
+    islandShape.bezierCurveTo(50, -35, 45, -45, 35, -50);
+    islandShape.bezierCurveTo(25, -55, 15, -55, 5, -50);
+    islandShape.bezierCurveTo(-5, -45, -15, -40, -25, -35);
+    islandShape.bezierCurveTo(-35, -30, -40, -25, -40, -25);
     
     const extrudeSettings = {
-      depth: 12,
+      depth: 15,
       bevelEnabled: true,
-      bevelSegments: 5,
-      steps: 3,
-      bevelSize: 2,
-      bevelThickness: 2
+      bevelSegments: 8,
+      steps: 4,
+      bevelSize: 3,
+      bevelThickness: 3
     };
     
     const islandGeometry = new THREE.ExtrudeGeometry(islandShape, extrudeSettings);
     
-    // Create detailed material with normal mapping
     const islandMaterial = new THREE.MeshStandardMaterial({ 
-      color: 0x8B7355,
-      roughness: 0.8,
-      metalness: 0.1,
-      bumpScale: 0.5
+      color: 0x90EE90,
+      roughness: 0.6,
+      metalness: 0.1
     });
     
     const island = new THREE.Mesh(islandGeometry, islandMaterial);
-    island.position.y = 4;
+    island.position.y = 6;
     island.castShadow = true;
     island.receiveShadow = true;
     scene.add(island);
 
-    // Add elevation variations
     createElevation();
   }
 
   function createElevation() {
-    // Create detailed hills and mountains
     const hillPositions = [
-      { x: -15, z: 8, height: 10, radius: 12, color: 0x6B8E23 },
-      { x: 8, z: 15, height: 12, radius: 15, color: 0x556B2F },
-      { x: 20, z: -8, height: 6, radius: 8, color: 0x8FBC8F },
-      { x: -8, z: -15, height: 8, radius: 10, color: 0x6B8E23 },
-      { x: 0, z: 0, height: 4, radius: 6, color: 0x8FBC8F }
+      { x: -20, z: 12, height: 15, radius: 18, color: 0x90EE90, type: 'grass' },
+      { x: 12, z: 20, height: 18, radius: 22, color: 0x32CD32, type: 'forest' },
+      { x: 25, z: -10, height: 10, radius: 12, color: 0x98FB98, type: 'meadow' },
+      { x: -10, z: -20, height: 12, radius: 15, color: 0x7CFC00, type: 'hills' },
+      { x: 0, z: 0, height: 8, radius: 10, color: 0xADFF2F, type: 'center' },
+      { x: -30, z: -15, height: 6, radius: 8, color: 0x9ACD32, type: 'small' },
+      { x: 35, z: 5, height: 7, radius: 9, color: 0x6B8E23, type: 'rocky' }
     ];
 
     hillPositions.forEach(hill => {
-      const hillGeometry = new THREE.ConeGeometry(hill.radius, hill.height, 24);
+      const hillGeometry = new THREE.ConeGeometry(hill.radius, hill.height, 32);
       const hillMaterial = new THREE.MeshStandardMaterial({ 
         color: hill.color,
-        roughness: 0.7,
+        roughness: 0.5,
         metalness: 0.0
       });
       const hillMesh = new THREE.Mesh(hillGeometry, hillMaterial);
-      hillMesh.position.set(hill.x, hill.height/2 + 4, hill.z);
+      hillMesh.position.set(hill.x, hill.height/2 + 6, hill.z);
       hillMesh.castShadow = true;
       hillMesh.receiveShadow = true;
       scene.add(hillMesh);
+
+      if (hill.type === 'forest') {
+        createForestOnHill(hill.x, hill.z, hill.radius);
+      } else if (hill.type === 'meadow') {
+        createFlowersOnHill(hill.x, hill.z, hill.radius);
+      }
     });
   }
 
+  function createForestOnHill(centerX, centerZ, radius) {
+    for (let i = 0; i < 15; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * radius * 0.8;
+      const x = centerX + Math.cos(angle) * r;
+      const z = centerZ + Math.sin(angle) * r;
+      
+      const treeGeometry = new THREE.ConeGeometry(2, 8, 8);
+      const treeMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x228B22,
+        roughness: 0.7
+      });
+      const tree = new THREE.Mesh(treeGeometry, treeMaterial);
+      tree.position.set(x, 12, z);
+      tree.castShadow = true;
+      scene.add(tree);
+    }
+  }
+
+  function createFlowersOnHill(centerX, centerZ, radius) {
+    for (let i = 0; i < 20; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * radius * 0.7;
+      const x = centerX + Math.cos(angle) * r;
+      const z = centerZ + Math.sin(angle) * r;
+      
+      const flowerColors = [0xFF69B4, 0xFFB6C1, 0xFF1493, 0xFFC0CB, 0xFF69B4];
+      const flowerGeometry = new THREE.SphereGeometry(0.3, 6, 6);
+      const flowerMaterial = new THREE.MeshStandardMaterial({ 
+        color: flowerColors[Math.floor(Math.random() * flowerColors.length)],
+        roughness: 0.3
+      });
+      const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+      flower.position.set(x, 8, z);
+      scene.add(flower);
+    }
+  }
+
   function createRoads() {
-    // Create detailed road network
     const roadPaths = [
-      // Main coastal road
       [
-        new THREE.Vector3(-25, 4.1, -15),
-        new THREE.Vector3(-20, 4.1, -10),
-        new THREE.Vector3(-15, 4.1, -5),
-        new THREE.Vector3(-10, 4.1, 0),
-        new THREE.Vector3(-5, 4.1, 5),
-        new THREE.Vector3(0, 4.1, 10),
-        new THREE.Vector3(10, 4.1, 15),
-        new THREE.Vector3(20, 4.1, 20),
-        new THREE.Vector3(30, 4.1, 15),
-        new THREE.Vector3(35, 4.1, 5),
-        new THREE.Vector3(35, 4.1, -5),
-        new THREE.Vector3(30, 4.1, -15),
-        new THREE.Vector3(20, 4.1, -25),
-        new THREE.Vector3(10, 4.1, -30),
-        new THREE.Vector3(0, 4.1, -35),
-        new THREE.Vector3(-10, 4.1, -30),
-        new THREE.Vector3(-20, 4.1, -25),
-        new THREE.Vector3(-25, 4.1, -15)
-      ],
-      // Secondary roads
-      [
-        new THREE.Vector3(-10, 4.1, -10),
-        new THREE.Vector3(-5, 4.1, -5),
-        new THREE.Vector3(0, 4.1, 0),
-        new THREE.Vector3(5, 4.1, 5),
-        new THREE.Vector3(10, 4.1, 10)
+        new THREE.Vector3(-35, 6.1, -20),
+        new THREE.Vector3(-25, 6.1, -15),
+        new THREE.Vector3(-15, 6.1, -10),
+        new THREE.Vector3(-5, 6.1, -5),
+        new THREE.Vector3(5, 6.1, 0),
+        new THREE.Vector3(15, 6.1, 5),
+        new THREE.Vector3(25, 6.1, 10),
+        new THREE.Vector3(35, 6.1, 15),
+        new THREE.Vector3(40, 6.1, 5),
+        new THREE.Vector3(40, 6.1, -5),
+        new THREE.Vector3(35, 6.1, -15),
+        new THREE.Vector3(25, 6.1, -25),
+        new THREE.Vector3(15, 6.1, -30),
+        new THREE.Vector3(5, 6.1, -35),
+        new THREE.Vector3(-5, 6.1, -30),
+        new THREE.Vector3(-15, 6.1, -25),
+        new THREE.Vector3(-25, 6.1, -20),
+        new THREE.Vector3(-35, 6.1, -20)
       ],
       [
-        new THREE.Vector3(10, 4.1, -10),
-        new THREE.Vector3(15, 4.1, -5),
-        new THREE.Vector3(20, 4.1, 0),
-        new THREE.Vector3(25, 4.1, 5)
+        new THREE.Vector3(-15, 6.1, -15),
+        new THREE.Vector3(-5, 6.1, -10),
+        new THREE.Vector3(0, 6.1, 0),
+        new THREE.Vector3(5, 6.1, 10),
+        new THREE.Vector3(15, 6.1, 15)
+      ],
+      [
+        new THREE.Vector3(15, 6.1, -15),
+        new THREE.Vector3(25, 6.1, -10),
+        new THREE.Vector3(30, 6.1, 0),
+        new THREE.Vector3(35, 6.1, 10)
       ]
     ];
 
@@ -422,13 +420,13 @@
       const roadGeometry = new THREE.TubeGeometry(
         new THREE.CatmullRomCurve3(path),
         128,
-        2,
+        2.5,
         12,
         false
       );
       const roadMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0xD2B48C,
-        roughness: 1.0,
+        color: 0xF4A460,
+        roughness: 0.8,
         metalness: 0.0
       });
       const road = new THREE.Mesh(roadGeometry, roadMaterial);
@@ -437,63 +435,55 @@
     });
   }
 
-  function createBuildings() {
+  function createAnimatedBuildings() {
     const buildingPositions = [
-      // Main resort complex (west side)
-      { x: -20, z: -12, type: 'resort', scale: [10, 5, 8], color: 0xF5F5DC, name: 'Курортный комплекс' },
-      { x: -15, z: -8, type: 'resort', scale: [8, 4, 6], color: 0xF5F5DC, name: 'Главное здание' },
-      { x: -25, z: -5, type: 'resort', scale: [6, 3, 5], color: 0xF5F5DC, name: 'Ресторан' },
+      { x: -25, z: -15, type: 'resort', scale: [12, 6, 10], color: 0xFFE4B5, name: 'Курортный комплекс', glowColor: 0xFFD700 },
+      { x: -20, z: -10, type: 'resort', scale: [10, 5, 8], color: 0xFFF8DC, name: 'Главное здание', glowColor: 0xFFA500 },
+      { x: -30, z: -8, type: 'resort', scale: [8, 4, 6], color: 0xFFE4E1, name: 'Ресторан', glowColor: 0xFF6347 },
       
-      // Southwestern tip building with pool
-      { x: -25, z: -25, type: 'pool', scale: [5, 3, 5], color: 0xFFFFFF, name: 'Вилла с бассейном' },
+      { x: -30, z: -30, type: 'pool', scale: [6, 4, 6], color: 0xE0FFFF, name: 'Вилла с бассейном', glowColor: 0x00CED1 },
       
-      // Eastern tip building
-      { x: 30, z: -8, type: 'eastern', scale: [4, 3, 4], color: 0xFFFFFF, name: 'Исследовательский центр' },
+      { x: 35, z: -10, type: 'eastern', scale: [5, 4, 5], color: 0xF0F8FF, name: 'Исследовательский центр', glowColor: 0x4169E1 },
       
-      // Central structures
-      { x: 0, z: 0, type: 'central', scale: [3, 2, 3], color: 0xFFFFFF, name: 'Библиотека' },
-      { x: 8, z: 8, type: 'central', scale: [3, 2, 3], color: 0xFFFFFF, name: 'Лаборатория' }
+      { x: 0, z: 0, type: 'central', scale: [4, 3, 4], color: 0xFFFACD, name: 'Библиотека', glowColor: 0xFFD700 },
+      { x: 10, z: 10, type: 'central', scale: [4, 3, 4], color: 0xF0FFF0, name: 'Лаборатория', glowColor: 0x32CD32 }
     ];
 
     buildingPositions.forEach((building, index) => {
-      // Main building
       const buildingGeometry = new THREE.BoxGeometry(...building.scale);
       const buildingMaterial = new THREE.MeshStandardMaterial({ 
         color: building.color,
-        roughness: 0.3,
+        roughness: 0.2,
         metalness: 0.1
       });
       const buildingMesh = new THREE.Mesh(buildingGeometry, buildingMaterial);
-      buildingMesh.position.set(building.x, building.scale[1]/2 + 4, building.z);
+      buildingMesh.position.set(building.x, building.scale[1]/2 + 6, building.z);
       buildingMesh.castShadow = true;
       buildingMesh.receiveShadow = true;
       scene.add(buildingMesh);
 
-      // Roof
-      const roofGeometry = new THREE.BoxGeometry(building.scale[0] + 1, 0.8, building.scale[2] + 1);
+      const roofGeometry = new THREE.BoxGeometry(building.scale[0] + 1.5, 1, building.scale[2] + 1.5);
       const roofMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x8B4513,
-        roughness: 0.8
+        roughness: 0.6
       });
       const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-      roof.position.set(building.x, building.scale[1] + 4.4, building.z);
+      roof.position.set(building.x, building.scale[1] + 6.5, building.z);
       roof.castShadow = true;
       scene.add(roof);
 
-      // Windows
-      const windowGeometry = new THREE.BoxGeometry(1.5, 1.5, 0.1);
+      const windowGeometry = new THREE.BoxGeometry(2, 2, 0.1);
       const windowMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x87CEEB,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9
       });
       
-      // Add multiple windows
       const windowPositions = [
-        { x: building.x - building.scale[0]/3, y: building.scale[1]/2 + 4, z: building.z + building.scale[2]/2 + 0.1 },
-        { x: building.x + building.scale[0]/3, y: building.scale[1]/2 + 4, z: building.z + building.scale[2]/2 + 0.1 },
-        { x: building.x - building.scale[0]/3, y: building.scale[1]/2 + 4, z: building.z - building.scale[2]/2 - 0.1 },
-        { x: building.x + building.scale[0]/3, y: building.scale[1]/2 + 4, z: building.z - building.scale[2]/2 - 0.1 }
+        { x: building.x - building.scale[0]/3, y: building.scale[1]/2 + 6, z: building.z + building.scale[2]/2 + 0.1 },
+        { x: building.x + building.scale[0]/3, y: building.scale[1]/2 + 6, z: building.z + building.scale[2]/2 + 0.1 },
+        { x: building.x - building.scale[0]/3, y: building.scale[1]/2 + 6, z: building.z - building.scale[2]/2 - 0.1 },
+        { x: building.x + building.scale[0]/3, y: building.scale[1]/2 + 6, z: building.z - building.scale[2]/2 - 0.1 }
       ];
       
       windowPositions.forEach(pos => {
@@ -502,31 +492,27 @@
         scene.add(window);
       });
 
-      // Special features
       if (building.type === 'pool') {
-        // Swimming pool
-        const poolGeometry = new THREE.BoxGeometry(8, 0.8, 6);
+        const poolGeometry = new THREE.BoxGeometry(10, 1, 8);
         const poolMaterial = new THREE.MeshStandardMaterial({ 
           color: 0x00CED1,
           transparent: true,
-          opacity: 0.9
+          opacity: 0.95
         });
         const pool = new THREE.Mesh(poolGeometry, poolMaterial);
-        pool.position.set(building.x, 4.4, building.z + 4);
+        pool.position.set(building.x, 6.5, building.z + 5);
         scene.add(pool);
       }
 
       if (building.type === 'resort') {
-        // Pier/dock
-        const pierGeometry = new THREE.BoxGeometry(1.5, 0.5, 12);
+        const pierGeometry = new THREE.BoxGeometry(2, 0.6, 15);
         const pierMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
         const pier = new THREE.Mesh(pierGeometry, pierMaterial);
-        pier.position.set(building.x, 2.25, building.z - 8);
+        pier.position.set(building.x, 3.3, building.z - 10);
         pier.castShadow = true;
         scene.add(pier);
       }
 
-      // Add to houses array for interaction
       if (building.type === 'resort' || building.type === 'central') {
         houses.push({
           base: buildingMesh,
@@ -535,125 +521,150 @@
           type: building.type === 'central' ? 'psychotypes' : 'support',
           label: building.name,
           icon: building.type === 'central' ? '🧠' : '💬',
-          isHovered: false
+          isHovered: false,
+          glowColor: building.glowColor,
+          originalColor: building.color,
+          animationOffset: index * 0.5
         });
       }
     });
   }
 
-  function createVegetation() {
-    // Create detailed vegetation
+  function createLushVegetation() {
     const vegetationPositions = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 150; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 25 + 8;
+      const radius = Math.random() * 35 + 10;
       vegetationPositions.push({
         x: Math.cos(angle) * radius,
         z: Math.sin(angle) * radius,
-        type: Math.random() > 0.7 ? 'bush' : 'grass'
+        type: Math.random() > 0.5 ? 'bush' : 'grass'
       });
     }
 
     vegetationPositions.forEach(pos => {
       if (pos.type === 'bush') {
-        // Scrubby bushes
-        const bushGeometry = new THREE.SphereGeometry(Math.random() * 0.8 + 0.4, 8, 6);
+        const bushGeometry = new THREE.SphereGeometry(Math.random() * 1.5 + 0.8, 12, 10);
+        const bushColors = [0x228B22, 0x32CD32, 0x90EE90, 0x98FB98, 0x7CFC00, 0x00FF00, 0x00FA9A, 0x00CED1];
         const bushMaterial = new THREE.MeshStandardMaterial({ 
-          color: Math.random() > 0.5 ? 0x6B8E23 : 0x8FBC8F,
-          roughness: 0.8
+          color: bushColors[Math.floor(Math.random() * bushColors.length)],
+          roughness: 0.5
         });
         const bush = new THREE.Mesh(bushGeometry, bushMaterial);
-        bush.position.set(pos.x, Math.random() * 3 + 4, pos.z);
+        bush.position.set(pos.x, Math.random() * 5 + 6, pos.z);
         bush.castShadow = true;
         scene.add(bush);
+        
+        // Add flowers on some bushes
+        if (Math.random() > 0.7) {
+          const flowerColors = [0xFF69B4, 0xFFB6C1, 0xFF1493, 0xFFC0CB, 0xFF69B4, 0xFFD700, 0xFFA500];
+          const flowerGeometry = new THREE.SphereGeometry(0.2, 6, 6);
+          const flowerMaterial = new THREE.MeshStandardMaterial({ 
+            color: flowerColors[Math.floor(Math.random() * flowerColors.length)],
+            roughness: 0.2
+          });
+          const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+          flower.position.set(pos.x, Math.random() * 3 + 8, pos.z);
+          scene.add(flower);
+        }
       } else {
-        // Grass patches
-        const grassGeometry = new THREE.CylinderGeometry(0.2, 0.2, Math.random() * 1 + 0.5, 6);
+        const grassGeometry = new THREE.CylinderGeometry(0.4, 0.4, Math.random() * 2 + 1, 10);
+        const grassColors = [0x228B22, 0x32CD32, 0x90EE90, 0x98FB98];
         const grassMaterial = new THREE.MeshStandardMaterial({ 
-          color: 0x228B22,
-          roughness: 0.9
+          color: grassColors[Math.floor(Math.random() * grassColors.length)],
+          roughness: 0.7
         });
         const grass = new THREE.Mesh(grassGeometry, grassMaterial);
-        grass.position.set(pos.x, (Math.random() * 1 + 0.5) / 2 + 4, pos.z);
+        grass.position.set(pos.x, (Math.random() * 2 + 1) / 2 + 6, pos.z);
         grass.castShadow = true;
         scene.add(grass);
       }
     });
 
-    // Add palm trees near buildings
     const palmPositions = [
-      { x: -20, z: -12 },
-      { x: -15, z: -8 },
-      { x: -25, z: -5 },
-      { x: -25, z: -25 },
-      { x: 30, z: -8 },
+      { x: -25, z: -15 },
+      { x: -20, z: -10 },
+      { x: -30, z: -8 },
+      { x: -30, z: -30 },
+      { x: 35, z: -10 },
       { x: 0, z: 0 },
-      { x: 8, z: 8 }
+      { x: 10, z: 10 },
+      { x: -15, z: 15 },
+      { x: 20, z: 20 },
+      { x: -35, z: 5 },
+      { x: 25, z: 15 },
+      { x: -10, z: 25 },
+      { x: 15, z: -20 },
+      { x: -40, z: 10 },
+      { x: 30, z: 25 }
     ];
 
-    palmPositions.forEach(pos => {
-      // Palm trunk
-      const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 8, 12);
+    palmPositions.forEach((pos, index) => {
+      const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.5, 10, 16);
       const trunkMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x8B4513,
-        roughness: 0.9
+        roughness: 0.8
       });
       const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-      trunk.position.set(pos.x, 8, pos.z);
+      trunk.position.set(pos.x, 13, pos.z);
       trunk.castShadow = true;
       scene.add(trunk);
       
-      // Palm leaves
-      const leavesGeometry = new THREE.SphereGeometry(3, 12, 8);
+      const leavesGeometry = new THREE.SphereGeometry(4, 16, 12);
       const leavesMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x228B22,
-        roughness: 0.7
+        roughness: 0.5
       });
       const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
-      leaves.position.set(pos.x, 12, pos.z);
-      leaves.scale.set(1, 1.5, 1);
+      leaves.position.set(pos.x, 18, pos.z);
+      leaves.scale.set(1, 1.8, 1);
       leaves.castShadow = true;
       scene.add(leaves);
       
-      palmTrees.push({ trunk, leaves, position: pos });
+      palmTrees.push({ 
+        trunk, 
+        leaves, 
+        position: pos,
+        animationOffset: index * 0.3
+      });
     });
   }
 
   function createCoastalFeatures() {
-    // Create detailed beach
     const beachShape = new THREE.Shape();
-    beachShape.moveTo(-30, -20);
-    beachShape.bezierCurveTo(-25, -25, -20, -30, -15, -30);
-    beachShape.bezierCurveTo(-10, -30, -5, -25, 0, -20);
-    beachShape.bezierCurveTo(5, -15, 10, -10, 15, -10);
-    beachShape.bezierCurveTo(20, -10, 25, -15, 30, -20);
+    beachShape.moveTo(-40, -25);
+    beachShape.bezierCurveTo(-35, -30, -30, -35, -25, -35);
+    beachShape.bezierCurveTo(-20, -35, -15, -30, -10, -25);
+    beachShape.bezierCurveTo(-5, -20, 0, -15, 5, -15);
+    beachShape.bezierCurveTo(10, -15, 15, -20, 20, -25);
+    beachShape.bezierCurveTo(25, -30, 30, -35, 35, -30);
+    beachShape.bezierCurveTo(40, -25, 40, -20, 35, -15);
     
     const beachGeometry = new THREE.ShapeGeometry(beachShape);
     const beachMaterial = new THREE.MeshStandardMaterial({ 
       color: 0xF4A460,
-      roughness: 1.0
+      roughness: 0.9
     });
     const beach = new THREE.Mesh(beachGeometry, beachMaterial);
     beach.rotation.x = -Math.PI/2;
-    beach.position.y = 4.05;
+    beach.position.y = 6.05;
     beach.receiveShadow = true;
     scene.add(beach);
 
-    // Create rocky cliffs
     const cliffPositions = [
-      { x: -40, z: 0, length: 20, height: 6 },
-      { x: 40, z: -15, length: 18, height: 5 },
-      { x: 0, z: 40, length: 15, height: 4 }
+      { x: -50, z: 0, length: 25, height: 8 },
+      { x: 50, z: -20, length: 22, height: 7 },
+      { x: 0, z: 50, length: 20, height: 6 }
     ];
 
     cliffPositions.forEach(cliff => {
-      const cliffGeometry = new THREE.BoxGeometry(cliff.length, cliff.height, 3);
+      const cliffGeometry = new THREE.BoxGeometry(cliff.length, cliff.height, 4);
       const cliffMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x696969,
         roughness: 0.9
       });
       const cliffMesh = new THREE.Mesh(cliffGeometry, cliffMaterial);
-      cliffMesh.position.set(cliff.x, cliff.height/2 + 4, cliff.z);
+      cliffMesh.position.set(cliff.x, cliff.height/2 + 6, cliff.z);
       cliffMesh.castShadow = true;
       cliffMesh.receiveShadow = true;
       scene.add(cliffMesh);
@@ -661,19 +672,19 @@
   }
 
   function createIslets() {
-    // Create small islets
     const isletPositions = [
-      { x: -45, z: -30, scale: 3, height: 4 },
-      { x: -50, z: -25, scale: 2, height: 3 },
-      { x: -40, z: -35, scale: 1.5, height: 2 },
-      { x: 55, z: 0, scale: 4, height: 5 }
+      { x: -55, z: -35, scale: 4, height: 5 },
+      { x: -60, z: -30, scale: 3, height: 4 },
+      { x: -50, z: -40, scale: 2, height: 3 },
+      { x: 65, z: 0, scale: 5, height: 6 },
+      { x: 60, z: 15, scale: 3, height: 4 }
     ];
 
     isletPositions.forEach(islet => {
-      const isletGeometry = new THREE.CylinderGeometry(islet.scale, islet.scale, islet.height, 16);
+      const isletGeometry = new THREE.CylinderGeometry(islet.scale, islet.scale, islet.height, 20);
       const isletMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x696969,
-        roughness: 0.8
+        roughness: 0.7
       });
       const isletMesh = new THREE.Mesh(isletGeometry, isletMaterial);
       isletMesh.position.set(islet.x, islet.height/2, islet.z);
@@ -684,21 +695,70 @@
   }
 
   function createAtmosphere() {
-    // Add atmospheric particles
-    for (let i = 0; i < 150; i++) {
-      const particleGeometry = new THREE.SphereGeometry(0.1, 4, 4);
+    for (let i = 0; i < 200; i++) {
+      const particleGeometry = new THREE.SphereGeometry(0.15, 6, 6);
       const particleMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xd6c7b8,
         transparent: true,
-        opacity: 0.3
+        opacity: 0.4
       });
       const particle = new THREE.Mesh(particleGeometry, particleMaterial);
       particle.position.set(
-        (Math.random() - 0.5) * 200,
-        Math.random() * 50 + 20,
-        (Math.random() - 0.5) * 200
+        (Math.random() - 0.5) * 300,
+        Math.random() * 60 + 30,
+        (Math.random() - 0.5) * 300
       );
       scene.add(particle);
+    }
+  }
+
+  function createParticleEffects() {
+    for (let i = 0; i < 80; i++) {
+      const sparkleGeometry = new THREE.SphereGeometry(0.15, 6, 6);
+      const sparkleColors = [0xFFFF00, 0xFFD700, 0xFFA500, 0xFF69B4, 0x00CED1, 0x98FB98];
+      const sparkleMaterial = new THREE.MeshBasicMaterial({ 
+        color: sparkleColors[Math.floor(Math.random() * sparkleColors.length)],
+        transparent: true,
+        opacity: 0.9
+      });
+      const sparkle = new THREE.Mesh(sparkleGeometry, sparkleMaterial);
+      sparkle.position.set(
+        (Math.random() - 0.5) * 120,
+        Math.random() * 25 + 15,
+        (Math.random() - 0.5) * 120
+      );
+      animatedObjects.push({
+        mesh: sparkle,
+        type: 'sparkle',
+        speed: Math.random() * 3 + 1.5,
+        amplitude: Math.random() * 3 + 2,
+        rotationSpeed: Math.random() * 0.1 + 0.05
+      });
+      scene.add(sparkle);
+    }
+    
+    // Add floating leaves
+    for (let i = 0; i < 30; i++) {
+      const leafGeometry = new THREE.SphereGeometry(0.2, 4, 4);
+      const leafMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x90EE90,
+        transparent: true,
+        opacity: 0.7
+      });
+      const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+      leaf.position.set(
+        (Math.random() - 0.5) * 80,
+        Math.random() * 15 + 8,
+        (Math.random() - 0.5) * 80
+      );
+      animatedObjects.push({
+        mesh: leaf,
+        type: 'leaf',
+        speed: Math.random() * 2 + 1,
+        amplitude: Math.random() * 2 + 1,
+        rotationSpeed: Math.random() * 0.05 + 0.02
+      });
+      scene.add(leaf);
     }
   }
 
@@ -707,25 +767,62 @@
     
     const time = Date.now() * 0.001;
     
-    // Animate water
     waterParticles.forEach(particle => {
       particle.material.uniforms.uTime.value = time;
     });
     
-    // Animate palm trees
     palmTrees.forEach(palm => {
-      const sway = Math.sin(time * 0.5 + palm.position.x * 0.1) * 0.15;
+      const sway = Math.sin(time * 0.6 + palm.animationOffset) * 0.3;
+      const swayX = Math.sin(time * 0.4 + palm.animationOffset) * 0.15;
+      const swayY = Math.sin(time * 0.5 + palm.animationOffset) * 0.1;
+      
       palm.leaves.rotation.z = sway;
+      palm.leaves.rotation.x = swayX;
+      palm.leaves.rotation.y = swayY;
+      
+      // Add subtle trunk movement
+      palm.trunk.rotation.z = Math.sin(time * 0.2 + palm.animationOffset) * 0.05;
     });
     
-    // Animate buildings (subtle glow effect)
     houses.forEach(house => {
+      const hoverEffect = house.isHovered ? 1 : 0;
+      const glowIntensity = hoverEffect * 0.5;
+      const floatOffset = Math.sin(time * 1.5 + house.animationOffset) * 0.5;
+      const rotationOffset = Math.sin(time * 0.8 + house.animationOffset) * 0.02;
+      
+      house.base.material.emissive.setHex(house.glowColor);
+      house.base.material.emissiveIntensity = glowIntensity;
+      house.base.position.y = house.base.position.y + floatOffset * 0.01;
+      house.base.rotation.y = rotationOffset;
+      
       if (house.isHovered) {
-        house.base.material.emissive.setHex(0x3a4f4a);
-        house.base.material.emissiveIntensity = 0.2;
+        house.base.scale.setScalar(1.1);
+        house.base.material.color.setHex(house.glowColor);
+        house.roof.scale.setScalar(1.1);
+        house.roof.material.emissive.setHex(0xFFD700);
+        house.roof.material.emissiveIntensity = 0.3;
       } else {
-        house.base.material.emissive.setHex(0x000000);
-        house.base.material.emissiveIntensity = 0;
+        house.base.scale.setScalar(1);
+        house.base.material.color.setHex(house.originalColor);
+        house.roof.scale.setScalar(1);
+        house.roof.material.emissive.setHex(0x000000);
+        house.roof.material.emissiveIntensity = 0;
+      }
+    });
+    
+    animatedObjects.forEach(obj => {
+      if (obj.type === 'sparkle') {
+        obj.mesh.position.y += Math.sin(time * obj.speed) * obj.amplitude * 0.01;
+        obj.mesh.rotation.y += obj.rotationSpeed;
+        obj.mesh.rotation.x += obj.rotationSpeed * 0.5;
+        obj.mesh.material.opacity = 0.6 + Math.sin(time * 2) * 0.3;
+        obj.mesh.scale.setScalar(0.8 + Math.sin(time * 3) * 0.2);
+      } else if (obj.type === 'leaf') {
+        obj.mesh.position.y += Math.sin(time * obj.speed) * obj.amplitude * 0.005;
+        obj.mesh.position.x += Math.sin(time * obj.speed * 0.7) * 0.01;
+        obj.mesh.rotation.y += obj.rotationSpeed;
+        obj.mesh.rotation.z += obj.rotationSpeed * 0.3;
+        obj.mesh.material.opacity = 0.5 + Math.sin(time * 1.5) * 0.2;
       }
     });
     
@@ -863,6 +960,7 @@
     
     bookReader.classList.remove('hidden');
     overlay.classList.add('hidden');
+    selectedBook = null;
   }
 
   function closeBookReader() {
@@ -896,7 +994,7 @@
   }
 
   function resetView() {
-    camera.position.set(0, 150, 100);
+    camera.position.set(0, 180, 120);
     controls.target.set(0, 0, 0);
     controls.update();
     toast("Вид сброшен");
@@ -945,7 +1043,6 @@
     }, 2000);
   }
 
-  // Event listeners
   document.getElementById('closeInterior').addEventListener('click', () => {
     overlay.classList.add('hidden');
     bookPanel.classList.add('hidden');
@@ -955,15 +1052,12 @@
   document.getElementById('readInChannelBtn').addEventListener('click', readInChannel);
   document.getElementById('bookmarkBtn').addEventListener('click', bookmarkBook);
   
-  // Control panel
   document.getElementById('infoBtn').addEventListener('click', showIslandInfo);
   document.getElementById('closeInfo').addEventListener('click', hideIslandInfo);
   document.getElementById('resetViewBtn').addEventListener('click', resetView);
   document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
 
-  // Initialize 3D scene
   if (!initThreeJS()) {
     console.log('Falling back to 2D mode');
-    // Could implement 2D fallback here
   }
 })();
