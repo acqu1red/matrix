@@ -16,7 +16,67 @@
     { title: "Психотип: Истероид", url: "https://t.me/c/1928787715/126" },
   ];
 
-  // Island Scene
+  if (!window.THREE){
+    console.error('Three.js не загрузился');
+    return;
+  }
+
+  // -------- Helper: simple orbit controls (no external deps) --------
+  function makeSimpleControls(canvas, camera, opts){
+    const state = {
+      dragging: false,
+      lastX: 0, lastY: 0,
+      az: opts.az || 0, el: opts.el || 0.45, // radians
+      dist: opts.dist || 32,
+      target: opts.target || new THREE.Vector3(0,2,0),
+      minEl: opts.minEl ?? 0.18, maxEl: opts.maxEl ?? 1.2,
+      minDist: opts.minDist ?? 12, maxDist: opts.maxDist ?? 80,
+    };
+    function updateCam(){
+      const x = state.target.x + state.dist * Math.sin(state.az) * Math.cos(state.el);
+      const y = state.target.y + state.dist * Math.sin(state.el);
+      const z = state.target.z + state.dist * Math.cos(state.az) * Math.cos(state.el);
+      camera.position.set(x,y,z);
+      camera.lookAt(state.target);
+    }
+    updateCam();
+
+    function onDown(e){
+      state.dragging = true;
+      const t = e.touches ? e.touches[0] : e;
+      state.lastX = t.clientX; state.lastY = t.clientY;
+    }
+    function onMove(e){
+      if (!state.dragging) return;
+      const t = e.touches ? e.touches[0] : e;
+      const dx = (t.clientX - state.lastX);
+      const dy = (t.clientY - state.lastY);
+      state.lastX = t.clientX; state.lastY = t.clientY;
+      state.az -= dx * 0.005;
+      state.el -= dy * 0.004;
+      state.el = Math.max(state.minEl, Math.min(state.maxEl, state.el));
+      updateCam();
+    }
+    function onUp(){ state.dragging = false; }
+    function onWheel(e){
+      e.preventDefault();
+      const d = Math.sign(e.deltaY);
+      state.dist *= (1 + 0.12 * d);
+      state.dist = Math.max(state.minDist, Math.min(state.maxDist, state.dist));
+      updateCam();
+    }
+    canvas.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    canvas.addEventListener('touchstart', onDown, {passive:true});
+    window.addEventListener('touchmove', onMove, {passive:true});
+    window.addEventListener('touchend', onUp, {passive:true});
+    canvas.addEventListener('wheel', onWheel, {passive:false});
+
+    return { update: updateCam, setTarget(v){ state.target.copy(v); updateCam(); } };
+  }
+
+  // ---------- Main Island Scene ----------
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(innerWidth, innerHeight);
@@ -25,18 +85,12 @@
   scene.fog = new THREE.FogExp2(0x0b0f16, 0.024);
 
   const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 1000);
-  camera.position.set(0, 28, 32);
 
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-  controls.enablePan = false;
-  controls.minDistance = 18;
-  controls.maxDistance = 70;
-  controls.minPolarAngle = Math.PI * 0.22;
-  controls.maxPolarAngle = Math.PI * 0.52;
-  controls.target.set(0, 2, 0);
+  const controls = makeSimpleControls(canvas, camera, {
+    el: 0.42, dist: 34, minEl: 0.18, maxEl: 0.85, minDist: 18, maxDist: 70, target: new THREE.Vector3(0,2,0)
+  });
 
+  // Light
   const hemi = new THREE.HemisphereLight(0xeae6de, 0x0b0f16, 0.8);
   scene.add(hemi);
   const dir = new THREE.DirectionalLight(0xffffff, 1.15);
@@ -44,6 +98,7 @@
   dir.castShadow = true;
   scene.add(dir);
 
+  // Water plane
   const waterGeo = new THREE.PlaneGeometry(120,120, 64,64);
   const waterMat = new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color("#0a416d") } },
@@ -63,6 +118,7 @@
   water.position.y = -0.2;
   scene.add(water);
 
+  // Island + sand
   const islandGeo = new THREE.CylinderGeometry(16, 26, 4, 48, 3, false);
   const islandMat = new THREE.MeshStandardMaterial({ color: 0x394d2f, roughness: 0.9, metalness: 0.0 });
   const island = new THREE.Mesh(islandGeo, islandMat);
@@ -76,6 +132,7 @@
   sand.position.y = 0.1;
   scene.add(sand);
 
+  // Palms
   function addPalm(x,z){
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,4,8), new THREE.MeshStandardMaterial({color:0x6b4f2d}));
     trunk.position.set(x,3.2,z);
@@ -96,6 +153,7 @@
   }
   addPalm(8,4); addPalm(-6,-2); addPalm(5,-7);
 
+  // Houses
   const clickable = [];
   function textTexture(txt, bg="#1a1f2a", fg="#eae6de"){
     const c = document.createElement('canvas'); c.width=512; c.height=256;
@@ -123,12 +181,13 @@
   addHouse(2,  4, "Материалы", "materials");
   addHouse(6, -2, "Психотипы", "psychotypes");
 
+  // Raycaster
   const ray = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
   function onTap(ev){
     const rect = renderer.domElement.getBoundingClientRect();
-    const clientX = ev.touches ? ev.touches[0].clientX : (ev.clientX ?? ev.changedTouches?.[0]?.clientX ?? 0);
-    const clientY = ev.touches ? ev.touches[0].clientY : (ev.clientY ?? ev.changedTouches?.[0]?.clientY ?? 0);
+    const clientX = ev.touches ? (ev.touches[0]?.clientX ?? ev.changedTouches?.[0]?.clientX) : (ev.clientX ?? 0);
+    const clientY = ev.touches ? (ev.touches[0]?.clientY ?? ev.changedTouches?.[0]?.clientY) : (ev.clientY ?? 0);
     const x = (clientX - rect.left) / rect.width;
     const y = (clientY - rect.top)  / rect.height;
     mouse.set(x*2-1, -(y*2-1));
@@ -146,12 +205,12 @@
   renderer.domElement.addEventListener('click', onTap);
   renderer.domElement.addEventListener('touchend', e => { if(e.touches?.length===0) onTap(e); });
 
+  // Loop
   let t = 0;
   function loop(){
     requestAnimationFrame(loop);
     t += 0.016;
     waterMat.uniforms.uTime.value = t;
-    controls.update();
     renderer.render(scene, camera);
   }
   loop();
@@ -175,15 +234,13 @@
     setTimeout(()=>{ el.style.transition='opacity .25s'; el.style.opacity='0'; setTimeout(()=>el.remove(),250); },1400);
   }
 
-  // Interior
+  // ---------- Interior (no external controls) ----------
   const ir = new THREE.WebGLRenderer({ canvas: interiorCanvas, antialias:true, alpha:true });
   ir.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   ir.setSize(innerWidth, innerHeight);
   const iscene = new THREE.Scene();
   const icam = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 1000);
-  icam.position.set(0, 4, 10);
-  const ictrl = new THREE.OrbitControls(icam, ir.domElement);
-  ictrl.enablePan = false; ictrl.minDistance=6; ictrl.maxDistance=18; ictrl.target.set(0,2.5,0);
+  const ictrl = makeSimpleControls(interiorCanvas, icam, { el: 0.25, dist: 12, minDist: 6, maxDist: 18, target: new THREE.Vector3(0,3,0) });
 
   const iHemi = new THREE.HemisphereLight(0xeae6de, 0x0a0c12, 0.9); iscene.add(iHemi);
   const iDir = new THREE.DirectionalLight(0xffffff, 1.2); iDir.position.set(5,8,6); iscene.add(iDir);
@@ -247,8 +304,8 @@
   const imouse = new THREE.Vector2();
   function onInteriorTap(ev){
     const rect = ir.domElement.getBoundingClientRect();
-    const clientX = ev.touches ? ev.touches[0].clientX : (ev.clientX ?? ev.changedTouches?.[0]?.clientX ?? 0);
-    const clientY = ev.touches ? ev.touches[0].clientY : (ev.clientY ?? ev.changedTouches?.[0]?.clientY ?? 0);
+    const clientX = ev.touches ? (ev.touches[0]?.clientX ?? ev.changedTouches?.[0]?.clientX) : (ev.clientX ?? 0);
+    const clientY = ev.touches ? (ev.touches[0]?.clientY ?? ev.changedTouches?.[0]?.clientY) : (ev.clientY ?? 0);
     const cx = (clientX - rect.left) / rect.width;
     const cy = (clientY - rect.top)  / rect.height;
     imouse.set(cx*2-1, -(cy*2-1));
@@ -283,14 +340,14 @@
 
   function iloop(){
     requestAnimationFrame(iloop);
-    ictrl.update();
     ir.render(iscene, icam);
   }
   iloop();
 
+  // ---------- Overlay control ----------
   function openInterior(){
     overlay.classList.remove('hidden');
     bookPanel.classList.add('hidden');
   }
-  document.getElementById('closeInterior').addEventListener('click', ()=> overlay.classList.add('hidden'));
+  $("#closeInterior").addEventListener('click', ()=> overlay.classList.add('hidden'));
 })();

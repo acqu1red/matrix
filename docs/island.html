@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Остров навигации</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Only Three.js; no OrbitControls to avoid CDN/module issues in WebView -->
   <script src="https://unpkg.com/three@0.164.1/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.164.1/examples/js/controls/OrbitControls.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <div id="hint">Двигайте двумя пальцами, чтобы поворачивать · Pinch/drag to explore</div>
+  <div id="hint">Двигайте одним пальцем — поворот · Пинч — зум</div>
 
   <script src="island.js"></script>
 </body>
