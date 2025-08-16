@@ -817,7 +817,7 @@ async function notifyUser(conversationId) {
             return;
         }
         
-        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
+        const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
         const userId = conversation.user_id;
         
         const message = {
@@ -829,7 +829,7 @@ async function notifyUser(conversationId) {
                     {
                         text: '👀 Посмотреть ответ',
                         web_app: {
-                            url: `https://acqu1red.github.io/tourmalineGG/?conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/formulaprivate/?conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -861,7 +861,7 @@ async function notifyAdminsNewMessage(conversationId, messageText, userId) {
     try {
         // ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
-        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
+        const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
         
         // Получаем информацию о пользователе
         const { data: user, error: userError } = await supabaseClient
@@ -886,7 +886,7 @@ async function notifyAdminsNewMessage(conversationId, messageText, userId) {
                     {
                         text: '💬 Ответить',
                         web_app: {
-                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
                         }
                     }
                 ]]
@@ -927,7 +927,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
     try {
         // ID администраторов из bot.py
         const adminIds = [708907063, 7365307696];
-        const botToken = '8354723250:AAEWcX6OojEi_fN-RAekppNMVTAsQDU0wvo';
+        const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
         
         // Получаем информацию о пользователе
         const { data: user, error: userError } = await supabaseClient
@@ -952,7 +952,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
                     {
                         text: '💬 Ответить',
                         web_app: {
-                            url: `https://acqu1red.github.io/tourmalineGG/?admin_conversation=${conversationId}`
+                            url: `https://acqu1red.github.io/formulaprivate/?admin_conversation=${conversationId}`
                         }
                     }
                 ]]
