@@ -1,352 +1,985 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Остров навигации</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0d3b66 0%, #1e4a8a 100%);
-            overflow: hidden;
-            user-select: none;
-        }
-
-        #container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        #canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        .ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        .ui-panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 16px;
-            pointer-events: auto;
-            color: white;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .ui-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-        }
-
-        .ui-title {
-            font-size: 24px;
-            font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .ui-quality {
-            display: flex;
-            gap: 8px;
-        }
-
-        .ui-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-
-        .ui-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .ui-button.active {
-            background: rgba(54, 194, 182, 0.6);
-            border-color: rgba(54, 194, 182, 0.8);
-        }
-
-        .ui-controls {
-            position: absolute;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-        }
-
-        .ui-hint {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            border-radius: 8px;
-            padding: 12px 20px;
-            color: white;
-            font-size: 14px;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-        }
-
-        .ui-hint.fade-out {
-            opacity: 0;
-        }
-
-        .ui-stats {
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .ui-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: white;
-            z-index: 200;
-        }
-
-        .ui-loading.hidden {
-            display: none;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .ui-reset {
-            position: absolute;
-            top: 16px;
-            right: 200px;
-        }
-
-        @media (max-width: 768px) {
-            .ui-title {
-                font-size: 20px;
-            }
-            
-            .ui-button {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-            
-            .ui-hint {
-                font-size: 12px;
-                padding: 10px 16px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Остров Навигации — miniapp / Three.js (r128)</title>
+  <meta name="description" content="Процедурный 3D‑остров с водой, биомами, архитектурой, постобработкой и UX HUD. Zero‑config: GitHub Pages, без сборки.">
+  <style>
+    :root{
+      --glass:#ffffffcc; --glass2:#ffffffaa; --mint:#36c2b6;
+      --bg:#0b1220; --ink:#0e1726; --ink2:#172136;
+    }
+    html,body{height:100%; margin:0; background:linear-gradient(180deg,#08111d,#0b1727); color:#0b1220; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    #app{position:fixed; inset:0; overflow:hidden;}
+    canvas{display:block; width:100%; height:100%;}
+    /* HUD */
+    .hud{position:fixed; left:0; right:0; pointer-events:none;}
+    .hud-top{top:0; padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+    .brand{pointer-events:auto; backdrop-filter:saturate(140%) blur(8px); background:var(--glass); border:1px solid #ffffff55; border-radius:14px; padding:10px 14px; display:flex; gap:10px; align-items:center; box-shadow:0 8px 30px rgba(0,0,0,.18);}
+    .brand h1{font-size:14px; font-weight:700; letter-spacing:.3px; margin:0; color:#0a0f18;}
+    .brand span{font-size:12px; color:#1b2a42; opacity:.9}
+    .panel{pointer-events:auto; display:flex; gap:8px; align-items:center;}
+    .chip{user-select:none; cursor:pointer; backdrop-filter:saturate(140%) blur(8px); background:var(--glass2); border:1px solid #ffffff55; border-radius:12px; padding:8px 10px; font-size:12px; color:#0a0f18; box-shadow:0 6px 24px rgba(0,0,0,.15);}
+    .chip.active{background:#e9fffb; border-color:#8fe7dc; color:#064f49;}
+    .btn{user-select:none; cursor:pointer; border-radius:12px; padding:8px 12px; font-size:12px; background:#e9fffb; border:1px solid #8fe7dc; color:#064f49; box-shadow:0 6px 24px rgba(0,0,0,.15);}
+    .hud-bottom{bottom:0; display:flex; justify-content:center; padding:18px;}
+    .hint{pointer-events:none; background:var(--glass2); border:1px solid #ffffff55; border-radius:14px; padding:10px 14px; font-size:12px; color:#0a0f18; opacity:1; transform:translateY(0); transition:opacity .6s ease, transform .6s ease;}
+    .hint.hide{opacity:0; transform:translateY(8px);}
+    .corner{position:fixed; right:12px; bottom:12px; display:flex; gap:8px; align-items:flex-end; pointer-events:none;}
+    .meter{pointer-events:auto; background:var(--glass2); border:1px solid #ffffff55; border-radius:12px; padding:10px 12px; font-size:12px; color:#0a0f18; min-width:140px; box-shadow:0 6px 24px rgba(0,0,0,.15);}
+    .bar{height:6px; background:#d7efe9; border-radius:6px; overflow:hidden; margin-top:6px;}
+    .bar>i{display:block; height:100%; width:30%; background:var(--mint);}
+    .toast{pointer-events:auto; background:#101828; color:#eafffb; border:1px solid #1f2b3b; border-radius:12px; padding:10px 12px; font-size:12px; opacity:.95}
+    a,button{all:unset}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#ffffff; border-radius:6px; padding:0 6px; border:1px solid #dcdcdc; box-shadow:inset 0 -2px 0 #efefef; font-size:11px;}
+    .badge{background:#e5fbf8; color:#0b4d46; border:1px solid #8fe7dc; border-radius:999px; padding:2px 8px; font-size:10px; margin-left:6px;}
+    /* Prevent text selection */
+    *{ -webkit-tap-highlight-color: transparent; }
+  </style>
 </head>
 <body>
-    <div id="container">
-        <canvas id="canvas"></canvas>
-        
-        <div class="ui-overlay">
-            <div class="ui-header">
-                <div class="ui-title">🏝️ Остров навигации</div>
-                <div class="ui-quality">
-                    <button class="ui-button" id="quality-auto">Auto</button>
-                    <button class="ui-button" id="quality-low">Low</button>
-                    <button class="ui-button" id="quality-high">High</button>
-                </div>
-                <button class="ui-button ui-reset" id="reset-view">🔄 Сброс</button>
-            </div>
-            
-            <div class="ui-controls">
-                <div class="ui-hint" id="controls-hint">
-                    🖱️ Перетаскивание - перемещение | 🔍 Колесо - зум | 🖱️ ПКМ - поворот
-                </div>
-            </div>
-            
-            <div class="ui-stats" id="stats">
-                FPS: -- | GPU: -- | Draws: --
-            </div>
-        </div>
-        
-        <div class="ui-loading" id="loading">
-            <div class="loading-spinner"></div>
-            <div>Загрузка острова...</div>
-        </div>
+  <div id="app"></div>
+  <div class="hud hud-top">
+    <div class="brand">
+      <div style="width:10px; height:10px; border-radius:50%; background:var(--mint); box-shadow:0 0 0 4px #36c2b622"></div>
+      <div>
+        <h1>Остров навигации <span class="badge">miniapp</span></h1>
+        <span>Процедурный 3D‑остров • ACES • FXAA + Bloom • 60 FPS</span>
+      </div>
     </div>
+    <div class="panel">
+      <div class="chip" data-q="auto">Quality: Auto</div>
+      <div class="chip" data-q="low">Low</div>
+      <div class="chip" data-q="high">High</div>
+      <div class="btn" id="resetView">Reset View</div>
+    </div>
+  </div>
+  <div class="hud hud-bottom">
+    <div class="hint" id="hint">Пан — ЛКМ/один палец • Зум — колесо/пинч • Поворот — ПКМ/двумя пальцами</div>
+  </div>
+  <div class="corner">
+    <div class="meter">
+      <div><b id="fps">FPS: —</b></div>
+      <div id="gpu">GPU load: —</div>
+      <div class="bar"><i id="gpuBar" style="width:0%"></i></div>
+    </div>
+    <div class="toast" id="toast" style="display:none"></div>
+  </div>
 
-    <!-- Three.js и зависимости -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/TDSLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/FXAAShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Three.js r128+ as ES modules -->
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+    import { EffectComposer } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/ShaderPass.js';
+    import { UnrealBloomPass } from 'https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+    import { FXAAShader } from 'https://unpkg.com/three@0.128.0/examples/jsm/shaders/FXAAShader.js';
+    // Optional loaders (kept for future assets; current build is procedural-only)
+    import { GLTFLoader } from 'https://unpkg.com/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+    import { TDSLoader } from 'https://unpkg.com/three@0.128.0/examples/jsm/loaders/TDSLoader.js';
 
-    <!-- Модули приложения -->
-    <script src="island-config.js"></script>
-    <script src="island-utils.js"></script>
-    <script src="island-terrain.js"></script>
-    <script src="island-ocean.js"></script>
-    <script src="island-vegetation.js"></script>
-    <script src="island-architecture.js"></script>
-    <script src="island-atmosphere.js"></script>
-    <script src="island-camera.js"></script>
-    <script src="island-postprocessing.js"></script>
-    <script src="island-audio.js"></script>
-    <script src="island-ui.js"></script>
-    <script src="island-main.js"></script>
-    
-    <script>
-        // Проверка загрузки всех зависимостей
-        document.addEventListener('DOMContentLoaded', function() {
-            // Проверка Three.js
-            if (typeof THREE === 'undefined') {
-                console.error('Three.js не загружен!');
-                document.getElementById('loading').innerHTML = '<div style="color: red;">Ошибка: Three.js не загружен</div>';
-                return;
-            }
-            
-            // Проверка необходимых компонентов
-            const requiredComponents = [
-                'Scene', 'PerspectiveCamera', 'WebGLRenderer', 'Clock',
-                'DirectionalLight', 'AmbientLight', 'FogExp2',
-                'PlaneGeometry', 'SphereGeometry', 'RingGeometry',
-                'ShaderMaterial', 'MeshBasicMaterial', 'MeshLambertMaterial',
-                'Mesh', 'Group', 'Points', 'PointsMaterial',
-                'Vector3', 'Vector2', 'Color', 'Math'
-            ];
-            
-            // Проверка дополнительных компонентов (опциональные)
-            const optionalComponents = [
-                'UnrealBloomPass', 'FXAAShader', 'ShaderPass', 'EffectComposer',
-                'RenderPass', 'Lensflare', 'LensflareElement'
-            ];
-            
-            for (const component of requiredComponents) {
-                if (!THREE[component]) {
-                    console.error(`Компонент Three.js ${component} не найден!`);
-                    document.getElementById('loading').innerHTML = `<div style="color: red;">Ошибка: ${component} не найден</div>`;
-                    return;
-                }
-            }
-            
-            // Проверка опциональных компонентов
-            for (const component of optionalComponents) {
-                if (!THREE[component]) {
-                    console.warn(`Опциональный компонент Three.js ${component} не найден, некоторые эффекты будут отключены`);
-                }
-            }
-            
-            console.log('Все зависимости загружены успешно');
-            
-            // Инициализация приложения
-            islandApp = new IslandApp();
-            islandApp.init();
-            
-            // Настройка глобальных обработчиков событий
-            setupEventHandlers();
-            
-            // Создание интерактивных элементов
-            islandApp.createInteractiveElements();
-        });
-        
-        // Глобальные обработчики событий
-        function setupEventHandlers() {
-            // Обработка изменения размера окна
-            window.addEventListener('resize', () => {
-                if (islandApp) {
-                    islandApp.onWindowResize();
-                }
-            });
-            
-            // Обработка изменения качества
-            document.addEventListener('qualityChanged', (event) => {
-                if (islandApp) {
-                    islandApp.onQualityChanged(event.detail.quality);
-                }
-            });
-            
-            // Обработка сброса вида
-            document.addEventListener('resetView', () => {
-                if (islandApp) {
-                    islandApp.onResetView();
-                }
-            });
-            
-            // Обработка изменения громкости
-            document.addEventListener('volumeChanged', (event) => {
-                if (islandApp) {
-                    islandApp.onVolumeChanged(event.detail.volume);
-                }
-            });
-            
-            // Обработка закрытия страницы
-            window.addEventListener('beforeunload', () => {
-                if (islandApp) {
-                    islandApp.dispose();
-                }
-            });
+    // =================== CONFIG ===================
+    const CONFIG = {
+      version: "r128-miniapp-proc-1.0",
+      island: {
+        size: 2400,          // world units
+        oceanSize: 12000,
+        maxHeight: 110,
+        beachBand: 0.15,     // 15% coastline sands
+        biomes: { sand: 0.15, mountains: 0.20, forest: 0.30, plains: 0.35 },
+        terrainSegments: { low: 96, auto: 160, high: 224 }, // per side
+        lodDistances: [0, 1800, 3200],
+      },
+      camera: {
+        phiDeg: 70, thetaDeg: -30,
+        minDistance: 100, maxDistance: 2000,
+        startDistance: 950, startHeight: 500,
+        maxPolarAngle: THREE.MathUtils.degToRad(85),
+        boundsPad: 600, // water margin around island
+      },
+      post: {
+        bloom: { intensity: 0.9, radius: 0.45, threshold: 0.82 }, // tuned later per quality
+        fxaa: true
+      },
+      palette: {
+        sandA: 0xf5e3be, sandB: 0xe5d0a6,
+        plainsA: 0xb79b69, plainsB: 0x9a7b52,
+        forestA: 0x3ba35f, forestB: 0x2a8a57, lime: 0xb6f5b1,
+        rockA: 0x5e6673, rockB: 0x464b54,
+        oceanDeep: 0x0d3b66, oceanShallowA: 0x38bdf8, oceanShallowB: 0x7cd4ff,
+      },
+      vegetation: {
+        palms: { auto: 320, low: 220, high: 480, beachRatio: 0.7 },
+        bananas: 20,
+        ferns: 100,
+        grassPatches: 500,
+        wind: 0.5,
+      },
+      architecture: {
+        castle: { size: [36,26,22], lod2Scale: 0.7 },
+        villas: { concrete: 5, bungalows: 7 },
+      },
+      birds: 5,
+      fishSchools: 10,
+      boats: 3,
+      sound: true,
+      targetFPS: 60
+    };
+
+    // ============ UTIL: PRNG & Noise ============
+    // Deterministic PRNG
+    const seed = 1337;
+    function mulberry32(a){ return function(){ var t = a += 0x6D2B79F5; t = Math.imul(t ^ t>>>15, t | 1); t ^= t + Math.imul(t ^ t>>>7, t | 61); return ((t ^ t>>>14) >>> 0) / 4294967296; } }
+    const rand = mulberry32(seed);
+
+    // 2D/3D noise: value noise + fbm (cheap substitute for Perlin/Worley)
+    const GLSL_NOISE = `
+      uint hash(uvec2 x){ x = (x*1664525u + 1013904223u); x ^= (x.yx>>16); return x.x*1103515245u + x.y; }
+      float rnd(vec2 uv){ return float(hash(uvec2(uv)))/4294967295.0; }
+      float vnoise(in vec2 p){
+        vec2 i=floor(p); vec2 f=fract(p);
+        float a=rnd(i), b=rnd(i+vec2(1,0)), c=rnd(i+vec2(0,1)), d=rnd(i+vec2(1,1));
+        vec2 u=f*f*(3.0-2.0*f);
+        return mix(a,b,u.x)+ (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+      }
+      float fbm(vec2 p){
+        float a=.5; float f=0.; for(int i=0;i<5;i++){ f += a*vnoise(p); p*=2.02; a*=.5; } return f;
+      }
+    `;
+
+    // ============== RENDERER/SCENE ==============
+    const app = document.getElementById('app');
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    // WebGL2 fallback is automatic from WebGLRenderer; ensure context exists
+    app.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0b1422, 0.002);
+    // Gradient sky
+    const skyGeo = new THREE.SphereBufferGeometry(80000, 16, 16);
+    const skyMat = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      uniforms: {
+        top: {value: new THREE.Color(0x6bb7ff)},
+        middle: {value: new THREE.Color(0xbfe7ff)},
+        bottom: {value: new THREE.Color(0xf6f9ff)},
+        t: {value: 0.0}
+      },
+      vertexShader: `varying vec3 vPos; void main(){ vPos=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+      fragmentShader: `uniform vec3 top; uniform vec3 middle; uniform vec3 bottom; uniform float t; varying vec3 vPos;
+        void main(){
+          float h = normalize(vPos).y*0.5+0.5;
+          vec3 c = mix(mix(bottom, middle, smoothstep(0.2,0.7,h)), top, smoothstep(0.7,1.0,h));
+          // day phases shift slight hue
+          c = mix(c, vec3(0.99,0.92,0.85), clamp(step(0.0,t)*smoothstep(0.0,0.4,t),0.,1.)); // dawn
+          c = mix(c, vec3(0.95,0.75,0.55), clamp(smoothstep(0.55,0.8,t),0.,1.)); // sunset
+          gl_FragColor=vec4(c,1.0);
+        }`
+    });
+    const sky = new THREE.Mesh(skyGeo, skyMat);
+    scene.add(sky);
+
+    // Lights
+    const hemi = new THREE.HemisphereLight(0xcfe8ff, 0x0f1a24, 0.55);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.05);
+    sun.position.set(1, 1.2, 0.8).multiplyScalar(5000);
+    sun.castShadow = false;
+    scene.add(sun);
+
+    // ================= CAMERA ==================
+    const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 100000);
+    const center = new THREE.Vector3(0,0,0);
+    let cameraDistance = CONFIG.camera.startDistance;
+    let cameraTheta = THREE.MathUtils.degToRad(CONFIG.camera.thetaDeg);
+    const cameraPhi = THREE.MathUtils.degToRad(CONFIG.camera.phiDeg);
+    function placeCamera(){
+      const x = Math.cos(cameraPhi)*Math.cos(cameraTheta)*cameraDistance;
+      const z = Math.cos(cameraPhi)*Math.sin(cameraTheta)*cameraDistance;
+      const y = Math.sin(cameraPhi)*cameraDistance;
+      camera.position.set(center.x + x, CONFIG.camera.startHeight + y, center.z + z);
+      camera.lookAt(center);
+    }
+    placeCamera();
+
+    // ========== QUALITY / CAPABILITIES ==========
+    const gpu = renderer.getContext();
+    const caps = renderer.capabilities;
+    const AUTO = (()=>{
+      const cores = navigator.hardwareConcurrency||4;
+      const mem = (navigator.deviceMemory||4);
+      const isMobile = /Mobi|Android|iPhone|iPad|MiniApp|Telegram/i.test(navigator.userAgent);
+      const tier = (caps.isWebGL2?1:0) + (cores>=8?1:0) + (mem>=8?1:0) + (!isMobile?1:0);
+      return tier>=3 ? "high" : (tier>=2 ? "auto" : "low");
+    })();
+    let QUALITY = "auto";
+
+    // ============= TERRAIN (SPLAT) ==============
+    const ISLAND = CONFIG.island;
+    const HALF = ISLAND.size*0.5;
+    const TERRAIN_SEG = { low:CONFIG.island.terrainSegments.low, auto:CONFIG.island.terrainSegments.auto, high:CONFIG.island.terrainSegments.high };
+    const terrainGroup = new THREE.Group(); scene.add(terrainGroup);
+
+    // Provide the same height function in GLSL & JS
+    function heightAt(x,z){
+      const s = 1.0/420.0;
+      const nx = x*s, nz = z*s;
+      // Circular falloff to form island shape
+      const r = Math.sqrt(nx*nx + nz*nz);
+      const rim = THREE.MathUtils.clamp(1.0 - r*0.95, 0, 1);
+      const n = fbmJS(nx, nz);
+      let h = (n*0.75 + 0.25*fbmJS(nx*1.8, nz*1.8));
+      // central ridge
+      h += 0.25*Math.exp(-Math.pow((x)/900,2))*Math.abs(Math.sin(z/300));
+      h *= rim;
+      return h * ISLAND.maxHeight;
+    }
+    function fbmJS(x,z){
+      let a=.5, f=0, px=x, pz=z;
+      for(let i=0;i<5;i++){ f += a*vnoiseJS(px,pz); px*=2.02; pz*=2.02; a*=.5; }
+      return f;
+    }
+    function vnoiseJS(x,z){
+      // grid corners random
+      const ix=Math.floor(x), iz=Math.floor(z);
+      const fx=x-ix, fz=z-iz;
+      function rnd(i,j){
+        // simple hash
+        let t = (i*374761393 + j*668265263)>>>0;
+        t = (t^(t>>13))*1274126177>>>0;
+        return (t & 0xffff)/0xffff;
+      }
+      const a=rnd(ix,iz), b=rnd(ix+1,iz), c=rnd(ix,iz+1), d=rnd(ix+1,iz+1);
+      const ux=fx*fx*(3-2*fx), uz=fz*fz*(3-2*fz);
+      return (a*(1-ux)+b*ux)+ (c-a)*uz*(1-ux) + (d-b)*ux*uz;
+    }
+
+    const TERRAIN_GLSL = `
+      ${GLSL_NOISE}
+      uniform float uMaxH; uniform float uSize;
+      float hFunc(vec2 xz){
+        vec2 p = xz/420.0;
+        float r = length(p);
+        float rim = clamp(1.0 - r*0.95, 0.0, 1.0);
+        float n = 0.0; float a=0.5; vec2 pp=p;
+        for(int i=0;i<5;i++){ n += a*vnoise(pp); pp*=2.02; a*=.5; }
+        n = n*0.75 + 0.25*fbm(p*1.8);
+        // central ridge
+        n += 0.25*exp(-pow(xz.x/900.0,2.0))*abs(sin(xz.y/300.0));
+        n *= rim;
+        return n*uMaxH;
+      }
+      vec3 calcNormal(vec2 xz){
+        // finite differences
+        float e=1.0;
+        float hC = hFunc(xz);
+        float hx = hFunc(xz+vec2(e,0.0));
+        float hz = hFunc(xz+vec2(0.0,e));
+        vec3 n = normalize(cross(vec3(e,hx-hC,0.0), vec3(0.0,hz-hC,e)));
+        return n;
+      }
+    `;
+
+    function makeTerrainMaterial(){
+      const uniforms = {
+        uMaxH:{value:ISLAND.maxHeight},
+        uSize:{value:ISLAND.size},
+        uSunDir:{value:new THREE.Vector3().copy(sun.position).normalize()},
+        uColors:{value:[
+          new THREE.Color(CONFIG.palette.sandA),
+          new THREE.Color(CONFIG.palette.sandB),
+          new THREE.Color(CONFIG.palette.plainsA),
+          new THREE.Color(CONFIG.palette.plainsB),
+          new THREE.Color(CONFIG.palette.forestA),
+          new THREE.Color(CONFIG.palette. forestB||0x2a8a57),
+          new THREE.Color(CONFIG.palette.rockA),
+          new THREE.Color(CONFIG.palette.rockB),
+          new THREE.Color(CONFIG.palette.lime)
+        ]},
+        uTime:{value:0.0}
+      };
+      const mat = new THREE.ShaderMaterial({
+        uniforms, fog:true,
+        vertexShader: `
+          ${TERRAIN_GLSL}
+          varying vec3 vPos; varying vec3 vNormal; varying float vH; varying vec2 vXZ;
+          void main(){
+            vec3 p = position;
+            float h = hFunc(p.xz);
+            p.y = h;
+            vPos = p;
+            vH = h;
+            vXZ = p.xz;
+            vNormal = calcNormal(p.xz);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.0);
+          }
+        `,
+        fragmentShader: `
+          ${TERRAIN_GLSL}
+          varying vec3 vPos; varying vec3 vNormal; varying float vH; varying vec2 vXZ;
+          uniform vec3 uSunDir; uniform vec3 uColors[9]; uniform float uTime;
+          #define saturate(x) clamp(x,0.,1.)
+          void main(){
+            // biome masks from height & slope & noise
+            vec3 N = normalize(vNormal);
+            float slope = 1.0 - N.y; // 0 flat, 1 steep
+            float h01 = saturate(vH/` + str(CONFIG["island"]["maxHeight"]) + r`.0);
+            float n = fbm(vXZ/140.0);
+            // weights
+            float wSand = smoothstep(0.0, ` + str(CONFIG["island"]["beachBand"]*0.6) + r`, h01) * smoothstep(` + str(CONFIG["island"]["beachBand"]*1.3) + r`, ` + str(CONFIG["island"]["beachBand"]*0.6) + r`, h01);
+            float wPlains = smoothstep(0.1,0.5,h01)*(1.0-smoothstep(0.55,0.7,h01))*(1.0-slope*0.8);
+            float wForest = smoothstep(0.25,0.7,h01)*(1.0-smoothstep(0.7,0.82,h01))*(1.0-slope*0.6);
+            float wRock = smoothstep(0.6,0.8,h01)*smoothstep(0.2,0.8,slope);
+            // noise jitter
+            wPlains *= mix(0.9,1.1, n);
+            wForest *= mix(0.9,1.1, fbm(vXZ/90.0));
+            wRock   *= mix(0.95,1.1, fbm(vXZ/60.0));
+            float sum = wSand+wPlains+wForest+wRock+1e-5;
+            wSand/=sum; wPlains/=sum; wForest/=sum; wRock/=sum;
+            // palette
+            vec3 sand = mix(uColors[0],uColors[1], fbm(vXZ/40.0));
+            vec3 plains = mix(uColors[2],uColors[3], fbm(vXZ/60.0));
+            vec3 forest = mix(uColors[4],uColors[5], fbm(vXZ/50.0));
+            vec3 rock = mix(uColors[6],uColors[7], fbm(vXZ/30.0));
+            vec3 albedo = sand*wSand + plains*wPlains + forest*wForest + rock*wRock;
+            // micro-variation
+            albedo *= mix(0.96,1.04, vnoise(vXZ/20.0));
+            // fake PBR shading
+            float NdotL = saturate(dot(N, normalize(uSunDir)));
+            float diff = mix(0.3,1.0,NdotL);
+            float rough = mix(0.8,0.4, wRock) * mix(1.0,0.8,wSand);
+            float spec = pow(saturate(dot(reflect(-normalize(uSunDir), N), normalize(vec3(0,1,0)))), mix(32.0,128.0,1.0-rough))*0.08;
+            vec3 color = albedo*diff + vec3(spec);
+            // ambient term
+            color += vec3(0.06,0.09,0.11);
+            gl_FragColor = vec4(color,1.0);
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
+          }
+        `
+      });
+      return mat;
+    }
+
+    function makeTerrainLOD(seg){
+      const LODobj = new THREE.LOD();
+      const mats = [makeTerrainMaterial(), makeTerrainMaterial(), makeTerrainMaterial()];
+      const segs = [seg, Math.floor(seg*0.6), Math.floor(seg*0.32)];
+      const distances = CONFIG.island.lodDistances;
+      for(let i=0;i<3;i++){
+        const geo = new THREE.PlaneBufferGeometry(ISLAND.size, ISLAND.size, segs[i], segs[i]);
+        geo.rotateX(-Math.PI/2);
+        const mesh = new THREE.Mesh(geo, mats[i]);
+        mesh.frustumCulled = true;
+        LODobj.addLevel(mesh, distances[i]);
+      }
+      LODobj.position.set(0,0,0);
+      return LODobj;
+    }
+
+    // ================ OCEAN =================
+    // Procedural normals as small DataTexture
+    function makeNormalMap(size=128){
+      const data = new Uint8Array(size*size*4);
+      for(let y=0;y<size;y++){
+        for(let x=0;x<size;x++){
+          const i=(y*size+x)*4;
+          const a = Math.sin(x*0.12)+Math.cos(y*0.05);
+          const b = Math.cos(x*0.07)+Math.sin(y*0.1);
+          const nx = (a*0.5+0.5)*255;
+          const ny = (b*0.5+0.5)*255;
+          data[i]=nx; data[i+1]=ny; data[i+2]=255; data[i+3]=255;
         }
-        
-        // Глобальные функции для отладки
-        window.islandApp = islandApp;
-        window.getIslandStats = () => {
-            return islandApp ? islandApp.getAppData() : null;
-        };
-        window.resetIslandView = () => {
-            if (islandApp) {
-                islandApp.onResetView();
-            }
-        };
-        window.takeIslandScreenshot = () => {
-            if (islandApp && islandApp.cameraController) {
-                return islandApp.cameraController.takeScreenshot();
-            }
-        };
-        window.setIslandQuality = (quality) => {
-            if (islandApp) {
-                islandApp.onQualityChanged(quality);
-            }
-        };
-    </script>
+      }
+      const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.needsUpdate=true;
+      return tex;
+    }
+    const normalA = makeNormalMap(128);
+    const normalB = makeNormalMap(64);
+
+    const waterUniforms = {
+      uTime:{value:0},
+      uSunDir:{value:new THREE.Vector3().copy(sun.position).normalize()},
+      uDeep:{value:new THREE.Color(CONFIG.palette.oceanDeep)},
+      uShallowA:{value:new THREE.Color(CONFIG.palette.oceanShallowA)},
+      uShallowB:{value:new THREE.Color(CONFIG.palette.oceanShallowB)},
+      uNormalsA:{value:normalA}, uNormalsB:{value:normalB},
+      uSize:{value:ISLAND.size}, uOceanSize:{value:CONFIG.island.oceanSize},
+      uMaxH:{value:ISLAND.maxHeight}
+    };
+    const waterMat = new THREE.ShaderMaterial({
+      uniforms: waterUniforms, transparent:false, depthWrite:true, fog:true,
+      vertexShader:`
+        varying vec2 vUv; varying vec3 vPos; 
+        void main(){
+          vUv = uv*50.0;
+          vec3 p=position;
+          // gentle swell
+          float t = (sin((position.x+position.z)*0.002 + time*0.6)+sin(position.x*0.008 - time*0.4))*0.35;
+        }
+      `.replace('time','uTime'),
+      fragmentShader:`
+        ${TERRAIN_GLSL}
+        uniform float uTime; uniform vec3 uSunDir;
+        uniform vec3 uDeep, uShallowA, uShallowB;
+        uniform sampler2D uNormalsA, uNormalsB;
+        uniform float uOceanSize; uniform float uMaxH;
+        varying vec2 vUv; varying vec3 vPos;
+        #define saturate(x) clamp(x,0.,1.)
+        float wave(vec2 p){ return sin(p.x*1.5 + uTime*0.6)*0.5 + cos(p.y*1.1 - uTime*0.4)*0.5; }
+        void main(){
+          // normal map scroll
+          vec2 uv1 = vUv*0.6 + vec2(uTime*0.02, -uTime*0.015);
+          vec2 uv2 = vUv*1.1 + vec2(-uTime*0.017, uTime*0.013);
+          vec3 n1 = texture2D(uNormalsA, uv1).xyz*2.0-1.0;
+          vec3 n2 = texture2D(uNormalsB, uv2).xyz*2.0-1.0;
+          vec3 N = normalize(vec3(n1.xy*0.6 + n2.xy*0.4, 1.0));
+          // fake depth from island heightfield under water
+          vec2 xz = vPos.xz;
+          float h = hFunc(xz);
+          float depth = saturate((0.6*uMaxH - h)/ (0.7*uMaxH));
+          vec3 shallow = mix(uShallowA, uShallowB, saturate(depth*1.2));
+          vec3 baseCol = mix(shallow, uDeep, smoothstep(0.2, 0.85, depth));
+          // Fresnel
+          vec3 V = normalize(vec3(0.0,1.0,0.0));
+          float fres = pow(1.0 - saturate(dot(N, V)), 3.0);
+          // Specular highlight from sun
+          float NdotL = saturate(dot(N, normalize(uSunDir)));
+          float spec = pow(NdotL, 64.0)*0.6;
+          // Shore foam (distance to coastline via height)
+          float foam = smoothstep(0.02, 0.0, depth) * (0.6 + 0.4*wave(vUv*0.2));
+          vec3 col = baseCol + vec3(spec) + vec3(1.0)*foam*0.55 + vec3(0.8,0.9,1.0)*fres*0.25;
+          gl_FragColor = vec4(col, 1.0);
+          #include <tonemapping_fragment>
+          #include <encodings_fragment>
+        }
+      `
+    });
+    const waterGeo = new THREE.PlaneBufferGeometry(CONFIG.island.oceanSize, CONFIG.island.oceanSize, 2, 2);
+    waterGeo.rotateX(-Math.PI/2);
+    const water = new THREE.Mesh(waterGeo, waterMat);
+    water.position.y = 0.6*ISLAND.maxHeight*0.02; // sea level low relative units
+    scene.add(water);
+
+    // ================= OBJECTS =================
+    const objectsGroup = new THREE.Group(); scene.add(objectsGroup);
+
+    // Simple PBR-ish materials
+    const matConcrete = new THREE.MeshStandardMaterial({ color:0xced3d9, roughness:0.38, metalness:0.05 });
+    const matGlass = new THREE.MeshPhysicalMaterial({ color:0xaad7ff, roughness:0.05, metalness:0.0, transmission:0.7, transparent:true, opacity:0.9 });
+    const matWood = new THREE.MeshStandardMaterial({ color:0x8b6a4f, roughness:0.65, metalness:0.04 });
+    const matAsphalt = new THREE.MeshStandardMaterial({ color:0x3b3d42, roughness:0.85, metalness:0.02 });
+    const matPier = new THREE.MeshStandardMaterial({ color:0x705a43, roughness:0.9 });
+    const matHeli = new THREE.MeshStandardMaterial({ color:0x2c2f36, roughness:0.7 });
+
+    // Helper to project onto terrain
+    function groundY(x,z){ return heightAt(x,z); }
+
+    // Roads: a couple of splines connecting areas
+    function addRoadPath(points){
+      const curve = new THREE.CatmullRomCurve3(points.map(p=> new THREE.Vector3(p[0], groundY(p[0],p[1])+0.15, p[1])));
+      const w = 8;
+      const segs = 200;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(segs*6*3);
+      let idx=0;
+      for(let i=0;i<segs;i++){
+        const t0 = i/segs, t1=(i+1)/segs;
+        const a = curve.getPoint(t0), b = curve.getPoint(t1);
+        const dir = new THREE.Vector3().subVectors(b,a).normalize();
+        const left = new THREE.Vector3(-dir.z,0,dir.x);
+        const v0 = a.clone().addScaledVector(left, w);
+        const v1 = a.clone().addScaledVector(left,-w);
+        const v2 = b.clone().addScaledVector(left,-w);
+        const v3 = b.clone().addScaledVector(left, w);
+        [v0,v1,v2, v0,v2,v3].forEach(v=>{ pos[idx++]=v.x; pos[idx++]=v.y; pos[idx++]=v.z; });
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+      geo.computeVertexNormals();
+      const mesh = new THREE.Mesh(geo, matAsphalt);
+      mesh.receiveShadow = false;
+      objectsGroup.add(mesh);
+    }
+    addRoadPath([[-600,-400],[-200,0],[180,130],[420,220],[700,150]]);
+    addRoadPath([[ -700,350],[-450,150],[-200,0], [0,-120],[260,-280],[600,-360]]);
+
+    // Pier + boats
+    function addPierWithBoats(){
+      const y = groundY(-880, -420)+2;
+      const pier = new THREE.Mesh(new THREE.BoxBufferGeometry(200,6,24), matPier);
+      pier.position.set(-880, y, -420);
+      objectsGroup.add(pier);
+      // boats (simple)
+      const boatGeo = new THREE.BoxBufferGeometry(36, 8, 14);
+      const boatMat = new THREE.MeshStandardMaterial({ color:0x2b6cb0, roughness:0.5, metalness:0.2 });
+      for(let i=0;i<CONFIG.boats;i++){
+        const b = new THREE.Mesh(boatGeo, boatMat.clone());
+        b.material.color.offsetHSL(i*0.08, 0.05, 0.0);
+        b.position.set(-880 + 40*i - 40, y-2, -420 - 28 - i*20);
+        b.userData.driftPhase = rand()*Math.PI*2;
+        objectsGroup.add(b);
+      }
+    }
+    addPierWithBoats();
+
+    // Helipad
+    function addHelipad(x=520,z=-160){
+      const y = groundY(x,z)+0.8;
+      const pad = new THREE.Mesh(new THREE.CylinderBufferGeometry(50,50,2,64), matHeli);
+      pad.position.set(x,y,z);
+      objectsGroup.add(pad);
+      // 'H' mark
+      const mark = new THREE.Mesh(new THREE.BoxBufferGeometry(60,0.8,12), new THREE.MeshBasicMaterial({color:0xffffff}));
+      mark.position.set(x,y+1.2,z);
+      objectsGroup.add(mark);
+      const mark2 = new THREE.Mesh(new THREE.BoxBufferGeometry(12,0.8,50), new THREE.MeshBasicMaterial({color:0xffffff}));
+      mark2.position.set(x,y+1.2,z);
+      objectsGroup.add(mark2);
+      // small beacons
+      const beaconMat = new THREE.MeshBasicMaterial({color:0x77e2ff});
+      for(const a of [0,Math.PI*0.5,Math.PI,Math.PI*1.5]){
+        const bx = x + Math.cos(a)*48;
+        const bz = z + Math.sin(a)*48;
+        const by = groundY(bx,bz)+2.2;
+        const b = new THREE.Mesh(new THREE.CylinderBufferGeometry(1.6,1.6,3.5,12), beaconMat);
+        b.position.set(bx,by,bz);
+        objectsGroup.add(b);
+      }
+    }
+    addHelipad();
+
+    // Castle (modern): boxes + cylinders + glass
+    function addCastle(){
+      const [sx,sy,sz] = CONFIG.architecture.castle.size;
+      const baseX=0, baseZ=60;
+      const y = groundY(baseX, baseZ);
+      const group = new THREE.Group();
+      // main body
+      const body = new THREE.Mesh(new THREE.BoxBufferGeometry(sx*1.0, sy*1.0, sz*1.6), matConcrete);
+      body.position.set(0, y + sy*0.5, baseZ);
+      group.add(body);
+      // glass strips
+      const glass = new THREE.Mesh(new THREE.BoxBufferGeometry(sx*0.9, sy*0.6, 2), matGlass);
+      glass.position.set(0, y + sy*0.5, baseZ + sz*0.85);
+      group.add(glass);
+      // 8 cylindrical towers
+      const twrGeo = new THREE.CylinderBufferGeometry(4,4, sy*1.2, 24);
+      for(let i=0;i<8;i++){
+        const ang = i/8*Math.PI*2;
+        const rx = Math.cos(ang)* (sx*0.65);
+        const rz = Math.sin(ang)* (sz*0.85);
+        const t = new THREE.Mesh(twrGeo, matConcrete);
+        t.position.set(rx, y + sy*0.6, baseZ + rz);
+        group.add(t);
+      }
+      // chimneys with smoke
+      const chimGeo = new THREE.CylinderBufferGeometry(1.3,1.8,6,12);
+      for(let i=0;i<3;i++){
+        const c = new THREE.Mesh(chimGeo, matConcrete);
+        c.position.set(-sx*0.3 + i*sx*0.3, y + sy + 3, baseZ - sz*0.15);
+        c.userData.smoke = true;
+        group.add(c);
+      }
+      objectsGroup.add(group);
+    }
+    addCastle();
+
+    // Villas & bungalows
+    function addHouses(){
+      const placed = [];
+      function placeNear(x,z, minDist){ for(const p of placed){ const dx=p.x-x,dz=p.z-z; if(dx*dx+dz*dz < minDist*minDist) return false; } placed.push({x,z}); return true; }
+      const big = CONFIG.architecture.villas.concrete;
+      const small = CONFIG.architecture.villas.bungalows;
+      // concrete villas near coast
+      for(let i=0, tries=0; i<big && tries<200; tries++){
+        const x = -500 + rand()*800;
+        const z =  200 + rand()*600;
+        const y = groundY(x,z);
+        if(y<12 || y>60) continue;
+        if(!placeNear(x,z,80)) continue;
+        const v = new THREE.Mesh(new THREE.BoxBufferGeometry(32,14,22), matConcrete.clone());
+        v.material.color.offsetHSL(rand()*0.02, 0, rand()*0.02-0.01);
+        v.position.set(x, y+7, z);
+        objectsGroup.add(v); i++;
+      }
+      // wooden bungalows on beaches/plains
+      for(let i=0, tries=0; i<small && tries<300; tries++){
+        const x = -800 + rand()*1600;
+        const z = -700 + rand()*1400;
+        const y = groundY(x,z);
+        if(y>40) continue;
+        if(!placeNear(x,z,60)) continue;
+        const b = new THREE.Mesh(new THREE.BoxBufferGeometry(18,10,16), matWood.clone());
+        b.material.color.offsetHSL(rand()*0.03, 0.05, rand()*0.04-0.02);
+        b.position.set(x, y+5, z);
+        objectsGroup.add(b); i++;
+      }
+    }
+    addHouses();
+
+    // ============== VEGETATION ==============
+    const vegetationGroup = new THREE.Group(); scene.add(vegetationGroup);
+
+    function makePalmGeometry(){
+      const g = new THREE.Group();
+      // trunk
+      const trunk = new THREE.CylinderBufferGeometry(0.9,1.4, 18, 6, 1);
+      const mtrunk = new THREE.MeshStandardMaterial({ color:0x7b5a3d, roughness:0.8 });
+      const tmesh = new THREE.Mesh(trunk, mtrunk);
+      tmesh.position.y = 9; g.add(tmesh);
+      // fronds (billboard-ish planes)
+      const leaf = new THREE.PlaneBufferGeometry(16, 6, 1, 1);
+      const mleaf = new THREE.MeshStandardMaterial({ color:0x2d8f57, roughness:0.7, side:THREE.DoubleSide });
+      for(let i=0;i<6;i++){
+        const L = new THREE.Mesh(leaf, mleaf);
+        L.position.set(Math.cos(i/6*Math.PI*2)*2, 18, Math.sin(i/6*Math.PI*2)*2);
+        L.rotation.x = -Math.PI*0.25;
+        L.lookAt(new THREE.Vector3(0,18,0));
+        g.add(L);
+      }
+      // merge
+      const tmp = new THREE.Object3D();
+      const merger = new THREE.BufferGeometry();
+      // We will instance using a base small mesh; here we return group (used to extract geometry later if needed).
+      return g;
+    }
+
+    // Build one low‑poly palm mesh and instance it
+    const palmBase = new THREE.Group();
+    {
+      const trunk = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.8,1.4, 18, 6), new THREE.MeshStandardMaterial({color:0x7c5a39, roughness:0.85}));
+      trunk.position.y=9; palmBase.add(trunk);
+      const leafG = new THREE.PlaneBufferGeometry(16,6,1,1);
+      for(let i=0;i<7;i++){
+        const leaf = new THREE.Mesh(leafG, new THREE.MeshStandardMaterial({color:0x2b8e58, side:THREE.DoubleSide, roughness:0.72}));
+        const a = i/7*Math.PI*2;
+        leaf.position.set(Math.cos(a)*2.2, 18, Math.sin(a)*2.2);
+        leaf.lookAt(0,18,0); leaf.rotateX(-0.45);
+        palmBase.add(leaf);
+      }
+    }
+    // Convert to single BufferGeometry for instancing
+    function mergedGeometryFrom(object){
+      const g = new THREE.BufferGeometry();
+      const geom = [];
+      object.traverse(o=>{ if(o.isMesh){ o.updateMatrix(); const og=o.geometry.clone(); og.applyMatrix4(o.matrix); geom.push(og); } });
+      return THREE.BufferGeometryUtils ? THREE.BufferGeometryUtils.mergeBufferGeometries(geom, false) : ( ()=>{ // fallback: simple merge positions
+          const pos=[]; const norm=[]; const uv=[];
+          for(const og of geom){
+            if(og.attributes.position){ pos.push(og.attributes.position.array); }
+            if(og.attributes.normal){ norm.push(og.attributes.normal.array); }
+            if(og.attributes.uv){ uv.push(og.attributes.uv.array); }
+          }
+          const geo=new THREE.BufferGeometry(); if(pos.length){ const a = new Float32Array([].concat(...pos)); geo.setAttribute('position', new THREE.BufferAttribute(a,3)); }
+          if(norm.length){ const a = new Float32Array([].concat(...norm)); geo.setAttribute('normal', new THREE.BufferAttribute(a,3)); }
+          if(uv.length){ const a = new Float32Array([].concat(...uv)); geo.setAttribute('uv', new THREE.BufferAttribute(a,2)); }
+          return geo;
+      })();
+    }
+
+    // Load BufferGeometryUtils for merge (via dynamic import)
+    let BufferGeometryUtils;
+    try {
+      BufferGeometryUtils = await import('https://unpkg.com/three@0.128.0/examples/jsm/utils/BufferGeometryUtils.js');
+    } catch(e){ /* fallback defined above */ }
+    if(BufferGeometryUtils) THREE.BufferGeometryUtils = BufferGeometryUtils;
+
+    const palmGeo = mergedGeometryFrom(palmBase);
+    const palmMat = new THREE.MeshStandardMaterial({ color:0x2a8a57, roughness:0.75 });
+
+    function scatterInstances(count, region){
+      const inst = new THREE.InstancedMesh(palmGeo, palmMat.clone(), count);
+      inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      const dummy = new THREE.Object3D();
+      let i=0, attempts=0;
+      while(i<count && attempts< count*10){
+        attempts++;
+        const x = -HALF + rand()*ISLAND.size;
+        const z = -HALF + rand()*ISLAND.size;
+        const h = groundY(x,z);
+        // Biome filter: avoid steep/high rocks
+        if(h>85) continue;
+        const slope = Math.abs(groundY(x+2,z)-h)+Math.abs(groundY(x,z+2)-h);
+        if(slope>1.2) continue;
+        // place more near beach
+        const distEdge = Math.max(0, HALF - Math.max(Math.abs(x), Math.abs(z)));
+        const nearBeach = (h<ISLAND.maxHeight*0.18);
+        const r = rand();
+        if( nearBeach ? (r>0.7) : (r>0.3) ) continue;
+        dummy.position.set(x, h+0.2, z);
+        dummy.scale.setScalar(0.9 + rand()*0.6);
+        dummy.rotation.y = rand()*Math.PI*2;
+        dummy.updateMatrix();
+        inst.setMatrixAt(i, dummy.matrix);
+        i++;
+      }
+      inst.frustumCulled = true;
+      vegetationGroup.add(inst);
+      return inst;
+    }
+
+    let palms = null;
+    function buildVegetation(){
+      // determine count per quality
+      const q = QUALITY;
+      const count = q==="high"? CONFIG.vegetation.palms.high : (q==="low"? CONFIG.vegetation.palms.low : CONFIG.vegetation.palms.auto);
+      if(palms) vegetationGroup.remove(palms);
+      palms = scatterInstances(count);
+      // TODO: ferns/grass as point sprites for perf (omitted for brevity)
+    }
+
+    // =============== BIRDS / SMOKE ===============
+    const birds = [];
+    function makeBirdGroup(idx){
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(3*3);
+      positions.set([ -1,0,0, 1,0,0, 0,0.6,0 ]);
+      geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+      const mat = new THREE.MeshBasicMaterial({ color: 0x2a3a4a });
+      const tri = new THREE.Mesh(geo, mat);
+      tri.userData = { r: 180 + idx*80, speed: 0.05 + idx*0.02, h: 90 + idx*12, phase: rand()*Math.PI*2 };
+      birds.push(tri); scene.add(tri);
+    }
+    for(let i=0;i<CONFIG.birds;i++) makeBirdGroup(i);
+
+    // Chimney smoke: billboards
+    const smokeSprites = [];
+    function makeSmoke(x,y,z){
+      const tex = new THREE.DataTexture(new Uint8Array([255,255,255,255]),1,1,THREE.RGBAFormat); tex.needsUpdate=true;
+      const mat = new THREE.SpriteMaterial({ map:tex, color:0xffffff, opacity:0.6, depthWrite:false, transparent:true });
+      for(let i=0;i<14;i++){
+        const s = new THREE.Sprite(mat.clone());
+        s.scale.setScalar(4 + i*0.4);
+        s.position.set(x, y+i*1.8, z);
+        s.material.opacity = 0.55 - i*0.03;
+        smokeSprites.push(s); scene.add(s);
+      }
+    }
+    makeSmoke(-10, groundY(0,60)+34, 48);
+
+    // =============== CAMERA CONTROLS ===============
+    const state = { dragging:false, rotating:false, lastX:0, lastY:0, target:new THREE.Vector3(0,0,0) };
+    function updateCameraTarget(dx=0,dz=0){
+      state.target.x += dx; state.target.z += dz;
+      // clamp within ocean bounds
+      const pad = CONFIG.camera.boundsPad;
+      const lim = HALF - pad;
+      state.target.x = THREE.MathUtils.clamp(state.target.x, -lim, lim);
+      state.target.z = THREE.MathUtils.clamp(state.target.z, -lim, lim);
+    }
+    function syncCamera(){
+      center.copy(state.target);
+      placeCamera();
+    }
+    renderer.domElement.addEventListener('mousedown', (e)=>{
+      if(e.button===0){ state.dragging=true; }
+      if(e.button===2){ state.rotating=true; }
+      state.lastX=e.clientX; state.lastY=e.clientY;
+    });
+    window.addEventListener('mouseup', ()=>{ state.dragging=false; state.rotating=false; });
+    window.addEventListener('contextmenu', (e)=> e.preventDefault());
+    window.addEventListener('mousemove', (e)=>{
+      const dx=e.clientX-state.lastX, dy=e.clientY-state.lastY;
+      state.lastX=e.clientX; state.lastY=e.clientY;
+      if(state.dragging){
+        const panSpeed = 0.9*(cameraDistance/900);
+        const right = new THREE.Vector3(Math.sin(cameraTheta),0,-Math.cos(cameraTheta));
+        const forward = new THREE.Vector3(Math.cos(cameraTheta),0,Math.sin(cameraTheta));
+        updateCameraTarget( (-right.x*dx + -forward.x*dy)*panSpeed, (-right.z*dx + -forward.z*dy)*panSpeed );
+        syncCamera();
+      } else if(state.rotating){
+        cameraTheta -= dx*0.005;
+        placeCamera();
+      }
+    });
+    // wheel / dolly
+    renderer.domElement.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      const s = Math.exp(-Math.sign(e.deltaY)*0.2);
+      cameraDistance = THREE.MathUtils.clamp(cameraDistance*s, CONFIG.camera.minDistance, CONFIG.camera.maxDistance);
+      placeCamera();
+      // dolly-to-cursor (subtle): shift target toward cursor
+      const rect = renderer.domElement.getBoundingClientRect();
+      const nx = ( (e.clientX-rect.left)/rect.width )*2-1;
+      const ny = -((e.clientY-rect.top)/rect.height)*2+1;
+      updateCameraTarget(nx*8*(1.0-s), -ny*8*(1.0-s));
+      syncCamera();
+    }, {passive:false});
+
+    // touch
+    let touchMode = null, lastD=null, lastCent=[0,0];
+    renderer.domElement.addEventListener('touchstart',(e)=>{
+      if(e.touches.length===1){ touchMode='pan'; state.lastX=e.touches[0].clientX; state.lastY=e.touches[0].clientY; }
+      if(e.touches.length===2){ touchMode='pinch'; const [a,b]=e.touches; lastD=Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY); lastCent=[(a.clientX+b.clientX)/2,(a.clientY+b.clientY)/2]; }
+    },{passive:false});
+    renderer.domElement.addEventListener('touchmove',(e)=>{
+      if(touchMode==='pan' && e.touches.length===1){
+        const t=e.touches[0]; const dx=t.clientX-state.lastX, dy=t.clientY-state.lastY;
+        state.lastX=t.clientX; state.lastY=t.clientY;
+        const panSpeed = 1.0*(cameraDistance/900);
+        const right = new THREE.Vector3(Math.sin(cameraTheta),0,-Math.cos(cameraTheta));
+        const forward = new THREE.Vector3(Math.cos(cameraTheta),0,Math.sin(cameraTheta));
+        updateCameraTarget( (-right.x*dx + -forward.x*dy)*panSpeed, (-right.z*dx + -forward.z*dy)*panSpeed );
+        syncCamera();
+      }
+      if(touchMode==='pinch' && e.touches.length===2){
+        const [a,b]=e.touches; const d=Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
+        const s = Math.exp(-(d-lastD)*0.002); lastD=d;
+        cameraDistance = THREE.MathUtils.clamp(cameraDistance*s, CONFIG.camera.minDistance, CONFIG.camera.maxDistance);
+        // dolly to pinch center
+        const rect = renderer.domElement.getBoundingClientRect();
+        const nx = ((lastCent[0]-rect.left)/rect.width)*2-1;
+        const ny = -((lastCent[1]-rect.top)/rect.height)*2+1;
+        updateCameraTarget(nx*10*(1.0-s), -ny*10*(1.0-s));
+        placeCamera();
+      }
+      e.preventDefault();
+    },{passive:false});
+    renderer.domElement.addEventListener('touchend',()=>{ touchMode=null; },{passive:true});
+
+    // Reset
+    document.getElementById('resetView').addEventListener('click', ()=>{
+      state.target.set(0,0,0); cameraDistance = CONFIG.camera.startDistance; cameraTheta = THREE.MathUtils.degToRad(CONFIG.camera.thetaDeg); placeCamera();
+      showToast("Вид сброшен");
+    });
+
+    // ============== POST PROCESSING ==============
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+    const fxaa = new ShaderPass(FXAAShader);
+    const pixelRatio = Math.min(devicePixelRatio, 2);
+    fxaa.material.uniforms['resolution'].value.set(1/(innerWidth*pixelRatio), 1/(innerHeight*pixelRatio));
+    let bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), CONFIG.post.bloom.intensity, CONFIG.post.bloom.radius, CONFIG.post.bloom.threshold);
+    composer.addPass(fxaa);
+    composer.addPass(bloom);
+
+    // ============= QUALITY SWITCH =============
+    function setQuality(q){
+      QUALITY = q;
+      document.querySelectorAll('.chip').forEach(el=>el.classList.remove('active'));
+      const btn = document.querySelector(`.chip[data-q="${q}"]`); if(btn) btn.classList.add('active');
+      // terrain LOD base
+      terrainGroup.clear();
+      const seg = q==="high"?TERRAIN_SEG.high : (q==="low"?TERRAIN_SEG.low : TERRAIN_SEG.auto);
+      terrainGroup.add(makeTerrainLOD(seg));
+      // vegetation density
+      buildVegetation();
+      // post
+      bloom.strength = q==="high"?1.15 : q==="low"? 0.6 : 0.9;
+      renderer.setPixelRatio(q==="high"? Math.min(2, devicePixelRatio): (q==="low"? 1.0 : Math.min(1.5, devicePixelRatio)));
+      showToast(`Режим качества: ${q.toUpperCase()}`);
+    }
+    document.querySelector('.chip[data-q="auto"]').addEventListener('click', ()=>setQuality('auto'));
+    document.querySelector('.chip[data-q="low"]').addEventListener('click', ()=>setQuality('low'));
+    document.querySelector('.chip[data-q="high"]').addEventListener('click', ()=>setQuality('high'));
+    setQuality(AUTO); // initial
+
+    // Hide hint after 3s
+    setTimeout(()=> document.getElementById('hint').classList.add('hide'), 3000);
+
+    // =============== AUDIO ===============
+    let audioCtx=null, windNode=null, wavesNode=null, birdsNode=null, masterGain=null;
+    function startAudio(){
+      if(audioCtx) return;
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      masterGain = audioCtx.createGain(); masterGain.gain.value=0.15; masterGain.connect(audioCtx.destination);
+      // wind (filtered noise)
+      const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*2, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0); for(let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+      const src = audioCtx.createBufferSource(); src.buffer=buffer; src.loop=true;
+      const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=500;
+      const gain = audioCtx.createGain(); gain.gain.value=0.2;
+      src.connect(filter); filter.connect(gain); gain.connect(masterGain); src.start();
+      windNode=gain;
+      // waves (osc)
+      const osc = audioCtx.createOscillator(); osc.type='sine'; osc.frequency.value=180;
+      const g2 = audioCtx.createGain(); g2.gain.value=0.05;
+      osc.connect(g2); g2.connect(masterGain); osc.start();
+      wavesNode=g2;
+      // birds (bleeps)
+      const osc2 = audioCtx.createOscillator(); osc2.type='triangle'; osc2.frequency.value=1200;
+      const g3 = audioCtx.createGain(); g3.gain.value=0.0; osc2.connect(g3); g3.connect(masterGain); osc2.start();
+      birdsNode=g3;
+      showToast("Звук включен");
+    }
+    // start on user gesture
+    window.addEventListener('pointerdown', startAudio, {once:true});
+
+    // =============== ATMOSPHERE TIME ===============
+    function updateDayPhase(){
+      const h = new Date().getHours();
+      // 6..8 dawn, 9..16 day, 17..19 sunset, 20..5 night
+      let t=0.5;
+      if(h>=6 && h<8) t = (h-6)/2*0.4;
+      else if(h>=9 && h<16) t = 0.5;
+      else if(h>=17 && h<19) t = 0.7 + (h-17)/2*0.3;
+      else if(h>=20 || h<5) t = 0.9;
+      skyMat.uniforms.t.value = t;
+      const sunColor = (t<0.5)? 0xfff1cc : (t<0.8? 0xffffff : 0xc8d7ff);
+      sun.color.setHex(sunColor);
+    }
+    updateDayPhase();
+
+    // =============== RUNTIME / TICK ===============
+    let last=performance.now(), accum=0, frames=0, fps=60;
+    function showToast(msg){
+      const t = document.getElementById('toast'); t.textContent=msg; t.style.display='block';
+      setTimeout(()=> t.style.display='none', 1600);
+    }
+    function animate(now){
+      requestAnimationFrame(animate);
+      const dt = (now-last)/1000; last=now; accum+=dt; frames++;
+      if(accum>0.5){ fps = Math.round(frames/accum); frames=0; accum=0; document.getElementById('fps').textContent = `FPS: ${fps}`; }
+      // approximate GPU load = time per frame / target
+      const load = THREE.MathUtils.clamp((1/Math.max(1,fps)) / (1/CONFIG.targetFPS), 0, 1);
+      document.getElementById('gpu').textContent = `GPU load: ${(load*100)|0}%`; document.getElementById('gpuBar').style.width = `${Math.round(load*100)}%`;
+
+      // birds
+      for(const b of birds){
+        const u = b.userData; u.phase += u.speed*dt;
+        b.position.set(Math.cos(u.phase)*u.r, u.h + Math.sin(u.phase*2.0)*4.0, Math.sin(u.phase)*u.r);
+        b.lookAt(0,u.h,0);
+      }
+      // boats bobbing
+      for(const o of objectsGroup.children){
+        if(o.geometry && o.geometry.type==='BoxBufferGeometry'){
+          const y = groundY(o.position.x,o.position.z);
+          o.position.y = y + Math.sin(now*0.001 + o.userData.driftPhase)*1.2 + 1.0;
+          o.rotation.z = Math.sin(now*0.001 + o.userData.driftPhase)*0.06;
+          o.rotation.x = Math.cos(now*0.001 + o.userData.driftPhase*0.5)*0.05;
+        }
+      }
+      // smoke gentle sway
+      for(let i=0;i<smokeSprites.length;i++){
+        const s = smokeSprites[i]; s.material.opacity = 0.45 + Math.sin(now*0.0008+i*0.3)*0.1;
+        s.position.x += Math.sin(now*0.0006+i)*0.005;
+        s.position.z += Math.cos(now*0.0004+i)*0.005;
+      }
+      // audio mod
+      if(masterGain){ windNode.gain.value = 0.18 + 0.02*Math.sin(now*0.0007); birdsNode.gain.value = 0.02 + 0.02*(Math.sin(now*0.0009*1.7)>0?1:0); }
+
+      waterUniforms.uTime.value = now*0.001;
+      // render
+      composer.render();
+    }
+    requestAnimationFrame(animate);
+
+    // ======= HANDLE RESIZE =======
+    window.addEventListener('resize', ()=>{
+      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+      const pixelRatio = Math.min(devicePixelRatio, 2);
+      fxaa.material.uniforms['resolution'].value.set(1/(innerWidth*pixelRatio), 1/(innerHeight*pixelRatio));
+      bloom.setSize(innerWidth, innerHeight);
+    });
+  </script>
 </body>
 </html>
