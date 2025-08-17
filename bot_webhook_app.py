@@ -47,7 +47,13 @@ def _pm_and_currency(bank: str) -> Tuple[str, str]:
         return "BANK131", "RUB"
     return "UNLIMINT", "EUR"
 
-def _create_invoice_v2(email: str, offer_id: str, bank: str, tariff: str, tg_user_id: str, order_id: str, username: Optional[str]) -> Dict[str, Any]:
+def _get_offer_id(tariff: str, periodicity: Optional[str] = None) -> str:
+    """Возвращает базовый offerId для всех тарифов"""
+    # Используем один базовый offerId для всех тарифов
+    # Разные периодичности будут передаваться через параметр periodicity
+    return LAVA_OFFER_ID_BASIC
+
+def _create_invoice_v2(email: str, offer_id: str, bank: str, tariff: str, tg_user_id: str, order_id: str, username: Optional[str], periodicity: Optional[str] = None) -> Dict[str, Any]:
     pm, currency = _pm_and_currency(bank)
     payload = {
         "email": email,
@@ -63,6 +69,10 @@ def _create_invoice_v2(email: str, offer_id: str, bank: str, tariff: str, tg_use
             "utm_term": username or ""
         }
     }
+    
+    # Добавляем периодичность если указана
+    if periodicity:
+        payload["periodicity"] = periodicity
     headers = {"X-Api-Key": LAVA_TOP_API_KEY, "Content-Type":"application/json", "Accept":"application/json"}
     url = "https://gate.lava.top/api/v2/invoice"
     log.info("→ v2 invoice: %s", json.dumps(payload, ensure_ascii=False))
@@ -152,13 +162,18 @@ def api_pay_create():
         email = str(body.get("email", "")).strip().lower()
         tariff = str(body.get("tariff", "")).strip().lower() or "basic"
         bank = str(body.get("bank", "")).strip().lower() or "russian"
+        periodicity = body.get("periodicity")  # Получаем периодичность из запроса
         if not tg_user_id or not email:
             return jsonify({"ok": False, "error": "telegram_id/init_data и email обязательны"}), 400
 
         order_id = f"tg{tg_user_id}-{uuid.uuid4().hex[:12]}"
-        log.info("Create pay: tg=%s email=%s tariff=%s order=%s bank=%s", tg_user_id, email, tariff, order_id, bank)
+        log.info("Create pay: tg=%s email=%s tariff=%s order=%s bank=%s periodicity=%s", tg_user_id, email, tariff, order_id, bank, periodicity)
 
-        res = _create_invoice_v2(email=email, offer_id=LAVA_OFFER_ID_BASIC, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id, username=username)
+        # Выбираем правильный offerId
+        offer_id = _get_offer_id(tariff, periodicity)
+        log.info("Selected offer_id: %s for tariff: %s, periodicity: %s", offer_id, tariff, periodicity)
+
+        res = _create_invoice_v2(email=email, offer_id=offer_id, bank=bank, tariff=tariff, tg_user_id=tg_user_id, order_id=order_id, username=username, periodicity=periodicity)
         if not res.get("ok"):
             return jsonify({"ok": False, "error": f"lava invoice error: {res.get('error')}", "order_id": order_id}), 502
 
