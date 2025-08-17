@@ -8,10 +8,6 @@ import { PerformanceManager } from './utils/PerformanceManager.js';
 import { AudioManager } from './utils/AudioManager.js';
 import { templeData } from '../data/templeData.js';
 
-// Инициализация Supabase
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-
 // Глобальные переменные
 let currentUserId = null;
 let isAdmin = false;
@@ -39,109 +35,139 @@ const appState = {
 // Инициализация приложения
 async function initApp() {
     try {
+        console.log('🚀 Начало инициализации приложения...');
+        
         // Определение устройства
         isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.log('📱 Устройство:', isMobile ? 'мобильное' : 'десктоп');
         
         // Инициализация Telegram Web App
         if (tg) {
+            console.log('📱 Telegram Web App найден');
             tg.expand();
             tg.enableClosingConfirmation();
             
             const user = tg.initDataUnsafe?.user;
             if (user) {
                 currentUserId = user.id;
-                await createOrGetUser(user);
-                await checkAdminRights();
+                console.log('👤 Пользователь:', user.id);
+                // Временно отключаем Supabase для тестирования
+                // await createOrGetUser(user);
+                // await checkAdminRights();
             }
+        } else {
+            console.log('⚠️ Telegram Web App не найден, работаем в режиме браузера');
         }
 
         // Инициализация менеджеров
+        console.log('🔧 Инициализация менеджеров...');
         await initializeManagers();
         
         // Настройка обработчиков событий
+        console.log('🎯 Настройка обработчиков событий...');
         setupEventListeners();
         
         // Запуск загрузки
+        console.log('📊 Запуск процесса загрузки...');
         await startLoading();
         
         // Запуск приложения
+        console.log('🎮 Запуск приложения...');
         await startApp();
         
     } catch (error) {
-        console.error('Ошибка инициализации приложения:', error);
-        showError('Ошибка загрузки приложения');
+        console.error('❌ Ошибка инициализации приложения:', error);
+        showError('Ошибка загрузки приложения: ' + error.message);
     }
 }
 
 // Инициализация менеджеров
 async function initializeManagers() {
     try {
-        // Менеджер производительности
+        console.log('📈 Инициализация PerformanceManager...');
         performanceManager = new PerformanceManager();
         
-        // Менеджер аудио
+        console.log('🎵 Инициализация AudioManager...');
         audioManager = new AudioManager();
         
-        // Менеджер UI
+        console.log('🖥️ Инициализация UIManager...');
         uiManager = new UIManager();
         
-        // Менеджер сцены - ждем инициализации
+        console.log('🌍 Инициализация SceneManager...');
         sceneManager = new SceneManager();
         await new Promise((resolve) => {
-            sceneManager.once('sceneLoaded', resolve);
+            sceneManager.once('sceneLoaded', () => {
+                console.log('✅ SceneManager загружен');
+                resolve();
+            });
             // Таймаут на случай, если событие не сработает
-            setTimeout(resolve, 3000);
+            setTimeout(() => {
+                console.log('⏰ Таймаут SceneManager, продолжаем...');
+                resolve();
+            }, 5000);
         });
         
-        // Менеджер эффектов
+        console.log('✨ Инициализация EffectManager...');
         effectManager = new EffectManager(sceneManager);
         
-        // Менеджер храмов
+        console.log('🏛️ Инициализация TempleManager...');
         templeManager = new TempleManager(sceneManager, templeData);
         
         // Менеджер мобильных устройств
         if (isMobile) {
+            console.log('📱 Инициализация MobileManager...');
             mobileManager = new MobileManager(sceneManager);
         }
+        
+        console.log('✅ Все менеджеры инициализированы');
     } catch (error) {
-        console.error('Ошибка инициализации менеджеров:', error);
+        console.error('❌ Ошибка инициализации менеджеров:', error);
         throw error;
     }
 }
 
-// Создание или получение пользователя
+// Создание или получение пользователя (временно отключено)
 async function createOrGetUser(userData) {
     try {
-        const { data, error } = await supabaseClient
-            .from('users')
-            .upsert({
-                telegram_id: userData.id,
-                username: userData.username,
-                first_name: userData.first_name,
-                last_name: userData.last_name
-            })
-            .select();
+        console.log('👤 Создание/получение пользователя:', userData.id);
+        // Временно отключаем Supabase
+        return;
+        
+        // const { data, error } = await supabaseClient
+        //     .from('users')
+        //     .upsert({
+        //         telegram_id: userData.id,
+        //         username: userData.username,
+        //         first_name: userData.first_name,
+        //         last_name: userData.last_name
+        //     })
+        //     .select();
 
-        if (error) {
-            console.error('Ошибка создания пользователя:', error);
-        }
+        // if (error) {
+        //     console.error('Ошибка создания пользователя:', error);
+        // }
     } catch (error) {
         console.error('Ошибка работы с пользователем:', error);
     }
 }
 
-// Проверка прав администратора
+// Проверка прав администратора (временно отключено)
 async function checkAdminRights() {
     try {
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('is_admin')
-            .eq('telegram_id', currentUserId)
-            .single();
+        console.log('🔐 Проверка прав администратора...');
+        // Временно отключаем Supabase
+        isAdmin = false;
+        return;
+        
+        // const { data, error } = await supabaseClient
+        //     .from('users')
+        //     .select('is_admin')
+        //     .eq('telegram_id', currentUserId)
+        //     .single();
 
-        if (data && data.is_admin) {
-            isAdmin = true;
-        }
+        // if (data && data.is_admin) {
+        //     isAdmin = true;
+        // }
     } catch (error) {
         console.error('Ошибка проверки прав администратора:', error);
     }
@@ -149,42 +175,57 @@ async function checkAdminRights() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Обработчики UI
-    uiManager.on('templeSelected', handleTempleSelection);
-    uiManager.on('templeConfirmed', handleTempleConfirmation);
-    uiManager.on('backPressed', handleBackPress);
-    uiManager.on('introClosed', handleIntroClose);
-    
-    // Обработчики сцены
-    sceneManager.on('sceneLoaded', handleSceneLoaded);
-    sceneManager.on('cameraMoved', handleCameraMove);
-    
-    // Обработчики храмов
-    templeManager.on('templeHover', handleTempleHover);
-    templeManager.on('templeClick', handleTempleClick);
-    
-    // Обработчики мобильных устройств
-    if (mobileManager) {
-        mobileManager.on('zoomIn', () => sceneManager.zoomIn());
-        mobileManager.on('zoomOut', () => sceneManager.zoomOut());
-        mobileManager.on('resetCamera', () => sceneManager.resetCamera());
-    }
-    
-    // Обработчики окна
-    window.addEventListener('resize', handleWindowResize);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    // Обработчики производительности
-    if (performanceManager) {
-        performanceManager.on('fpsUpdate', (fps) => {
-            uiManager.updateFPS(fps);
-        });
+    try {
+        // Обработчики UI
+        if (uiManager) {
+            uiManager.on('templeSelected', handleTempleSelection);
+            uiManager.on('templeConfirmed', handleTempleConfirmation);
+            uiManager.on('backPressed', handleBackPress);
+            uiManager.on('introClosed', handleIntroClose);
+        }
+        
+        // Обработчики сцены
+        if (sceneManager) {
+            sceneManager.on('sceneLoaded', handleSceneLoaded);
+            sceneManager.on('cameraMoved', handleCameraMove);
+        }
+        
+        // Обработчики храмов
+        if (templeManager) {
+            templeManager.on('templeHover', handleTempleHover);
+            templeManager.on('templeClick', handleTempleClick);
+        }
+        
+        // Обработчики мобильных устройств
+        if (mobileManager) {
+            mobileManager.on('zoomIn', () => sceneManager.zoomIn());
+            mobileManager.on('zoomOut', () => sceneManager.zoomOut());
+            mobileManager.on('resetCamera', () => sceneManager.resetCamera());
+        }
+        
+        // Обработчики окна
+        window.addEventListener('resize', handleWindowResize);
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        // Обработчики производительности
+        if (performanceManager) {
+            performanceManager.on('fpsUpdate', (fps) => {
+                if (uiManager && uiManager.updateFPS) {
+                    uiManager.updateFPS(fps);
+                }
+            });
+        }
+        
+        console.log('✅ Обработчики событий настроены');
+    } catch (error) {
+        console.error('❌ Ошибка настройки обработчиков событий:', error);
     }
 }
 
 // Запуск загрузки
 async function startLoading() {
     try {
+        console.log('📊 Начало процесса загрузки...');
         const loadingSteps = [
             { progress: 10, text: 'Инициализация 3D движка...', tip: 'Подготовка WebGL контекста' },
             { progress: 25, text: 'Загрузка текстур...', tip: 'Создание реалистичных материалов' },
@@ -200,9 +241,12 @@ async function startLoading() {
             if (uiManager && uiManager.updateLoadingProgress) {
                 uiManager.updateLoadingProgress(step.progress, step.text, step.tip);
             }
+            console.log(`📊 Загрузка: ${step.progress}% - ${step.text}`);
         }
+        
+        console.log('✅ Процесс загрузки завершен');
     } catch (error) {
-        console.error('Ошибка в процессе загрузки:', error);
+        console.error('❌ Ошибка в процессе загрузки:', error);
         // Принудительно завершаем загрузку
         if (uiManager && uiManager.updateLoadingProgress) {
             uiManager.updateLoadingProgress(100, 'Готово!', 'Загрузка завершена');
@@ -213,6 +257,8 @@ async function startLoading() {
 // Запуск приложения
 async function startApp() {
     try {
+        console.log('🎮 Запуск приложения...');
+        
         // Скрытие прелоадера
         if (uiManager && uiManager.hidePreloader) {
             uiManager.hidePreloader();
@@ -242,9 +288,9 @@ async function startApp() {
         isLoaded = true;
         appState.isLoading = false;
         
-        console.log('Приложение успешно запущено');
+        console.log('🎉 Приложение успешно запущено!');
     } catch (error) {
-        console.error('Ошибка запуска приложения:', error);
+        console.error('❌ Ошибка запуска приложения:', error);
         // Принудительно скрываем прелоадер
         if (uiManager && uiManager.hidePreloader) {
             uiManager.hidePreloader();
@@ -254,20 +300,24 @@ async function startApp() {
 
 // Обработчики событий
 function handleTempleSelection(templeId) {
+    console.log('🏛️ Выбор храма:', templeId);
     appState.selectedTemple = templeId;
-    templeManager.selectTemple(templeId);
-    uiManager.updateInstructions('Нажми еще раз для подтверждения выбора', 'confirm');
-    uiManager.showBackButton();
+    if (templeManager) templeManager.selectTemple(templeId);
+    if (uiManager) {
+        uiManager.updateInstructions('Нажми еще раз для подтверждения выбора', 'confirm');
+        uiManager.showBackButton();
+    }
     
     // Эффекты
-    effectManager.playTempleSelectEffect(templeId);
+    if (effectManager) effectManager.playTempleSelectEffect(templeId);
     if (audioManager) audioManager.playTempleSelect();
 }
 
 function handleTempleConfirmation(templeId) {
+    console.log('✅ Подтверждение храма:', templeId);
     // Анимация перехода к храму
-    const temple = templeManager.getTemple(templeId);
-    if (temple) {
+    const temple = templeManager ? templeManager.getTemple(templeId) : null;
+    if (temple && sceneManager) {
         sceneManager.flyToTemple(temple.position, () => {
             // Переход к библиотеке
             transitionToLibrary(templeId);
@@ -277,14 +327,15 @@ function handleTempleConfirmation(templeId) {
 
 function handleTempleHover(templeId, isHovering) {
     if (isHovering) {
-        templeManager.highlightTemple(templeId);
-        effectManager.playTempleHoverEffect(templeId);
+        if (templeManager) templeManager.highlightTemple(templeId);
+        if (effectManager) effectManager.playTempleHoverEffect(templeId);
     } else {
-        templeManager.unhighlightTemple(templeId);
+        if (templeManager) templeManager.unhighlightTemple(templeId);
     }
 }
 
 function handleTempleClick(templeId) {
+    console.log('🖱️ Клик по храму:', templeId);
     if (appState.selectedTemple === templeId) {
         handleTempleConfirmation(templeId);
     } else {
@@ -293,36 +344,40 @@ function handleTempleClick(templeId) {
 }
 
 function handleBackPress() {
+    console.log('⬅️ Нажата кнопка назад');
     if (appState.selectedTemple) {
         // Сброс выбора храма
         appState.selectedTemple = null;
-        templeManager.deselectTemple();
-        uiManager.updateInstructions('Нажми на храм для выбора темы');
-        uiManager.hideBackButton();
+        if (templeManager) templeManager.deselectTemple();
+        if (uiManager) {
+            uiManager.updateInstructions('Нажми на храм для выбора темы');
+            uiManager.hideBackButton();
+        }
         
         // Эффекты
-        effectManager.playDeselectEffect();
+        if (effectManager) effectManager.playDeselectEffect();
         if (audioManager) audioManager.playDeselect();
     }
 }
 
 function handleIntroClose() {
-    uiManager.hideIntro();
-    sceneManager.enableControls();
+    console.log('❌ Закрытие интро');
+    if (uiManager) uiManager.hideIntro();
+    if (sceneManager) sceneManager.enableControls();
 }
 
 function handleSceneLoaded() {
-    console.log('Сцена загружена');
+    console.log('🌍 Сцена загружена');
 }
 
 function handleCameraMove() {
     // Обновление эффектов при движении камеры
-    effectManager.updateCameraEffects();
+    if (effectManager) effectManager.updateCameraEffects();
 }
 
 function handleWindowResize() {
-    sceneManager.handleResize();
-    uiManager.handleResize();
+    if (sceneManager) sceneManager.handleResize();
+    if (uiManager) uiManager.handleResize();
 }
 
 function handleBeforeUnload() {
@@ -333,27 +388,35 @@ function handleBeforeUnload() {
 
 // Переход к библиотеке
 function transitionToLibrary(templeId) {
+    console.log('📚 Переход к библиотеке храма:', templeId);
     appState.currentScene = 'library';
     
     // Анимация перехода
-    sceneManager.transitionToLibrary(() => {
-        // Создание библиотеки
-        const temple = templeData[templeId];
-        if (temple) {
-            sceneManager.createLibrary(temple.books);
-            uiManager.updateInstructions('Выберите книгу для изучения');
-        }
-    });
+    if (sceneManager) {
+        sceneManager.transitionToLibrary(() => {
+            // Создание библиотеки
+            const temple = templeData[templeId];
+            if (temple) {
+                sceneManager.createLibrary(temple.books);
+                if (uiManager) uiManager.updateInstructions('Выберите книгу для изучения');
+            }
+        });
+    }
 }
 
 // Показать ошибку
 function showError(message) {
-    uiManager.showNotification(message, 'error');
+    console.error('❌ Ошибка:', message);
+    if (uiManager && uiManager.showNotification) {
+        uiManager.showNotification(message, 'error');
+    }
 }
 
 // Показать уведомление
 function showNotification(message, type = 'success') {
-    uiManager.showNotification(message, type);
+    if (uiManager && uiManager.showNotification) {
+        uiManager.showNotification(message, type);
+    }
 }
 
 // Экспорт для отладки
@@ -370,4 +433,5 @@ window.app = {
 };
 
 // Запуск приложения
+console.log('🚀 Запуск приложения...');
 document.addEventListener('DOMContentLoaded', initApp);

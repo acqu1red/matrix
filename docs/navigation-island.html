@@ -171,6 +171,30 @@
         <!-- Уведомления будут добавляться динамически -->
     </div>
 
+    <!-- Проверка зависимостей -->
+    <script>
+        // Проверка наличия необходимых библиотек
+        window.addEventListener('load', function() {
+            console.log('🔍 Проверка зависимостей...');
+            
+            if (typeof THREE === 'undefined') {
+                console.error('❌ Three.js не загружен!');
+                document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: white;">Ошибка: Three.js не загружен</div>';
+                return;
+            }
+            
+            if (typeof TWEEN === 'undefined') {
+                console.warn('⚠️ TWEEN.js не загружен');
+            }
+            
+            if (typeof gsap === 'undefined') {
+                console.warn('⚠️ GSAP не загружен');
+            }
+            
+            console.log('✅ Все зависимости проверены');
+        });
+    </script>
+    
     <!-- Скрипты -->
     <script type="module" src="js/main.js"></script>
 </body>
