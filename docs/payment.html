@@ -42,8 +42,10 @@
   @keyframes tariffTitlePulse { 0%,100%{ transform:scale(1); opacity:.3;} 50%{ transform:scale(1.2); opacity:.6;} }
   .tariff-title-text { font-size:1.3rem; font-weight:700; color:#f0eadf; text-align:center; margin:0; position:relative; z-index:2; text-shadow:0 2px 4px rgba(0,0,0,.5); animation: tariffTitleText 2s ease-in-out infinite alternate; }
   @keyframes tariffTitleText { 0%{ transform:scale(1); color:#f0eadf;} 100%{ transform:scale(1.02); color:#d6c7b8;} }
-  .tariff-badge { position:absolute; top:-10px; right:-10px; background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%); color:#121212; padding:8px 16px; border-radius:20px; font-size:.8rem; font-weight:600; box-shadow:0 4px 15px rgba(214,199,184,.4); animation: tariffBadgeBounce 2s ease-in-out infinite; }
-  @keyframes tariffBadgeBounce { 0%,100%{ transform:translateY(0) scale(1);} 50%{ transform:translateY(-5px) scale(1.05);} }
+  .tariff-badge { position:absolute; top:12px; right:12px; background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+                  color:#ffffff; padding:6px 12px; border-radius:12px; font-size:.75rem; font-weight:700; 
+                  box-shadow:0 4px 15px rgba(76,175,80,.4); transform:translateZ(0); 
+                  border:2px solid rgba(255,255,255,.2); letter-spacing:0.5px; }
   .content-text { font-size:1.1rem; line-height:1.6; color:#f0eadf; margin-bottom:20px; }
   .content-text em { color:#a6a8ad; font-style:italic; }
   .tariff-grid { display:grid; gap:16px; margin-top:20px; }
@@ -58,7 +60,11 @@
   .payment-methods { display:grid; gap:16px; margin-top:20px; }
   .payment-method { background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); border:2px solid #444; border-radius:16px; padding:20px; cursor:pointer; transition:all .3s ease; display:flex; align-items:center; gap:16px; }
   .payment-method:hover { border-color:#d6c7b8; transform:translateY(-2px); box-shadow:0 8px 25px rgba(214,199,184,.2); }
-  .payment-icon { width:40px; height:40px; background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#121212; flex-shrink:0; }
+  .payment-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; position:relative; overflow:hidden; }
+  .payment-icon.russian { background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%); color:#ffffff; box-shadow:0 4px 15px rgba(0,82,204,.4); }
+  .payment-icon.international { background: linear-gradient(135deg, #00a651 0%, #008f45 100%); color:#ffffff; box-shadow:0 4px 15px rgba(0,166,81,.4); }
+  .payment-icon::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,.1) 50%, transparent 70%); transform:translateX(-100%); transition:transform 0.6s ease; }
+  .payment-method:hover .payment-icon::before { transform:translateX(100%); }
   .payment-info { flex-grow:1; }
   .payment-name { font-size:1.1rem; font-weight:600; color:#f0eadf; margin-bottom:4px; }
   .payment-description { color:#a6a8ad; font-size:.9rem; }
@@ -75,18 +81,22 @@
   .btn { padding:16px 24px; border:none; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; transition:all .3s ease; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px; }
   .btn-primary { background: linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%); color:#121212; box-shadow:0 4px 15px rgba(214,199,184,.3); }
   .btn-secondary { background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%); color:#f0eadf; border:2px solid #444; }
-  .progress-bar { display:flex; justify-content:center; gap:8px; margin-bottom:24px; }
-  .progress-step { width:12px; height:12px; border-radius:50%; background:#444; transition:all .3s ease; }
-  .progress-step.active { background:#d6c7b8; transform:scale(1.2); }
-  .progress-step.completed { background:#4CAF50; }
+  .progress-bar { display:flex; justify-content:center; gap:12px; margin-bottom:24px; align-items:center; }
+  .progress-step { width:16px; height:16px; border-radius:50%; background:#444; transition:all .3s ease; position:relative; }
+  .progress-step.active { background:linear-gradient(135deg, #d6c7b8 0%, #f0eadf 100%); transform:scale(1.3); box-shadow:0 0 20px rgba(214,199,184,.6); }
+  .progress-step.completed { background:linear-gradient(135deg, #4CAF50 0%, #45a049 100%); transform:scale(1.1); box-shadow:0 0 15px rgba(76,175,80,.5); }
+  .progress-step::after { content:''; position:absolute; top:50%; left:50%; width:8px; height:8px; background:#ffffff; border-radius:50%; transform:translate(-50%, -50%) scale(0); transition:transform 0.3s ease; }
+  .progress-step.completed::after { transform:translate(-50%, -50%) scale(1); }
+  .progress-step.active::after { transform:translate(-50%, -50%) scale(1); background:#121212; }
+  .progress-label { font-size:0.8rem; color:#a6a8ad; margin-top:4px; text-align:center; font-weight:500; }
   @media (max-width:480px){ .content-block{padding:20px;} .tariff-option{padding:16px;} .payment-method{padding:16px;} .btn{padding:14px 20px;} }
   .step-container::-webkit-scrollbar { width:6px; }
   .step-container::-webkit-scrollbar-track { background:#1f1f1f; }
   .step-container::-webkit-scrollbar-thumb { background:#d6c7b8; border-radius:3px; }
   .error { color:#ff7b7b; font-size:.95rem; }
-  .summary-item { display:flex; justify-content:space-between; border-bottom:1px dashed #333; padding:8px 0; }
-  .summary-label { color:#a6a8ad; }
-  .summary-value { color:#f0eadf; font-weight:600; }
+  .summary-item { display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #333; padding:12px 0; min-height:24px; }
+  .summary-label { color:#a6a8ad; font-weight:500; min-width:140px; }
+  .summary-value { color:#f0eadf; font-weight:600; text-align:right; flex-grow:1; }
 </style>
 </head>
 <body>
@@ -102,7 +112,12 @@
 <main>
   <div class="step-container">
     <div class="step active" id="step1">
-      <div class="progress-bar"><div class="progress-step active"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div></div>
+      <div class="progress-bar">
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
       <div class="content-block">
         <div class="content-text">Ты сделал верный выбор.</div>
         <div class="content-text">Выбери тариф по стоимости подписки на Формулу:</div>
@@ -119,7 +134,12 @@
     </div>
 
     <div class="step" id="step2">
-      <div class="progress-bar"><div class="progress-step completed"></div><div class="progress-step active"></div><div class="progress-step"></div><div class="progress-step"></div></div>
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
       <div class="tariff-title-block"><div class="tariff-badge">ВЫБРАН</div><div class="tariff-title-text" id="selectedTariffTitle">Формула на 1 месяц</div></div>
       <div class="content-block">
         <div class="content-text"><em>*если вы из Украины, включите VPN</em><br><em>*при оплате картой — оформляется автосписание каждые 30 дней</em><br><em>*далее — вы сможете управлять подпиской в Меню</em></div>
@@ -127,17 +147,22 @@
       </div>
       <div class="payment-methods">
         <div class="payment-method" data-method="card" data-bank="russian">
-          <div class="payment-icon">🇷🇺</div><div class="payment-info"><div class="payment-name">Банк РФ (RUB)</div><div class="payment-description">Любая банковская карта РФ</div></div>
+          <div class="payment-icon russian">🇷🇺</div><div class="payment-info"><div class="payment-name">Банк РФ (RUB)</div><div class="payment-description">Любая банковская карта РФ</div></div>
         </div>
         <div class="payment-method" data-method="card" data-bank="international">
-          <div class="payment-icon">🌍</div><div class="payment-info"><div class="payment-name">Иностранный банк (EUR)</div><div class="payment-description">Любая иностранная карта</div></div>
+          <div class="payment-icon international">🌍</div><div class="payment-info"><div class="payment-name">Иностранный банк (EUR)</div><div class="payment-description">Любая иностранная карта</div></div>
         </div>
       </div>
       <div class="button-group"><button class="btn btn-secondary" onclick="goToStep(1)">Назад</button></div>
     </div>
 
     <div class="step" id="step3">
-      <div class="progress-bar"><div class="progress-step completed"></div><div class="progress-step completed"></div><div class="progress-step active"></div><div class="progress-step"></div></div>
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+      </div>
       <div class="tariff-title-block"><div class="tariff-badge">ТОВАР</div><div class="tariff-title-text" id="productTitle">Канал ФОРМУЛА / 1 мес.</div></div>
       <div class="content-block">
         <div class="content-text"><strong>Наименование товара</strong><br><span id="productNameText">Канал ФОРМУЛА / 1 мес.</span></div>
@@ -156,7 +181,12 @@
     </div>
 
     <div class="step" id="step4">
-      <div class="progress-bar"><div class="progress-step completed"></div><div class="progress-step completed"></div><div class="progress-step completed"></div><div class="progress-step active"></div></div>
+      <div class="progress-bar">
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step completed"></div>
+        <div class="progress-step active"></div>
+      </div>
       <div class="content-block" id="summaryBlock">
         <div class="content-text">Убедитесь, что введённые данные верны:</div>
         <div class="summary-item"><span class="summary-label">Наименование товара</span><span class="summary-value" id="confirmProductName">Канал ФОРМУЛА / 1 мес.</span></div>
