@@ -1,0 +1,95 @@
+/* Tokens */
+:root{
+  --bg-0:#0B1020; --bg-1:#0F1A2A;
+  --fg:#E6F7F2; --muted:#9DB3C0;
+  --glow-1:#66F7D5; --glow-2:#A6B4FF; --accent:#FFE27A;
+  --glass: rgba(255,255,255,0.08);
+  --br: 16px; --pad: 14px;
+}
+
+/* Reset */
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+html,body{height:100%;}
+body{
+  margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Sora',sans-serif;
+  color:var(--fg); background: radial-gradient(120% 80% at 70% 30%, #12344B 0%, var(--bg-0) 60%, #090D18 100%);
+  overflow:hidden;
+}
+.glass{
+  backdrop-filter: blur(14px) saturate(1.2);
+  background: var(--glass);
+  border-radius: var(--br);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,.28), 0 0 24px rgba(166,180,255,.18);
+}
+#app{display:flex; flex-direction:column; height:100%;}
+.topbar,.bottombar{display:flex; align-items:center; justify-content:space-between; padding:var(--pad); margin:12px; gap:10px;}
+.topbar .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.3px}
+.topbar .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(45deg,var(--glow-1),var(--glow-2));box-shadow:0 0 12px var(--glow-1), 0 0 14px var(--glow-2)}
+
+.btn{appearance:none;border:1px solid rgba(255,255,255,.16);padding:10px 14px;border-radius:12px;color:var(--fg);background:rgba(255,255,255,.06);font-weight:600}
+.btn.primary{background:linear-gradient(90deg,var(--glow-1),var(--glow-2)); color:#061017; border:none}
+.btn.ghost{background:rgba(255,255,255,.06)}
+.btn:active{transform:translateY(1px) scale(.99)}
+
+#scene{position:relative; flex:1; margin:0 12px; border-radius: 20px; overflow:hidden; outline:1px solid rgba(255,255,255,.1)}
+.layer{position:absolute; inset:0; background-size:cover; background-position:center; will-change:transform; transform:translateZ(0)}
+.layer.bg{background-image: radial-gradient(120% 80% at 20% 20%, #18253A 0%, #0B1020 70%);}
+.layer.mid{background-image: 
+  radial-gradient(120% 80% at 80% 20%, rgba(102,247,213,.06) 0%, rgba(10,15,25,0) 60%),
+  url('data:image/svg+xml;utf8,<?xml version="1.0" ?><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%2312344B"/><stop offset="1" stop-color="%230B1020"/></linearGradient></defs><path fill="url(%23g)" d="M0,520 C260,470 480,560 720,520 C960,480 1140,560 1200,540 L1200,600 L0,600 Z"/></svg>');
+  background-repeat:no-repeat;
+  background-position:bottom;
+}
+.layer.fg{pointer-events:none; background-image:
+  radial-gradient(180px 120px at 60% 70%, rgba(166,180,255,.15), rgba(10,12,20,0)),
+  radial-gradient(240px 140px at 30% 72%, rgba(102,247,213,.18), rgba(10,12,20,0));
+}
+.layer.fog{mix-blend-mode:screen; background-image:
+  radial-gradient(60% 40% at 50% 60%, rgba(180,200,255,.08), transparent 60%),
+  radial-gradient(40% 30% at 20% 30%, rgba(160,220,255,.05), transparent 60%);
+  animation:fog 14s infinite alternate ease-in-out;
+}
+@keyframes fog{from{filter:blur(18px) opacity(.45)} to{filter:blur(26px) opacity(.6)}}
+
+/* HUD Album */
+.hud{position:absolute; right:14px; top:14px; display:flex; gap:12px; padding:12px; align-items:center; max-width:min(560px, calc(100% - 28px));}
+.cover{width:72px; height:96px; border-radius:10px; flex-shrink:0; box-shadow: 0 8px 24px rgba(0,0,0,.35)}
+.meta .title{font-weight:700}
+.meta .teaser{color:var(--muted); font-size:.9rem; margin-top:4px}
+.progress{display:flex; align-items:center; gap:10px; margin-top:8px}
+.progress .bar{flex:1; height:8px; border-radius:6px; background:rgba(255,255,255,.1); overflow:hidden}
+.progress .bar span{display:block; height:100%; background:linear-gradient(90deg,var(--glow-1),var(--glow-2)); box-shadow:0 0 20px rgba(166,180,255,.35) inset}
+.progress .count{font-weight:700; font-size:.9rem}
+
+/* Hotspots */
+#hotspots{position:absolute; inset:0;}
+.hotspot{position:absolute; width:52px; height:52px; border-radius:50%; cursor:pointer; display:grid; place-items:center}
+.hotspot::before{content:''; position:absolute; inset:-12px; border-radius:50%; background:radial-gradient(circle at 50% 50%, rgba(102,247,213,.55), rgba(166,180,255,.12) 40%, transparent 60%); filter:blur(6px); animation:breath 2s ease-in-out infinite}
+.hotspot .core{width:14px; height:14px; border-radius:50%; background:radial-gradient(circle at 50% 50%, #fff, rgba(255,255,255,.4)); box-shadow: 0 0 18px var(--glow-1), 0 0 26px var(--glow-2)}
+@keyframes breath{from{transform:scale(.92)} to{transform:scale(1.08)}}
+
+/* Toast & modal */
+#toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:rgba(12,14,22,.75); color:#fff; padding:10px 14px; border-radius:12px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; border:1px solid rgba(255,255,255,.12)}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+#modal-backdrop{position:fixed; inset:0; display:grid; place-items:center; background:rgba(7,10,16,.55); backdrop-filter: blur(8px);}
+#modal-backdrop.hidden{display:none;}
+#modal{width:min(520px, calc(100vw - 36px)); padding:18px;}
+
+/* Minigames */
+.minigame{position:relative; border-radius:16px; padding:16px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12)}
+.minigame h3{margin:0 0 10px 0; font-weight:700}
+.ripple-canvas{position:relative; height:220px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border-radius:12px; overflow:hidden}
+.ring{position:absolute; left:50%; top:50%; width:24px; height:24px; border:2px solid rgba(255,255,255,.7); border-radius:50%; transform:translate(-50%,-50%) scale(.2); opacity:0; animation: ring 1.8s linear forwards}
+@keyframes ring{0%{opacity:1} 100%{transform:translate(-50%,-50%) scale(6); opacity:0}}
+.dial{position:relative; height:220px; display:grid; place-items:center}
+.dial .wheel{width:200px; height:200px; border-radius:50%; border:2px solid rgba(255,255,255,.5); position:relative}
+.dial .wheel .target{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(var(--rot,0deg)); width:100%; height:100%}
+.dial .wheel .target::after{content:''; position:absolute; right:6px; top:calc(50% - 2px); width:18px; height:4px; background:var(--accent); border-radius:3px; box-shadow:0 0 10px var(--accent)}
+.dial .wheel .needle{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(0deg); width:100%; height:100%}
+.dial .wheel .needle::after{content:''; position:absolute; right:6px; top:calc(50% - 2px); width:22px; height:4px; background:#fff; border-radius:3px; box-shadow:0 0 10px rgba(255,255,255,.5)}
+.constel{position:relative; height:220px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border-radius:12px; overflow:hidden}
+.constel svg{width:100%; height:100%}
+.star{fill:#fff; opacity:.9; filter:drop-shadow(0 0 8px rgba(166,180,255,.7))}
+.path{stroke:rgba(255,255,255,.4); stroke-width:3; fill:none; stroke-dasharray:6 8}
+.success{color:#66F7D5; font-weight:700}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Остров Архив — Mini App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sora:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./island.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<div id="app">
+  <header class="glass topbar">
+    <div class="brand">
+      <div class="dot"></div>
+      <span>Остров Архив</span>
+    </div>
+    <div class="actions">
+      <button id="btn-open-book" class="btn ghost">Открыть книгу</button>
+      <button id="btn-pay" class="btn primary">Оплатить</button>
+    </div>
+  </header>
+
+  <main id="scene">
+    <div class="layer bg" aria-hidden="true"></div>
+    <div class="layer mid" aria-hidden="true"></div>
+    <div class="layer fg" aria-hidden="true"></div>
+    <div class="layer fog" aria-hidden="true"></div>
+
+    <div id="hotspots"></div>
+
+    <div id="album" class="glass hud">
+      <img class="cover" src="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='96' height='128' viewBox='0 0 96 128'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop stop-color='%2366F7D5'/><stop offset='1' stop-color='%23A6B4FF'/></linearGradient></defs><rect rx='10' ry='10' width='96' height='128' fill='url(%23g)'/><circle cx='48' cy='44' r='18' fill='rgba(255,255,255,.22)'/><rect x='18' y='74' width='60' height='10' rx='5' fill='rgba(255,255,255,.18)'/><rect x='18' y='90' width='44' height='8' rx='4' fill='rgba(255,255,255,.12)'/></svg>" alt="cover"/>
+      <div class="meta">
+        <div class="title">Книга недели</div>
+        <div class="teaser">Собери страницы, чтобы открыть полный материал в приватном канале.</div>
+        <div class="progress">
+          <div class="bar"><span id="progress-bar" style="width:0%"></span></div>
+          <div class="count"><span id="progress-count">0</span>/<span id="progress-total">6</span> страниц</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="glass bottombar">
+    <button id="btn-daily" class="btn ghost">🎁 Ежедневная награда</button>
+    <button id="btn-album" class="btn ghost">📚 Коллекция</button>
+    <button id="btn-music" class="btn ghost">🔊 Звук</button>
+  </footer>
+</div>
+
+<!-- Overlays -->
+<div id="toast"></div>
+<div id="modal-backdrop" class="hidden">
+  <div id="modal" class="glass"></div>
+</div>
+
+<script src="./island.js"></script>
+</body>
+</html>
