@@ -2,290 +2,93 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Остров навигации - 3D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Остров навигации - 3D Premium</title>
+    
+    <!-- Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    
+    <!-- Three.js и расширения -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/TextureLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/OutputPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    
+    <!-- Анимации -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #000;
-            color: #f0eadf;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* 3D Canvas */
-        #scene-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* UI Overlay */
-        .ui-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .ui-overlay * {
-            pointer-events: auto;
-        }
-
-        /* Интро окно */
-        .intro-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .intro-content {
-            background: linear-gradient(135deg, #2c1810 0%, #3d2317 100%);
-            border: 3px solid #d4af37;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            max-width: 80%;
-            position: relative;
-            animation: slideIn 0.5s ease;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .intro-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #d4af37;
-            margin-bottom: 20px;
-        }
-
-        .intro-text {
-            font-size: 16px;
-            color: #f0eadf;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .intro-close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: #d4af37;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .intro-close:hover {
-            color: #f0eadf;
-            transform: scale(1.2);
-        }
-
-        /* Инструкции */
-        .instructions {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: #f0eadf;
-            padding: 15px 25px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            border: 2px solid #d4af37;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .instructions.confirm {
-            background: rgba(0, 100, 0, 0.8);
-            border-color: #32cd32;
-        }
-
-        /* Кнопка назад */
-        .back-button {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #f0eadf;
-            border: 2px solid #d4af37;
-            padding: 12px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .back-button:hover {
-            background: rgba(212, 175, 55, 0.2);
-            transform: translateY(-2px);
-        }
-
-        /* Loading */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-
-        .loading-content {
-            text-align: center;
-            color: #f0eadf;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #333;
-            border-top: 3px solid #d4af37;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        /* Информационная панель */
-        .info-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #d4af37;
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            min-width: 200px;
-        }
-
-        .info-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #d4af37;
-            margin-bottom: 10px;
-        }
-
-        .info-text {
-            font-size: 12px;
-            color: #f0eadf;
-            line-height: 1.4;
-        }
-
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from { 
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .intro-content {
-                padding: 30px 20px;
-                max-width: 90%;
-            }
-
-            .intro-title {
-                font-size: 20px;
-            }
-
-            .intro-text {
-                font-size: 14px;
-            }
-
-            .instructions {
-                font-size: 14px;
-                padding: 12px 20px;
-            }
-
-            .info-panel {
-                min-width: 150px;
-                padding: 10px;
-            }
-        }
-
-        /* Скрытие элементов */
-        .hidden {
-            display: none !important;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Утилиты -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/4.0.2/simplex-noise.min.js"></script>
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="css/navigation-island.css">
 </head>
 <body>
-    <!-- Loading -->
-    <div class="loading" id="loading">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <div>Загрузка 3D мира...</div>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-content">
+            <div class="preloader-logo">
+                <div class="logo-icon">🏝️</div>
+                <div class="logo-text">Остров навигации</div>
+            </div>
+            <div class="preloader-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Загрузка мира...</div>
+            </div>
+            <div class="preloader-tips">
+                <div class="tip" id="loadingTip">Подготовка 3D движка...</div>
+            </div>
         </div>
     </div>
 
     <!-- Интро окно -->
     <div class="intro-overlay" id="introOverlay">
         <div class="intro-content">
-            <button class="intro-close" id="introClose">&times;</button>
-            <div class="intro-title">🏝️ Остров навигации - 3D</div>
+            <button class="intro-close" id="introClose">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+            <div class="intro-header">
+                <div class="intro-icon">🏝️</div>
+                <div class="intro-title">Остров навигации</div>
+                <div class="intro-subtitle">Premium 3D Experience</div>
+            </div>
             <div class="intro-text">
                 Добро пожаловать в трехмерный мир знаний!<br><br>
                 Перед вами мистический остров с пятью древними храмами, каждый из которых хранит уникальную мудрость.<br><br>
-                Используйте мышь для навигации по миру. Кликните на храм, чтобы войти в него и открыть сокровищницу знаний.<br><br>
+                <strong>Управление:</strong><br>
+                🖱️ <strong>Десктоп:</strong> Мышь для навигации, клик для выбора<br>
+                📱 <strong>Мобильные:</strong> Касания для навигации и выбора<br><br>
                 Путешествие в 3D начинается...
+            </div>
+            <div class="intro-features">
+                <div class="feature">
+                    <span class="feature-icon">✨</span>
+                    <span class="feature-text">Продвинутая 3D графика</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🎮</span>
+                    <span class="feature-text">Интерактивная навигация</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">📱</span>
+                    <span class="feature-text">Адаптировано для мобильных</span>
+                </div>
             </div>
         </div>
     </div>
@@ -297,24 +100,78 @@
     <div class="ui-overlay">
         <!-- Инструкции -->
         <div class="instructions" id="instructions">
-            Нажми на храм для выбора темы
+            <div class="instruction-icon">🎯</div>
+            <div class="instruction-text">Нажми на храм для выбора темы</div>
         </div>
 
         <!-- Информационная панель -->
         <div class="info-panel" id="infoPanel">
-            <div class="info-title">Управление</div>
-            <div class="info-text">
-                🖱️ ЛКМ - вращение камеры<br>
-                🖱️ ПКМ - перемещение<br>
-                🖱️ Колесо - зум<br>
-                🎯 Клик - выбор объекта
+            <div class="info-header">
+                <div class="info-title">Управление</div>
+                <button class="info-toggle" id="infoToggle">−</button>
+            </div>
+            <div class="info-content" id="infoContent">
+                <div class="control-group">
+                    <div class="control-title">🖱️ Десктоп</div>
+                    <div class="control-item">ЛКМ - вращение камеры</div>
+                    <div class="control-item">ПКМ - перемещение</div>
+                    <div class="control-item">Колесо - зум</div>
+                </div>
+                <div class="control-group">
+                    <div class="control-title">📱 Мобильные</div>
+                    <div class="control-item">Один палец - вращение</div>
+                    <div class="control-item">Два пальца - зум</div>
+                    <div class="control-item">Касание - выбор</div>
+                </div>
             </div>
         </div>
 
         <!-- Кнопка назад -->
-        <button class="back-button hidden" id="backButton">← Назад</button>
+        <button class="back-button hidden" id="backButton">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            <span>Назад</span>
+        </button>
+
+        <!-- Мобильные контролы -->
+        <div class="mobile-controls" id="mobileControls">
+            <button class="mobile-btn" id="mobileZoomIn">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button class="mobile-btn" id="mobileZoomOut">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13H5v-2h14v2z"/>
+                </svg>
+            </button>
+            <button class="mobile-btn" id="mobileReset">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Статистика производительности -->
+        <div class="performance-panel" id="performancePanel">
+            <div class="fps-counter" id="fpsCounter">60 FPS</div>
+        </div>
     </div>
 
-    <script type="module" src="navigation-island-3d.js"></script>
+    <!-- Модальные окна -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal-content" id="modalContent">
+            <!-- Содержимое модального окна будет добавляться динамически -->
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notifications" id="notifications">
+        <!-- Уведомления будут добавляться динамически -->
+    </div>
+
+    <!-- Скрипты -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
