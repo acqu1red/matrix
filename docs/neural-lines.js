@@ -178,6 +178,69 @@ class Spark{
   }
 }
 
+/* ====== Анимированные звездочки с сиянием ====== */
+class Star{
+  constructor(x, y, seed){
+    this.x = x;
+    this.y = y;
+    this.seed = seed;
+    this.t = 0;
+    this.phase = Math.random() * TAU;
+    this.speed = 0.5 + Math.random() * 1.0;
+    this.size = 1 + Math.random() * 2;
+    this.pulseSpeed = 2 + Math.random() * 3;
+    this.moveRadius = 3 + Math.random() * 8;
+    this.moveSpeed = 0.3 + Math.random() * 0.7;
+  }
+  
+  step(dt){
+    this.t += dt;
+  }
+  
+  render(ctx){
+    // Движение звездочки
+    const moveX = Math.cos(this.t * this.moveSpeed + this.phase) * this.moveRadius;
+    const moveY = Math.sin(this.t * this.moveSpeed + this.phase * 1.3) * this.moveRadius;
+    const currentX = this.x + moveX;
+    const currentY = this.y + moveY;
+    
+    // Пульсация размера
+    const pulse = Math.sin(this.t * this.pulseSpeed + this.phase) * 0.3 + 1;
+    const currentSize = this.size * pulse;
+    
+    // Пульсация прозрачности
+    const alpha = 0.3 + Math.sin(this.t * this.speed + this.phase) * 0.2;
+    
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    
+    // Внешнее сияние
+    const glowSize = currentSize * 4;
+    const glowGradient = ctx.createRadialGradient(
+      currentX, currentY, 0,
+      currentX, currentY, glowSize
+    );
+    glowGradient.addColorStop(0, `rgba(214,199,184,${alpha * 0.8})`);
+    glowGradient.addColorStop(0.4, `rgba(214,199,184,${alpha * 0.3})`);
+    glowGradient.addColorStop(1, 'rgba(214,199,184,0)');
+    
+    ctx.fillStyle = glowGradient;
+    ctx.beginPath();
+    ctx.arc(currentX, currentY, glowSize, 0, TAU);
+    ctx.fill();
+    
+    // Яркое ядро
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(214,199,184,0.9)';
+    ctx.fillStyle = `rgba(214,199,184,${alpha * 0.9})`;
+    ctx.beginPath();
+    ctx.arc(currentX, currentY, currentSize, 0, TAU);
+    ctx.fill();
+    
+    ctx.restore();
+  }
+}
+
 /* ====== Основной класс для управления линиями ====== */
 class NeuralLinesAnimation {
   constructor(canvas) {
@@ -189,14 +252,16 @@ class NeuralLinesAnimation {
     this.H = 0;
     this.lines = [];
     this.sparks = [];
+    this.stars = [];
     this.noise = makeValueNoise2D(1234567);
     this.tPrev = performance.now()/1000;
     
     this.params = {
-      lineCount: 25,       // Увеличено количество линий
+      lineCount: 18,       // Уменьшено количество линий на ~28%
       lineLength: 350,     // Увеличена длина линии
       proximity: 20,       // Уменьшена дистанция для столкновения
-      sparksRateCap: 30    // Уменьшено количество вспышек
+      sparksRateCap: 30,   // Уменьшено количество вспышек
+      starCount: 12        // Количество звездочек
     };
     
     // Попытка использовать Web Worker для лучшей производительности
@@ -214,6 +279,7 @@ class NeuralLinesAnimation {
     
     this.resize();
     this.buildLines();
+    this.buildStars();
     this.animate();
   }
   
@@ -256,6 +322,17 @@ class NeuralLinesAnimation {
         containerWidth: this.W,
         containerHeight: this.H
       }));
+    }
+  }
+  
+  buildStars() {
+    this.stars = [];
+    
+    for(let i = 0; i < this.params.starCount; i++) {
+      const x = Math.random() * this.W;
+      const y = Math.random() * this.H;
+      
+      this.stars.push(new Star(x, y, i * 7.3));
     }
   }
   
@@ -336,6 +413,12 @@ class NeuralLinesAnimation {
         }
         spark.render(this.ctx);
       }
+    }
+    
+    // Обновление и отрисовка звездочек
+    for(const star of this.stars) {
+      star.step(dt);
+      star.render(this.ctx);
     }
     
     requestAnimationFrame(() => this.animate());
