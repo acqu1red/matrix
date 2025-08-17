@@ -126,10 +126,12 @@
     padding: 4px 8px;
     border-radius: 6px;
     backdrop-filter: blur(4px);
+    font-size: 1.56rem; /* Увеличено на 30% (1.2 * 1.3) */
+    margin-top: 8px; /* Сдвигаем ниже */
   }
   
   .tariff-option.featured .price-container {
-    margin-top: 35px; /* Сдвигаем цены еще ниже */
+    margin-top: 45px; /* Сдвигаем цены еще ниже */
     background: rgba(0,0,0,0.6);
     padding: 6px 10px;
     border-radius: 6px;
@@ -138,6 +140,18 @@
     justify-content: center; /* Центрируем по горизонтали */
     position: relative;
     right: 0;
+  }
+  
+  .tariff-option.featured .price-container .original-price {
+    font-size: 0.945rem; /* Увеличено на 5% (0.9 * 1.05) */
+  }
+  
+  .tariff-option.featured .price-container .current-price {
+    font-size: 1.155rem; /* Увеличено на 5% (1.1 * 1.05) */
+  }
+  
+  .tariff-option.featured .price-container .monthly-price {
+    font-size: 0.893rem; /* Увеличено на 5% (0.85 * 1.05) */
   }
   
   .tariff-option.featured .tariff-description {
