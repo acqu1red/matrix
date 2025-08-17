@@ -108,6 +108,10 @@ export class SceneManager extends EventEmitter {
             this.createParticles();
             console.log('Частицы созданы');
             
+            // Добавляем тестовый куб для проверки рендеринга
+            this.createTestCube();
+            console.log('Тестовый куб создан');
+            
             this.isInitialized = true;
             console.log('Сцена полностью инициализирована');
             this.emit('sceneLoaded');
@@ -156,7 +160,21 @@ export class SceneManager extends EventEmitter {
         this.renderer.toneMappingExposure = 1.2;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         
-        document.getElementById('scene-container').appendChild(this.renderer.domElement);
+        // Проверяем, существует ли контейнер
+        const container = document.getElementById('scene-container');
+        if (container) {
+            container.appendChild(this.renderer.domElement);
+            console.log('✅ Canvas добавлен в контейнер');
+        } else {
+            console.error('❌ Контейнер scene-container не найден!');
+            // Создаем контейнер если его нет
+            const newContainer = document.createElement('div');
+            newContainer.id = 'scene-container';
+            newContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;';
+            document.body.appendChild(newContainer);
+            newContainer.appendChild(this.renderer.domElement);
+            console.log('✅ Создан новый контейнер и добавлен canvas');
+        }
     }
     
     createControls() {
@@ -493,6 +511,24 @@ export class SceneManager extends EventEmitter {
         this.scene.add(this.particles);
     }
     
+    createTestCube() {
+        // Создание простого куба для тестирования рендеринга
+        const geometry = new THREE.BoxGeometry(5, 5, 5);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xff0000,
+            wireframe: true
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(0, 10, 0);
+        this.scene.add(cube);
+        
+        console.log('🔴 Тестовый красный куб добавлен в позицию (0, 10, 0)');
+        
+        // Анимация куба
+        cube.userData.animate = true;
+        cube.userData.rotationSpeed = 0.01;
+    }
+    
     // Методы управления
     enableControls() {
         if (this.controls) {
@@ -507,9 +543,22 @@ export class SceneManager extends EventEmitter {
     }
     
     startAnimation() {
-        if (!this.isAnimating) {
+        console.log('🎬 Запуск анимации...');
+        console.log('isAnimating:', this.isAnimating);
+        console.log('isInitialized:', this.isInitialized);
+        console.log('scene:', !!this.scene);
+        console.log('camera:', !!this.camera);
+        console.log('renderer:', !!this.renderer);
+        
+        if (!this.isAnimating && this.isInitialized) {
             this.isAnimating = true;
+            console.log('✅ Анимация запущена');
             this.animate();
+        } else {
+            console.warn('⚠️ Анимация не запущена:', {
+                isAnimating: this.isAnimating,
+                isInitialized: this.isInitialized
+            });
         }
     }
     
@@ -559,16 +608,34 @@ export class SceneManager extends EventEmitter {
             this.particles.rotation.y += 0.001;
         }
         
+        // Анимация тестового куба
+        this.scene.traverse((object) => {
+            if (object.userData && object.userData.animate) {
+                object.rotation.x += object.userData.rotationSpeed || 0.01;
+                object.rotation.y += object.userData.rotationSpeed || 0.01;
+            }
+        });
+        
         // Обновление контролов
         if (this.controls) {
             this.controls.update();
         }
         
-        // Рендеринг
-        if (this.composer) {
-            this.composer.render();
-        } else {
-            this.renderer.render(this.scene, this.camera);
+        // Рендеринг с проверками
+        try {
+            if (this.composer && this.composer.passes && this.composer.passes.length > 0) {
+                this.composer.render();
+            } else if (this.renderer && this.scene && this.camera) {
+                this.renderer.render(this.scene, this.camera);
+            } else {
+                console.error('❌ Ошибка рендеринга: отсутствуют необходимые компоненты');
+                console.log('composer:', !!this.composer);
+                console.log('renderer:', !!this.renderer);
+                console.log('scene:', !!this.scene);
+                console.log('camera:', !!this.camera);
+            }
+        } catch (error) {
+            console.error('❌ Ошибка в методе animate:', error);
         }
     }
     
