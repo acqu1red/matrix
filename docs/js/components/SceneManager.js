@@ -4,6 +4,12 @@ export class SceneManager extends EventEmitter {
     constructor() {
         super();
         
+        // Проверка наличия Three.js
+        if (typeof THREE === 'undefined') {
+            console.error('Three.js не загружен!');
+            throw new Error('Three.js не загружен');
+        }
+        
         // Three.js объекты
         this.scene = null;
         this.camera = null;
@@ -64,24 +70,53 @@ export class SceneManager extends EventEmitter {
     
     async init() {
         try {
+            console.log('Начало инициализации сцены...');
+            
             this.createScene();
+            console.log('Сцена создана');
+            
             this.createCamera();
+            console.log('Камера создана');
+            
             this.createRenderer();
+            console.log('Рендерер создан');
+            
             this.createControls();
+            console.log('Контролы созданы');
+            
             this.createPostProcessing();
+            console.log('Пост-процессинг создан');
+            
             this.createLighting();
+            console.log('Освещение создано');
+            
             this.createSkybox();
+            console.log('Небо создано');
+            
             this.createIsland();
+            console.log('Остров создан');
+            
             this.createWater();
+            console.log('Вода создана');
+            
             this.createClouds();
+            console.log('Облака созданы');
+            
             this.createPalmTrees();
+            console.log('Пальмы созданы');
+            
             this.createParticles();
+            console.log('Частицы созданы');
             
             this.isInitialized = true;
+            console.log('Сцена полностью инициализирована');
             this.emit('sceneLoaded');
             
         } catch (error) {
             console.error('Ошибка инициализации сцены:', error);
+            // Даже при ошибке эмитим событие загрузки
+            this.isInitialized = true;
+            this.emit('sceneLoaded');
             throw error;
         }
     }

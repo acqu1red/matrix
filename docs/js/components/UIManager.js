@@ -4,6 +4,12 @@ export class UIManager extends EventEmitter {
     constructor() {
         super();
         
+        // Проверка готовности DOM
+        if (!document.body) {
+            console.error('DOM не готов!');
+            throw new Error('DOM не готов');
+        }
+        
         // UI элементы
         this.elements = {
             preloader: document.getElementById('preloader'),
@@ -26,6 +32,14 @@ export class UIManager extends EventEmitter {
             modalContent: document.getElementById('modalContent'),
             notifications: document.getElementById('notifications')
         };
+        
+        // Проверка критических элементов
+        if (!this.elements.preloader) {
+            console.warn('Элемент preloader не найден');
+        }
+        if (!this.elements.progressFill) {
+            console.warn('Элемент progressFill не найден');
+        }
         
         // Состояние
         this.state = {
@@ -128,25 +142,40 @@ export class UIManager extends EventEmitter {
     
     // Методы управления прелоадером
     updateLoadingProgress(progress, text, tip) {
-        if (this.elements.progressFill) {
-            this.elements.progressFill.style.width = `${progress}%`;
-        }
-        
-        if (this.elements.progressText) {
-            this.elements.progressText.textContent = text;
-        }
-        
-        if (this.elements.loadingTip) {
-            this.elements.loadingTip.textContent = tip;
+        try {
+            if (this.elements.progressFill) {
+                this.elements.progressFill.style.width = `${progress}%`;
+            }
+            
+            if (this.elements.progressText) {
+                this.elements.progressText.textContent = text;
+            }
+            
+            if (this.elements.loadingTip) {
+                this.elements.loadingTip.textContent = tip;
+            }
+            
+            console.log(`Загрузка: ${progress}% - ${text}`);
+        } catch (error) {
+            console.error('Ошибка обновления прогресса загрузки:', error);
         }
     }
     
     hidePreloader() {
-        if (this.elements.preloader) {
-            this.elements.preloader.style.opacity = '0';
-            setTimeout(() => {
+        try {
+            if (this.elements.preloader) {
+                this.elements.preloader.style.opacity = '0';
+                setTimeout(() => {
+                    this.elements.preloader.style.display = 'none';
+                }, 500);
+            }
+            console.log('Прелоадер скрыт');
+        } catch (error) {
+            console.error('Ошибка скрытия прелоадера:', error);
+            // Принудительно скрываем
+            if (this.elements.preloader) {
                 this.elements.preloader.style.display = 'none';
-            }, 500);
+            }
         }
     }
     

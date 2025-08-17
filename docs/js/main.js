@@ -75,27 +75,37 @@ async function initApp() {
 
 // Инициализация менеджеров
 async function initializeManagers() {
-    // Менеджер производительности
-    performanceManager = new PerformanceManager();
-    
-    // Менеджер аудио
-    audioManager = new AudioManager();
-    
-    // Менеджер UI
-    uiManager = new UIManager();
-    
-    // Менеджер сцены
-    sceneManager = new SceneManager();
-    
-    // Менеджер эффектов
-    effectManager = new EffectManager(sceneManager);
-    
-    // Менеджер храмов
-    templeManager = new TempleManager(sceneManager, templeData);
-    
-    // Менеджер мобильных устройств
-    if (isMobile) {
-        mobileManager = new MobileManager(sceneManager);
+    try {
+        // Менеджер производительности
+        performanceManager = new PerformanceManager();
+        
+        // Менеджер аудио
+        audioManager = new AudioManager();
+        
+        // Менеджер UI
+        uiManager = new UIManager();
+        
+        // Менеджер сцены - ждем инициализации
+        sceneManager = new SceneManager();
+        await new Promise((resolve) => {
+            sceneManager.once('sceneLoaded', resolve);
+            // Таймаут на случай, если событие не сработает
+            setTimeout(resolve, 3000);
+        });
+        
+        // Менеджер эффектов
+        effectManager = new EffectManager(sceneManager);
+        
+        // Менеджер храмов
+        templeManager = new TempleManager(sceneManager, templeData);
+        
+        // Менеджер мобильных устройств
+        if (isMobile) {
+            mobileManager = new MobileManager(sceneManager);
+        }
+    } catch (error) {
+        console.error('Ошибка инициализации менеджеров:', error);
+        throw error;
     }
 }
 
@@ -174,47 +184,72 @@ function setupEventListeners() {
 
 // Запуск загрузки
 async function startLoading() {
-    const loadingSteps = [
-        { progress: 10, text: 'Инициализация 3D движка...', tip: 'Подготовка WebGL контекста' },
-        { progress: 25, text: 'Загрузка текстур...', tip: 'Создание реалистичных материалов' },
-        { progress: 40, text: 'Создание сцены...', tip: 'Построение 3D мира' },
-        { progress: 60, text: 'Настройка освещения...', tip: 'Добавление атмосферных эффектов' },
-        { progress: 75, text: 'Создание храмов...', tip: 'Построение архитектурных объектов' },
-        { progress: 90, text: 'Настройка анимаций...', tip: 'Добавление динамических эффектов' },
-        { progress: 100, text: 'Готово!', tip: 'Мир готов к исследованию' }
-    ];
+    try {
+        const loadingSteps = [
+            { progress: 10, text: 'Инициализация 3D движка...', tip: 'Подготовка WebGL контекста' },
+            { progress: 25, text: 'Загрузка текстур...', tip: 'Создание реалистичных материалов' },
+            { progress: 40, text: 'Создание сцены...', tip: 'Построение 3D мира' },
+            { progress: 60, text: 'Настройка освещения...', tip: 'Добавление атмосферных эффектов' },
+            { progress: 75, text: 'Создание храмов...', tip: 'Построение архитектурных объектов' },
+            { progress: 90, text: 'Настройка анимаций...', tip: 'Добавление динамических эффектов' },
+            { progress: 100, text: 'Готово!', tip: 'Мир готов к исследованию' }
+        ];
 
-    for (const step of loadingSteps) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        uiManager.updateLoadingProgress(step.progress, step.text, step.tip);
+        for (const step of loadingSteps) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            if (uiManager && uiManager.updateLoadingProgress) {
+                uiManager.updateLoadingProgress(step.progress, step.text, step.tip);
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка в процессе загрузки:', error);
+        // Принудительно завершаем загрузку
+        if (uiManager && uiManager.updateLoadingProgress) {
+            uiManager.updateLoadingProgress(100, 'Готово!', 'Загрузка завершена');
+        }
     }
 }
 
 // Запуск приложения
 async function startApp() {
-    // Скрытие прелоадера
-    uiManager.hidePreloader();
-    
-    // Показ интро
-    if (!appState.isIntroShown) {
-        uiManager.showIntro();
-        appState.isIntroShown = true;
+    try {
+        // Скрытие прелоадера
+        if (uiManager && uiManager.hidePreloader) {
+            uiManager.hidePreloader();
+        }
+        
+        // Показ интро
+        if (!appState.isIntroShown && uiManager && uiManager.showIntro) {
+            uiManager.showIntro();
+            appState.isIntroShown = true;
+        }
+        
+        // Запуск анимации
+        if (sceneManager && sceneManager.startAnimation) {
+            sceneManager.startAnimation();
+        }
+        
+        // Запуск производительности
+        if (performanceManager && performanceManager.start) {
+            performanceManager.start();
+        }
+        
+        // Запуск аудио
+        if (audioManager && audioManager.playAmbient) {
+            audioManager.playAmbient();
+        }
+        
+        isLoaded = true;
+        appState.isLoading = false;
+        
+        console.log('Приложение успешно запущено');
+    } catch (error) {
+        console.error('Ошибка запуска приложения:', error);
+        // Принудительно скрываем прелоадер
+        if (uiManager && uiManager.hidePreloader) {
+            uiManager.hidePreloader();
+        }
     }
-    
-    // Запуск анимации
-    sceneManager.startAnimation();
-    
-    // Запуск производительности
-    if (performanceManager) {
-        performanceManager.start();
-    }
-    
-    // Запуск аудио
-    if (audioManager) {
-        audioManager.playAmbient();
-    }
-    
-    isLoaded = true;
 }
 
 // Обработчики событий
