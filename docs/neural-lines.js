@@ -257,7 +257,7 @@ class NeuralLinesAnimation {
     this.tPrev = performance.now()/1000;
     
     this.params = {
-      lineCount: 18,       // Уменьшено количество линий на ~28%
+      lineCount: 13,       // Уменьшено количество линий на ~30% (18 * 0.7)
       lineLength: 350,     // Увеличена длина линии
       proximity: 20,       // Уменьшена дистанция для столкновения
       sparksRateCap: 30,   // Уменьшено количество вспышек
