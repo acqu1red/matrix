@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&family=Cormorant+Garamond:wght@400;500;600&family=Orbitron:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Neo-Solarpunk Holographic (default) */
+    --bg-0: #0B1020;
+    --bg-1: #0F1A2A;
+    --glow-1: #66F7D5;
+    --glow-2: #A6B4FF;
+    --accent: #FFE27A;
+  }
+
+  [data-skin="artdeco"] {
+    --bg-0: #0A0A0F;
+    --bg-1: #1A1A2E;
+    --glow-1: #FFD700;
+    --glow-2: #B8860B;
+    --accent: #FF6B6B;
+  }
+
+  [data-skin="synthwave"] {
+    --bg-0: #0F0F23;
+    --bg-1: #1A1A3A;
+    --glow-1: #FF00FF;
+    --glow-2: #00FFFF;
+    --accent: #FFFF00;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-bg-0 text-white font-body;
+    background: radial-gradient(120% 80% at 70% 30%, #12344B 0%, #0B1020 60%, #090D18 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Glassmorphism utilities */
+  .glass {
+    @apply backdrop-blur-[14px] bg-white/8 border border-white/20;
+  }
+
+  .glass-strong {
+    @apply backdrop-blur-[20px] bg-white/12 border border-white/30;
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 20px rgba(102, 247, 213, 0.5);
+  }
+
+  .neon-glow-2 {
+    box-shadow: 0 0 30px rgba(166, 180, 255, 0.6);
+  }
+
+  /* Parallax layers */
+  .parallax-bg {
+    transform: translateZ(-10px) scale(2);
+  }
+
+  .parallax-mid {
+    transform: translateZ(-5px) scale(1.5);
+  }
+
+  .parallax-fg {
+    transform: translateZ(0px) scale(1);
+  }
+
+  /* Particle effects */
+  .particle {
+    @apply absolute w-1 h-1 bg-glow-1 rounded-full opacity-60;
+    animation: sparkle 3s ease-in-out infinite;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-1/50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-glow-1/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-glow-1/50;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-glow-1 to-glow-2 text-bg-0 font-semibold rounded-2xl 
+           shadow-elev-1 hover:shadow-elev-2 transition-all duration-300 
+           active:scale-95 focus:outline-none focus:ring-2 focus:ring-glow-1/50;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 glass text-white font-medium rounded-2xl 
+           shadow-elev-1 hover:shadow-elev-2 transition-all duration-300 
+           active:scale-95 focus:outline-none focus:ring-2 focus:ring-glow-1/50;
+  }
+
+  .card-glass {
+    @apply glass rounded-3xl p-6 shadow-elev-1;
+  }
+
+  .hotspot {
+    @apply absolute w-16 h-16 rounded-full bg-gradient-to-r from-glow-1/20 to-glow-2/20 
+           border border-glow-1/40 cursor-pointer transition-all duration-300
+           hover:scale-110 hover:shadow-glow-1 active:scale-95;
+  }
+
+  .hotspot::before {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-gradient-to-r from-glow-1 to-glow-2 opacity-0 
+           transition-opacity duration-300;
+  }
+
+  .hotspot:hover::before {
+    @apply opacity-20;
+  }
+}

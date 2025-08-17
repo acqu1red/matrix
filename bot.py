@@ -9,9 +9,10 @@ import asyncio
 import json
 # channel_manager import removed - not needed for webhook version
 
-MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/miniapp.html"  # GitHub Pages Mini App URL
+MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
+ISLAND_URL = "https://acqu1red.github.io/formulaprivate/island.html"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -461,9 +462,9 @@ def build_start_content():
         "<b>⬇️ Ниже — кнопка. Жмешь — и проходишь туда, где люди не ноют, а ебут этот мир в обе щеки.</b>"
     )
     keyboard = [
+        [InlineKeyboardButton("🏝️ Остров Архив", web_app=WebAppInfo(url=ISLAND_URL))],
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
         [InlineKeyboardButton("📋 Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
-        [InlineKeyboardButton("игруха", web_app=WebAppInfo(url=MINIAPP_URL))],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
         [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
     ]
