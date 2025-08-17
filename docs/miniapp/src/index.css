@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Design tokens for Neo-Solarpunk Holographic */
+    --bg-0: #0B1020;
+    --bg-1: #0F1A2A;
+    --glow-1: #66F7D5;
+    --glow-2: #A6B4FF;
+    --accent: #FFE27A;
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --neon-glow: rgba(166, 180, 255, 0.18);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: radial-gradient(120% 80% at 70% 30%, #12344B 0%, #0B1020 60%, #090D18 100%);
+    color: white;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Glassmorphism utilities */
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.28), 0 0 24px rgba(166,180,255,0.18);
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.32), 0 0 48px rgba(166,180,255,0.24);
+  }
+
+  /* Neon glow effects */
+  .glow-1 {
+    box-shadow: 0 0 20px rgba(102, 247, 213, 0.4);
+  }
+
+  .glow-2 {
+    box-shadow: 0 0 20px rgba(166, 180, 255, 0.4);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(255, 226, 122, 0.4);
+  }
+
+  /* Parallax layers */
+  .parallax-bg {
+    transform: translateZ(-3px) scale(1.1);
+  }
+
+  .parallax-mid {
+    transform: translateZ(-1px) scale(1.05);
+  }
+
+  .parallax-fg {
+    transform: translateZ(0px) scale(1);
+  }
+
+  /* Particle effects */
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, var(--glow-1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    .parallax-bg,
+    .parallax-mid,
+    .parallax-fg {
+      transform: none !important;
+    }
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(102, 247, 213, 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 247, 213, 0.5);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-glow-1 to-glow-2 text-bg-0 font-semibold rounded-2xl 
+           shadow-glow transition-all duration-300 hover:shadow-glow-strong hover:scale-105 
+           active:scale-95 focus:outline-none focus:ring-2 focus:ring-glow-1 focus:ring-opacity-50;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 glass text-white font-medium rounded-2xl 
+           transition-all duration-300 hover:glass-strong hover:scale-105 
+           active:scale-95 focus:outline-none focus:ring-2 focus:ring-glow-2 focus:ring-opacity-50;
+  }
+
+  .card-glass {
+    @apply glass rounded-3xl p-6 transition-all duration-300 hover:glass-strong;
+  }
+
+  .hotspot {
+    @apply absolute w-16 h-16 rounded-full bg-gradient-to-r from-glow-1 to-glow-2 
+           shadow-glow cursor-pointer transition-all duration-300 
+           hover:shadow-glow-strong hover:scale-110 active:scale-95;
+  }
+
+  .hotspot::before {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-white opacity-20 animate-glow-pulse;
+  }
+}

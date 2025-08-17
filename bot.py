@@ -9,7 +9,7 @@ import asyncio
 import json
 # channel_manager import removed - not needed for webhook version
 
-MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
+MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/miniapp/index.html"  # GitHub Pages Mini App URL
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
 
@@ -463,7 +463,6 @@ def build_start_content():
     keyboard = [
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
         [InlineKeyboardButton("📋 Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
-        [InlineKeyboardButton("🏝️ Остров навигации", web_app=WebAppInfo(url="https://acqu1red.github.io/formulaprivate/navigation-island.html"))],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
         [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
     ]
@@ -493,7 +492,6 @@ def build_more_info_content():
     )
     keyboard = [
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
-        [InlineKeyboardButton("🏝️ Остров навигации", web_app=WebAppInfo(url="https://acqu1red.github.io/formulaprivate/navigation-island.html"))],
         [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
         [InlineKeyboardButton("🔙 Назад", callback_data='back')]
     ]
