@@ -95,20 +95,19 @@
   }
   
   /* Canvas для независимых линий */
-  .tariff-option.featured .spider-web-container {
+  .tariff-option.featured .animated-lines {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     border-radius: 16px;
-    z-index: 1;
+    z-index: -1;
     pointer-events: none;
     overflow: hidden;
-    background: rgba(0, 0, 0, 0.3);
   }
   
-  .tariff-option.featured .spider-web-container canvas {
+  .tariff-option.featured .animated-lines canvas {
     width: 100%;
     height: 100%;
     display: block;
@@ -332,9 +331,9 @@
         </div>
         
         <div class="tariff-option featured" data-tariff="6_months" data-price="3990" data-periodicity="PERIOD_180_DAYS">
-                  <div class="spider-web-container">
-          <canvas id="spiderWebCanvas"></canvas>
-        </div>
+          <div class="animated-lines">
+            <canvas id="neuralCanvas"></canvas>
+          </div>
           <div class="best-price-badge">Лучшая цена</div>
           <div class="tariff-header">
             <div class="tariff-name">6 месяцев</div>
@@ -433,16 +432,17 @@
   </div>
 </main>
 
-<script src="spider-web-debug.js"></script>
+<script src="neural-lines.js"></script>
 <script>
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
 
-// Инициализация анимации паутины
-let spiderWebAnimation = null;
-function initSpiderWebAnimation() {
-  if (window.initSpiderWebAnimation) {
-    window.initSpiderWebAnimation();
+// Инициализация анимации нейронных линий
+let neuralAnimation = null;
+function initNeuralAnimation() {
+  const canvas = document.getElementById('neuralCanvas');
+  if (canvas && window.NeuralLinesAnimation) {
+    neuralAnimation = new NeuralLinesAnimation(canvas);
   }
 }
 
@@ -472,8 +472,8 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', initUI);
 function initUI(){
-  // Инициализация анимации паутины
-  initSpiderWebAnimation();
+  // Инициализация анимации нейронных линий
+  initNeuralAnimation();
   document.querySelectorAll('.tariff-option').forEach(opt=>{
     opt.addEventListener('click', ()=>{
       state.selectedTariff = opt.dataset.tariff;
@@ -520,13 +520,6 @@ function initUI(){
     goToStep(4);
   });
   document.getElementById('payBtn').addEventListener('click', createAndOpenInvoice);
-  
-  // Прямая инициализация паутины
-  setTimeout(() => {
-    if (window.initSpiderWebAnimation) {
-      window.initSpiderWebAnimation();
-    }
-  }, 100);
 }
 function validateEmail(email){ return !!email && email.includes('@') && email.indexOf('.') > email.indexOf('@'); }
 function goToStep(step){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(`step${step}`).classList.add('active'); updateProgress(step); state.currentStep=step; }

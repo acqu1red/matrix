@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Остров навигации</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #f0eadf;
+            overflow: hidden;
+            height: 100vh;
+            perspective: 1000px;
+        }
+
+        /* Контейнер для всех сцен */
+        .scene-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Сцена острова */
+        .island-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #1a3a5f 0%, #2d5a8b 50%, #4a7cba 100%);
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .island-scene.transitioning {
+            transform: scale(0.8) rotateY(15deg);
+            opacity: 0;
+        }
+
+        /* Небо и облака */
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 50%, #e0f6ff 100%);
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+            animation: float 20s infinite linear;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .cloud1::before {
+            width: 60px;
+            height: 30px;
+            top: -15px;
+            left: 20px;
+        }
+
+        .cloud1::after {
+            width: 80px;
+            height: 35px;
+            top: -10px;
+            right: 20px;
+        }
+
+        .cloud2 {
+            width: 80px;
+            height: 35px;
+            top: 35%;
+            left: -80px;
+            animation-duration: 30s;
+            animation-delay: 5s;
+        }
+
+        .cloud2::before {
+            width: 50px;
+            height: 25px;
+            top: -12px;
+            left: 15px;
+        }
+
+        .cloud2::after {
+            width: 60px;
+            height: 30px;
+            top: -8px;
+            right: 15px;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 100px)); }
+        }
+
+        /* Земля */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(180deg, #8fbc8f 0%, #556b2f 50%, #2f4f2f 100%);
+            border-radius: 50% 50% 0 0 / 20% 20% 0 0;
+        }
+
+        /* Пальмы */
+        .palm-tree {
+            position: absolute;
+            bottom: 40%;
+            animation: sway 8s ease-in-out infinite;
+        }
+
+        .palm-tree:nth-child(1) {
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .palm-tree:nth-child(2) {
+            left: 85%;
+            animation-delay: 2s;
+        }
+
+        .palm-tree:nth-child(3) {
+            left: 25%;
+            animation-delay: 4s;
+        }
+
+        .palm-tree:nth-child(4) {
+            left: 70%;
+            animation-delay: 6s;
+        }
+
+        .palm-trunk {
+            width: 20px;
+            height: 120px;
+            background: linear-gradient(90deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+            border-radius: 10px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .palm-leaves {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+        }
+
+        .palm-leaf {
+            position: absolute;
+            width: 4px;
+            height: 60px;
+            background: linear-gradient(90deg, #228b22 0%, #32cd32 50%, #228b22 100%);
+            border-radius: 2px;
+            transform-origin: bottom center;
+            animation: leafSway 6s ease-in-out infinite;
+        }
+
+        .palm-leaf:nth-child(1) { transform: rotate(0deg); animation-delay: 0s; }
+        .palm-leaf:nth-child(2) { transform: rotate(45deg); animation-delay: 0.5s; }
+        .palm-leaf:nth-child(3) { transform: rotate(90deg); animation-delay: 1s; }
+        .palm-leaf:nth-child(4) { transform: rotate(135deg); animation-delay: 1.5s; }
+        .palm-leaf:nth-child(5) { transform: rotate(180deg); animation-delay: 2s; }
+        .palm-leaf:nth-child(6) { transform: rotate(225deg); animation-delay: 2.5s; }
+        .palm-leaf:nth-child(7) { transform: rotate(270deg); animation-delay: 3s; }
+        .palm-leaf:nth-child(8) { transform: rotate(315deg); animation-delay: 3.5s; }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        @keyframes leafSway {
+            0%, 100% { transform: rotate(var(--rotation)) scaleY(1); }
+            50% { transform: rotate(calc(var(--rotation) + 5deg)) scaleY(1.1); }
+        }
+
+        /* Храмы */
+        .temples-container {
+            position: absolute;
+            bottom: 45%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .temple {
+            width: 80px;
+            height: 120px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .temple:hover {
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .temple.selected {
+            animation: templeGlow 2s ease-in-out infinite;
+        }
+
+        .temple.selected .temple-roof {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+
+        .temple-base {
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #d4af37 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            border: 2px solid #b8860b;
+        }
+
+        .temple-columns {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .temple-column {
+            width: 6px;
+            height: 60px;
+            background: linear-gradient(180deg, #8b4513 0%, #a0522d 100%);
+            border-radius: 3px;
+        }
+
+        .temple-roof {
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(135deg, #cd853f 0%, #daa520 50%, #cd853f 100%);
+            border-radius: 0 0 8px 8px;
+            position: relative;
+            border: 2px solid #b8860b;
+            transition: all 0.3s ease;
+        }
+
+        .temple-roof::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid #daa520;
+        }
+
+        .temple-door {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 30px;
+            background: linear-gradient(180deg, #8b4513 0%, #a0522d 100%);
+            border-radius: 4px 4px 0 0;
+            border: 1px solid #654321;
+        }
+
+        /* Уникальные детали для каждого храма */
+        .temple:nth-child(1) .temple-base { background: linear-gradient(135deg, #d4af37 0%, #ffd700 50%, #d4af37 100%); }
+        .temple:nth-child(2) .temple-base { background: linear-gradient(135deg, #c0c0c0 0%, #e5e4e2 50%, #c0c0c0 100%); }
+        .temple:nth-child(3) .temple-base { background: linear-gradient(135deg, #cd7f32 0%, #daa520 50%, #cd7f32 100%); }
+        .temple:nth-child(4) .temple-base { background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #b8860b 100%); }
+        .temple:nth-child(5) .temple-base { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%); }
+
+        .temple:nth-child(1) .temple-roof { background: linear-gradient(135deg, #cd853f 0%, #daa520 50%, #cd853f 100%); }
+        .temple:nth-child(2) .temple-roof { background: linear-gradient(135deg, #a9a9a9 0%, #c0c0c0 50%, #a9a9a9 100%); }
+        .temple:nth-child(3) .temple-roof { background: linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #8b4513 100%); }
+        .temple:nth-child(4) .temple-roof { background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #b8860b 100%); }
+        .temple:nth-child(5) .temple-roof { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%); }
+
+        @keyframes templeGlow {
+            0%, 100% { 
+                filter: brightness(1) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            }
+            50% { 
+                filter: brightness(1.3) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+            }
+        }
+
+        /* Текст темы храма */
+        .temple-theme {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #f0eadf;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border: 1px solid #d4af37;
+        }
+
+        .temple.selected .temple-theme {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-5px);
+        }
+
+        /* Инструкции */
+        .instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #f0eadf;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            border: 2px solid #d4af37;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .instructions.confirm {
+            background: rgba(0, 100, 0, 0.8);
+            border-color: #32cd32;
+        }
+
+        /* Кнопка назад */
+        .back-button {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #f0eadf;
+            border: 2px solid #d4af37;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 20;
+        }
+
+        .back-button:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Сцена библиотеки */
+        .library-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #2c1810 0%, #3d2317 50%, #4a2c1a 100%);
+            opacity: 0;
+            transform: scale(0.8) rotateY(-15deg);
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .library-scene.active {
+            opacity: 1;
+            transform: scale(1) rotateY(0deg);
+        }
+
+        /* Книжная полка */
+        .bookshelf {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 60%;
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+            border-radius: 10px;
+            border: 3px solid #654321;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 8px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .book {
+            background: linear-gradient(135deg, #8b0000 0%, #dc143c 50%, #8b0000 100%);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border: 1px solid #654321;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Crimson Text', serif;
+            font-size: 10px;
+            color: #f0eadf;
+            text-align: center;
+            padding: 5px;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .book::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+            border-radius: 4px;
+        }
+
+        .book:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .book.selected {
+            animation: bookGlow 2s ease-in-out infinite;
+            transform: translateY(-10px) scale(1.1);
+        }
+
+        .book.selected::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px solid #ffd700;
+            border-radius: 6px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Разные цвета книг */
+        .book:nth-child(1) { background: linear-gradient(135deg, #8b0000 0%, #dc143c 50%, #8b0000 100%); }
+        .book:nth-child(2) { background: linear-gradient(135deg, #006400 0%, #228b22 50%, #006400 100%); }
+        .book:nth-child(3) { background: linear-gradient(135deg, #000080 0%, #4169e1 50%, #000080 100%); }
+        .book:nth-child(4) { background: linear-gradient(135deg, #8b008b 0%, #9932cc 50%, #8b008b 100%); }
+        .book:nth-child(5) { background: linear-gradient(135deg, #ff8c00 0%, #ffa500 50%, #ff8c00 100%); }
+        .book:nth-child(6) { background: linear-gradient(135deg, #2f4f4f 0%, #708090 50%, #2f4f4f 100%); }
+        .book:nth-child(7) { background: linear-gradient(135deg, #8b4513 0%, #daa520 50%, #8b4513 100%); }
+        .book:nth-child(8) { background: linear-gradient(135deg, #4b0082 0%, #9370db 50%, #4b0082 100%); }
+        .book:nth-child(9) { background: linear-gradient(135deg, #b22222 0%, #cd5c5c 50%, #b22222 100%); }
+        .book:nth-child(10) { background: linear-gradient(135deg, #228b22 0%, #32cd32 50%, #228b22 100%); }
+        .book:nth-child(11) { background: linear-gradient(135deg, #191970 0%, #4169e1 50%, #191970 100%); }
+        .book:nth-child(12) { background: linear-gradient(135deg, #8b0000 0%, #dc143c 50%, #8b0000 100%); }
+        .book:nth-child(13) { background: linear-gradient(135deg, #006400 0%, #228b22 50%, #006400 100%); }
+        .book:nth-child(14) { background: linear-gradient(135deg, #000080 0%, #4169e1 50%, #000080 100%); }
+        .book:nth-child(15) { background: linear-gradient(135deg, #8b008b 0%, #9932cc 50%, #8b008b 100%); }
+        .book:nth-child(16) { background: linear-gradient(135deg, #ff8c00 0%, #ffa500 50%, #ff8c00 100%); }
+        .book:nth-child(17) { background: linear-gradient(135deg, #2f4f4f 0%, #708090 50%, #2f4f4f 100%); }
+        .book:nth-child(18) { background: linear-gradient(135deg, #8b4513 0%, #daa520 50%, #8b4513 100%); }
+        .book:nth-child(19) { background: linear-gradient(135deg, #4b0082 0%, #9370db 50%, #4b0082 100%); }
+        .book:nth-child(20) { background: linear-gradient(135deg, #b22222 0%, #cd5c5c 50%, #b22222 100%); }
+
+        @keyframes bookGlow {
+            0%, 100% { 
+                filter: brightness(1) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            }
+            50% { 
+                filter: brightness(1.3) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        /* Сцена книги */
+        .book-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #f5f5dc 0%, #faf0e6 50%, #f5f5dc 100%);
+            opacity: 0;
+            transform: scale(0.8) rotateY(15deg);
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .book-scene.active {
+            opacity: 1;
+            transform: scale(1) rotateY(0deg);
+        }
+
+        .book-page {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 70%;
+            background: linear-gradient(135deg, #faf0e6 0%, #f5f5dc 50%, #faf0e6 100%);
+            border-radius: 10px;
+            border: 3px solid #8b4513;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-family: 'Crimson Text', serif;
+        }
+
+        .book-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #8b4513;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-description {
+            font-size: 18px;
+            color: #654321;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 80%;
+        }
+
+        .read-button {
+            background: linear-gradient(135deg, #8b4513 0%, #daa520 50%, #8b4513 100%);
+            color: #f0eadf;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.3);
+            font-family: 'Crimson Text', serif;
+        }
+
+        .read-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(139, 69, 19, 0.5);
+        }
+
+        /* Интро окно */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .intro-content {
+            background: linear-gradient(135deg, #2c1810 0%, #3d2317 100%);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 80%;
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+
+        .intro-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #d4af37;
+            margin-bottom: 20px;
+        }
+
+        .intro-text {
+            font-size: 16px;
+            color: #f0eadf;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .intro-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #d4af37;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .intro-close:hover {
+            color: #f0eadf;
+            transform: scale(1.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Анимации переходов */
+        @keyframes templeEnter {
+            0% {
+                transform: scale(0.8) rotateY(15deg);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes templeExit {
+            0% {
+                transform: scale(1) rotateY(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.8) rotateY(-15deg);
+                opacity: 0;
+            }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .temples-container {
+                gap: 10px;
+            }
+
+            .temple {
+                width: 60px;
+                height: 90px;
+            }
+
+            .bookshelf {
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: repeat(5, 1fr);
+            }
+
+            .book {
+                font-size: 8px;
+            }
+
+            .book-title {
+                font-size: 20px;
+            }
+
+            .book-description {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Интро окно -->
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-content">
+            <button class="intro-close" id="introClose">&times;</button>
+            <div class="intro-title">🏝️ Остров навигации</div>
+            <div class="intro-text">
+                Добро пожаловать на мистический остров знаний!<br><br>
+                Перед вами пять древних храмов, каждый хранит в себе уникальную мудрость и тематику.<br><br>
+                Выберите храм, который привлекает вас больше всего, и откройте для себя сокровищницу знаний, скрытую в его стенах.<br><br>
+                Путешествие начинается с одного клика...
+            </div>
+        </div>
+    </div>
+
+    <div class="scene-container">
+        <!-- Сцена острова -->
+        <div class="island-scene" id="islandScene">
+            <!-- Небо и облака -->
+            <div class="sky">
+                <div class="cloud cloud1"></div>
+                <div class="cloud cloud2"></div>
+            </div>
+
+            <!-- Земля -->
+            <div class="ground"></div>
+
+            <!-- Пальмы -->
+            <div class="palm-tree">
+                <div class="palm-trunk"></div>
+                <div class="palm-leaves">
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                </div>
+            </div>
+            <div class="palm-tree">
+                <div class="palm-trunk"></div>
+                <div class="palm-leaves">
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                </div>
+            </div>
+            <div class="palm-tree">
+                <div class="palm-trunk"></div>
+                <div class="palm-leaves">
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                </div>
+            </div>
+            <div class="palm-tree">
+                <div class="palm-trunk"></div>
+                <div class="palm-leaves">
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                    <div class="palm-leaf"></div>
+                </div>
+            </div>
+
+            <!-- Храмы -->
+            <div class="temples-container">
+                <div class="temple" data-temple="1">
+                    <div class="temple-theme">Тема 1</div>
+                    <div class="temple-roof"></div>
+                    <div class="temple-base">
+                        <div class="temple-columns">
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                        </div>
+                        <div class="temple-door"></div>
+                    </div>
+                </div>
+                <div class="temple" data-temple="2">
+                    <div class="temple-theme">Тема 2</div>
+                    <div class="temple-roof"></div>
+                    <div class="temple-base">
+                        <div class="temple-columns">
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                        </div>
+                        <div class="temple-door"></div>
+                    </div>
+                </div>
+                <div class="temple" data-temple="3">
+                    <div class="temple-theme">Тема 3</div>
+                    <div class="temple-roof"></div>
+                    <div class="temple-base">
+                        <div class="temple-columns">
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                        </div>
+                        <div class="temple-door"></div>
+                    </div>
+                </div>
+                <div class="temple" data-temple="4">
+                    <div class="temple-theme">Тема 4</div>
+                    <div class="temple-roof"></div>
+                    <div class="temple-base">
+                        <div class="temple-columns">
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                        </div>
+                        <div class="temple-door"></div>
+                    </div>
+                </div>
+                <div class="temple" data-temple="5">
+                    <div class="temple-theme">Тема 5</div>
+                    <div class="temple-roof"></div>
+                    <div class="temple-base">
+                        <div class="temple-columns">
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                            <div class="temple-column"></div>
+                        </div>
+                        <div class="temple-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Инструкции -->
+            <div class="instructions" id="instructions">
+                Нажми на постройку для выбора темы
+            </div>
+
+            <!-- Кнопка назад -->
+            <button class="back-button" id="backButton" style="display: none;">← Назад</button>
+        </div>
+
+        <!-- Сцена библиотеки -->
+        <div class="library-scene" id="libraryScene">
+            <div class="bookshelf" id="bookshelf">
+                <!-- Книги будут добавлены через JavaScript -->
+            </div>
+
+            <!-- Инструкции -->
+            <div class="instructions" id="libraryInstructions">
+                Выберите книгу для изучения
+            </div>
+
+            <!-- Кнопка назад -->
+            <button class="back-button" id="libraryBackButton">← Назад</button>
+        </div>
+
+        <!-- Сцена книги -->
+        <div class="book-scene" id="bookScene">
+            <div class="book-page">
+                <div class="book-title" id="bookTitle">Название поста</div>
+                <div class="book-description" id="bookDescription">
+                    Добро пожаловать в мир знаний! Этот пост содержит уникальную информацию, которая поможет вам расширить горизонты и достичь новых высот в понимании данной темы.
+                </div>
+                <button class="read-button" id="readButton">Читать</button>
+            </div>
+
+            <!-- Кнопка назад -->
+            <button class="back-button" id="bookBackButton">← Назад</button>
+        </div>
+    </div>
+
+    <script type="module" src="navigation-island.js"></script>
+</body>
+</html>
