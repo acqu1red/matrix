@@ -193,7 +193,7 @@ class NeuralLinesAnimation {
     this.tPrev = performance.now()/1000;
     
     this.params = {
-      lineCount: 15,       // Количество линий
+      lineCount: 25,       // Увеличено количество линий
       lineLength: 350,     // Увеличена длина линии
       proximity: 20,       // Уменьшена дистанция для столкновения
       sparksRateCap: 30    // Уменьшено количество вспышек
@@ -227,10 +227,23 @@ class NeuralLinesAnimation {
   
   buildLines() {
     this.lines = [];
+    
+    // Создаем сетку для равномерного распределения
+    const gridCols = 5;
+    const gridRows = 5;
+    const cellWidth = this.W / gridCols;
+    const cellHeight = this.H / gridRows;
+    
     for(let i = 0; i < this.params.lineCount; i++) {
-      // Распределяем линии по всей области более равномерно
-      const x = Math.random() * this.W;
-      const y = Math.random() * this.H;
+      // Определяем ячейку сетки для текущей линии
+      const gridX = i % gridCols;
+      const gridY = Math.floor(i / gridCols);
+      
+      // Добавляем случайность в пределах ячейки
+      const x = gridX * cellWidth + Math.random() * cellWidth * 0.8 + cellWidth * 0.1;
+      const y = gridY * cellHeight + Math.random() * cellHeight * 0.8 + cellHeight * 0.1;
+      
+      // Разнообразные углы для более естественного вида
       const angle = Math.random() * TAU;
       
       this.lines.push(new IndependentLine({
