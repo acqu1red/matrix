@@ -196,13 +196,35 @@ export class SceneManager extends EventEmitter {
                 dollyIn: () => {},
                 dollyOut: () => {}
             };
+            console.log('✅ Простые контролы созданы');
             return;
         }
         
-        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
-        this.controls.screenSpacePanning = false;
+        try {
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
+            this.controls.dampingFactor = 0.05;
+            this.controls.screenSpacePanning = false;
+            console.log('✅ OrbitControls создан');
+        } catch (error) {
+            console.error('❌ Ошибка создания OrbitControls:', error);
+            // Fallback на простые контролы
+            this.controls = {
+                enabled: false,
+                update: () => {},
+                reset: () => {},
+                enableDamping: false,
+                dampingFactor: 0.05,
+                screenSpacePanning: false,
+                maxPolarAngle: Math.PI / 2,
+                minDistance: 20,
+                maxDistance: 100,
+                addEventListener: () => {},
+                dollyIn: () => {},
+                dollyOut: () => {}
+            };
+            console.log('✅ Простые контролы созданы (fallback)');
+        }
         
         if (this.isMobile) {
             this.controls.maxPolarAngle = this.mobileSettings.maxPolarAngle;
