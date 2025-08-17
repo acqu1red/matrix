@@ -195,7 +195,7 @@ export default function MapScene() {
       {activeMinigame && (
         <MinigameModal
           minigame={activeMinigame}
-          onComplete={(success) => {
+          onComplete={(success: boolean) => {
             if (success) {
               showToast(`+${activeMinigame.hotspot.baseReward} фрагментов!`, 'success')
             }
