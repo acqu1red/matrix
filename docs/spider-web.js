@@ -309,3 +309,4 @@ function initSpiderWebAnimation() {
 
 // Export for use in HTML
 window.initSpiderWebAnimation = initSpiderWebAnimation;
+window.SpiderWebAnimation = SpiderWebAnimation;

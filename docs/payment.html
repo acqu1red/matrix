@@ -433,7 +433,7 @@
   </div>
 </main>
 
-<script src="spider-web.js"></script>
+<script src="spider-web-debug.js"></script>
 <script>
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
@@ -441,9 +441,8 @@ if (tg) { tg.ready(); tg.expand(); }
 // Инициализация анимации паутины
 let spiderWebAnimation = null;
 function initSpiderWebAnimation() {
-  const canvas = document.getElementById('spiderWebCanvas');
-  if (canvas && window.SpiderWebAnimation) {
-    spiderWebAnimation = new SpiderWebAnimation('spiderWebCanvas');
+  if (window.initSpiderWebAnimation) {
+    window.initSpiderWebAnimation();
   }
 }
 
@@ -521,6 +520,13 @@ function initUI(){
     goToStep(4);
   });
   document.getElementById('payBtn').addEventListener('click', createAndOpenInvoice);
+  
+  // Прямая инициализация паутины
+  setTimeout(() => {
+    if (window.initSpiderWebAnimation) {
+      window.initSpiderWebAnimation();
+    }
+  }, 100);
 }
 function validateEmail(email){ return !!email && email.includes('@') && email.indexOf('.') > email.indexOf('@'); }
 function goToStep(step){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(`step${step}`).classList.add('active'); updateProgress(step); state.currentStep=step; }
