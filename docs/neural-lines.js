@@ -82,7 +82,7 @@ class IndependentLine{
     this.speed = 0.25 + Math.random()*0.4; // Значительно увеличена скорость
     this.amplitude = 25 + Math.random()*35; // Значительно увеличена амплитуда
     this.frequency = 1.8 + Math.random()*2.5; // Увеличена частота
-    this.samples = 30; // Еще больше точек для плавности
+    this.samples = 20; // Оптимизировано количество точек
     
     // 3D параметры
     this.depth = Math.random()*100;
@@ -120,12 +120,10 @@ class IndependentLine{
       const ny = baseY / this.containerHeight * this.frequency + this.seed;
       
       const dx = this.noise(nx*0.75 + 17, ny*0.75 + 31 + t*this.speed*0.7) +
-                 0.7*this.noise(nx*1.3 + 111, ny*1.1 + 9 + t*this.speed*1.3) +
-                 0.4*this.noise(nx*2.1 + 23, ny*1.8 + 47 + t*this.speed*2.1) +
-                 0.2*this.noise(nx*3.2 + 67, ny*2.5 + 89 + t*this.speed*3.2);
+                 0.6*this.noise(nx*1.3 + 111, ny*1.1 + 9 + t*this.speed*1.3) +
+                 0.3*this.noise(nx*2.1 + 23, ny*1.8 + 47 + t*this.speed*2.1);
       const dy = this.noise(nx + 5, ny + 13 + t*this.speed) +
-                 0.6*this.noise(nx*1.7 + 89, ny*1.4 + 67 + t*this.speed*1.8) +
-                 0.3*this.noise(nx*2.8 + 45, ny*2.1 + 123 + t*this.speed*2.5);
+                 0.5*this.noise(nx*1.7 + 89, ny*1.4 + 67 + t*this.speed*1.8);
       
       // 3D эффект через глубину с более сложным движением
       const depth = this.depth + Math.sin(t*this.depthSpeed + this.seed) * 30 +
@@ -201,6 +199,19 @@ class NeuralLinesAnimation {
       sparksRateCap: 50    // Максимум вспышек за кадр
     };
     
+    // Попытка использовать Web Worker для лучшей производительности
+    this.useWorker = typeof Worker !== 'undefined';
+    if(this.useWorker) {
+      try {
+        this.worker = new Worker('neural-worker.js');
+        this.worker.onmessage = (e) => {
+          this.workerResults = e.data.results;
+        };
+      } catch(e) {
+        this.useWorker = false;
+      }
+    }
+    
     this.resize();
     this.buildLines();
     this.animate();
@@ -240,59 +251,78 @@ class NeuralLinesAnimation {
     const dt = Math.min(0.033, now - this.tPrev);
     this.tPrev = now;
     
-    // Полупрозрачная смазка для шлейфа
+    // Очистка с меньшей прозрачностью для лучшей производительности
     this.ctx.globalCompositeOperation = 'source-over';
-    this.ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    this.ctx.fillStyle = 'rgba(0,0,0,0.15)';
     this.ctx.fillRect(0, 0, this.W, this.H);
     
     // Получаем точки всех линий
-    const allPoints = this.lines.map(line => line.getPoints(now));
+    let allPoints;
+    if(this.useWorker && this.worker) {
+      // Используем Web Worker для вычислений
+      this.worker.postMessage({
+        lines: this.lines.map(line => ({
+          x: line.x, y: line.y, length: line.length, angle: line.angle,
+          seed: line.seed, phase: line.phase, speed: line.speed,
+          amplitude: line.amplitude, frequency: line.frequency,
+          samples: line.samples, depth: line.depth, depthSpeed: line.depthSpeed,
+          rotationX: line.rotationX, rotationY: line.rotationY,
+          moveSpeed: line.moveSpeed, moveDirection: line.moveDirection,
+          moveRadius: line.moveRadius
+        })),
+        time: now,
+        width: this.W,
+        height: this.H
+      });
+      allPoints = this.workerResults || this.lines.map(line => line.getPoints(now));
+    } else {
+      allPoints = this.lines.map(line => line.getPoints(now));
+    }
     
-    // Отрисовка мягкого свечения
+    // Оптимизированная отрисовка - объединяем в один проход
     this.ctx.save();
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
     this.ctx.globalCompositeOperation = 'lighter';
-    this.ctx.shadowBlur = 20 * this.DPR;
-    this.ctx.shadowColor = 'rgba(214,199,184,0.8)';
-    this.ctx.strokeStyle = 'rgba(214,199,184,0.08)';
-    this.ctx.lineWidth = 6 * this.DPR;
     
+    // Рисуем все линии за один проход
     for(const points of allPoints) {
+      // Мягкое свечение
+      this.ctx.shadowBlur = 15 * this.DPR;
+      this.ctx.shadowColor = 'rgba(214,199,184,0.6)';
+      this.ctx.strokeStyle = 'rgba(214,199,184,0.06)';
+      this.ctx.lineWidth = 5 * this.DPR;
+      this.ctx.beginPath();
+      drawSmooth(this.ctx, points);
+      this.ctx.stroke();
+      
+      // Основной штрих
+      this.ctx.shadowBlur = 8 * this.DPR;
+      this.ctx.shadowColor = 'rgba(214,199,184,0.9)';
+      this.ctx.strokeStyle = 'rgba(214,199,184,0.6)';
+      this.ctx.lineWidth = 1.2 * this.DPR;
       this.ctx.beginPath();
       drawSmooth(this.ctx, points);
       this.ctx.stroke();
     }
     this.ctx.restore();
     
-    // Основной яркий штрих
-    this.ctx.save();
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
-    this.ctx.strokeStyle = 'rgba(214,199,184,0.7)';
-    this.ctx.lineWidth = 1.5 * this.DPR;
-    this.ctx.shadowBlur = 10 * this.DPR;
-    this.ctx.shadowColor = 'rgba(214,199,184,1)';
-    
-    for(const points of allPoints) {
-      this.ctx.beginPath();
-      drawSmooth(this.ctx, points);
-      this.ctx.stroke();
+    // Упрощенная детекция столкновений (каждый 3-й кадр)
+    if(Math.floor(now * 30) % 3 === 0) {
+      this.detectCollisions(allPoints, now);
     }
-    this.ctx.restore();
-    
-    // Детекция столкновений
-    this.detectCollisions(allPoints, now);
     
     // Обновление вспышек
-    for(let i = this.sparks.length - 1; i >= 0; i--) {
-      const spark = this.sparks[i];
-      spark.step(dt);
-      if(!spark.alive) {
-        this.sparks.splice(i, 1);
-        continue;
+    if(this.sparks.length > 0) {
+      for(let i = this.sparks.length - 1; i >= 0; i--) {
+        const spark = this.sparks[i];
+        spark.step(dt);
+        if(!spark.alive) {
+          this.sparks.splice(i, 1);
+          continue;
+        }
+        spark.render(this.ctx);
       }
-      spark.render(this.ctx);
     }
     
     requestAnimationFrame(() => this.animate());
@@ -302,15 +332,20 @@ class NeuralLinesAnimation {
     const prox2 = this.params.proximity * this.params.proximity;
     let sparksThisFrame = 0;
     
+    // Оптимизация: проверяем только каждую 3-ю точку
+    const step = 3;
+    
     for(let i = 0; i < allPoints.length; i++) {
       for(let j = i + 1; j < allPoints.length; j++) {
         const points1 = allPoints[i];
         const points2 = allPoints[j];
         
-        for(const p1 of points1) {
+        for(let k = 0; k < points1.length; k += step) {
           if(sparksThisFrame >= this.params.sparksRateCap) break;
           
-          for(const p2 of points2) {
+          const p1 = points1[k];
+          for(let l = 0; l < points2.length; l += step) {
+            const p2 = points2[l];
             const dx = p1.x - p2.x;
             const dy = p1.y - p2.y;
             const d2 = dx*dx + dy*dy;
