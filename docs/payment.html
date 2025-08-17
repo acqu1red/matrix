@@ -95,19 +95,20 @@
   }
   
   /* Canvas для независимых линий */
-  .tariff-option.featured .animated-lines {
+  .tariff-option.featured .spider-web-container {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     border-radius: 16px;
-    z-index: -1;
+    z-index: 1;
     pointer-events: none;
     overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
   }
   
-  .tariff-option.featured .animated-lines canvas {
+  .tariff-option.featured .spider-web-container canvas {
     width: 100%;
     height: 100%;
     display: block;
@@ -331,9 +332,9 @@
         </div>
         
         <div class="tariff-option featured" data-tariff="6_months" data-price="3990" data-periodicity="PERIOD_180_DAYS">
-          <div class="animated-lines">
-            <canvas id="neuralCanvas"></canvas>
-          </div>
+                  <div class="spider-web-container">
+          <canvas id="spiderWebCanvas"></canvas>
+        </div>
           <div class="best-price-badge">Лучшая цена</div>
           <div class="tariff-header">
             <div class="tariff-name">6 месяцев</div>
@@ -432,17 +433,17 @@
   </div>
 </main>
 
-<script src="neural-lines.js"></script>
+<script src="spider-web.js"></script>
 <script>
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
 
-// Инициализация анимации нейронных линий
-let neuralAnimation = null;
-function initNeuralAnimation() {
-  const canvas = document.getElementById('neuralCanvas');
-  if (canvas && window.NeuralLinesAnimation) {
-    neuralAnimation = new NeuralLinesAnimation(canvas);
+// Инициализация анимации паутины
+let spiderWebAnimation = null;
+function initSpiderWebAnimation() {
+  const canvas = document.getElementById('spiderWebCanvas');
+  if (canvas && window.SpiderWebAnimation) {
+    spiderWebAnimation = new SpiderWebAnimation('spiderWebCanvas');
   }
 }
 
@@ -472,8 +473,8 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', initUI);
 function initUI(){
-  // Инициализация анимации нейронных линий
-  initNeuralAnimation();
+  // Инициализация анимации паутины
+  initSpiderWebAnimation();
   document.querySelectorAll('.tariff-option').forEach(opt=>{
     opt.addEventListener('click', ()=>{
       state.selectedTariff = opt.dataset.tariff;
