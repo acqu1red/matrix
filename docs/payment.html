@@ -66,7 +66,7 @@
     border: 3px solid #d6c7b8;
     box-shadow: 0 8px 25px rgba(214,199,184,.3), 0 0 30px rgba(214,199,184,.1);
     animation: featuredGlow 3s ease-in-out infinite alternate;
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
   @keyframes featuredGlow {
     0% { 
@@ -94,7 +94,7 @@
     animation: neuralGlow 4s ease-in-out infinite alternate;
   }
   
-  /* Нейронная сеть - тонкие линии */
+  /* Нейронная сеть - тонкие линии с объемом */
   .tariff-option.featured .animated-lines {
     position: absolute;
     top: 0;
@@ -105,12 +105,18 @@
     z-index: -1;
     pointer-events: none;
     background: 
-      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.08) 1px, transparent 2px),
-      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.06) 1px, transparent 2px),
-      linear-gradient(45deg, transparent 0%, rgba(214,199,184,0.05) 1px, transparent 3px),
-      linear-gradient(-45deg, transparent 0%, rgba(214,199,184,0.04) 1px, transparent 3px);
-    background-size: 30px 30px, 30px 30px, 40px 40px, 40px 40px;
+      /* Основная сетка с объемом */
+      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.12) 1px, rgba(255,255,255,0.2) 1px, transparent 2px),
+      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.1) 1px, rgba(255,255,255,0.15) 1px, transparent 2px),
+      /* Диагональные линии с объемом */
+      linear-gradient(45deg, transparent 0%, rgba(214,199,184,0.08) 1px, rgba(255,255,255,0.12) 1px, transparent 3px),
+      linear-gradient(-45deg, transparent 0%, rgba(214,199,184,0.06) 1px, rgba(255,255,255,0.1) 1px, transparent 3px),
+      /* Дополнительные объемные линии */
+      linear-gradient(135deg, transparent 0%, rgba(214,199,184,0.04) 1px, transparent 2px),
+      linear-gradient(-135deg, transparent 0%, rgba(214,199,184,0.03) 1px, transparent 2px);
+    background-size: 25px 25px, 25px 25px, 35px 35px, 35px 35px, 20px 20px, 20px 20px;
     animation: neuralNetwork 8s linear infinite;
+    filter: drop-shadow(0 0 2px rgba(214,199,184,0.3));
   }
   
   /* Дополнительный слой нейронов */
@@ -130,7 +136,7 @@
     animation: neuralPulse 6s ease-in-out infinite;
   }
   
-  /* Третий слой - соединительные линии */
+  /* Третий слой - соединительные линии с объемом */
   .tariff-option.featured .animated-lines::after {
     content: '';
     position: absolute;
@@ -139,12 +145,13 @@
     right: 0;
     bottom: 0;
     background: 
-      linear-gradient(135deg, transparent 0%, rgba(214,199,184,0.03) 1px, transparent 2px),
-      linear-gradient(-135deg, transparent 0%, rgba(214,199,184,0.02) 1px, transparent 2px),
-      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.04) 1px, transparent 3px),
-      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.03) 1px, transparent 3px);
+      linear-gradient(135deg, transparent 0%, rgba(214,199,184,0.05) 1px, rgba(255,255,255,0.08) 1px, transparent 2px),
+      linear-gradient(-135deg, transparent 0%, rgba(214,199,184,0.04) 1px, rgba(255,255,255,0.06) 1px, transparent 2px),
+      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.06) 1px, rgba(255,255,255,0.1) 1px, transparent 3px),
+      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.05) 1px, rgba(255,255,255,0.08) 1px, transparent 3px);
     background-size: 20px 20px, 20px 20px, 25px 25px, 25px 25px;
     animation: neuralConnections 10s linear infinite reverse;
+    filter: drop-shadow(0 0 1px rgba(214,199,184,0.2));
   }
   
   @keyframes neuralGlow {
@@ -160,35 +167,58 @@
   
   @keyframes neuralNetwork {
     0% { 
-      background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+      background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
       opacity: 0.4;
+      transform: perspective(100px) rotateX(0deg) rotateY(0deg);
     }
-    25% { 
-      background-position: 25% 25%, 75% 25%, 25% 75%, 75% 75%;
-      opacity: 0.8;
+    16% { 
+      background-position: 16% 16%, 84% 16%, 16% 84%, 84% 84%, 8% 8%, 92% 92%;
+      opacity: 0.7;
+      transform: perspective(100px) rotateX(2deg) rotateY(-1deg);
+    }
+    33% { 
+      background-position: 33% 33%, 67% 33%, 33% 67%, 67% 67%, 17% 17%, 83% 83%;
+      opacity: 0.9;
+      transform: perspective(100px) rotateX(-1deg) rotateY(2deg);
     }
     50% { 
-      background-position: 50% 50%, 50% 50%, 50% 50%, 50% 50%;
+      background-position: 50% 50%, 50% 50%, 50% 50%, 50% 50%, 25% 25%, 75% 75%;
       opacity: 0.6;
+      transform: perspective(100px) rotateX(1deg) rotateY(-2deg);
     }
-    75% { 
-      background-position: 75% 25%, 25% 75%, 75% 75%, 25% 25%;
-      opacity: 0.9;
+    66% { 
+      background-position: 67% 33%, 33% 67%, 67% 67%, 33% 33%, 42% 42%, 58% 58%;
+      opacity: 0.8;
+      transform: perspective(100px) rotateX(-2deg) rotateY(1deg);
+    }
+    83% { 
+      background-position: 84% 16%, 16% 84%, 84% 84%, 16% 16%, 58% 58%, 42% 42%;
+      opacity: 0.7;
+      transform: perspective(100px) rotateX(1deg) rotateY(2deg);
     }
     100% { 
-      background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+      background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
       opacity: 0.4;
+      transform: perspective(100px) rotateX(0deg) rotateY(0deg);
     }
   }
   
   @keyframes neuralPulse {
     0%, 100% { 
       opacity: 0.3;
-      transform: scale(1);
+      transform: scale(1) translateZ(0px);
+    }
+    25% { 
+      opacity: 0.6;
+      transform: scale(1.05) translateZ(2px);
     }
     50% { 
       opacity: 0.8;
-      transform: scale(1.1);
+      transform: scale(1.1) translateZ(5px);
+    }
+    75% { 
+      opacity: 0.6;
+      transform: scale(1.05) translateZ(2px);
     }
   }
   
