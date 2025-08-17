@@ -445,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof THREE !== 'undefined' && !isAppInitialized) {
         console.log('🚀 Three.js уже загружен, запускаем приложение...');
         isAppInitialized = true;
+        window.isAppInitialized = true; // Глобальный флаг
         initApp();
     } else {
         console.log('⏳ Ожидание загрузки Three.js...');

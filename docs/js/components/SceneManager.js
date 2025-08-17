@@ -160,7 +160,13 @@ export class SceneManager extends EventEmitter {
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.2;
-        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        
+        // Проверяем доступность новых свойств
+        if (typeof THREE.SRGBColorSpace !== 'undefined') {
+            this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        } else if (typeof THREE.sRGBEncoding !== 'undefined') {
+            this.renderer.outputEncoding = THREE.sRGBEncoding;
+        }
         
         // Проверяем, существует ли контейнер
         const container = document.getElementById('scene-container');
@@ -788,15 +794,22 @@ export class SceneManager extends EventEmitter {
         console.log('camera:', !!this.camera);
         console.log('renderer:', !!this.renderer);
         
-        if (!this.isAnimating && this.isInitialized) {
+        // Сбрасываем флаг анимации если он уже был установлен
+        if (this.isAnimating) {
+            console.log('🔄 Сброс флага анимации');
+            this.isAnimating = false;
+            if (this.animationId) {
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
+            }
+        }
+        
+        if (this.isInitialized) {
             this.isAnimating = true;
             console.log('✅ Анимация запущена');
             this.animate();
         } else {
-            console.warn('⚠️ Анимация не запущена:', {
-                isAnimating: this.isAnimating,
-                isInitialized: this.isInitialized
-            });
+            console.warn('⚠️ Анимация не запущена: сцена не инициализирована');
         }
     }
     
