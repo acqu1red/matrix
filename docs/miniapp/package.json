@@ -5,15 +5,9 @@
   "homepage": "https://acqu1red.github.io/formulaprivate/miniapp/",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && echo 'Mini App built successfully! Upload dist/ folder to GitHub Pages'",
-    "server:dev": "tsx watch src/server/index.ts",
-    "server:build": "tsc -p tsconfig.server.json",
-    "server:start": "node dist/server/index.js",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:seed": "tsx src/server/seed.ts"
+    "deploy": "npm run build && echo 'Mini App built successfully! Upload dist/ folder to GitHub Pages'"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -28,23 +22,9 @@
     "@types/react-dom": "^18.2.7",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
-    "@vitejs/plugin-react": "^4.0.3",
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "prisma": "^5.0.0",
-    "@prisma/client": "^5.0.0",
-    "grammy": "^1.17.2",
-    "jsonwebtoken": "^9.0.2",
-    "crypto": "^1.0.1",
-    "zod": "^3.22.2",
-    "dotenv": "^16.3.1",
-    "tsx": "^3.12.7"
+    "@vitejs/plugin-react": "^4.0.3"
   },
   "devDependencies": {
-    "@types/express": "^4.17.17",
-    "@types/cors": "^2.8.13",
-    "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.4.5"
   }
 }

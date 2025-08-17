@@ -74,12 +74,12 @@ export default function Settings() {
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-glow-1 to-glow-2 flex items-center justify-center">
                 <span className="text-white font-bold">
-                  {user?.first_name?.[0] || 'U'}
+                  {user?.username?.[0] || 'U'}
                 </span>
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-white">
-                  {user?.first_name} {user?.last_name}
+                  {user?.username || 'Пользователь'}
                 </h3>
                 <p className="text-xs text-gray-300">
                   @{user?.username || 'user'}

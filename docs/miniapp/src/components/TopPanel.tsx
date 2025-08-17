@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 
 export default function TopPanel() {
   const { currentBook, totalFragments, streak, openCollection, openSettings } = useGameStore()
-  const { user } = useAuth()
+  // const { user } = useAuth()
 
   return (
     <motion.div

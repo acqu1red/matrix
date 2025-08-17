@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { useGameStore } from '../store/gameStore'
 import { useTelegram } from '../hooks/useTelegram'
@@ -25,7 +25,7 @@ export default function MapScene() {
   const { showBackButton, hideBackButton } = useTelegram()
   
   const containerRef = useRef<HTMLDivElement>(null)
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  // const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   
   // Parallax motion values
   const mouseX = useMotionValue(0)
@@ -46,7 +46,7 @@ export default function MapScene() {
       const x = (e.clientX - rect.left) / rect.width
       const y = (e.clientY - rect.top) / rect.height
       
-      setMousePosition({ x, y })
+      // setMousePosition({ x, y })
       mouseX.set(x * 2 - 1)
       mouseY.set(y * 2 - 1)
     }
@@ -58,7 +58,7 @@ export default function MapScene() {
       const x = (e.touches[0].clientX - rect.left) / rect.width
       const y = (e.touches[0].clientY - rect.top) / rect.height
       
-      setMousePosition({ x, y })
+      // setMousePosition({ x, y })
       mouseX.set(x * 2 - 1)
       mouseY.set(y * 2 - 1)
     }
