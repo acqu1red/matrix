@@ -70,6 +70,16 @@ export class UIManager extends EventEmitter {
             });
         }
         
+        // Закрытие интро по клику на фон (для мобильных)
+        if (this.elements.introOverlay) {
+            this.elements.introOverlay.addEventListener('click', (e) => {
+                if (e.target === this.elements.introOverlay) {
+                    this.hideIntro();
+                    this.emit('introClosed');
+                }
+            });
+        }
+        
         // Кнопка назад
         if (this.elements.backButton) {
             this.elements.backButton.addEventListener('click', () => {
@@ -184,6 +194,14 @@ export class UIManager extends EventEmitter {
         if (this.elements.introOverlay) {
             this.elements.introOverlay.style.display = 'flex';
             this.state.isIntroShown = true;
+            
+            // Автоматическое закрытие через 15 секунд
+            setTimeout(() => {
+                if (this.elements.introOverlay && this.elements.introOverlay.style.display === 'flex') {
+                    this.hideIntro();
+                    this.emit('introClosed');
+                }
+            }, 15000);
         }
     }
     

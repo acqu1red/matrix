@@ -218,6 +218,9 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    z-index: 1000;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .intro-close:hover {
@@ -718,6 +721,21 @@ body {
     .mobile-btn svg {
         width: 16px;
         height: 16px;
+    }
+    
+    /* Улучшенная кнопка закрытия для мобильных */
+    .intro-close {
+        width: 48px;
+        height: 48px;
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+        background: rgba(212, 175, 55, 0.1);
+        border: 1px solid var(--primary-gold);
+    }
+    
+    .intro-close svg {
+        width: 24px;
+        height: 24px;
     }
 }
 

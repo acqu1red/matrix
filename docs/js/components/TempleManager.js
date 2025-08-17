@@ -36,17 +36,52 @@ export class TempleManager extends EventEmitter {
             templeInfo: templeInfo
         };
         
-        // Создаем детализированный храм
-        this.createTempleFoundation(templeGroup, templeInfo);
-        this.createTempleWalls(templeGroup, templeInfo);
-        this.createTempleRoof(templeGroup, templeInfo);
-        this.createTempleColumns(templeGroup, templeInfo);
-        this.createTempleEntrance(templeGroup, templeInfo);
-        this.createTempleDecorations(templeGroup, templeInfo);
-        this.createTempleGlow(templeGroup, templeInfo);
+        // Создаем упрощенный храм для тестирования
+        this.createSimpleTemple(templeGroup, templeInfo);
         
-        console.log(`🏛️ Создан детализированный храм: ${templeInfo.name}`);
+        console.log(`🏛️ Создан упрощенный храм: ${templeInfo.name}`);
         return templeGroup;
+    }
+    
+    createSimpleTemple(templeGroup, templeInfo) {
+        // Простое основание
+        const baseGeometry = new THREE.BoxGeometry(8, 2, 8);
+        const baseMaterial = new THREE.MeshLambertMaterial({ color: templeInfo.color.primary });
+        const base = new THREE.Mesh(baseGeometry, baseMaterial);
+        base.position.y = 1;
+        base.castShadow = true;
+        base.receiveShadow = true;
+        templeGroup.add(base);
+        
+        // Простые стены
+        const wallGeometry = new THREE.BoxGeometry(6, 6, 6);
+        const wallMaterial = new THREE.MeshLambertMaterial({ color: templeInfo.color.secondary });
+        const walls = new THREE.Mesh(wallGeometry, wallMaterial);
+        walls.position.y = 5;
+        walls.castShadow = true;
+        walls.receiveShadow = true;
+        templeGroup.add(walls);
+        
+        // Простая крыша
+        const roofGeometry = new THREE.ConeGeometry(4, 3, 8);
+        const roofMaterial = new THREE.MeshLambertMaterial({ color: templeInfo.color.accent });
+        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+        roof.position.y = 9.5;
+        roof.castShadow = true;
+        templeGroup.add(roof);
+        
+        // Свечение
+        const glowGeometry = new THREE.SphereGeometry(10, 16, 16);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: templeInfo.color.accent,
+            transparent: true,
+            opacity: 0,
+            side: THREE.BackSide
+        });
+        const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+        glow.position.y = 7;
+        glow.userData = { type: 'glow' };
+        templeGroup.add(glow);
     }
     
     createTempleFoundation(templeGroup, templeInfo) {

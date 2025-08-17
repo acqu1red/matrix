@@ -374,13 +374,36 @@ export class SceneManager extends EventEmitter {
     }
     
     createIsland() {
-        // Создаем детализированный остров
-        this.createIslandTerrain();
-        this.createIslandVegetation();
-        this.createIslandRocks();
-        this.createIslandPath();
+        // Создаем упрощенный остров для тестирования
+        this.createSimpleIsland();
         
-        console.log('✅ Детализированный остров создан');
+        console.log('✅ Упрощенный остров создан');
+    }
+    
+    createSimpleIsland() {
+        // Простое основание острова
+        const islandGeometry = new THREE.CylinderGeometry(40, 50, 10, 32);
+        const islandMaterial = new THREE.MeshLambertMaterial({
+            color: 0x8fbc8f
+        });
+        
+        this.island = new THREE.Mesh(islandGeometry, islandMaterial);
+        this.island.position.y = 5;
+        this.island.castShadow = true;
+        this.island.receiveShadow = true;
+        this.scene.add(this.island);
+        
+        // Простая поверхность земли
+        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const groundMaterial = new THREE.MeshLambertMaterial({
+            color: 0x556b2f
+        });
+        
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = 0.1;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
     }
     
     createIslandTerrain() {
@@ -722,14 +745,26 @@ export class SceneManager extends EventEmitter {
             wireframe: true
         });
         const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(0, 10, 0);
+        cube.position.set(0, 5, 0); // Опускаем куб ниже
         this.scene.add(cube);
         
-        console.log('🔴 Тестовый красный куб добавлен в позицию (0, 10, 0)');
+        console.log('🔴 Тестовый красный куб добавлен в позицию (0, 5, 0)');
         
         // Анимация куба
         cube.userData.animate = true;
         cube.userData.rotationSpeed = 0.01;
+        
+        // Добавляем простую сферу для проверки
+        const sphereGeometry = new THREE.SphereGeometry(3, 16, 16);
+        const sphereMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ff00,
+            wireframe: true
+        });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.set(10, 5, 0);
+        this.scene.add(sphere);
+        
+        console.log('🟢 Тестовая зеленая сфера добавлена в позицию (10, 5, 0)');
     }
     
     // Методы управления
