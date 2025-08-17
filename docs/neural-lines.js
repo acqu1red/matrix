@@ -79,20 +79,21 @@ class IndependentLine{
     
     // Уникальные параметры для каждой линии
     this.phase = Math.random()*1000 + seed*7.318;
-    this.speed = 0.15 + Math.random()*0.3; // Увеличена скорость
-    this.amplitude = 15 + Math.random()*20; // Увеличена амплитуда
-    this.frequency = 1.2 + Math.random()*1.8; // Увеличена частота
-    this.samples = 20; // Больше точек для плавности
+    this.speed = 0.25 + Math.random()*0.4; // Значительно увеличена скорость
+    this.amplitude = 25 + Math.random()*35; // Значительно увеличена амплитуда
+    this.frequency = 1.8 + Math.random()*2.5; // Увеличена частота
+    this.samples = 30; // Еще больше точек для плавности
     
     // 3D параметры
     this.depth = Math.random()*100;
-    this.depthSpeed = 0.08 + Math.random()*0.15; // Увеличена скорость глубины
-    this.rotationX = (Math.random() - 0.5) * 0.4;
-    this.rotationY = (Math.random() - 0.5) * 0.4;
+    this.depthSpeed = 0.12 + Math.random()*0.2; // Увеличена скорость глубины
+    this.rotationX = (Math.random() - 0.5) * 0.6;
+    this.rotationY = (Math.random() - 0.5) * 0.6;
     
     // Дополнительные параметры для движения
-    this.moveSpeed = 0.02 + Math.random()*0.03;
+    this.moveSpeed = 0.04 + Math.random()*0.06; // Увеличена скорость движения
     this.moveDirection = Math.random() * TAU;
+    this.moveRadius = 40 + Math.random() * 60; // Радиус движения
   }
   
   /* Возвращает точки линии с 3D деформацией */
@@ -101,9 +102,11 @@ class IndependentLine{
     const cos = Math.cos(this.angle);
     const sin = Math.sin(this.angle);
     
-    // Движение центра линии
-    const moveX = Math.cos(this.moveDirection + t * this.moveSpeed) * 30;
-    const moveY = Math.sin(this.moveDirection + t * this.moveSpeed) * 30;
+    // Более сложное движение центра линии
+    const moveX = Math.cos(this.moveDirection + t * this.moveSpeed) * this.moveRadius +
+                 Math.cos(this.moveDirection * 2 + t * this.moveSpeed * 1.5) * (this.moveRadius * 0.3);
+    const moveY = Math.sin(this.moveDirection + t * this.moveSpeed) * this.moveRadius +
+                 Math.sin(this.moveDirection * 2 + t * this.moveSpeed * 1.5) * (this.moveRadius * 0.3);
     const currentX = this.x + moveX;
     const currentY = this.y + moveY;
     
@@ -117,10 +120,12 @@ class IndependentLine{
       const ny = baseY / this.containerHeight * this.frequency + this.seed;
       
       const dx = this.noise(nx*0.75 + 17, ny*0.75 + 31 + t*this.speed*0.7) +
-                 0.6*this.noise(nx*1.3 + 111, ny*1.1 + 9 + t*this.speed*1.3) +
-                 0.3*this.noise(nx*2.1 + 23, ny*1.8 + 47 + t*this.speed*2.1);
+                 0.7*this.noise(nx*1.3 + 111, ny*1.1 + 9 + t*this.speed*1.3) +
+                 0.4*this.noise(nx*2.1 + 23, ny*1.8 + 47 + t*this.speed*2.1) +
+                 0.2*this.noise(nx*3.2 + 67, ny*2.5 + 89 + t*this.speed*3.2);
       const dy = this.noise(nx + 5, ny + 13 + t*this.speed) +
-                 0.5*this.noise(nx*1.7 + 89, ny*1.4 + 67 + t*this.speed*1.8);
+                 0.6*this.noise(nx*1.7 + 89, ny*1.4 + 67 + t*this.speed*1.8) +
+                 0.3*this.noise(nx*2.8 + 45, ny*2.1 + 123 + t*this.speed*2.5);
       
       // 3D эффект через глубину с более сложным движением
       const depth = this.depth + Math.sin(t*this.depthSpeed + this.seed) * 30 +
@@ -190,9 +195,9 @@ class NeuralLinesAnimation {
     this.tPrev = performance.now()/1000;
     
     this.params = {
-      lineCount: 12,       // Количество линий
-      lineLength: 120,     // Длина линии
-      proximity: 20,       // Дистанция для столкновения
+      lineCount: 15,       // Количество линий
+      lineLength: 200,     // Длина линии
+      proximity: 25,       // Дистанция для столкновения
       sparksRateCap: 50    // Максимум вспышек за кадр
     };
     
@@ -212,9 +217,9 @@ class NeuralLinesAnimation {
   buildLines() {
     this.lines = [];
     for(let i = 0; i < this.params.lineCount; i++) {
-      // Распределяем линии по всей области
-      const x = (i % 4) * (this.W / 4) + Math.random() * (this.W / 4);
-      const y = Math.floor(i / 4) * (this.H / 3) + Math.random() * (this.H / 3);
+      // Распределяем линии по всей области более равномерно
+      const x = Math.random() * this.W;
+      const y = Math.random() * this.H;
       const angle = Math.random() * TAU;
       
       this.lines.push(new IndependentLine({
@@ -248,10 +253,10 @@ class NeuralLinesAnimation {
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
     this.ctx.globalCompositeOperation = 'lighter';
-    this.ctx.shadowBlur = 15 * this.DPR;
-    this.ctx.shadowColor = 'rgba(214,199,184,0.9)';
-    this.ctx.strokeStyle = 'rgba(214,199,184,0.12)';
-    this.ctx.lineWidth = 5 * this.DPR;
+    this.ctx.shadowBlur = 20 * this.DPR;
+    this.ctx.shadowColor = 'rgba(214,199,184,0.8)';
+    this.ctx.strokeStyle = 'rgba(214,199,184,0.08)';
+    this.ctx.lineWidth = 6 * this.DPR;
     
     for(const points of allPoints) {
       this.ctx.beginPath();
@@ -264,9 +269,9 @@ class NeuralLinesAnimation {
     this.ctx.save();
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
-    this.ctx.strokeStyle = 'rgba(214,199,184,0.8)';
-    this.ctx.lineWidth = 2 * this.DPR;
-    this.ctx.shadowBlur = 8 * this.DPR;
+    this.ctx.strokeStyle = 'rgba(214,199,184,0.7)';
+    this.ctx.lineWidth = 1.5 * this.DPR;
+    this.ctx.shadowBlur = 10 * this.DPR;
     this.ctx.shadowColor = 'rgba(214,199,184,1)';
     
     for(const points of allPoints) {
