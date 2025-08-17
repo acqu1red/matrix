@@ -79,16 +79,20 @@ class IndependentLine{
     
     // Уникальные параметры для каждой линии
     this.phase = Math.random()*1000 + seed*7.318;
-    this.speed = 0.1 + Math.random()*0.2;
-    this.amplitude = 8 + Math.random()*12;
-    this.frequency = 0.8 + Math.random()*1.2;
-    this.samples = 12;
+    this.speed = 0.15 + Math.random()*0.3; // Увеличена скорость
+    this.amplitude = 15 + Math.random()*20; // Увеличена амплитуда
+    this.frequency = 1.2 + Math.random()*1.8; // Увеличена частота
+    this.samples = 20; // Больше точек для плавности
     
     // 3D параметры
     this.depth = Math.random()*100;
-    this.depthSpeed = 0.05 + Math.random()*0.1;
-    this.rotationX = (Math.random() - 0.5) * 0.3;
-    this.rotationY = (Math.random() - 0.5) * 0.3;
+    this.depthSpeed = 0.08 + Math.random()*0.15; // Увеличена скорость глубины
+    this.rotationX = (Math.random() - 0.5) * 0.4;
+    this.rotationY = (Math.random() - 0.5) * 0.4;
+    
+    // Дополнительные параметры для движения
+    this.moveSpeed = 0.02 + Math.random()*0.03;
+    this.moveDirection = Math.random() * TAU;
   }
   
   /* Возвращает точки линии с 3D деформацией */
@@ -97,26 +101,38 @@ class IndependentLine{
     const cos = Math.cos(this.angle);
     const sin = Math.sin(this.angle);
     
+    // Движение центра линии
+    const moveX = Math.cos(this.moveDirection + t * this.moveSpeed) * 30;
+    const moveY = Math.sin(this.moveDirection + t * this.moveSpeed) * 30;
+    const currentX = this.x + moveX;
+    const currentY = this.y + moveY;
+    
     for(let i = 0; i < this.samples; i++){
       const progress = i / (this.samples - 1);
-      const baseX = this.x + cos * this.length * progress;
-      const baseY = this.y + sin * this.length * progress;
+      const baseX = currentX + cos * this.length * progress;
+      const baseY = currentY + sin * this.length * progress;
       
-      // Шум для деформации
+      // Многослойный шум для более сложной деформации
       const nx = baseX / this.containerWidth * this.frequency + this.phase;
       const ny = baseY / this.containerHeight * this.frequency + this.seed;
       
       const dx = this.noise(nx*0.75 + 17, ny*0.75 + 31 + t*this.speed*0.7) +
-                 0.6*this.noise(nx*1.3 + 111, ny*1.1 + 9 + t*this.speed*1.3);
-      const dy = this.noise(nx + 5, ny + 13 + t*this.speed);
+                 0.6*this.noise(nx*1.3 + 111, ny*1.1 + 9 + t*this.speed*1.3) +
+                 0.3*this.noise(nx*2.1 + 23, ny*1.8 + 47 + t*this.speed*2.1);
+      const dy = this.noise(nx + 5, ny + 13 + t*this.speed) +
+                 0.5*this.noise(nx*1.7 + 89, ny*1.4 + 67 + t*this.speed*1.8);
       
-      // 3D эффект через глубину
-      const depth = this.depth + Math.sin(t*this.depthSpeed + this.seed) * 20;
-      const depthScale = 1 + (depth / 200);
+      // 3D эффект через глубину с более сложным движением
+      const depth = this.depth + Math.sin(t*this.depthSpeed + this.seed) * 30 +
+                   Math.sin(t*this.depthSpeed*2 + this.seed*2) * 15;
+      const depthScale = 1 + (depth / 150);
       
-      // 3D поворот
-      const rotatedX = baseX * Math.cos(this.rotationX) + depth * Math.sin(this.rotationX);
-      const rotatedY = baseY * Math.cos(this.rotationY) + depth * Math.sin(this.rotationY);
+      // 3D поворот с динамическим изменением
+      const dynamicRotationX = this.rotationX + Math.sin(t*0.5 + this.seed) * 0.1;
+      const dynamicRotationY = this.rotationY + Math.cos(t*0.7 + this.seed) * 0.1;
+      
+      const rotatedX = baseX * Math.cos(dynamicRotationX) + depth * Math.sin(dynamicRotationX);
+      const rotatedY = baseY * Math.cos(dynamicRotationY) + depth * Math.sin(dynamicRotationY);
       
       points.push({
         x: rotatedX + dx * this.amplitude * depthScale,
@@ -174,9 +190,9 @@ class NeuralLinesAnimation {
     this.tPrev = performance.now()/1000;
     
     this.params = {
-      lineCount: 8,        // Количество линий
-      lineLength: 80,      // Длина линии
-      proximity: 15,       // Дистанция для столкновения
+      lineCount: 12,       // Количество линий
+      lineLength: 120,     // Длина линии
+      proximity: 20,       // Дистанция для столкновения
       sparksRateCap: 50    // Максимум вспышек за кадр
     };
     
@@ -196,8 +212,9 @@ class NeuralLinesAnimation {
   buildLines() {
     this.lines = [];
     for(let i = 0; i < this.params.lineCount; i++) {
-      const x = Math.random() * this.W;
-      const y = Math.random() * this.H;
+      // Распределяем линии по всей области
+      const x = (i % 4) * (this.W / 4) + Math.random() * (this.W / 4);
+      const y = Math.floor(i / 4) * (this.H / 3) + Math.random() * (this.H / 3);
       const angle = Math.random() * TAU;
       
       this.lines.push(new IndependentLine({
@@ -220,7 +237,7 @@ class NeuralLinesAnimation {
     
     // Полупрозрачная смазка для шлейфа
     this.ctx.globalCompositeOperation = 'source-over';
-    this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    this.ctx.fillStyle = 'rgba(0,0,0,0.25)';
     this.ctx.fillRect(0, 0, this.W, this.H);
     
     // Получаем точки всех линий
@@ -231,10 +248,10 @@ class NeuralLinesAnimation {
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
     this.ctx.globalCompositeOperation = 'lighter';
-    this.ctx.shadowBlur = 12 * this.DPR;
-    this.ctx.shadowColor = 'rgba(214,199,184,0.8)';
-    this.ctx.strokeStyle = 'rgba(214,199,184,0.15)';
-    this.ctx.lineWidth = 4 * this.DPR;
+    this.ctx.shadowBlur = 15 * this.DPR;
+    this.ctx.shadowColor = 'rgba(214,199,184,0.9)';
+    this.ctx.strokeStyle = 'rgba(214,199,184,0.12)';
+    this.ctx.lineWidth = 5 * this.DPR;
     
     for(const points of allPoints) {
       this.ctx.beginPath();
@@ -247,9 +264,9 @@ class NeuralLinesAnimation {
     this.ctx.save();
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
-    this.ctx.strokeStyle = 'rgba(214,199,184,0.7)';
-    this.ctx.lineWidth = 1.5 * this.DPR;
-    this.ctx.shadowBlur = 6 * this.DPR;
+    this.ctx.strokeStyle = 'rgba(214,199,184,0.8)';
+    this.ctx.lineWidth = 2 * this.DPR;
+    this.ctx.shadowBlur = 8 * this.DPR;
     this.ctx.shadowColor = 'rgba(214,199,184,1)';
     
     for(const points of allPoints) {
