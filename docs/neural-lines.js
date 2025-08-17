@@ -148,13 +148,13 @@ class IndependentLine{
   }
 }
 
-/* ====== Частицы-вспышки для столкновений ====== */
+/* ====== Микро-частицы-вспышки для столкновений ====== */
 class Spark{
   constructor(x,y){
     this.x=x; this.y=y;
-    this.t=0; this.life=0.25 + Math.random()*0.25;
-    this.r0=2+Math.random()*3;
-    this.r1=18+Math.random()*16;
+    this.t=0; this.life=0.15 + Math.random()*0.1; // Уменьшено время жизни
+    this.r0=0.5+Math.random()*1; // Микроскопический размер
+    this.r1=3+Math.random()*2; // Очень маленький радиус
   }
   step(dt){ this.t+=dt; }
   get alive(){ return this.t<this.life; }
@@ -165,15 +165,15 @@ class Spark{
     ctx.globalCompositeOperation='lighter';
     
     const g = ctx.createRadialGradient(this.x,this.y, this.r0, this.x,this.y, this.r1);
-    g.addColorStop(0, `rgba(214,199,184,${0.9*a})`);
-    g.addColorStop(0.4, `rgba(214,199,184,${0.35*a})`);
+    g.addColorStop(0, `rgba(214,199,184,${0.6*a})`);
+    g.addColorStop(0.6, `rgba(214,199,184,${0.2*a})`);
     g.addColorStop(1, `rgba(214,199,184,0)`);
     ctx.fillStyle=g;
     ctx.beginPath(); ctx.arc(this.x,this.y,this.r1,0,TAU); ctx.fill();
     
-    ctx.shadowBlur=18; ctx.shadowColor='rgba(214,199,184,1)';
-    ctx.fillStyle=`rgba(214,199,184,${0.7*a})`;
-    ctx.beginPath(); ctx.arc(this.x,this.y,this.r0*(1+1.5*k),0,TAU); ctx.fill();
+    ctx.shadowBlur=3; ctx.shadowColor='rgba(214,199,184,0.8)';
+    ctx.fillStyle=`rgba(214,199,184,${0.4*a})`;
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.r0*(1+0.5*k),0,TAU); ctx.fill();
     ctx.restore();
   }
 }
@@ -194,9 +194,9 @@ class NeuralLinesAnimation {
     
     this.params = {
       lineCount: 15,       // Количество линий
-      lineLength: 200,     // Длина линии
-      proximity: 25,       // Дистанция для столкновения
-      sparksRateCap: 50    // Максимум вспышек за кадр
+      lineLength: 350,     // Увеличена длина линии
+      proximity: 20,       // Уменьшена дистанция для столкновения
+      sparksRateCap: 30    // Уменьшено количество вспышек
     };
     
     // Попытка использовать Web Worker для лучшей производительности
@@ -307,8 +307,8 @@ class NeuralLinesAnimation {
     }
     this.ctx.restore();
     
-    // Упрощенная детекция столкновений (каждый 3-й кадр)
-    if(Math.floor(now * 30) % 3 === 0) {
+    // Упрощенная детекция столкновений (каждый 5-й кадр)
+    if(Math.floor(now * 30) % 5 === 0) {
       this.detectCollisions(allPoints, now);
     }
     
@@ -332,8 +332,8 @@ class NeuralLinesAnimation {
     const prox2 = this.params.proximity * this.params.proximity;
     let sparksThisFrame = 0;
     
-    // Оптимизация: проверяем только каждую 3-ю точку
-    const step = 3;
+    // Оптимизация: проверяем только каждую 5-ю точку
+    const step = 5;
     
     for(let i = 0; i < allPoints.length; i++) {
       for(let j = i + 1; j < allPoints.length; j++) {
