@@ -11,19 +11,114 @@
     <!-- Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
-    <!-- Three.js и расширения -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/TextureLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/OutputPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <!-- Three.js и расширения с fallback -->
+    <script>
+        // Функция для загрузки скрипта с fallback
+        function loadScript(src, fallbackSrc, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = callback;
+            script.onerror = function() {
+                console.warn('⚠️ Не удалось загрузить:', src);
+                if (fallbackSrc) {
+                    console.log('🔄 Пробуем fallback:', fallbackSrc);
+                    const fallbackScript = document.createElement('script');
+                    fallbackScript.src = fallbackSrc;
+                    fallbackScript.onload = callback;
+                    fallbackScript.onerror = function() {
+                        console.error('❌ Не удалось загрузить даже fallback:', fallbackSrc);
+                        callback(new Error('Не удалось загрузить библиотеку'));
+                    };
+                    document.head.appendChild(fallbackScript);
+                } else {
+                    callback(new Error('Не удалось загрузить библиотеку'));
+                }
+            };
+            document.head.appendChild(script);
+        }
+
+        // Загрузка Three.js с несколькими fallback
+        loadScript(
+            'https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js',
+            'https://unpkg.com/three@0.158.0/build/three.min.js',
+            function(error) {
+                if (error) {
+                    console.error('❌ Не удалось загрузить Three.js');
+                    document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: white; background: #1a1a1a; height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column;"><h2>Ошибка загрузки</h2><p>Не удалось загрузить Three.js. Проверьте интернет-соединение.</p><button onclick="location.reload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Перезагрузить</button></div>';
+                } else {
+                    console.log('✅ Three.js загружен успешно');
+                    // Загружаем остальные библиотеки после Three.js
+                    loadThreeExtensions();
+                }
+            }
+        );
+
+        function loadThreeExtensions() {
+            // OrbitControls
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js',
+                'https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js',
+                function() { console.log('✅ OrbitControls загружен'); }
+            );
+
+            // GLTFLoader
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js',
+                'https://unpkg.com/three@0.158.0/examples/js/loaders/GLTFLoader.js',
+                function() { console.log('✅ GLTFLoader загружен'); }
+            );
+
+            // DRACOLoader
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js',
+                'https://unpkg.com/three@0.158.0/examples/js/loaders/DRACOLoader.js',
+                function() { console.log('✅ DRACOLoader загружен'); }
+            );
+
+            // Post-processing
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/EffectComposer.js',
+                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/EffectComposer.js',
+                function() { console.log('✅ EffectComposer загружен'); }
+            );
+
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/RenderPass.js',
+                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/RenderPass.js',
+                function() { console.log('✅ RenderPass загружен'); }
+            );
+
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/ShaderPass.js',
+                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/ShaderPass.js',
+                function() { console.log('✅ ShaderPass загружен'); }
+            );
+
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/UnrealBloomPass.js',
+                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/UnrealBloomPass.js',
+                function() { console.log('✅ UnrealBloomPass загружен'); }
+            );
+
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/OutputPass.js',
+                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/OutputPass.js',
+                function() { console.log('✅ OutputPass загружен'); }
+            );
+
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/CopyShader.js',
+                'https://unpkg.com/three@0.158.0/examples/js/shaders/CopyShader.js',
+                function() { console.log('✅ CopyShader загружен'); }
+            );
+
+            loadScript(
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/LuminosityHighPassShader.js',
+                'https://unpkg.com/three@0.158.0/examples/js/shaders/LuminosityHighPassShader.js',
+                function() { console.log('✅ LuminosityHighPassShader загружен'); }
+            );
+        }
+    </script>
     
     <!-- Анимации -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
@@ -174,24 +269,53 @@
     <!-- Проверка зависимостей -->
     <script>
         // Проверка наличия необходимых библиотек
-        window.addEventListener('load', function() {
+        let librariesLoaded = {
+            three: false,
+            tween: false,
+            gsap: false
+        };
+
+        function checkLibraries() {
             console.log('🔍 Проверка зависимостей...');
             
-            if (typeof THREE === 'undefined') {
+            if (typeof THREE !== 'undefined') {
+                librariesLoaded.three = true;
+                console.log('✅ Three.js загружен');
+            } else {
                 console.error('❌ Three.js не загружен!');
-                document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: white;">Ошибка: Three.js не загружен</div>';
-                return;
             }
             
-            if (typeof TWEEN === 'undefined') {
+            if (typeof TWEEN !== 'undefined') {
+                librariesLoaded.tween = true;
+                console.log('✅ TWEEN.js загружен');
+            } else {
                 console.warn('⚠️ TWEEN.js не загружен');
             }
             
-            if (typeof gsap === 'undefined') {
+            if (typeof gsap !== 'undefined') {
+                librariesLoaded.gsap = true;
+                console.log('✅ GSAP загружен');
+            } else {
                 console.warn('⚠️ GSAP не загружен');
             }
-            
-            console.log('✅ Все зависимости проверены');
+
+            // Если Three.js загружен, можно запускать приложение
+            if (librariesLoaded.three) {
+                console.log('✅ Все критические зависимости загружены');
+                // Запускаем приложение
+                if (window.initApp) {
+                    window.initApp();
+                }
+            } else {
+                // Повторяем проверку через 1 секунду
+                setTimeout(checkLibraries, 1000);
+            }
+        }
+
+        // Проверяем библиотеки после загрузки страницы
+        window.addEventListener('load', function() {
+            // Даем время на загрузку всех скриптов
+            setTimeout(checkLibraries, 500);
         });
     </script>
     
