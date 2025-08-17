@@ -1,0 +1,17 @@
+# Правила для автоматического использования Context7 MCP
+
+[[calls]]
+match = "when the user requests code examples, setup or configuration steps, or library/API documentation"
+tool  = "context7"
+
+[[calls]]
+match = "when the user asks about frameworks, libraries, or programming languages"
+tool  = "context7"
+
+[[calls]]
+match = "when the user needs documentation, tutorials, or best practices"
+tool  = "context7"
+
+[[calls]]
+match = "when the user asks for implementation examples or code snippets"
+tool  = "context7"

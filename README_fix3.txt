@@ -9,3 +9,20 @@
 - Маппинг банков: russian → `BANK131/RUB`; international → `UNLIMINT/EUR`.
 
 Проверьте в Railway переменные: TELEGRAM_BOT_TOKEN, TELEGRAM_PRIVATE_CHANNEL_ID, PUBLIC_BASE_URL, LAVA_TOP_API_KEY, LAVA_OFFER_ID_BASIC.
+
+---
+
+## 🚀 Context7 MCP Server
+
+Проект включает настройку [Context7 MCP сервера](https://github.com/upstash/context7) для получения актуальной документации по библиотекам прямо в AI-ассистентах.
+
+### Быстрый старт:
+1. Используйте конфигурацию из `mcp-config.json`
+2. Подробная инструкция в `CONTEXT7_SETUP.md`
+3. Автоматические правила в `.windsurfrules`
+
+### Примеры использования:
+```
+use context7
+implement basic authentication with supabase
+```
