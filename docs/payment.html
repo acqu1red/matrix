@@ -53,28 +53,28 @@
   }
   .content-text { font-size:1.1rem; line-height:1.6; color:#f0eadf; margin-bottom:20px; }
   .content-text em { color:#a6a8ad; font-style:italic; }
-  .tariff-grid { display:grid; gap:16px; margin-top:20px; }
+  .tariff-grid { display:grid; gap:16px; margin-top:20px; overflow: hidden; }
   .tariff-option { background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%); border:2px solid #444; border-radius:16px; padding:20px; cursor:pointer; transition:all .3s ease; position:relative; overflow:hidden; }
   .tariff-option::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(214,199,184,.1), transparent); transition:left .6s ease; }
   .tariff-option:hover::before { left:100%; }
   .tariff-option:hover { border-color:#d6c7b8; transform:translateY(-4px); box-shadow:0 12px 30px rgba(214,199,184,.2); }
-  .tariff-option.featured:hover { transform:scale(1.02) translateY(-4px); }
+  .tariff-option.featured:hover { transform:scale(1.01) translateY(-3px); }
   
   /* Специальные стили для 6-месячного плана */
   .tariff-option.featured { 
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
     border: 3px solid #d6c7b8;
-    box-shadow: 0 8px 25px rgba(214,199,184,.3), 0 0 30px rgba(214,199,184,.1);
+    box-shadow: 0 6px 20px rgba(214,199,184,.25), 0 0 20px rgba(214,199,184,.08);
     animation: featuredGlow 3s ease-in-out infinite alternate;
-    transform: scale(1.01);
+    transform: scale(1.005);
   }
   @keyframes featuredGlow {
     0% { 
-      box-shadow: 0 8px 25px rgba(214,199,184,.3), 0 0 30px rgba(214,199,184,.1);
+      box-shadow: 0 6px 20px rgba(214,199,184,.25), 0 0 20px rgba(214,199,184,.08);
       border-color: #d6c7b8;
     }
     100% { 
-      box-shadow: 0 12px 35px rgba(214,199,184,.5), 0 0 40px rgba(214,199,184,.2);
+      box-shadow: 0 8px 25px rgba(214,199,184,.35), 0 0 25px rgba(214,199,184,.12);
       border-color: #f0eadf;
     }
   }
@@ -94,7 +94,7 @@
     animation: neuralGlow 4s ease-in-out infinite alternate;
   }
   
-  /* Нейронная сетка с деформацией */
+  /* Canvas для независимых линий */
   .tariff-option.featured .animated-lines {
     position: absolute;
     top: 0;
@@ -104,148 +104,16 @@
     border-radius: 16px;
     z-index: -1;
     pointer-events: none;
-    background: 
-      /* Горизонтальные линии сетки */
-      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.3) 1px, transparent 2px),
-      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.25) 1px, transparent 3px),
-      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.2) 1px, transparent 4px),
-      /* Вертикальные линии сетки */
-      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.3) 1px, transparent 2px),
-      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.25) 1px, transparent 3px),
-      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.2) 1px, transparent 4px),
-      /* Диагональные линии для объема */
-      linear-gradient(45deg, transparent 0%, rgba(214,199,184,0.15) 1px, transparent 3px),
-      linear-gradient(-45deg, transparent 0%, rgba(214,199,184,0.15) 1px, transparent 3px);
-    background-size: 
-      35px 35px, 30px 30px, 25px 25px,
-      35px 35px, 30px 30px, 25px 25px,
-      40px 40px, 40px 40px;
-    animation: neuralGridDeform 20s ease-in-out infinite;
-    filter: drop-shadow(0 0 4px rgba(214,199,184,0.4));
+    overflow: hidden;
   }
   
-  /* Точки столкновения - минимальные */
-  .tariff-option.featured .animated-lines::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 25% 25%, rgba(214,199,184,0.2) 0%, transparent 3px),
-      radial-gradient(circle at 75% 75%, rgba(214,199,184,0.18) 0%, transparent 3px),
-      radial-gradient(circle at 50% 50%, rgba(214,199,184,0.15) 0%, transparent 2px);
-    animation: neuralCollision 12s ease-in-out infinite;
+  .tariff-option.featured .animated-lines canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
   
-  /* Убираем третий слой для фокуса на основных линиях */
-  
-  @keyframes neuralGlow {
-    0% { 
-      opacity: 0.3;
-      filter: blur(0px);
-    }
-    100% { 
-      opacity: 0.7;
-      filter: blur(1px);
-    }
-  }
-  
-  /* Анимация деформации нейронной сетки */
-  @keyframes neuralGridDeform {
-    0% { 
-      background-position: 
-        0% 0%, 0% 0%, 0% 0%,
-        0% 0%, 0% 0%, 0% 0%,
-        0% 0%, 0% 0%;
-      opacity: 0.6;
-      transform: perspective(300px) rotateX(0deg) rotateY(0deg) scale(1);
-    }
-    12.5% { 
-      background-position: 
-        10% 5%, 15% 10%, 20% 15%,
-        5% 10%, 10% 15%, 15% 20%,
-        8% 8%, 12% 12%;
-      opacity: 0.8;
-      transform: perspective(300px) rotateX(2deg) rotateY(-1deg) scale(1.05);
-    }
-    25% { 
-      background-position: 
-        20% 10%, 25% 5%, 30% 0%,
-        10% 20%, 15% 25%, 20% 30%,
-        16% 16%, 20% 20%;
-      opacity: 1.0;
-      transform: perspective(300px) rotateX(-1deg) rotateY(2deg) scale(0.95);
-    }
-    37.5% { 
-      background-position: 
-        30% 15%, 35% 20%, 40% 25%,
-        15% 30%, 20% 35%, 25% 40%,
-        24% 24%, 28% 28%;
-      opacity: 0.9;
-      transform: perspective(300px) rotateX(3deg) rotateY(-2deg) scale(1.1);
-    }
-    50% { 
-      background-position: 
-        40% 20%, 45% 25%, 50% 30%,
-        20% 40%, 25% 45%, 30% 50%,
-        32% 32%, 36% 36%;
-      opacity: 0.7;
-      transform: perspective(300px) rotateX(-2deg) rotateY(3deg) scale(0.9);
-    }
-    62.5% { 
-      background-position: 
-        50% 25%, 55% 30%, 60% 35%,
-        25% 50%, 30% 55%, 35% 60%,
-        40% 40%, 44% 44%;
-      opacity: 0.8;
-      transform: perspective(300px) rotateX(1deg) rotateY(-3deg) scale(1.05);
-    }
-    75% { 
-      background-position: 
-        60% 30%, 65% 35%, 70% 40%,
-        30% 60%, 35% 65%, 40% 70%,
-        48% 48%, 52% 52%;
-      opacity: 0.9;
-      transform: perspective(300px) rotateX(-3deg) rotateY(1deg) scale(0.95);
-    }
-    87.5% { 
-      background-position: 
-        70% 35%, 75% 40%, 80% 45%,
-        35% 70%, 40% 75%, 45% 80%,
-        56% 56%, 60% 60%;
-      opacity: 0.8;
-      transform: perspective(300px) rotateX(2deg) rotateY(-1deg) scale(1.1);
-    }
-    100% { 
-      background-position: 
-        0% 0%, 0% 0%, 0% 0%,
-        0% 0%, 0% 0%, 0% 0%,
-        0% 0%, 0% 0%;
-      opacity: 0.6;
-      transform: perspective(300px) rotateX(0deg) rotateY(0deg) scale(1);
-    }
-  }
-  
-  @keyframes neuralCollision {
-    0%, 100% { 
-      opacity: 0.2;
-      transform: scale(1);
-    }
-    25% { 
-      opacity: 0.6;
-      transform: scale(1.1);
-    }
-    50% { 
-      opacity: 0.4;
-      transform: scale(0.95);
-    }
-    75% { 
-      opacity: 0.7;
-      transform: scale(1.05);
-    }
-  }
+
   
 
   
@@ -412,7 +280,9 @@
         </div>
         
         <div class="tariff-option featured" data-tariff="6_months" data-price="3990" data-periodicity="PERIOD_180_DAYS">
-          <div class="animated-lines"></div>
+          <div class="animated-lines">
+            <canvas id="neuralCanvas"></canvas>
+          </div>
           <div class="best-price-badge">Лучшая цена</div>
           <div class="tariff-header">
             <div class="tariff-name">6 месяцев</div>
@@ -511,9 +381,19 @@
   </div>
 </main>
 
+<script src="neural-lines.js"></script>
 <script>
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
+
+// Инициализация анимации нейронных линий
+let neuralAnimation = null;
+function initNeuralAnimation() {
+  const canvas = document.getElementById('neuralCanvas');
+  if (canvas && window.NeuralLinesAnimation) {
+    neuralAnimation = new NeuralLinesAnimation(canvas);
+  }
+}
 
 const state = { 
   currentStep: 1, 
@@ -541,6 +421,8 @@ const state = {
 
 document.addEventListener('DOMContentLoaded', initUI);
 function initUI(){
+  // Инициализация анимации нейронных линий
+  initNeuralAnimation();
   document.querySelectorAll('.tariff-option').forEach(opt=>{
     opt.addEventListener('click', ()=>{
       state.selectedTariff = opt.dataset.tariff;
