@@ -31,14 +31,14 @@
   .tariff-title-block { background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
                         border:3px solid #d6c7b8; border-radius:20px; padding:20px; margin-bottom:20px; position:relative; overflow:hidden;
                         animation: tariffTitleGlow 2s ease-in-out infinite alternate; box-shadow:0 8px 25px rgba(214,199,184,.2); }
-  .tariff-title-block::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
-                                background: linear-gradient(90deg, transparent, rgba(214,199,184,.1), transparent);
+  .tariff-title-block::before { content:''; position:absolute; top:0; left:0; width:100%; height:100%;
+                                background: linear-gradient(180deg, transparent, rgba(214,199,184,.1), transparent);
                                 animation: tariffTitleShimmer 3s ease-in-out infinite; }
   .tariff-title-block::after { content:''; position:absolute; top:-50%; right:-50%; width:100px; height:100px;
                                background: radial-gradient(circle, rgba(214,199,184,.1) 0%, transparent 70%);
                                border-radius:50%; animation: tariffTitlePulse 4s ease-in-out infinite; }
   @keyframes tariffTitleGlow { 0%{ box-shadow:0 8px 25px rgba(214,199,184,.2); border-color:#d6c7b8; } 100%{ box-shadow:0 12px 35px rgba(214,199,184,.4); border-color:#f0eadf; } }
-  @keyframes tariffTitleShimmer { 0%{left:-100%;} 100%{left:100%;} }
+  @keyframes tariffTitleShimmer { 0%{opacity:0; transform:translateY(-20px);} 50%{opacity:1; transform:translateY(0);} 100%{opacity:0; transform:translateY(20px);} }
   @keyframes tariffTitlePulse { 0%,100%{ transform:scale(1); opacity:.3;} 50%{ transform:scale(1.2); opacity:.6;} }
   .tariff-title-text { font-size:1.3rem; font-weight:700; color:#f0eadf; text-align:left; margin:0; padding-left:16px; padding-right:80px; position:relative; z-index:2; text-shadow:0 2px 4px rgba(0,0,0,.5); animation: tariffTitleText 2s ease-in-out infinite alternate; }
   @keyframes tariffTitleText { 0%{ transform:scale(1); color:#f0eadf;} 100%{ transform:scale(1.02); color:#d6c7b8;} }
@@ -58,6 +58,7 @@
   .tariff-option::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(214,199,184,.1), transparent); transition:left .6s ease; }
   .tariff-option:hover::before { left:100%; }
   .tariff-option:hover { border-color:#d6c7b8; transform:translateY(-4px); box-shadow:0 12px 30px rgba(214,199,184,.2); }
+  .tariff-option.featured:hover { transform:scale(1.02) translateY(-4px); }
   
   /* Специальные стили для 6-месячного плана */
   .tariff-option.featured { 
@@ -80,18 +81,77 @@
   .tariff-option.featured::after {
     content: '';
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #d6c7b8, #f0eadf, #d6c7b8);
-    border-radius: 18px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      linear-gradient(90deg, transparent 0%, rgba(214,199,184,0.3) 20%, transparent 40%, rgba(214,199,184,0.3) 60%, transparent 80%, rgba(214,199,184,0.3) 100%),
+      linear-gradient(0deg, transparent 0%, rgba(214,199,184,0.2) 30%, transparent 60%, rgba(214,199,184,0.2) 90%, transparent 100%);
+    background-size: 200% 2px, 2px 200%;
+    border-radius: 16px;
     z-index: -1;
-    animation: borderRotate 4s linear infinite;
+    animation: animatedLines 6s linear infinite;
   }
-  @keyframes borderRotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  
+  /* Дополнительные анимированные линии */
+  .tariff-option.featured .animated-lines {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      linear-gradient(45deg, transparent 0%, rgba(214,199,184,0.4) 25%, transparent 50%, rgba(214,199,184,0.4) 75%, transparent 100%),
+      linear-gradient(-45deg, transparent 0%, rgba(214,199,184,0.3) 25%, transparent 50%, rgba(214,199,184,0.3) 75%, transparent 100%);
+    background-size: 150% 1px, 1px 150%;
+    border-radius: 16px;
+    z-index: -1;
+    animation: animatedLines2 8s linear infinite reverse;
+    pointer-events: none;
+  }
+  
+  @keyframes animatedLines {
+    0% { 
+      background-position: 0% 0%, 0% 0%;
+      opacity: 0.3;
+    }
+    25% { 
+      background-position: 100% 0%, 0% 100%;
+      opacity: 0.7;
+    }
+    50% { 
+      background-position: 0% 100%, 100% 0%;
+      opacity: 0.5;
+    }
+    75% { 
+      background-position: 100% 100%, 100% 100%;
+      opacity: 0.8;
+    }
+    100% { 
+      background-position: 0% 0%, 0% 0%;
+      opacity: 0.3;
+    }
+  }
+  
+  @keyframes animatedLines2 {
+    0% { 
+      background-position: 0% 0%, 0% 0%;
+      opacity: 0.2;
+    }
+    33% { 
+      background-position: 100% 0%, 0% 100%;
+      opacity: 0.6;
+    }
+    66% { 
+      background-position: 0% 100%, 100% 0%;
+      opacity: 0.4;
+    }
+    100% { 
+      background-position: 0% 0%, 0% 0%;
+      opacity: 0.2;
+    }
   }
   
   .tariff-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
@@ -252,6 +312,7 @@
         </div>
         
         <div class="tariff-option featured" data-tariff="6_months" data-price="3990" data-periodicity="PERIOD_180_DAYS">
+          <div class="animated-lines"></div>
           <div class="best-price-badge">Лучшая цена</div>
           <div class="tariff-header">
             <div class="tariff-name">6 месяцев</div>
