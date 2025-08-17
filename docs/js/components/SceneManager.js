@@ -158,7 +158,7 @@ export class SceneManager extends EventEmitter {
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.2;
-        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         
         // Проверяем, существует ли контейнер
         const container = document.getElementById('scene-container');
@@ -178,6 +178,27 @@ export class SceneManager extends EventEmitter {
     }
     
     createControls() {
+        // Проверяем доступность OrbitControls
+        if (typeof THREE.OrbitControls === 'undefined') {
+            console.warn('⚠️ OrbitControls не загружен, создаем простые контролы');
+            // Создаем простые контролы без OrbitControls
+            this.controls = {
+                enabled: false,
+                update: () => {},
+                reset: () => {},
+                enableDamping: false,
+                dampingFactor: 0.05,
+                screenSpacePanning: false,
+                maxPolarAngle: Math.PI / 2,
+                minDistance: 20,
+                maxDistance: 100,
+                addEventListener: () => {},
+                dollyIn: () => {},
+                dollyOut: () => {}
+            };
+            return;
+        }
+        
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
@@ -202,27 +223,45 @@ export class SceneManager extends EventEmitter {
     }
     
     createPostProcessing() {
-        this.composer = new THREE.EffectComposer(this.renderer);
+        // Проверяем доступность эффектов
+        if (typeof THREE.EffectComposer === 'undefined') {
+            console.warn('⚠️ EffectComposer не загружен, используем обычный рендерер');
+            this.composer = null;
+            return;
+        }
         
-        // Основной рендер пасс
-        const renderPass = new THREE.RenderPass(this.scene, this.camera);
-        this.composer.addPass(renderPass);
-        
-        // Bloom эффект
-        const bloomSettings = this.isMobile ? this.mobileSettings : this.settings;
-        this.bloomPass = new THREE.UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            bloomSettings.bloomStrength,
-            bloomSettings.bloomRadius,
-            bloomSettings.bloomThreshold
-        );
-        this.composer.addPass(this.bloomPass);
-        
-        // Output пасс для правильного отображения
-        this.outputPass = new THREE.ShaderPass(THREE.CopyShader);
-        this.outputPass.uniforms.tDiffuse.value = null;
-        this.outputPass.renderToScreen = true;
-        this.composer.addPass(this.outputPass);
+        try {
+            this.composer = new THREE.EffectComposer(this.renderer);
+            
+            // Основной рендер пасс
+            const renderPass = new THREE.RenderPass(this.scene, this.camera);
+            this.composer.addPass(renderPass);
+            
+            // Bloom эффект (если доступен)
+            if (typeof THREE.UnrealBloomPass !== 'undefined') {
+                const bloomSettings = this.isMobile ? this.mobileSettings : this.settings;
+                this.bloomPass = new THREE.UnrealBloomPass(
+                    new THREE.Vector2(window.innerWidth, window.innerHeight),
+                    bloomSettings.bloomStrength,
+                    bloomSettings.bloomRadius,
+                    bloomSettings.bloomThreshold
+                );
+                this.composer.addPass(this.bloomPass);
+            }
+            
+            // Output пасс для правильного отображения
+            if (typeof THREE.CopyShader !== 'undefined') {
+                this.outputPass = new THREE.ShaderPass(THREE.CopyShader);
+                this.outputPass.uniforms.tDiffuse.value = null;
+                this.outputPass.renderToScreen = true;
+                this.composer.addPass(this.outputPass);
+            }
+            
+            console.log('✅ Post-processing создан');
+        } catch (error) {
+            console.warn('⚠️ Ошибка создания post-processing:', error);
+            this.composer = null;
+        }
     }
     
     createLighting() {

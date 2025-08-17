@@ -54,67 +54,73 @@
         );
 
         function loadThreeExtensions() {
-            // OrbitControls
+            // OrbitControls - используем правильные URL
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js',
-                'https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js',
-                function() { console.log('✅ OrbitControls загружен'); }
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/controls/OrbitControls.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js',
+                function() { 
+                    console.log('✅ OrbitControls загружен');
+                    // Делаем OrbitControls доступным глобально
+                    if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls === 'undefined') {
+                        THREE.OrbitControls = window.OrbitControls;
+                    }
+                }
             );
 
             // GLTFLoader
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js',
-                'https://unpkg.com/three@0.158.0/examples/js/loaders/GLTFLoader.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js',
                 function() { console.log('✅ GLTFLoader загружен'); }
             );
 
             // DRACOLoader
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js',
-                'https://unpkg.com/three@0.158.0/examples/js/loaders/DRACOLoader.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/DRACOLoader.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/loaders/DRACOLoader.js',
                 function() { console.log('✅ DRACOLoader загружен'); }
             );
 
             // Post-processing
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/EffectComposer.js',
-                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/EffectComposer.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/EffectComposer.js',
                 function() { console.log('✅ EffectComposer загружен'); }
             );
 
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/RenderPass.js',
-                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/RenderPass.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/postprocessing/RenderPass.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/RenderPass.js',
                 function() { console.log('✅ RenderPass загружен'); }
             );
 
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/ShaderPass.js',
-                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/ShaderPass.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/ShaderPass.js',
                 function() { console.log('✅ ShaderPass загружен'); }
             );
 
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/UnrealBloomPass.js',
-                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/UnrealBloomPass.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/UnrealBloomPass.js',
                 function() { console.log('✅ UnrealBloomPass загружен'); }
             );
 
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/postprocessing/OutputPass.js',
-                'https://unpkg.com/three@0.158.0/examples/js/postprocessing/OutputPass.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/postprocessing/OutputPass.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/postprocessing/OutputPass.js',
                 function() { console.log('✅ OutputPass загружен'); }
             );
 
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/CopyShader.js',
-                'https://unpkg.com/three@0.158.0/examples/js/shaders/CopyShader.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/shaders/CopyShader.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/shaders/CopyShader.js',
                 function() { console.log('✅ CopyShader загружен'); }
             );
 
             loadScript(
-                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/shaders/LuminosityHighPassShader.js',
-                'https://unpkg.com/three@0.158.0/examples/js/shaders/LuminosityHighPassShader.js',
+                'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/shaders/LuminosityHighPassShader.js',
+                'https://unpkg.com/three@0.158.0/examples/jsm/shaders/LuminosityHighPassShader.js',
                 function() { console.log('✅ LuminosityHighPassShader загружен'); }
             );
         }
@@ -300,13 +306,14 @@
             }
 
             // Если Three.js загружен, можно запускать приложение
-            if (librariesLoaded.three) {
+            if (librariesLoaded.three && !window.isAppInitialized) {
                 console.log('✅ Все критические зависимости загружены');
                 // Запускаем приложение
                 if (window.initApp) {
+                    window.isAppInitialized = true;
                     window.initApp();
                 }
-            } else {
+            } else if (!librariesLoaded.three) {
                 // Повторяем проверку через 1 секунду
                 setTimeout(checkLibraries, 1000);
             }

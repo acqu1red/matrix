@@ -435,12 +435,16 @@ window.app = {
 // Экспорт функции инициализации для внешнего вызова
 window.initApp = initApp;
 
+// Флаг для предотвращения дублирования инициализации
+let isAppInitialized = false;
+
 // Запуск приложения (если библиотеки уже загружены)
 console.log('🚀 Подготовка приложения...');
 document.addEventListener('DOMContentLoaded', function() {
     // Проверяем, загружен ли Three.js
-    if (typeof THREE !== 'undefined') {
+    if (typeof THREE !== 'undefined' && !isAppInitialized) {
         console.log('🚀 Three.js уже загружен, запускаем приложение...');
+        isAppInitialized = true;
         initApp();
     } else {
         console.log('⏳ Ожидание загрузки Three.js...');
