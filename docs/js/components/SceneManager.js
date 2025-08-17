@@ -140,9 +140,11 @@ export class SceneManager extends EventEmitter {
         const aspect = window.innerWidth / window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
         
-        // Начальная позиция камеры
-        this.camera.position.set(0, 30, 50);
-        this.camera.lookAt(0, 0, 0);
+        // Позиция "человека" - на уровне глаз, стоящего на земле
+        this.camera.position.set(0, 1.7, 30); // 1.7м - средний рост человека
+        this.camera.lookAt(0, 1.7, 0); // Смотрит на уровень глаз
+        
+        console.log('✅ Камера установлена на позицию человека (1.7м от земли)');
     }
     
     createRenderer() {
@@ -228,12 +230,16 @@ export class SceneManager extends EventEmitter {
         
         if (this.isMobile) {
             this.controls.maxPolarAngle = this.mobileSettings.maxPolarAngle;
-            this.controls.minDistance = this.mobileSettings.minDistance;
-            this.controls.maxDistance = this.mobileSettings.maxDistance;
+            this.controls.minDistance = 5; // Минимальное расстояние для мобильных
+            this.controls.maxDistance = 50;
         } else {
-            this.controls.maxPolarAngle = Math.PI / 2;
-            this.controls.minDistance = 20;
-            this.controls.maxDistance = 100;
+            // Ограничения для "человека" - не может смотреть за спину
+            this.controls.maxPolarAngle = Math.PI / 2.1; // Ограничение вверх
+            this.controls.minPolarAngle = Math.PI / 6; // Ограничение вниз (не смотрит под ноги)
+            this.controls.minDistance = 3; // Минимальное расстояние
+            this.controls.maxDistance = 80; // Максимальное расстояние
+            this.controls.maxAzimuthAngle = Math.PI / 2; // Ограничение поворота влево
+            this.controls.minAzimuthAngle = -Math.PI / 2; // Ограничение поворота вправо
         }
         
         this.controls.addEventListener('change', () => {
@@ -287,33 +293,49 @@ export class SceneManager extends EventEmitter {
     }
     
     createLighting() {
-        // Ambient свет
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        // Ambient свет для базового освещения
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
         this.scene.add(ambientLight);
         
         // Основное направленное освещение (солнце)
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
         directionalLight.position.set(50, 100, 50);
         directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.mapSize.width = 4096; // Увеличиваем качество теней
+        directionalLight.shadow.mapSize.height = 4096;
         directionalLight.shadow.camera.near = 0.5;
         directionalLight.shadow.camera.far = 500;
         directionalLight.shadow.camera.left = -100;
         directionalLight.shadow.camera.right = 100;
         directionalLight.shadow.camera.top = 100;
         directionalLight.shadow.camera.bottom = -100;
+        directionalLight.shadow.bias = -0.0001; // Убираем артефакты теней
         this.scene.add(directionalLight);
         
         // Дополнительное освещение для храмов
-        const templeLight = new THREE.PointLight(0xffd700, 0.8, 40);
-        templeLight.position.set(0, 20, 0);
+        const templeLight = new THREE.PointLight(0xffd700, 1.0, 60);
+        templeLight.position.set(0, 25, 0);
+        templeLight.castShadow = true;
+        templeLight.shadow.mapSize.width = 1024;
+        templeLight.shadow.mapSize.height = 1024;
         this.scene.add(templeLight);
         
         // Заполняющий свет
-        const fillLight = new THREE.DirectionalLight(0x87ceeb, 0.3);
+        const fillLight = new THREE.DirectionalLight(0x87ceeb, 0.4);
         fillLight.position.set(-50, 50, -50);
         this.scene.add(fillLight);
+        
+        // Освещение сзади для контраста
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(0, 50, -100);
+        this.scene.add(backLight);
+        
+        // Освещение снизу для атмосферы
+        const groundLight = new THREE.PointLight(0x8B4513, 0.2, 30);
+        groundLight.position.set(0, 0.5, 0);
+        this.scene.add(groundLight);
+        
+        console.log('✅ Детализированное освещение создано');
     }
     
     createSkybox() {
@@ -352,12 +374,22 @@ export class SceneManager extends EventEmitter {
     }
     
     createIsland() {
-        // Основная геометрия острова
-        const islandGeometry = new THREE.CylinderGeometry(40, 50, 10, 32);
+        // Создаем детализированный остров
+        this.createIslandTerrain();
+        this.createIslandVegetation();
+        this.createIslandRocks();
+        this.createIslandPath();
+        
+        console.log('✅ Детализированный остров создан');
+    }
+    
+    createIslandTerrain() {
+        // Основная геометрия острова с неровностями
+        const islandGeometry = new THREE.CylinderGeometry(40, 50, 10, 64); // Больше сегментов
         const islandMaterial = new THREE.MeshLambertMaterial({
             color: 0x8fbc8f,
-            transparent: true,
-            opacity: 0.9
+            roughness: 0.8,
+            metalness: 0.1
         });
         
         this.island = new THREE.Mesh(islandGeometry, islandMaterial);
@@ -366,22 +398,132 @@ export class SceneManager extends EventEmitter {
         this.island.receiveShadow = true;
         this.scene.add(this.island);
         
-        // Текстура травы
-        const grassGeometry = new THREE.PlaneGeometry(100, 100);
-        const grassMaterial = new THREE.MeshLambertMaterial({
+        // Детализированная поверхность земли
+        const groundGeometry = new THREE.PlaneGeometry(120, 120, 32, 32);
+        const groundMaterial = new THREE.MeshLambertMaterial({
             color: 0x556b2f,
-            transparent: true,
-            opacity: 0.8
+            roughness: 0.9
         });
         
-        const grass = new THREE.Mesh(grassGeometry, grassMaterial);
-        grass.rotation.x = -Math.PI / 2;
-        grass.position.y = 0.1;
-        grass.receiveShadow = true;
-        this.scene.add(grass);
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = 0.05;
+        ground.receiveShadow = true;
         
-        // Детали острова
-        this.createIslandDetails();
+        // Добавляем неровности на поверхность
+        this.addGroundDisplacement(ground);
+        this.scene.add(ground);
+    }
+    
+    addGroundDisplacement(ground) {
+        const vertices = ground.geometry.attributes.position.array;
+        for (let i = 0; i < vertices.length; i += 3) {
+            const x = vertices[i];
+            const z = vertices[i + 2];
+            vertices[i + 1] = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 0.5;
+        }
+        ground.geometry.attributes.position.needsUpdate = true;
+        ground.geometry.computeVertexNormals();
+    }
+    
+    createIslandVegetation() {
+        // Создаем растительность
+        const grassCount = 200;
+        const grassGeometry = new THREE.ConeGeometry(0.1, 0.3, 4);
+        const grassMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+        
+        for (let i = 0; i < grassCount; i++) {
+            const grass = new THREE.Mesh(grassGeometry, grassMaterial);
+            grass.position.set(
+                (Math.random() - 0.5) * 80,
+                0.15,
+                (Math.random() - 0.5) * 80
+            );
+            grass.rotation.x = Math.random() * 0.2 - 0.1;
+            grass.rotation.z = Math.random() * 0.2 - 0.1;
+            grass.castShadow = true;
+            this.scene.add(grass);
+        }
+        
+        // Цветы
+        const flowerCount = 50;
+        const flowerGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+        const flowerColors = [0xFF69B4, 0xFFD700, 0xFF6347, 0x9370DB];
+        
+        for (let i = 0; i < flowerCount; i++) {
+            const flowerMaterial = new THREE.MeshLambertMaterial({ 
+                color: flowerColors[Math.floor(Math.random() * flowerColors.length)]
+            });
+            const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+            flower.position.set(
+                (Math.random() - 0.5) * 60,
+                0.1,
+                (Math.random() - 0.5) * 60
+            );
+            this.scene.add(flower);
+        }
+    }
+    
+    createIslandRocks() {
+        // Создаем камни и валуны
+        const rockCount = 30;
+        const rockGeometry = new THREE.DodecahedronGeometry(0.5, 0);
+        const rockMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x696969,
+            roughness: 0.9
+        });
+        
+        for (let i = 0; i < rockCount; i++) {
+            const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+            rock.position.set(
+                (Math.random() - 0.5) * 70,
+                0.25,
+                (Math.random() - 0.5) * 70
+            );
+            rock.rotation.set(
+                Math.random() * Math.PI,
+                Math.random() * Math.PI,
+                Math.random() * Math.PI
+            );
+            rock.scale.set(
+                0.5 + Math.random() * 1,
+                0.5 + Math.random() * 1,
+                0.5 + Math.random() * 1
+            );
+            rock.castShadow = true;
+            rock.receiveShadow = true;
+            this.scene.add(rock);
+        }
+    }
+    
+    createIslandPath() {
+        // Создаем дорожку к храмам
+        const pathGeometry = new THREE.PlaneGeometry(3, 40, 8, 8);
+        const pathMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0xD2B48C,
+            roughness: 0.7
+        });
+        
+        const path = new THREE.Mesh(pathGeometry, pathMaterial);
+        path.rotation.x = -Math.PI / 2;
+        path.position.set(0, 0.02, 10);
+        path.receiveShadow = true;
+        this.scene.add(path);
+        
+        // Камни вдоль дорожки
+        for (let i = 0; i < 20; i++) {
+            const stoneGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.3);
+            const stoneMaterial = new THREE.MeshLambertMaterial({ color: 0x8B7355 });
+            const stone = new THREE.Mesh(stoneGeometry, stoneMaterial);
+            stone.position.set(
+                (Math.random() - 0.5) * 4,
+                0.05,
+                -10 + i * 1
+            );
+            stone.rotation.y = Math.random() * Math.PI;
+            stone.receiveShadow = true;
+            this.scene.add(stone);
+        }
     }
     
     createIslandDetails() {
