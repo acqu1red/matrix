@@ -333,6 +333,9 @@ function spinRoulette(isFree = false) {
   } else if (isFree && !isAdmin()) {
     userData.lastFreeSpin = new Date().toISOString();
     updateRouletteButton();
+  } else if (isAdmin()) {
+    // Администраторы крутят бесплатно и без ограничений
+    toast("🎯 Администратор: бесплатный прокрут", "success");
   }
   
   saveUserData();
@@ -421,7 +424,8 @@ async function showPrizeModal(prize, isFree = false) {
   description.textContent = `Вы выиграли: ${prize.name}`;
   
   // Сохраняем историю рулетки
-  await saveRouletteHistory(prize.id, prize.name, isFree, isFree ? 0 : SPIN_COST);
+  const isAdminSpin = isAdmin();
+  await saveRouletteHistory(prize.id, prize.name, isFree || isAdminSpin, isFree || isAdminSpin ? 0 : SPIN_COST);
   
   let contentHTML = '';
   
@@ -688,14 +692,15 @@ async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, 
 
 // Функция для сохранения истории рулетки
 async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, promoCodeId = null) {
-  console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId });
+  const isAdminSpin = isAdmin();
+  console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId, isAdminSpin });
   
   if (supabase && userData.telegramId) {
     try {
       const rouletteData = {
         user_id: userData.telegramId,
         prize_type: prizeType,
-        prize_name: prizeName,
+        prize_name: isAdminSpin ? `${prizeName} (Админ)` : prizeName,
         is_free: isFree,
         mulacoin_spent: mulacoinSpent,
         promo_code_id: promoCodeId
@@ -1309,7 +1314,8 @@ async function savePromo(code, uid){
 
 // Функция для проверки, является ли пользователь админом
 function isAdmin() {
-  return userData.telegramId && userData.telegramId.toString() === '123456789'; // Замените на реальный ID админа
+  const adminIds = ['123456789', '708907063']; // Список ID администраторов
+  return userData.telegramId && adminIds.includes(userData.telegramId.toString());
 }
 
 function canSpinFree() {
@@ -1328,7 +1334,13 @@ function updateRouletteButton() {
   
   if (!spinBtn || !buyBtn) return;
   
-  if (canSpinFree()) {
+  if (isAdmin()) {
+    // Специальный текст для администраторов
+    spinBtn.textContent = "🎰 Крутить рулетку (∞)";
+    spinBtn.disabled = false;
+    spinBtn.classList.remove("disabled");
+    spinBtn.title = "Администратор: бесконечные попытки";
+  } else if (canSpinFree()) {
     spinBtn.textContent = "🎰 Крутить рулетку";
     spinBtn.disabled = false;
     spinBtn.classList.remove("disabled");
