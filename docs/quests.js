@@ -427,7 +427,7 @@ async function saveUserData() {
     if (supabase && userData.telegramId) {
       try {
         const { error } = await supabase
-          .from('users')
+          .from('bot_user')
           .upsert({
             telegram_id: userData.telegramId,
             mulacoin: userData.mulacoin,
@@ -453,7 +453,7 @@ async function loadUserData(userId) {
   if (supabase && userData.telegramId) {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('bot_user')
         .select('*')
         .eq('telegram_id', userData.telegramId)
         .single();
