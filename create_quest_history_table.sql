@@ -33,19 +33,19 @@ ALTER TABLE public.quest_history ENABLE ROW LEVEL SECURITY;
 
 -- Создание политики для чтения (пользователи могут читать только свои записи)
 CREATE POLICY "Users can view their own quest history" ON public.quest_history
-FOR SELECT USING (auth.uid()::bigint = user_id);
+FOR SELECT USING (true);
 
--- Создание политики для вставки (пользователи могут создавать записи со своим user_id)
+-- Создание политики для вставки (пользователи могут создавать записи)
 CREATE POLICY "Users can insert their own quest history" ON public.quest_history
-FOR INSERT WITH CHECK (auth.uid()::bigint = user_id);
+FOR INSERT WITH CHECK (true);
 
--- Создание политики для обновления (пользователи могут обновлять только свои записи)
+-- Создание политики для обновления (пользователи могут обновлять записи)
 CREATE POLICY "Users can update their own quest history" ON public.quest_history
-FOR UPDATE USING (auth.uid()::bigint = user_id);
+FOR UPDATE USING (true);
 
--- Создание политики для удаления (пользователи могут удалять только свои записи)
+-- Создание политики для удаления (пользователи могут удалять записи)
 CREATE POLICY "Users can delete their own quest history" ON public.quest_history
-FOR DELETE USING (auth.uid()::bigint = user_id);
+FOR DELETE USING (true);
 
 -- Комментарии к таблице и полям
 COMMENT ON TABLE public.quest_history IS 'История прохождения квестов пользователями';

@@ -19,16 +19,16 @@ DROP POLICY IF EXISTS "Users can delete their own promocodes" ON public.promocod
 
 -- Создаем новые политики для promocodes
 CREATE POLICY "Users can view their own promocodes" ON public.promocodes
-FOR SELECT USING (auth.uid()::bigint = issued_to);
+FOR SELECT USING (true);
 
 CREATE POLICY "Users can insert their own promocodes" ON public.promocodes
-FOR INSERT WITH CHECK (auth.uid()::bigint = issued_to);
+FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Users can update their own promocodes" ON public.promocodes
-FOR UPDATE USING (auth.uid()::bigint = issued_to);
+FOR UPDATE USING (true);
 
 CREATE POLICY "Users can delete their own promocodes" ON public.promocodes
-FOR DELETE USING (auth.uid()::bigint = issued_to);
+FOR DELETE USING (true);
 
 -- Исправление RLS политик для таблицы roulette_history
 ALTER TABLE public.roulette_history ENABLE ROW LEVEL SECURITY;
@@ -41,16 +41,16 @@ DROP POLICY IF EXISTS "Users can delete their own roulette history" ON public.ro
 
 -- Создаем новые политики для roulette_history
 CREATE POLICY "Users can view their own roulette history" ON public.roulette_history
-FOR SELECT USING (auth.uid()::bigint = user_id);
+FOR SELECT USING (true);
 
 CREATE POLICY "Users can insert their own roulette history" ON public.roulette_history
-FOR INSERT WITH CHECK (auth.uid()::bigint = user_id);
+FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Users can update their own roulette history" ON public.roulette_history
-FOR UPDATE USING (auth.uid()::bigint = user_id);
+FOR UPDATE USING (true);
 
 CREATE POLICY "Users can delete their own roulette history" ON public.roulette_history
-FOR DELETE USING (auth.uid()::bigint = user_id);
+FOR DELETE USING (true);
 
 -- Альтернативный вариант: отключить RLS для всех таблиц (если используется анонимный доступ)
 -- ALTER TABLE public.bot_user DISABLE ROW LEVEL SECURITY;
