@@ -279,7 +279,6 @@ function spinRoulette(isFree = false) {
   
   // Добавляем плавную анимацию скольжения
   items.classList.add('spinning');
-  items.style.transform = `translateX(-${slideDistance}px)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
@@ -300,10 +299,10 @@ function spinRoulette(isFree = false) {
       items.style.transition = 'none';
       items.style.transform = 'translateX(0)';
       setTimeout(() => {
-        items.style.transition = 'transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        items.style.transition = 'transform 8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
       }, 50);
     }, 1000);
-  }, 5000);
+  }, 8000);
 }
 
 function selectPrizeByProbability() {
@@ -933,11 +932,16 @@ function buildCards(state){
         <div class="description">${q.description}</div>
         <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
         <div class="cta">
-          <button class="btn ghost" onclick="showSubscriptionPrompt()">Получить доступ</button>
+          <button class="btn ghost locked-access-btn">Получить доступ</button>
         </div>
       `;
       
       container.appendChild(card);
+    });
+    
+    // Добавляем обработчики для заблокированных квестов
+    document.querySelectorAll('.locked-access-btn').forEach(btn => {
+      btn.addEventListener('click', showSubscriptionPrompt);
     });
   }
 }
@@ -985,12 +989,24 @@ function showQuestDetails(q, state) {
       ` : ''}
     </div>
     <div class="questActions">
-      <button class="btn primary" onclick="startQuest('${q.id}', ${JSON.stringify(state)})">Начать квест</button>
-      <button class="btn ghost" onclick="closeModal()">Закрыть</button>
+      <button class="btn primary" id="startQuestBtn">Начать квест</button>
+      <button class="btn ghost" id="closeModalBtn">Закрыть</button>
     </div>
   `;
   
   modal.classList.add("show");
+  
+  // Добавляем обработчики событий для кнопок в модальном окне
+  const startQuestBtn = modal.querySelector("#startQuestBtn");
+  const closeModalBtn = modal.querySelector("#closeModalBtn");
+  
+  if (startQuestBtn) {
+    startQuestBtn.addEventListener("click", () => startQuest(q, state));
+  }
+  
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener("click", closeModal);
+  }
 }
 
 function showSubscriptionPrompt() {
@@ -1014,12 +1030,24 @@ function showSubscriptionPrompt() {
       </div>
     </div>
     <div class="questActions">
-      <button class="btn primary" onclick="openSubscription()">Оформить подписку</button>
-      <button class="btn ghost" onclick="closeModal()">Позже</button>
+      <button class="btn primary" id="openSubscriptionBtn">Оформить подписку</button>
+      <button class="btn ghost" id="closeSubscriptionBtn">Позже</button>
     </div>
   `;
   
   modal.classList.add("show");
+  
+  // Добавляем обработчики событий для кнопок подписки
+  const openSubscriptionBtn = modal.querySelector("#openSubscriptionBtn");
+  const closeSubscriptionBtn = modal.querySelector("#closeSubscriptionBtn");
+  
+  if (openSubscriptionBtn) {
+    openSubscriptionBtn.addEventListener("click", openSubscription);
+  }
+  
+  if (closeSubscriptionBtn) {
+    closeSubscriptionBtn.addEventListener("click", closeModal);
+  }
 }
 
 function openSubscription() {

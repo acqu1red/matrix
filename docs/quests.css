@@ -246,6 +246,7 @@ h3 { font-size: 1.25rem; }
     inset 0 0 30px rgba(0,0,0,0.3);
   overflow: hidden;
   padding: 30px;
+  z-index: 1;
 }
 
 .roulette-display {
@@ -270,7 +271,7 @@ h3 { font-size: 1.25rem; }
   height: 100%;
   display: flex;
   align-items: center;
-  transition: transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .roulette-item {
@@ -583,6 +584,8 @@ h3 { font-size: 1.25rem; }
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 10;
 }
 
 .btn.large {
@@ -594,17 +597,20 @@ h3 { font-size: 1.25rem; }
 .btn::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+  pointer-events: none;
 }
 
 .btn:hover::before {
-  opacity: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .btn:active {
@@ -620,7 +626,7 @@ h3 { font-size: 1.25rem; }
 .btn.primary:hover {
   box-shadow: 0 6px 20px rgba(102, 247, 213, 0.4);
   transform: translateY(-2px);
-  filter: brightness(1.1);
+  filter: brightness(1.05);
 }
 
 .btn.ghost {
@@ -630,7 +636,7 @@ h3 { font-size: 1.25rem; }
 }
 
 .btn.ghost:hover {
-  background: var(--glass);
+  background: rgba(255,255,255,0.1);
   border-color: var(--border-strong);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -644,7 +650,7 @@ h3 { font-size: 1.25rem; }
 .btn.success:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-  filter: brightness(1.1);
+  filter: brightness(1.05);
 }
 
 .btn.warning {
@@ -655,7 +661,7 @@ h3 { font-size: 1.25rem; }
 .btn.warning:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-  filter: brightness(1.1);
+  filter: brightness(1.05);
 }
 
 /* Hero section */
@@ -759,6 +765,7 @@ h3 { font-size: 1.25rem; }
   background: linear-gradient(180deg, var(--glass-strong), var(--glass));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  z-index: 5;
 }
 
 .card::before {
@@ -882,7 +889,7 @@ h3 { font-size: 1.25rem; }
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,.7);
-  z-index: 1000;
+  z-index: 9999;
   backdrop-filter: blur(8px);
   opacity: 0;
   visibility: hidden;
@@ -1190,16 +1197,54 @@ h3 { font-size: 1.25rem; }
 
 /* Улучшенные анимации для рулетки */
 .roulette-items.spinning {
-  animation: itemsSlide 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: itemsSlide 8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
 
 @keyframes itemsSlide {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-500px); }
-  40% { transform: translateX(-1000px); }
-  60% { transform: translateX(-1500px); }
-  80% { transform: translateX(-2000px); }
-  100% { transform: translateX(-2500px); }
+  0% { 
+    transform: translateX(0); 
+    animation-timing-function: ease-out;
+  }
+  10% { 
+    transform: translateX(-200px); 
+    animation-timing-function: ease-in;
+  }
+  20% { 
+    transform: translateX(-600px); 
+    animation-timing-function: ease-out;
+  }
+  30% { 
+    transform: translateX(-1200px); 
+    animation-timing-function: ease-in;
+  }
+  40% { 
+    transform: translateX(-1800px); 
+    animation-timing-function: ease-out;
+  }
+  50% { 
+    transform: translateX(-2400px); 
+    animation-timing-function: ease-in;
+  }
+  60% { 
+    transform: translateX(-3000px); 
+    animation-timing-function: ease-out;
+  }
+  70% { 
+    transform: translateX(-3500px); 
+    animation-timing-function: ease-in;
+  }
+  80% { 
+    transform: translateX(-3800px); 
+    animation-timing-function: ease-out;
+  }
+  90% { 
+    transform: translateX(-3950px); 
+    animation-timing-function: ease-in;
+  }
+  100% { 
+    transform: translateX(-4000px); 
+    animation-timing-function: ease-out;
+  }
 }
 
 /* Казино-стиль для иконок */

@@ -7,7 +7,6 @@ from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
 import json
-# channel_manager import removed - not needed for webhook version
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
