@@ -1211,6 +1211,20 @@ $("#closePrize").addEventListener("click", ()=>{
   $("#prizeModal").classList.remove("show");
 });
 
+// Обработчик сворачивания/разворачивания превью призов
+$("#previewHeader").addEventListener("click", ()=>{
+  const content = $("#previewContent");
+  const toggle = $("#previewHeader .preview-toggle");
+  
+  if (content.classList.contains("expanded")) {
+    content.classList.remove("expanded");
+    toggle.classList.remove("expanded");
+  } else {
+    content.classList.add("expanded");
+    toggle.classList.add("expanded");
+  }
+});
+
 // Обработчик клика по уровню
 $("#levelDisplay").addEventListener("click", ()=>{
   showLevelInfo();
