@@ -16,14 +16,14 @@ const VARIATIONS_PER_QUEST = 10;
 
 // Система рулетки - обновленная с mulacoin призами
 const ROULETTE_PRIZES = [
-  { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 2, probability: 0.02, color: "#FFD700" },
-  { id: "discount500", name: "Скидка 500₽", icon: "💰", count: 1, probability: 0.05, color: "#FF6B6B" },
-  { id: "discount100", name: "Скидка 100₽", icon: "💵", count: 2, probability: 0.08, color: "#4ECDC4" },
-  { id: "discount50", name: "Скидка 50₽", icon: "🪙", count: 3, probability: 0.12, color: "#A8E6CF" },
-  { id: "mulacoin100", name: "100 MULACOIN", icon: "🪙", count: 4, probability: 0.15, color: "#FFEAA7" },
-  { id: "mulacoin50", name: "50 MULACOIN", icon: "🪙", count: 5, probability: 0.18, color: "#DDA0DD" },
-  { id: "mulacoin25", name: "25 MULACOIN", icon: "🪙", count: 6, probability: 0.20, color: "#98D8C8" },
-  { id: "quest24h", name: "+1 квест 24ч", icon: "🎯", count: 3, probability: 0.15, color: "#F7DC6F" },
+  { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 1, probability: 0.01, color: "#FFD700" },
+  { id: "discount500", name: "Скидка 500₽", icon: "💰", count: 1, probability: 0.03, color: "#FF6B6B" },
+  { id: "discount100", name: "Скидка 100₽", icon: "💵", count: 2, probability: 0.05, color: "#4ECDC4" },
+  { id: "discount50", name: "Скидка 50₽", icon: "🪙", count: 3, probability: 0.08, color: "#A8E6CF" },
+  { id: "mulacoin100", name: "100 MULACOIN", icon: "🪙", count: 2, probability: 0.02, color: "#FFEAA7" },
+  { id: "mulacoin50", name: "50 MULACOIN", icon: "🪙", count: 3, probability: 0.03, color: "#DDA0DD" },
+  { id: "mulacoin25", name: "25 MULACOIN", icon: "🪙", count: 4, probability: 0.05, color: "#98D8C8" },
+  { id: "quest24h", name: "+1 квест 24ч", icon: "🎯", count: 5, probability: 0.15, color: "#F7DC6F" },
   { id: "frodCourse", name: "КУРС ФРОДА", icon: "📚", count: 1, probability: 0.0001, color: "#6C5CE7" }
 ];
 
@@ -175,21 +175,17 @@ function createRouletteWheel() {
     // Применяем цвет сектора
     sector.style.background = prize.color;
     
-    // Создаем содержимое сектора
+    // Создаем содержимое сектора только с цветом (без текста)
     const content = document.createElement('div');
     content.className = 'sector-content';
     content.style.transform = `rotate(${sectorAngle / 2}deg)`;
     
+    // Добавляем только иконку без названия
     const icon = document.createElement('div');
     icon.className = 'sector-icon';
-    icon.textContent = prize.icon;
-    
-    const name = document.createElement('div');
-    name.className = 'sector-name';
-    name.textContent = prize.name;
+    icon.textContent = '🎰'; // Универсальная иконка для всех секторов
     
     content.appendChild(icon);
-    content.appendChild(name);
     sector.appendChild(content);
     wheel.appendChild(sector);
   });
@@ -286,18 +282,25 @@ function selectPrizeByProbability() {
   const rand = Math.random();
   let cumulative = 0;
   
+  console.log('🎲 Выбираем приз, случайное число:', rand);
+  
   for (const prize of ROULETTE_PRIZES) {
     cumulative += prize.probability;
+    console.log(`  ${prize.id}: ${prize.probability} (кумулятивно: ${cumulative})`);
     if (rand <= cumulative) {
+      console.log(`✅ Выбран приз: ${prize.id} (${prize.name})`);
       return prize;
     }
   }
   
   // Если ничего не выбрано, возвращаем самый частый приз
+  console.log(`🔄 Ничего не выбрано, возвращаем: ${ROULETTE_PRIZES[4].id}`);
   return ROULETTE_PRIZES[4]; // quest24h
 }
 
 async function showPrizeModal(prize) {
+  console.log('🎁 showPrizeModal вызвана с призом:', prize);
+  
   const modal = $("#prizeModal");
   const icon = $("#prizeIcon");
   const title = $("#prizeTitle");
@@ -543,49 +546,64 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
 
 // Функция для сохранения промокодов в базу данных
 async function savePromocode(prize, promoCode) {
-  if (supabase && userData.telegramId) {
-    try {
-      // Определяем тип промокода
-      let promoType = 'discount';
-      let promoValue = 0;
-      
-      if (prize.id === 'subscription') {
-        promoType = 'subscription';
-        promoValue = 30; // 30 дней
-      } else if (prize.id === 'frodCourse') {
-        promoType = 'frod_course';
-        promoValue = 60; // 60 дней
-      } else if (prize.id === 'discount500') {
-        promoValue = 500;
-      } else if (prize.id === 'discount100') {
-        promoValue = 100;
-      } else if (prize.id === 'discount50') {
-        promoValue = 50;
-      }
-      
-      // Вычисляем дату истечения
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + (prize.id === 'subscription' ? 30 : 7));
-      
-      const { error } = await supabase
-        .from('promocodes')
-        .insert({
-          code: promoCode,
-          type: promoType,
-          value: promoValue,
-          issued_to: userData.telegramId,
-          expires_at: expiresAt.toISOString(),
-          status: 'issued'
-        });
-      
-      if (error) {
-        console.error('Ошибка сохранения промокода:', error);
-      } else {
-        console.log('Промокод успешно сохранен в базу данных:', promoCode);
-      }
-    } catch (error) {
-      console.error('Ошибка подключения к Supabase для промокода:', error);
+  console.log('🔍 savePromocode вызвана с:', { prize: prize.id, promoCode, telegramId: userData.telegramId });
+  
+  if (!supabase) {
+    console.error('❌ Supabase не инициализирован');
+    return;
+  }
+  
+  if (!userData.telegramId) {
+    console.error('❌ Telegram ID не найден');
+    return;
+  }
+  
+  try {
+    // Определяем тип промокода
+    let promoType = 'discount';
+    let promoValue = 0;
+    
+    if (prize.id === 'subscription') {
+      promoType = 'subscription';
+      promoValue = 30; // 30 дней
+    } else if (prize.id === 'frodCourse') {
+      promoType = 'frod_course';
+      promoValue = 60; // 60 дней
+    } else if (prize.id === 'discount500') {
+      promoValue = 500;
+    } else if (prize.id === 'discount100') {
+      promoValue = 100;
+    } else if (prize.id === 'discount50') {
+      promoValue = 50;
     }
+    
+    // Вычисляем дату истечения
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + (prize.id === 'subscription' ? 30 : 7));
+    
+    const promoData = {
+      code: promoCode,
+      type: promoType,
+      value: promoValue,
+      issued_to: userData.telegramId,
+      expires_at: expiresAt.toISOString(),
+      status: 'issued'
+    };
+    
+    console.log('📝 Сохраняем промокод в базу:', promoData);
+    
+    const { data, error } = await supabase
+      .from('promocodes')
+      .insert(promoData)
+      .select();
+    
+    if (error) {
+      console.error('❌ Ошибка сохранения промокода:', error);
+    } else {
+      console.log('✅ Промокод успешно сохранен в базу данных:', promoCode, data);
+    }
+  } catch (error) {
+    console.error('❌ Ошибка подключения к Supabase для промокода:', error);
   }
 }
 
