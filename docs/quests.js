@@ -429,16 +429,20 @@ async function showPrizeModal(prize, isFree = false) {
   
   let contentHTML = '';
   
-  // Обрабатываем mulacoin призы
+  // Обрабатываем mulacoin призы через единую систему наград
   if (prize.id.startsWith('mulacoin')) {
     const mulacoinAmount = parseInt(prize.id.replace('mulacoin', ''));
-    userData.mulacoin += mulacoinAmount;
-    updateCurrencyDisplay();
-    await saveUserData();
+    const expAmount = Math.round(mulacoinAmount / 10); // 1 опыт за каждые 10 mulacoin
+    
+    // Используем единую систему наград
+    await addRewards(mulacoinAmount, expAmount, 'roulette', prize.name, 'easy');
     
     contentHTML = `
       <p style="font-size: 16px; color: var(--accent); font-weight: bold;">
         +${mulacoinAmount} MULACOIN добавлено к вашему балансу!
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        +${expAmount} опыта получено!
       </p>
       <p style="font-size: 14px; color: var(--text-muted);">
         Текущий баланс: ${userData.mulacoin} MULACOIN
@@ -447,6 +451,10 @@ async function showPrizeModal(prize, isFree = false) {
   } else if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
     const promoCode = generatePromoCode(prize);
     
+    // Даем небольшой опыт за промокоды
+    const expAmount = prize.id === 'subscription' ? 50 : 25;
+    await addRewards(0, expAmount, 'roulette', prize.name, 'easy');
+    
     // Сохраняем промокод в базу данных
     await savePromocode(prize, promoCode);
     
@@ -454,6 +462,9 @@ async function showPrizeModal(prize, isFree = false) {
       <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
       <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
         Нажмите на промокод, чтобы скопировать
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        +${expAmount} опыта получено!
       </p>
       <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
          class="use-button" id="useButton" style="display: none;">
@@ -461,14 +472,23 @@ async function showPrizeModal(prize, isFree = false) {
       </a>
     `;
   } else if (prize.id === 'quest24h') {
+    // Даем опыт за дополнительный квест
+    await addRewards(0, 30, 'roulette', prize.name, 'easy');
+    
     contentHTML = `
       <p style="font-size: 14px; color: var(--text-muted);">
         Вам открыт дополнительный квест на 24 часа!
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        +30 опыта получено!
       </p>
     `;
     activateQuest24h();
   } else if (prize.id === 'frodCourse') {
     const promoCode = generatePromoCode(prize);
+    
+    // Даем опыт за курс фрода
+    await addRewards(0, 100, 'roulette', prize.name, 'easy');
     
     // Сохраняем промокод в базу данных
     await savePromocode(prize, promoCode);
@@ -477,6 +497,9 @@ async function showPrizeModal(prize, isFree = false) {
       <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
       <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
         Нажмите на промокод, чтобы скопировать
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        +100 опыта получено!
       </p>
       <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
          class="use-button" id="useButton" style="display: none;">
