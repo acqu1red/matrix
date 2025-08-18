@@ -228,7 +228,9 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   // Сохраняем историю квеста если указаны параметры
   if (questId && questName && difficulty) {
     console.log('Сохраняем историю квеста...');
-    await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
+    // Временно отключаем сохранение истории квестов, так как таблица не создана
+    // await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
+    console.log('История квеста не сохранена (таблица quest_history не создана)');
   }
   
   console.log('addRewards завершена');
@@ -692,17 +694,21 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
   
   if (supabase && userData.telegramId) {
     try {
+      const rouletteData = {
+        user_id: userData.telegramId,
+        prize_type: prizeType,
+        prize_name: prizeName,
+        is_free: isFree,
+        mulacoin_spent: mulacoinSpent,
+        promo_code_id: promoCodeId
+        // won_at автоматически устанавливается в now() по умолчанию
+      };
+      
+      console.log('Данные рулетки для сохранения:', rouletteData);
+      
       const { data, error } = await supabase
         .from('roulette_history')
-        .insert({
-          user_id: userData.telegramId,
-          prize_type: prizeType,
-          prize_name: prizeName,
-          is_free: isFree,
-          mulacoin_spent: mulacoinSpent,
-          promo_code_id: promoCodeId,
-          created_at: new Date().toISOString()
-        })
+        .insert(rouletteData)
         .select();
       
       if (error) {
@@ -710,6 +716,7 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
         toast('Ошибка сохранения истории рулетки', 'error');
       } else {
         console.log('История рулетки сохранена в Supabase:', data);
+        toast('История рулетки сохранена', 'success');
       }
     } catch (error) {
       console.error('Ошибка подключения к Supabase для истории рулетки:', error);
@@ -717,6 +724,8 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
     }
   } else {
     console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
+    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
+    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
   }
 }
 
@@ -753,8 +762,9 @@ async function savePromocode(prize, promoCode) {
         type: promoType,
         value: promoValue,
         issued_to: userData.telegramId,
-        expires_at: expiresAt.toISOString(),
-        status: 'issued'
+        expires_at: expiresAt.toISOString()
+        // status автоматически устанавливается в 'issued' по умолчанию
+        // issued_at автоматически устанавливается в now() по умолчанию
       };
       
       console.log('Данные промокода для сохранения:', promoData);
@@ -1555,7 +1565,8 @@ async function forceSaveData() {
     await saveUserData();
     
     // Сохраняем тестовую историю квеста
-    await saveQuestHistory('test', 'Тестовый квест', 'easy', 10, 50);
+    // await saveQuestHistory('test', 'Тестовый квест', 'easy', 10, 50);
+    console.log('История квеста не сохранена (таблица quest_history не создана)');
     
     // Сохраняем тестовую историю рулетки
     await saveRouletteHistory('test', 'Тестовый приз', true, 0);
