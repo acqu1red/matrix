@@ -572,7 +572,7 @@ async def handle_grant_promo(update: Update, context: CallbackContext, promo_cod
             return
         
         promo_data = result.data[0]
-        user_id = promo_data.get('tg_id')
+        user_id = promo_data.get('issued_to')
         
         if not user_id:
             await query.edit_message_text(

@@ -766,6 +766,7 @@ async function savePromocode(prize, promoCode) {
       };
       
       console.log('Данные промокода для сохранения:', promoData);
+      console.log('Telegram ID для привязки:', userData.telegramId);
       
       const { data, error } = await supabase
         .from('promocodes')
