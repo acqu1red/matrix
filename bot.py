@@ -548,11 +548,93 @@ async def button(update: Update, context: CallbackContext) -> None:
     elif data == 'admin_refresh':
         # Обновление списка сообщений
         await admin_messages(update, context)
+    elif data.startswith('grant_promo:'):
+        # Обработка кнопки "Вручить промокод"
+        promo_code = data.split(':')[1]
+        await handle_grant_promo(update, context, promo_code)
     else:
         return
 
 
-
+async def handle_grant_promo(update: Update, context: CallbackContext, promo_code: str) -> None:
+    """Обработчик для выдачи промокода"""
+    query = update.callback_query
+    
+    try:
+        # Получаем данные промокода
+        result = supabase.table('promocodes').select('*').eq('code', promo_code).execute()
+        
+        if not result.data:
+            await query.edit_message_text(
+                f"❌ <b>Промокод не найден!</b>\n\n"
+                f"Промокод <code>{promo_code}</code> не существует в базе данных.",
+                parse_mode='HTML'
+            )
+            return
+        
+        promo_data = result.data[0]
+        user_id = promo_data.get('tg_id')
+        
+        if not user_id:
+            await query.edit_message_text(
+                f"❌ <b>Ошибка!</b>\n\n"
+                f"Промокод <code>{promo_code}</code> не привязан к пользователю.",
+                parse_mode='HTML'
+            )
+            return
+        
+        # Обновляем статус промокода
+        supabase.table('promocodes').update({'status': 'used'}).eq('code', promo_code).execute()
+        
+        # Определяем тип промокода и выполняем соответствующие действия
+        if promo_code.startswith('SUB-'):
+            # Промокод на подписку
+            success = await grant_subscription(int(user_id), 30)  # 30 дней
+            if success:
+                await query.edit_message_text(
+                    f"✅ <b>Промокод выдан!</b>\n\n"
+                    f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+                    f"👤 <b>Пользователь:</b> {user_id}\n"
+                    f"🎁 <b>Приз:</b> 1 месяц подписки\n"
+                    f"📅 <b>Статус:</b> Выдан\n\n"
+                    f"Пользователь получил доступ к закрытому каналу на 30 дней.",
+                    parse_mode='HTML'
+                )
+            else:
+                await query.edit_message_text(
+                    f"❌ <b>Ошибка выдачи подписки!</b>\n\n"
+                    f"Промокод <code>{promo_code}</code> не может быть выдан.",
+                    parse_mode='HTML'
+                )
+        elif promo_code.startswith('FROD-'):
+            # Промокод на курс по фроду
+            await query.edit_message_text(
+                f"✅ <b>Промокод выдан!</b>\n\n"
+                f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"🎁 <b>Приз:</b> ПОЛНЫЙ КУРС ПО ФРОДУ\n"
+                f"📅 <b>Статус:</b> Выдан\n\n"
+                f"Пользователь получил доступ к курсу по фроду.",
+                parse_mode='HTML'
+            )
+        else:
+            # Промокод на скидку
+            await query.edit_message_text(
+                f"✅ <b>Промокод выдан!</b>\n\n"
+                f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"🎁 <b>Приз:</b> Скидка\n"
+                f"📅 <b>Статус:</b> Выдан\n\n"
+                f"Промокод активирован для пользователя.",
+                parse_mode='HTML'
+            )
+        
+    except Exception as e:
+        print(f"Ошибка выдачи промокода: {e}")
+        await query.edit_message_text(
+            f"❌ <b>Произошла ошибка:</b> {str(e)}",
+            parse_mode='HTML'
+        )
 
 
 async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
@@ -639,6 +721,78 @@ async def galdin_command(update: Update, context: CallbackContext) -> None:
         )
     except Exception as e:
         print(f"Ошибка команды galdin: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Произошла ошибка:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
+async def checkpromo_command(update: Update, context: CallbackContext) -> None:
+    """Команда для проверки и выдачи промокода: /checkpromo <promo_code>"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text(
+            "❌ <b>У вас нет прав для выполнения этого действия!</b>",
+            parse_mode='HTML'
+        )
+        return
+    
+    # Проверяем аргументы команды
+    if not context.args or len(context.args) != 1:
+        await update.effective_message.reply_text(
+            "❌ <b>Неверный формат команды!</b>\n\n"
+            "Использование: <code>/checkpromo &lt;promo_code&gt;</code>\n\n"
+            "Пример: <code>/checkpromo SUB-ABC123</code>\n"
+            "Проверяет и выдает промокод",
+            parse_mode='HTML'
+        )
+        return
+    
+    promo_code = context.args[0].upper()
+    
+    try:
+        # Проверяем промокод в базе данных
+        result = supabase.table('promocodes').select('*').eq('code', promo_code).execute()
+        
+        if not result.data:
+            await update.effective_message.reply_text(
+                f"❌ <b>Промокод не найден!</b>\n\n"
+                f"Промокод <code>{promo_code}</code> не существует в базе данных.",
+                parse_mode='HTML'
+            )
+            return
+        
+        promo_data = result.data[0]
+        status = promo_data.get('status', 'unknown')
+        
+        if status == 'used':
+            await update.effective_message.reply_text(
+                f"❌ <b>Промокод уже использован!</b>\n\n"
+                f"Промокод <code>{promo_code}</code> был уже выдан пользователю.",
+                parse_mode='HTML'
+            )
+            return
+        
+        # Создаем кнопку для выдачи промокода
+        keyboard = [
+            [InlineKeyboardButton("✅ Вручить промокод", callback_data=f"grant_promo:{promo_code}")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.effective_message.reply_text(
+            f"📋 <b>Информация о промокоде</b>\n\n"
+            f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+            f"📊 <b>Статус:</b> {status}\n"
+            f"📅 <b>Создан:</b> {promo_data.get('issued_at', 'Неизвестно')}\n"
+            f"⏰ <b>Истекает:</b> {promo_data.get('expires_at', 'Неизвестно')}\n\n"
+            f"Нажмите кнопку ниже, чтобы вручить промокод пользователю.",
+            parse_mode='HTML',
+            reply_markup=reply_markup
+        )
+        
+    except Exception as e:
+        print(f"Ошибка команды checkpromo: {e}")
         await update.effective_message.reply_text(
             f"❌ <b>Произошла ошибка:</b> {str(e)}",
             parse_mode='HTML'
@@ -842,6 +996,7 @@ def main() -> None:
     application.add_handler(CommandHandler("galdin", galdin_command))
     application.add_handler(CommandHandler("revoke", revoke_command))
     application.add_handler(CommandHandler("check", check_subscription_command))
+    application.add_handler(CommandHandler("checkpromo", checkpromo_command))
     
     application.add_handler(CallbackQueryHandler(button))
     

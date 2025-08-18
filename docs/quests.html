@@ -24,15 +24,49 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Квест‑Хаб</h1>
-        <div class="badge beta">10 квестов</div>
+        <h1>Формула HUB: проходи квесты и получай скидку</h1>
       </div>
       <div class="actions">
         <button id="btnHistory" class="btn ghost">📊</button>
-        <button id="btnAlbum" class="btn ghost">🖼️</button>
-        <button id="btnSubscribe" class="btn primary">⭐</button>
+        <button id="btnSubscribe" class="btn primary">💳</button>
       </div>
     </header>
+
+    <div class="currency-bar glass">
+      <div class="currency-info">
+        <div class="mulacoin-display">
+          <span class="currency-icon">🪙</span>
+          <span class="currency-amount" id="mulacoinAmount">0</span>
+          <span class="currency-label">mulacoin</span>
+        </div>
+        <div class="level-display" id="levelDisplay">
+          <span class="level-icon">⭐</span>
+          <span class="level-text">Уровень <span id="currentLevel">1</span></span>
+          <span class="level-progress" id="levelProgress">0/100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="roulette-section glass">
+      <h2>🎰 Рулетка призов</h2>
+      <p class="roulette-description">Крути рулетку и выигрывай призы! Подписки, скидки и бонусы ждут тебя.</p>
+      
+      <div class="roulette-container">
+        <div class="roulette-wheel" id="rouletteWheel">
+          <!-- Секторы рулетки будут добавлены динамически -->
+        </div>
+        <div class="roulette-pointer"></div>
+      </div>
+      
+      <div class="roulette-controls">
+        <button id="spinRoulette" class="btn primary large">🎰 Крутить рулетку</button>
+        <button id="buySpin" class="btn ghost">🪙 Купить за <span id="spinCost">13</span> mulacoin</button>
+      </div>
+      
+      <div class="roulette-balance">
+        <span>У вас: <strong id="userMulacoin">0</strong> mulacoin</span>
+      </div>
+    </div>
 
     <section class="hero">
       <div class="layers">
@@ -67,6 +101,15 @@
       <button class="close" id="modalClose" aria-label="Закрыть">×</button>
       <div id="modalBody"></div>
     </div>
+  </div>
+
+  <!-- Модал приза -->
+  <div id="prizeModal" class="prize-modal">
+    <div class="prize-icon" id="prizeIcon">🎁</div>
+    <h3 id="prizeTitle">Поздравляем!</h3>
+    <p id="prizeDescription">Вы выиграли приз!</p>
+    <div id="prizeContent"></div>
+    <button id="closePrize" class="btn primary">Закрыть</button>
   </div>
 
   <!-- Toast -->

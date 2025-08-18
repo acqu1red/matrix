@@ -14,6 +14,31 @@ const MAX_DAILY_FREE = 5;
 const TOTAL_QUESTS = 10; // Уменьшил до 10 квестов
 const VARIATIONS_PER_QUEST = 10;
 
+// Система рулетки
+const ROULETTE_PRIZES = [
+  { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 3, probability: 0.03 },
+  { id: "discount500", name: "Скидка 500 рублей", icon: "💰", count: 1, probability: 0.10 },
+  { id: "discount100", name: "Скидка 100 рублей", icon: "💵", count: 3, probability: 0.15 },
+  { id: "discount50", name: "Скидка 50 рублей", icon: "🪙", count: 4, probability: 0.20 },
+  { id: "quest24h", name: "+1 открытый квест на 24ч", icon: "🎯", count: 5, probability: 0.75 },
+  { id: "frodCourse", name: "ПОЛНЫЙ КУРС ПО ФРОДУ", icon: "📚", count: 1, probability: 0.0005 }
+];
+
+// Система уровней
+const LEVEL_EXP = [
+  100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500,
+  6600, 7800, 9100, 10500, 12000, 13600, 15300, 17100, 19000, 21000
+];
+
+// Система наград за квесты
+const QUEST_REWARDS = {
+  easy: { mulacoin: 1, exp: 150 },
+  medium: { mulacoin: 3, exp: 500 },
+  hard: { mulacoin: 5, exp: 1000 }
+};
+
+const SPIN_COST = 13;
+
 /* ====== Telegram init ====== */
 let tg = null;
 function initTG(){
@@ -41,6 +66,283 @@ const toast = (msg, type = 'info')=>{
   t.classList.add("show"); 
   setTimeout(()=>t.classList.remove("show"), 3000); 
 };
+
+// Система валют и уровней
+let userData = {
+  mulacoin: 0,
+  exp: 0,
+  level: 1,
+  userId: null
+};
+
+function calculateLevel(exp) {
+  let level = 1;
+  for (let i = 0; i < LEVEL_EXP.length; i++) {
+    if (exp >= LEVEL_EXP[i]) {
+      level = i + 2;
+    } else {
+      break;
+    }
+  }
+  return level;
+}
+
+function getExpForNextLevel(level) {
+  if (level <= LEVEL_EXP.length) {
+    return LEVEL_EXP[level - 1];
+  }
+  return LEVEL_EXP[LEVEL_EXP.length - 1] + (level - LEVEL_EXP.length) * 1000;
+}
+
+function updateCurrencyDisplay() {
+  const mulacoinEl = $("#mulacoinAmount");
+  const userMulacoinEl = $("#userMulacoin");
+  const levelEl = $("#currentLevel");
+  const progressEl = $("#levelProgress");
+  
+  if (mulacoinEl) mulacoinEl.textContent = userData.mulacoin;
+  if (userMulacoinEl) userMulacoinEl.textContent = userData.mulacoin;
+  if (levelEl) levelEl.textContent = userData.level;
+  
+  const expForNext = getExpForNextLevel(userData.level);
+  const currentLevelExp = userData.level > 1 ? LEVEL_EXP[userData.level - 2] : 0;
+  const progress = userData.exp - currentLevelExp;
+  const total = expForNext - currentLevelExp;
+  
+  if (progressEl) progressEl.textContent = `${progress}/${total}`;
+}
+
+function addRewards(mulacoin, exp) {
+  const oldLevel = userData.level;
+  
+  userData.mulacoin += mulacoin;
+  userData.exp += exp;
+  userData.level = calculateLevel(userData.exp);
+  
+  updateCurrencyDisplay();
+  
+  // Проверяем повышение уровня
+  if (userData.level > oldLevel) {
+    toast(`🎉 Поздравляем! Вы достигли ${userData.level} уровня!`, 'success');
+  }
+  
+  // Сохраняем данные
+  saveUserData();
+}
+
+// Система рулетки
+function createRouletteWheel() {
+  const wheel = $("#rouletteWheel");
+  if (!wheel) return;
+  
+  wheel.innerHTML = '';
+  
+  // Создаем секторы на основе призов
+  let sectors = [];
+  ROULETTE_PRIZES.forEach(prize => {
+    for (let i = 0; i < prize.count; i++) {
+      sectors.push(prize);
+    }
+  });
+  
+  // Перемешиваем секторы
+  sectors.sort(() => Math.random() - 0.5);
+  
+  const sectorAngle = 360 / sectors.length;
+  
+  sectors.forEach((prize, index) => {
+    const sector = document.createElement('div');
+    sector.className = 'roulette-sector';
+    sector.style.transform = `rotate(${index * sectorAngle}deg)`;
+    sector.style.background = getSectorColor(prize.id);
+    sector.innerHTML = `
+      <div style="transform: rotate(${sectorAngle / 2}deg)">
+        <div style="font-size: 16px; margin-bottom: 4px;">${prize.icon}</div>
+        <div style="font-size: 8px;">${prize.name}</div>
+      </div>
+    `;
+    sector.dataset.prize = prize.id;
+    wheel.appendChild(sector);
+  });
+}
+
+function getSectorColor(prizeId) {
+  const colors = {
+    subscription: 'linear-gradient(45deg, #FFD700, #FFA500)',
+    discount500: 'linear-gradient(45deg, #FF6B6B, #FF8E8E)',
+    discount100: 'linear-gradient(45deg, #4ECDC4, #44A08D)',
+    discount50: 'linear-gradient(45deg, #A8E6CF, #7FCDCD)',
+    quest24h: 'linear-gradient(45deg, #FFEAA7, #DDA0DD)',
+    frodCourse: 'linear-gradient(45deg, #6C5CE7, #A29BFE)'
+  };
+  return colors[prizeId] || 'linear-gradient(45deg, #74B9FF, #0984E3)';
+}
+
+function spinRoulette() {
+  const wheel = $("#rouletteWheel");
+  const spinBtn = $("#spinRoulette");
+  const buyBtn = $("#buySpin");
+  
+  if (!wheel || !spinBtn) return;
+  
+  spinBtn.disabled = true;
+  buyBtn.disabled = true;
+  
+  // Выбираем приз на основе вероятностей
+  const prize = selectPrizeByProbability();
+  
+  // Вычисляем угол для выбранного приза
+  const sectors = wheel.querySelectorAll('.roulette-sector');
+  let targetSector = null;
+  let targetIndex = 0;
+  
+  sectors.forEach((sector, index) => {
+    if (sector.dataset.prize === prize.id) {
+      targetSector = sector;
+      targetIndex = index;
+    }
+  });
+  
+  if (!targetSector) return;
+  
+  const sectorAngle = 360 / sectors.length;
+  const targetAngle = targetIndex * sectorAngle + sectorAngle / 2;
+  const spinAngle = 360 * 5 + (360 - targetAngle); // 5 полных оборотов + до цели
+  
+  wheel.style.transform = `rotate(${spinAngle}deg)`;
+  
+  setTimeout(() => {
+    showPrizeModal(prize);
+    spinBtn.disabled = false;
+    buyBtn.disabled = false;
+  }, 3000);
+}
+
+function selectPrizeByProbability() {
+  const rand = Math.random();
+  let cumulative = 0;
+  
+  for (const prize of ROULETTE_PRIZES) {
+    cumulative += prize.probability;
+    if (rand <= cumulative) {
+      return prize;
+    }
+  }
+  
+  // Если ничего не выбрано, возвращаем самый частый приз
+  return ROULETTE_PRIZES[4]; // quest24h
+}
+
+function showPrizeModal(prize) {
+  const modal = $("#prizeModal");
+  const icon = $("#prizeIcon");
+  const title = $("#prizeTitle");
+  const description = $("#prizeDescription");
+  const content = $("#prizeContent");
+  
+  icon.textContent = prize.icon;
+  title.textContent = "Поздравляем!";
+  description.textContent = `Вы выиграли: ${prize.name}`;
+  
+  let contentHTML = '';
+  
+  if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
+    const promoCode = generatePromoCode(prize);
+    contentHTML = `
+      <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
+      <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
+        Нажмите на промокод, чтобы скопировать
+      </p>
+      <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
+         class="use-button" id="useButton" style="display: none;">
+        Использовать
+      </a>
+    `;
+  } else if (prize.id === 'quest24h') {
+    contentHTML = `
+      <p style="font-size: 14px; color: var(--text-muted);">
+        Вам открыт дополнительный квест на 24 часа!
+      </p>
+    `;
+    activateQuest24h();
+  } else if (prize.id === 'frodCourse') {
+    const promoCode = generatePromoCode(prize);
+    contentHTML = `
+      <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
+      <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
+        Нажмите на промокод, чтобы скопировать
+      </p>
+      <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
+         class="use-button" id="useButton" style="display: none;">
+        Использовать
+      </a>
+    `;
+  }
+  
+  content.innerHTML = contentHTML;
+  modal.classList.add('show');
+}
+
+function generatePromoCode(prize) {
+  const prefix = prize.id === 'subscription' ? 'SUB' : 
+                prize.id === 'frodCourse' ? 'FROD' : 'DIS';
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `${prefix}-${rand}`;
+}
+
+function getPromoMessage(prize, code) {
+  const messages = {
+    subscription: `🎉 Выиграл 1 месяц подписки!\n\nПромокод: ${code}\n\nДействует 30 дней.`,
+    discount500: `🎉 Выиграл скидку 500 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
+    discount100: `🎉 Выиграл скидку 100 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
+    discount50: `🎉 Выиграл скидку 50 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
+    frodCourse: `🎉 Выиграл ПОЛНЫЙ КУРС ПО ФРОДУ!\n\nПромокод: ${code}\n\nДействует 60 дней.`
+  };
+  return messages[prize.id] || `Промокод: ${code}`;
+}
+
+function copyPromoCode() {
+  const promoCode = $("#promoCode");
+  if (!promoCode) return;
+  
+  const text = promoCode.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    promoCode.classList.add('copied');
+    promoCode.textContent = 'Скопировано!';
+    
+    setTimeout(() => {
+      promoCode.style.display = 'none';
+      const useButton = $("#useButton");
+      if (useButton) {
+        useButton.style.display = 'inline-block';
+        useButton.style.animation = 'fadeIn 0.5s ease';
+      }
+    }, 1000);
+    
+    toast('Промокод скопирован! Сохранен в Истории.', 'success');
+  });
+}
+
+function activateQuest24h() {
+  // Логика активации дополнительного квеста
+  toast('Дополнительный квест активирован на 24 часа!', 'success');
+}
+
+function saveUserData() {
+  if (userData.userId) {
+    localStorage.setItem(`userData_${userData.userId}`, JSON.stringify(userData));
+  }
+}
+
+function loadUserData(userId) {
+  userData.userId = userId;
+  const saved = localStorage.getItem(`userData_${userId}`);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    userData = { ...userData, ...parsed };
+  }
+  updateCurrencyDisplay();
+}
 
 function dayIndex(){ return Math.floor(Date.now() / (24*60*60*1000)); }
 function variationIndex(){ return dayIndex() % VARIATIONS_PER_QUEST; }
@@ -536,12 +838,41 @@ $("#btnSubscribe").addEventListener("click", ()=>{
   openSubscription();
 });
 
-$("#btnAlbum").addEventListener("click", ()=>{ 
-  toast("Коллекция скоро здесь ✨", "info"); 
-});
-
 $("#btnHistory").addEventListener("click", ()=>{ 
   showHistory();
+});
+
+// Обработчики рулетки
+$("#spinRoulette").addEventListener("click", ()=>{
+  if (userData.mulacoin >= SPIN_COST) {
+    userData.mulacoin -= SPIN_COST;
+    updateCurrencyDisplay();
+    saveUserData();
+    spinRoulette();
+  } else {
+    toast("Недостаточно mulacoin для прокрута рулетки!", "error");
+  }
+});
+
+$("#buySpin").addEventListener("click", ()=>{
+  if (userData.mulacoin >= SPIN_COST) {
+    userData.mulacoin -= SPIN_COST;
+    updateCurrencyDisplay();
+    saveUserData();
+    spinRoulette();
+  } else {
+    toast("Недостаточно mulacoin для покупки прокрута!", "error");
+  }
+});
+
+// Обработчик закрытия модала приза
+$("#closePrize").addEventListener("click", ()=>{
+  $("#prizeModal").classList.remove("show");
+});
+
+// Обработчик клика по уровню
+$("#levelDisplay").addEventListener("click", ()=>{
+  showLevelInfo();
 });
 
 function showHistory() {
@@ -553,22 +884,78 @@ function showHistory() {
       <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
       <h3 style="margin-bottom: 16px;">История прохождения</h3>
       <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Здесь будут отображаться результаты всех пройденных квестов
+        Ваша статистика и достижения
       </p>
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Статистика</div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Валюта и опыт</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
           <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--glow1);">0</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Пройдено квестов</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--glow1);">${userData.mulacoin}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Mulacoin</div>
           </div>
           <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--glow2);">0</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Получено фрагментов</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--glow2);">${userData.exp}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Опыт</div>
+          </div>
+        </div>
+      </div>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Уровень и прогресс</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${userData.level}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Уровень</div>
           </div>
           <div style="text-align: center;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--accent);">0</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Накоплено опыта</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--success);">${Math.min(userData.level, 5)}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Бонус mulacoin</div>
+          </div>
+        </div>
+      </div>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Промокоды</div>
+        <p style="font-size: 12px; color: var(--text-muted);">
+          Скопированные промокоды сохраняются здесь и доступны для повторного использования
+        </p>
+      </div>
+      <button class="btn primary" onclick="closeModal()">Закрыть</button>
+    </div>
+  `;
+  
+  modal.classList.add("show");
+}
+
+function showLevelInfo() {
+  const modal = $("#modal");
+  const modalBody = $("#modalBody");
+  
+  const expForNext = getExpForNextLevel(userData.level);
+  const currentLevelExp = userData.level > 1 ? LEVEL_EXP[userData.level - 2] : 0;
+  const progress = userData.exp - currentLevelExp;
+  const total = expForNext - currentLevelExp;
+  const percentage = Math.round((progress / total) * 100);
+  
+  modalBody.innerHTML = `
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; margin-bottom: 16px;">⭐</div>
+      <h3 style="margin-bottom: 16px;">Уровень ${userData.level}</h3>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Прогресс до следующего уровня</div>
+        <div style="background: var(--bg1); border-radius: 4px; height: 8px; margin: 8px 0; overflow: hidden;">
+          <div style="background: linear-gradient(90deg, var(--glow1), var(--glow2)); height: 100%; width: ${percentage}%; transition: width 0.5s ease;"></div>
+        </div>
+        <div style="font-size: 16px; font-weight: 700; color: var(--glow1);">${progress} / ${total} (${percentage}%)</div>
+      </div>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Бонусы за уровень</div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Дополнительные mulacoin:</span>
+            <span style="color: var(--glow1); font-weight: 600;">+${Math.min(userData.level, 5)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Шанс редких призов:</span>
+            <span style="color: var(--glow2); font-weight: 600;">+${Math.min(userData.level * 2, 20)}%</span>
           </div>
         </div>
       </div>
@@ -584,18 +971,11 @@ loadState().then(state=>{
   buildCards(state);
   maybeOfferPromo(state);
   
-  // Обновляем бейдж в зависимости от статуса
-  const badge = $(".badge");
-  if (state.isAdmin) {
-    badge.textContent = "👑 Администратор";
-    badge.className = "badge premium";
-  } else if (state.isSubscribed) {
-    badge.textContent = "⭐ Премиум";
-    badge.className = "badge premium";
-  } else {
-    badge.textContent = "10 квестов • 10 вариаций";
-    badge.className = "badge beta";
-  }
+  // Загружаем данные пользователя
+  loadUserData(state.userId);
+  
+  // Создаем рулетку
+  createRouletteWheel();
 });
 
 // Глобальные функции для доступа из других файлов

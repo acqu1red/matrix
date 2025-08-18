@@ -130,11 +130,12 @@ h3 { font-size: 1.25rem; }
 
 .brand h1 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   background: linear-gradient(135deg, var(--glow1), var(--glow2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  line-height: 1.3;
 }
 
 .badge {
@@ -167,6 +168,218 @@ h3 { font-size: 1.25rem; }
   align-items: center;
 }
 
+/* Currency and Level Bar */
+.currency-bar {
+  margin: 12px;
+  padding: 12px 16px;
+}
+
+.currency-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mulacoin-display, .level-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-icon, .level-icon {
+  font-size: 20px;
+}
+
+.currency-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--glow1);
+}
+
+.currency-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.level-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.level-progress {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--glass);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Roulette Section */
+.roulette-section {
+  margin: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.roulette-section h2 {
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.roulette-description {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.roulette-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 20px;
+}
+
+.roulette-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 4px solid var(--glow1);
+  box-shadow: 0 0 30px rgba(102, 247, 213, 0.3);
+}
+
+.roulette-sector {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  transform-origin: 100% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  line-height: 1.2;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.roulette-pointer {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 20px solid var(--glow1);
+  z-index: 10;
+}
+
+.roulette-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.roulette-balance {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Prize Modal */
+.prize-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--glass-strong);
+  border: 2px solid var(--glow1);
+  border-radius: var(--radius);
+  padding: 30px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.5s ease;
+  z-index: 20;
+  backdrop-filter: blur(20px);
+  max-width: 400px;
+  width: 90%;
+}
+
+.prize-modal.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.prize-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  animation: prizeBounce 1s infinite;
+}
+
+@keyframes prizeBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.promo-code {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 16px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--glow1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: all;
+}
+
+.promo-code:hover {
+  background: var(--glass-strong);
+  border-color: var(--glow1);
+}
+
+.promo-code.copied {
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
+}
+
+.use-button {
+  background: var(--glow1);
+  color: var(--bg0);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 16px;
+}
+
+.use-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 247, 213, 0.3);
+}
+
 .btn {
   border: none;
   border-radius: var(--radius-sm);
@@ -182,6 +395,12 @@ h3 { font-size: 1.25rem; }
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.btn.large {
+  min-width: 120px;
+  height: 48px;
+  font-size: 18px;
 }
   position: relative;
   overflow: hidden;
