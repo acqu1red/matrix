@@ -11,7 +11,7 @@ const PAYMENT_URL = "https://acqu1red.github.io/formulaprivate/payment.html";
 const ISLAND_MINIAPP_URL = "./island.html";
 
 const MAX_DAILY_FREE = 5;
-const TOTAL_QUESTS = 9; // Обновлено количество квестов
+const TOTAL_QUESTS = 10; // Уменьшил до 10 квестов
 const VARIATIONS_PER_QUEST = 10;
 
 // Система рулетки - обновленная с mulacoin призами
@@ -201,14 +201,11 @@ function createRouletteWheel() {
     const name = document.createElement('span');
     name.textContent = prize.name;
     
-         previewItem.appendChild(icon);
-     previewItem.appendChild(name);
-     preview.appendChild(previewItem);
-   });
-   
-   // Инициализируем переключатель превью
-   initPreviewToggle();
- }
+    previewItem.appendChild(icon);
+    previewItem.appendChild(name);
+    preview.appendChild(previewItem);
+  });
+}
 
 function getSectorColor(prizeId) {
   const colors = {
@@ -249,13 +246,6 @@ function spinRoulette(isFree = false) {
     updateRouletteButton();
   }
   
-  // Начисляем опыт за прокрут рулетки
-  userData.exp += 25;
-  updateCurrencyDisplay();
-  
-  // Показываем уведомление о полученном опыте
-  toast("+25 опыта за прокрут рулетки!", "success");
-  
   saveUserData();
   
   spinBtn.disabled = true;
@@ -287,10 +277,9 @@ function spinRoulette(isFree = false) {
   const targetPosition = targetIndex * itemWidth + centerOffset;
   const slideDistance = 3000 - targetPosition; // Общее расстояние минус позиция цели
   
-  // Добавляем плавную анимацию скольжения с дополнительными оборотами
+  // Добавляем плавную анимацию скольжения
   items.classList.add('spinning');
-  const extraDistance = 2000; // Дополнительное расстояние для плавности
-  items.style.transform = `translateX(-${slideDistance + extraDistance}px)`;
+  items.style.transform = `translateX(-${slideDistance}px)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
@@ -714,18 +703,31 @@ fireflies();
 
 /* ====== Quests model (10 квестов) ====== */
 const QUESTS = [
+    { 
+     id: "psychology", 
+     theme: "Психология", 
+     style: "neo", 
+     name: "Психология заработка", 
+     intro: "Используй психологические техники для успешных переговоров.", 
+     description: "Веди переговоры с разными типами клиентов, применяй психологические техники и зарабатывай деньги через манипуляции.",
+     type: "interactive", 
+     difficulty: "medium",
+     rewards: { fragments: 3, experience: 500 },
+     available: true,
+     url: "quests/psychology.html"
+   },
   { 
-    id: "competitors", 
-    theme: "Стратегия", 
-    style: "neo", 
-    name: "Анализ конкурентов", 
-    intro: "Изучи конкурентную среду.", 
-    description: "Изучи конкурентную среду и выбери наиболее сильного конкурента в отрасли.",
-    type: "analysis", 
-    difficulty: "hard",
-    rewards: { fragments: 5, experience: 120 },
+    id: "cyber", 
+    theme: "Технологии", 
+    style: "synthwave", 
+    name: "Кибер‑взлом", 
+    intro: "Подбери паттерн, чтобы открыть шлюз.", 
+    description: "Взломай защищенную систему, подбирая правильные символы в нужном порядке.",
+    type: "minigame", 
+    difficulty: "medium",
+    rewards: { fragments: 3, experience: 75 },
     available: true,
-    url: "quests/competitors.html"
+    url: "quests/cyber.html"
   },
   { 
     id: "bodylang", 
@@ -739,32 +741,6 @@ const QUESTS = [
     rewards: { fragments: 2, experience: 60 },
     available: true,
     url: "quests/bodylang.html"
-  },
-  { 
-    id: "manipulation", 
-    theme: "Психология", 
-    style: "neo", 
-    name: "Психология манипуляций", 
-    intro: "Распознай техники влияния и убеждения.", 
-    description: "Изучи различные техники психологического влияния и научись их распознавать в реальных ситуациях.",
-    type: "analysis", 
-    difficulty: "medium",
-    rewards: { fragments: 3, experience: 80 },
-    available: true,
-    url: "quests/manipulation.html"
-  },
-  { 
-    id: "cyber", 
-    theme: "Технологии", 
-    style: "synthwave", 
-    name: "Кибер‑взлом", 
-    intro: "Подбери паттерн, чтобы открыть шлюз.", 
-    description: "Взломай защищенную систему, подбирая правильные символы в нужном порядке.",
-    type: "minigame", 
-    difficulty: "medium",
-    rewards: { fragments: 3, experience: 75 },
-    available: false,
-    url: "quests/cyber.html"
   },
   { 
     id: "profiling", 
@@ -830,6 +806,19 @@ const QUESTS = [
     rewards: { fragments: 3, experience: 70 },
     available: false,
     url: "quests/audience.html"
+  },
+  { 
+    id: "competitors", 
+    theme: "Стратегия", 
+    style: "neo", 
+    name: "Анализ конкурентов", 
+    intro: "Изучи конкурентную среду.", 
+    description: "Изучи конкурентную среду и выбери наиболее сильного конкурента в отрасли.",
+    type: "analysis", 
+    difficulty: "hard",
+    rewards: { fragments: 5, experience: 120 },
+    available: false,
+    url: "quests/competitors.html"
   },
   { 
     id: "trends", 
@@ -1222,24 +1211,19 @@ $("#closePrize").addEventListener("click", ()=>{
   $("#prizeModal").classList.remove("show");
 });
 
-// Простой обработчик для кнопки превью призов
-function initPreviewToggle() {
-  const button = $("#previewButton");
-  if (button) {
-    button.addEventListener("click", ()=>{
-      const list = $("#previewList");
-      const arrow = $("#previewButton .preview-arrow");
-      
-      if (list.classList.contains("expanded")) {
-        list.classList.remove("expanded");
-        arrow.classList.remove("expanded");
-      } else {
-        list.classList.add("expanded");
-        arrow.classList.add("expanded");
-      }
-    });
+// Обработчик сворачивания/разворачивания превью призов
+$("#previewHeader").addEventListener("click", ()=>{
+  const content = $("#previewContent");
+  const toggle = $("#previewHeader .preview-toggle");
+  
+  if (content.classList.contains("expanded")) {
+    content.classList.remove("expanded");
+    toggle.classList.remove("expanded");
+  } else {
+    content.classList.add("expanded");
+    toggle.classList.add("expanded");
   }
-}
+});
 
 // Обработчик клика по уровню
 $("#levelDisplay").addEventListener("click", ()=>{

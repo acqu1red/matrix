@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Психология заработка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .phase-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .phase {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .phase.active {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            transform: scale(1.1);
+        }
+
+        .phase.completed {
+            background: linear-gradient(45deg, #00FF00, #32CD32);
+        }
+
+        .game-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .client-card {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .client-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .client-details h3 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .client-details p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .mood-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mood-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .mood-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #f1c40f, #2ecc71);
+            transition: width 0.5s ease;
+        }
+
+        .technique-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .technique-card {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .technique-card:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .technique-card.selected {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-color: #FFD700;
+            color: #000;
+        }
+
+        .technique-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .technique-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .technique-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .negotiation-area {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dialogue-box {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .dialogue-text {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .dialogue-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dialogue-option {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .dialogue-option:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .dialogue-option.selected {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-color: #FFD700;
+            color: #000;
+        }
+
+        .money-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            transition: width 0.5s ease;
+        }
+
+        .mini-game {
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+
+        .game-cell {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .game-cell:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .game-cell.correct {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border-color: #2ecc71;
+        }
+
+        .game-cell.wrong {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-color: #e74c3c;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: successPop 0.5s ease-out;
+        }
+
+        @keyframes successPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Психология заработка</h1>
+            <p>Используй психологические техники для успешных переговоров и заработка</p>
+        </div>
+
+        <div class="money-counter">
+            💰 <span id="moneyAmount">0</span>₽
+        </div>
+
+        <div class="phase-indicator">
+            <div class="phase active" data-phase="1">1</div>
+            <div class="phase" data-phase="2">2</div>
+            <div class="phase" data-phase="3">3</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <!-- Контент будет загружаться динамически -->
+        </div>
+
+        <button class="btn" id="nextBtn" onclick="nextPhase()">Начать переговоры</button>
+    </div>
+
+    <script>
+        let currentPhase = 1;
+        let totalPhases = 3;
+        let money = 0;
+        let currentClient = null;
+        let selectedTechnique = null;
+        let clientMood = 50;
+        let negotiationProgress = 0;
+
+        const clients = [
+            {
+                name: "Алексей Петров",
+                type: "Скептик",
+                avatar: "👨‍💼",
+                description: "Бизнесмен, который сомневается в эффективности",
+                mood: 30,
+                budget: 50000,
+                resistance: 0.7
+            },
+            {
+                name: "Мария Сидорова",
+                type: "Эмоциональная",
+                avatar: "👩‍💼",
+                description: "Предпринимательница, принимает решения на эмоциях",
+                mood: 60,
+                budget: 75000,
+                resistance: 0.4
+            },
+            {
+                name: "Дмитрий Козлов",
+                type: "Аналитик",
+                avatar: "👨‍💻",
+                description: "IT-директор, требует факты и цифры",
+                mood: 40,
+                budget: 100000,
+                resistance: 0.8
+            }
+        ];
+
+        const techniques = [
+            {
+                id: "mirroring",
+                name: "Зеркалирование",
+                icon: "🪞",
+                description: "Копируй позу и жесты клиента",
+                effectiveness: 0.8,
+                moodBoost: 15
+            },
+            {
+                id: "anchoring",
+                name: "Якорение",
+                icon: "⚓",
+                description: "Установи высокую цену как якорь",
+                effectiveness: 0.9,
+                moodBoost: 10
+            },
+            {
+                id: "scarcity",
+                name: "Дефицит",
+                icon: "⏰",
+                description: "Создай ощущение ограниченности",
+                effectiveness: 0.7,
+                moodBoost: 20
+            },
+            {
+                id: "social_proof",
+                name: "Социальное доказательство",
+                icon: "👥",
+                description: "Покажи отзывы других клиентов",
+                effectiveness: 0.6,
+                moodBoost: 25
+            },
+            {
+                id: "reciprocity",
+                name: "Взаимность",
+                icon: "🤝",
+                description: "Предложи бонус за покупку",
+                effectiveness: 0.8,
+                moodBoost: 30
+            },
+            {
+                id: "authority",
+                name: "Авторитет",
+                icon: "👑",
+                description: "Подчеркни свой опыт и экспертизу",
+                effectiveness: 0.7,
+                moodBoost: 15
+            }
+        ];
+
+        const dialogues = {
+            mirroring: [
+                "Я понимаю ваши сомнения. *копирует позу клиента*",
+                "Давайте разберем это вместе. *зеркалирует жесты*",
+                "Вы абсолютно правы. *повторяет интонацию*"
+            ],
+            anchoring: [
+                "Обычно такой продукт стоит 150,000₽, но для вас...",
+                "Наши VIP-клиенты платят 200,000₽ за это решение",
+                "Стандартная цена - 120,000₽, но у нас есть специальное предложение"
+            ],
+            scarcity: [
+                "У нас осталось только 3 места в группе",
+                "Это предложение действует только до конца недели",
+                "Последний экземпляр по этой цене"
+            ],
+            social_proof: [
+                "Только в прошлом месяце 50 клиентов увеличили доход на 300%",
+                "Вот отзыв от генерального директора ООО 'Рога и Копыта'",
+                "Наши клиенты в среднем окупают инвестиции за 2 месяца"
+            ],
+            reciprocity: [
+                "При покупке сегодня вы получите бонусный курс на 50,000₽",
+                "Дополнительно включим персональную консультацию",
+                "Подарим доступ к закрытому сообществу экспертов"
+            ],
+            authority: [
+                "Я работаю в этой сфере 15 лет и помог 500+ компаниям",
+                "Мои методы одобрены Ассоциацией бизнес-консультантов",
+                "Я автор 3 книг по психологии продаж"
+            ]
+        };
+
+        function initGame() {
+            updateMoneyDisplay();
+            loadPhase(currentPhase);
+        }
+
+        function loadPhase(phase) {
+            const gameArea = document.getElementById('gameArea');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            switch(phase) {
+                case 1:
+                    loadTechniqueSelection();
+                    nextBtn.textContent = 'Применить технику';
+                    nextBtn.onclick = applyTechnique;
+                    break;
+                case 2:
+                    loadNegotiation();
+                    nextBtn.textContent = 'Продолжить переговоры';
+                    nextBtn.onclick = continueNegotiation;
+                    break;
+                case 3:
+                    loadMiniGame();
+                    nextBtn.textContent = 'Завершить сделку';
+                    nextBtn.onclick = completeDeal;
+                    break;
+            }
+            
+            updatePhaseIndicator();
+            updateProgress();
+        }
+
+        function loadTechniqueSelection() {
+            currentClient = clients[Math.floor(Math.random() * clients.length)];
+            clientMood = currentClient.mood;
+            
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = `
+                <div class="client-card fade-in">
+                    <div class="client-info">
+                        <div class="client-avatar">${currentClient.avatar}</div>
+                        <div class="client-details">
+                            <h3>${currentClient.name}</h3>
+                            <p>${currentClient.type} - ${currentClient.description}</p>
+                        </div>
+                    </div>
+                    <div class="mood-indicator">
+                        <span>Настроение:</span>
+                        <div class="mood-bar">
+                            <div class="mood-fill" id="moodFill" style="width: ${clientMood}%"></div>
+                        </div>
+                        <span>${clientMood}%</span>
+                    </div>
+                </div>
+                <h3 style="margin-bottom: 15px;">Выберите психологическую технику:</h3>
+                <div class="technique-selector">
+                    ${techniques.map(tech => `
+                        <div class="technique-card" onclick="selectTechnique('${tech.id}')">
+                            <div class="technique-icon">${tech.icon}</div>
+                            <div class="technique-name">${tech.name}</div>
+                            <div class="technique-desc">${tech.description}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function selectTechnique(techId) {
+            selectedTechnique = techniques.find(t => t.id === techId);
+            
+            // Убираем выделение со всех карточек
+            document.querySelectorAll('.technique-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Выделяем выбранную карточку
+            event.target.closest('.technique-card').classList.add('selected');
+        }
+
+        function applyTechnique() {
+            if (!selectedTechnique) {
+                alert('Выберите технику!');
+                return;
+            }
+
+            // Применяем технику
+            const moodBoost = selectedTechnique.moodBoost * (1 - currentClient.resistance);
+            clientMood = Math.min(100, clientMood + moodBoost);
+            
+            // Показываем результат
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = `
+                <div class="client-card fade-in">
+                    <div class="client-info">
+                        <div class="client-avatar">${currentClient.avatar}</div>
+                        <div class="client-details">
+                            <h3>${currentClient.name}</h3>
+                            <p>Применена техника: ${selectedTechnique.name}</p>
+                        </div>
+                    </div>
+                    <div class="mood-indicator">
+                        <span>Настроение:</span>
+                        <div class="mood-bar">
+                            <div class="mood-fill" style="width: ${clientMood}%"></div>
+                        </div>
+                        <span>${clientMood}%</span>
+                    </div>
+                    <div class="dialogue-box">
+                        <div class="dialogue-text">
+                            ${dialogues[selectedTechnique.id][Math.floor(Math.random() * dialogues[selectedTechnique.id].length)]}
+                        </div>
+                        <p style="margin-top: 10px; color: #FFD700;">
+                            Настроение клиента улучшилось на ${Math.round(moodBoost)}%!
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                currentPhase = 2;
+                loadPhase(currentPhase);
+            }, 2000);
+        }
+
+        function loadNegotiation() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = `
+                <div class="negotiation-area fade-in">
+                    <h3>Переговоры с ${currentClient.name}</h3>
+                    <p>Бюджет клиента: ${currentClient.budget.toLocaleString()}₽</p>
+                    <p>Текущее настроение: ${clientMood}%</p>
+                    
+                    <div class="dialogue-box">
+                        <div class="dialogue-text">
+                            Клиент: "Хорошо, я заинтересован. Но цена должна быть разумной."
+                        </div>
+                        <div class="dialogue-options">
+                            <div class="dialogue-option" onclick="selectDialogueOption(1)">
+                                Предложить 80% от бюджета (${Math.round(currentClient.budget * 0.8).toLocaleString()}₽)
+                            </div>
+                            <div class="dialogue-option" onclick="selectDialogueOption(2)">
+                                Предложить 90% от бюджета (${Math.round(currentClient.budget * 0.9).toLocaleString()}₽)
+                            </div>
+                            <div class="dialogue-option" onclick="selectDialogueOption(3)">
+                                Предложить полный бюджет (${currentClient.budget.toLocaleString()}₽)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectDialogueOption(option) {
+            // Убираем выделение со всех опций
+            document.querySelectorAll('.dialogue-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Выделяем выбранную опцию
+            event.target.classList.add('selected');
+            
+            let price, successChance;
+            
+            switch(option) {
+                case 1:
+                    price = Math.round(currentClient.budget * 0.8);
+                    successChance = 0.9;
+                    break;
+                case 2:
+                    price = Math.round(currentClient.budget * 0.9);
+                    successChance = 0.7;
+                    break;
+                case 3:
+                    price = currentClient.budget;
+                    successChance = 0.5;
+                    break;
+            }
+            
+            // Учитываем настроение клиента
+            successChance *= (clientMood / 100);
+            
+            if (Math.random() < successChance) {
+                money += price;
+                negotiationProgress = 100;
+                showSuccess(`Сделка заключена! +${price.toLocaleString()}₽`);
+            } else {
+                negotiationProgress = 50;
+                showSuccess('Клиент отказался, но переговоры продолжаются');
+            }
+            
+            setTimeout(() => {
+                currentPhase = 3;
+                loadPhase(currentPhase);
+            }, 2000);
+        }
+
+        function loadMiniGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = `
+                <div class="mini-game fade-in">
+                    <h3>Финальная проверка: Психологический тест</h3>
+                    <p>Выберите правильные ответы, чтобы подтвердить свою экспертизу</p>
+                    
+                    <div class="game-grid" id="gameGrid">
+                        <div class="game-cell" onclick="checkAnswer(0)">🧠</div>
+                        <div class="game-cell" onclick="checkAnswer(1)">💡</div>
+                        <div class="game-cell" onclick="checkAnswer(2)">🎯</div>
+                        <div class="game-cell" onclick="checkAnswer(3)">⚡</div>
+                        <div class="game-cell" onclick="checkAnswer(4)">🔮</div>
+                        <div class="game-cell" onclick="checkAnswer(5)">🌟</div>
+                        <div class="game-cell" onclick="checkAnswer(6)">💎</div>
+                        <div class="game-cell" onclick="checkAnswer(7)">🚀</div>
+                        <div class="game-cell" onclick="checkAnswer(8)">🎪</div>
+                    </div>
+                    
+                    <p id="gameHint">Найдите 3 правильных ответа для завершения сделки</p>
+                </div>
+            `;
+            
+            // Генерируем правильные ответы
+            window.correctAnswers = [1, 4, 7]; // Индексы правильных ответов
+            window.answeredCount = 0;
+        }
+
+        function checkAnswer(index) {
+            const cell = event.target;
+            const isCorrect = window.correctAnswers.includes(index);
+            
+            if (isCorrect && !cell.classList.contains('correct')) {
+                cell.classList.add('correct');
+                window.answeredCount++;
+                
+                if (window.answeredCount === 3) {
+                    showSuccess('Тест пройден! Сделка завершена успешно!');
+                    setTimeout(() => {
+                        completeQuest();
+                    }, 2000);
+                }
+            } else if (!isCorrect && !cell.classList.contains('wrong')) {
+                cell.classList.add('wrong');
+                setTimeout(() => {
+                    cell.classList.remove('wrong');
+                }, 1000);
+            }
+        }
+
+        function continueNegotiation() {
+            // Логика продолжения переговоров
+            loadNegotiation();
+        }
+
+        function completeDeal() {
+            // Логика завершения сделки
+            completeQuest();
+        }
+
+        function completeQuest() {
+            // Сохраняем награды через новую систему
+            if (window.parent && window.parent.addRewards) {
+                window.parent.addRewards(3, 500, 'psychology', 'Психология заработка', 'medium');
+            }
+            
+            showSuccess('Квест завершен! Возвращаемся в хаб...');
+            setTimeout(() => {
+                window.location.href = '../quests.html';
+            }, 2000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-animation';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 2000);
+        }
+
+        function updateMoneyDisplay() {
+            document.getElementById('moneyAmount').textContent = money.toLocaleString();
+        }
+
+        function updatePhaseIndicator() {
+            document.querySelectorAll('.phase').forEach((phase, index) => {
+                phase.classList.remove('active', 'completed');
+                if (index + 1 < currentPhase) {
+                    phase.classList.add('completed');
+                } else if (index + 1 === currentPhase) {
+                    phase.classList.add('active');
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = (currentPhase - 1) / totalPhases * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function nextPhase() {
+            if (currentPhase < totalPhases) {
+                currentPhase++;
+                loadPhase(currentPhase);
+            }
+        }
+
+        // Инициализация игры
+        initGame();
+    </script>
+</body>
+</html>

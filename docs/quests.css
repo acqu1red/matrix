@@ -394,51 +394,44 @@ h3 { font-size: 1.25rem; }
   overflow: hidden;
 }
 
-.preview-button {
-  width: 100%;
+.preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(255,255,255,0.05);
-  border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: var(--text);
-  font-family: inherit;
+  background: rgba(255,255,255,0.05);
 }
 
-.preview-button:hover {
+.preview-header:hover {
   background: rgba(255,255,255,0.1);
-}
-
-.preview-button:active {
-  background: rgba(255,255,255,0.15);
 }
 
 .preview-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
+  margin: 0;
 }
 
-.preview-arrow {
+.preview-toggle {
   font-size: 12px;
   color: var(--text-muted);
   transition: transform 0.3s ease;
 }
 
-.preview-arrow.expanded {
+.preview-toggle.expanded {
   transform: rotate(180deg);
 }
 
-.preview-list {
+.preview-content {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
 }
 
-.preview-list.expanded {
+.preview-content.expanded {
   max-height: 200px;
 }
 
@@ -1202,16 +1195,11 @@ h3 { font-size: 1.25rem; }
 
 @keyframes itemsSlide {
   0% { transform: translateX(0); }
-  10% { transform: translateX(-300px); }
-  20% { transform: translateX(-600px); }
-  30% { transform: translateX(-900px); }
-  40% { transform: translateX(-1200px); }
-  50% { transform: translateX(-1500px); }
-  60% { transform: translateX(-1800px); }
-  70% { transform: translateX(-2100px); }
-  80% { transform: translateX(-2400px); }
-  90% { transform: translateX(-2700px); }
-  100% { transform: translateX(-3000px); }
+  20% { transform: translateX(-500px); }
+  40% { transform: translateX(-1000px); }
+  60% { transform: translateX(-1500px); }
+  80% { transform: translateX(-2000px); }
+  100% { transform: translateX(-2500px); }
 }
 
 /* Казино-стиль для иконок */
