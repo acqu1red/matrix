@@ -459,6 +459,13 @@
           </div>
         </div>
       </main>
+      
+      <div class="quest-footer fixed-bottom">
+        <div class="quest-controls">
+          <button id="nextBtn" class="btn primary" style="display: none;">Следующий тест</button>
+          <button id="resetBtn" class="btn ghost">Сбросить</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -807,6 +814,21 @@
       }, 1500);
     }
 
+    // Обработчики кнопок
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (gameState.currentPhase === 1) {
+        loadPhase2();
+      } else if (gameState.currentPhase === 2) {
+        loadPhase3();
+      }
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (confirm('Сбросить прогресс квеста?')) {
+        init();
+      }
+    });
+    
     // Запуск
     init();
   </script>
