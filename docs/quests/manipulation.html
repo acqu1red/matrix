@@ -6,6 +6,18 @@
   <title>Психология манипуляций</title>
   <link rel="stylesheet" href="../quests.css">
   <style>
+    body {
+      overflow-y: auto;
+      height: auto;
+      min-height: 100vh;
+    }
+    
+    .quest-container {
+      min-height: 100vh;
+      overflow-y: auto;
+      padding-bottom: 100px;
+    }
+    
     .manipulation-scenario {
       background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
       border: 1px solid rgba(255,255,255,0.2);
@@ -45,6 +57,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      position: relative;
+      z-index: 10;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
     
     .technique-option:hover {
@@ -374,6 +392,14 @@
       // Обработчики событий
       document.getElementById('backBtn').addEventListener('click', goBack);
       document.getElementById('nextBtn').addEventListener('click', nextScenario);
+      
+      // Делегирование событий для техник
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('.technique-option')) {
+          const option = event.target.closest('.technique-option');
+          handleTechniqueClick({ currentTarget: option, preventDefault: () => {}, stopPropagation: () => {} });
+        }
+      });
     });
 
     function loadScenario() {
@@ -403,17 +429,24 @@
 
       // Добавляем обработчики для выбора техник
       document.querySelectorAll('.technique-option').forEach(option => {
-        option.addEventListener('click', () => {
-          if (option.classList.contains('selected')) {
-            option.classList.remove('selected');
-            selectedTechniques = selectedTechniques.filter(t => t !== option.dataset.technique);
-          } else {
-            option.classList.add('selected');
-            selectedTechniques.push(option.dataset.technique);
-          }
-          updateNextButton();
-        });
+        option.addEventListener('click', handleTechniqueClick);
+        option.addEventListener('touchstart', handleTechniqueClick);
       });
+    }
+
+    function handleTechniqueClick(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const option = event.currentTarget;
+      if (option.classList.contains('selected')) {
+        option.classList.remove('selected');
+        selectedTechniques = selectedTechniques.filter(t => t !== option.dataset.technique);
+      } else {
+        option.classList.add('selected');
+        selectedTechniques.push(option.dataset.technique);
+      }
+            updateNextButton();
     }
 
     function updateDisplay() {
