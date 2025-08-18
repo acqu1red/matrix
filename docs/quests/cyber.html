@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Кибер‑взлом — Квест‑Хаб</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../quests.css" />
+  <style>
+    .cyber-terminal {
+      background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+      border: 2px solid var(--glow1);
+      border-radius: var(--radius);
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      color: var(--glow1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--glow1);
+    }
+    
+    .terminal-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--glow1);
+    }
+    
+    .terminal-status {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--error);
+      animation: pulse 1s ease-in-out infinite;
+    }
+    
+    .status-dot.active {
+      background: var(--success);
+    }
+    
+    .hack-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin: 20px 0;
+    }
+    
+    .hack-symbol {
+      aspect-ratio: 1;
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    
+    .hack-symbol:hover {
+      background: var(--glass);
+      border-color: var(--glow1);
+      transform: scale(1.05);
+    }
+    
+    .hack-symbol.selected {
+      background: var(--glow1);
+      color: var(--bg0);
+      border-color: var(--glow1);
+      box-shadow: 0 0 15px rgba(102, 247, 213, 0.5);
+    }
+    
+    .hack-symbol.correct {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+    
+    .hack-symbol.wrong {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+    
+    .code-display {
+      background: var(--bg0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .code-slot {
+      width: 30px;
+      height: 30px;
+      border: 2px dashed var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+    
+    .code-slot.filled {
+      border-color: var(--glow1);
+      color: var(--glow1);
+      background: rgba(102, 247, 213, 0.1);
+    }
+    
+    .hack-progress {
+      margin: 20px 0;
+    }
+    
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .step.active {
+      color: var(--glow1);
+    }
+    
+    .step.completed {
+      color: var(--success);
+    }
+    
+    .step-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .step.active .step-dot {
+      background: var(--glow1);
+      box-shadow: 0 0 10px rgba(102, 247, 213, 0.5);
+    }
+    
+    .step.completed .step-dot {
+      background: var(--success);
+    }
+    
+    .matrix-bg {
+      position: absolute;
+      inset: 0;
+      opacity: 0.1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .matrix-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 100%;
+      background: var(--glow1);
+      animation: matrix-fall 3s linear infinite;
+    }
+    
+    @keyframes matrix-fall {
+      0% {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+    }
+    
+    .success-animation {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, var(--success), #22C55E);
+      color: white;
+      padding: 30px;
+      border-radius: var(--radius);
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
+    }
+    
+    .success-animation.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>Кибер‑взлом</h1>
+        <div class="badge">Киберпанк</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <div class="quest-container">
+      <div class="quest-header">
+        <h2>🔓 Кибер‑взлом</h2>
+        <div class="theme">Киберпанк • Средний уровень</div>
+      </div>
+
+      <div class="quest-content">
+        <div class="banner">
+          <strong>Задача:</strong> Взломай защищенную систему, подбирая правильные символы в нужном порядке.
+        </div>
+
+        <div class="cyber-terminal" id="cyberTerminal">
+          <div class="matrix-bg" id="matrixBg"></div>
+          
+          <div class="terminal-header">
+            <div class="terminal-title">SYSTEM_ACCESS.exe</div>
+            <div class="terminal-status">
+              <div class="status-dot" id="statusDot"></div>
+              <span id="statusText">Подключение...</span>
+            </div>
+          </div>
+
+          <div class="hack-progress">
+            <div class="progress-steps">
+              <div class="step active" id="step1">
+                <div class="step-dot"></div>
+                <span>Подключение</span>
+              </div>
+              <div class="step" id="step2">
+                <div class="step-dot"></div>
+                <span>Взлом</span>
+              </div>
+              <div class="step" id="step3">
+                <div class="step-dot"></div>
+                <span>Доступ</span>
+              </div>
+            </div>
+            <div class="progress">
+              <div class="progress-bar" id="progressBar" style="width: 33%"></div>
+            </div>
+          </div>
+
+          <div class="code-display">
+            <span>Код доступа:</span>
+            <div class="code-slot" id="slot1">?</div>
+            <div class="code-slot" id="slot2">?</div>
+            <div class="code-slot" id="slot3">?</div>
+            <div class="code-slot" id="slot4">?</div>
+          </div>
+
+          <div class="hack-grid" id="hackGrid">
+            <!-- Символы будут добавлены динамически -->
+          </div>
+
+          <div class="questActions">
+            <button id="startBtn" class="btn primary">Начать взлом</button>
+            <button id="resetBtn" class="btn ghost">Сбросить</button>
+            <button id="clearBtn" class="btn ghost">Очистить код</button>
+          </div>
+        </div>
+
+        <div class="success-animation" id="successAnimation">
+          🔓 Шлюз открыт!<br>
+          <small>+3 фрагмента</small>
+        </div>
+      </div>
+
+      <div class="quest-footer">
+        <div class="banner">
+          <strong>Награды:</strong> Фрагменты +3, Опыт +75
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Конфигурация
+    const QUEST_CONFIG = {
+      codeLength: 4,
+      symbols: ['▲', '◆', '●', '■', '★', '✦', '✧', '✪', '⚡', '🔮'],
+      rewards: { fragments: 3, experience: 75 }
+    };
+
+    // Состояние игры
+    let gameState = {
+      isRunning: false,
+      currentStep: 1,
+      targetCode: [],
+      selectedCode: [],
+      attempts: 0,
+      maxAttempts: 3
+    };
+
+    // Элементы
+    const terminal = document.getElementById('cyberTerminal');
+    const matrixBg = document.getElementById('matrixBg');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const progressBar = document.getElementById('progressBar');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const successAnimation = document.getElementById('successAnimation');
+    const btnBack = document.getElementById('btnBack');
+
+    // Утилиты
+    const toast = (msg, type = 'info') => {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    };
+
+    // Инициализация
+    function init() {
+      createMatrixBackground();
+      createHackGrid();
+      setupEventListeners();
+      updateDisplay();
+    }
+
+    function createMatrixBackground() {
+      for (let i = 0; i < 5; i++) {
+        const line = document.createElement('div');
+        line.className = 'matrix-line';
+        line.style.left = (i * 20) + '%';
+        line.style.animationDelay = (i * 0.5) + 's';
+        matrixBg.appendChild(line);
+      }
+    }
+
+    function createHackGrid() {
+      const grid = document.getElementById('hackGrid');
+      grid.innerHTML = '';
+      
+      QUEST_CONFIG.symbols.forEach(symbol => {
+        const button = document.createElement('button');
+        button.className = 'hack-symbol';
+        button.textContent = symbol;
+        button.addEventListener('click', () => selectSymbol(symbol));
+        grid.appendChild(button);
+      });
+    }
+
+    function setupEventListeners() {
+      startBtn.addEventListener('click', startHack);
+      resetBtn.addEventListener('click', resetHack);
+      clearBtn.addEventListener('click', clearCode);
+      btnBack.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '../quests.html';
+        }
+      });
+    }
+
+    function startHack() {
+      if (gameState.isRunning) return;
+      
+      gameState.isRunning = true;
+      gameState.currentStep = 1;
+      gameState.attempts = 0;
+      gameState.selectedCode = [];
+      
+      // Генерируем целевой код
+      gameState.targetCode = [];
+      for (let i = 0; i < QUEST_CONFIG.codeLength; i++) {
+        const randomSymbol = QUEST_CONFIG.symbols[Math.floor(Math.random() * QUEST_CONFIG.symbols.length)];
+        gameState.targetCode.push(randomSymbol);
+      }
+      
+      updateStatus('Взлом начат...', 'active');
+      updateProgress();
+      updateDisplay();
+      
+      startBtn.disabled = true;
+      startBtn.textContent = 'Взлом...';
+      
+      toast('🔓 Система обнаружена. Начинаем взлом...', 'info');
+    }
+
+    function selectSymbol(symbol) {
+      if (!gameState.isRunning || gameState.selectedCode.length >= QUEST_CONFIG.codeLength) {
+        return;
+      }
+      
+      gameState.selectedCode.push(symbol);
+      updateDisplay();
+      
+      if (gameState.selectedCode.length === QUEST_CONFIG.codeLength) {
+        checkCode();
+      }
+    }
+
+    function checkCode() {
+      gameState.attempts++;
+      
+      const isCorrect = gameState.selectedCode.every((symbol, index) => 
+        symbol === gameState.targetCode[index]
+      );
+      
+      if (isCorrect) {
+        gameState.currentStep = 3;
+        updateStatus('Доступ получен!', 'active');
+        updateProgress();
+        showSuccess();
+        toast('🎉 Шлюз открыт! Взлом успешен!', 'success');
+      } else {
+        if (gameState.attempts >= gameState.maxAttempts) {
+          gameState.currentStep = 2;
+          updateStatus('Взлом провален', 'error');
+          updateProgress();
+          toast('💥 Система заблокирована. Попытки исчерпаны.', 'error');
+          endHack();
+        } else {
+          gameState.currentStep = 2;
+          updateStatus('Попытка неудачна...', 'warning');
+          updateProgress();
+          toast(`❌ Неверный код. Осталось попыток: ${gameState.maxAttempts - gameState.attempts}`, 'warning');
+          clearCode();
+        }
+      }
+    }
+
+    function clearCode() {
+      gameState.selectedCode = [];
+      updateDisplay();
+    }
+
+    function showSuccess() {
+      successAnimation.classList.add('show');
+      setTimeout(() => {
+        successAnimation.classList.remove('show');
+      }, 3000);
+    }
+
+    function endHack() {
+      gameState.isRunning = false;
+      startBtn.disabled = false;
+      startBtn.textContent = 'Начать взлом';
+      
+      // Показываем правильный код
+      const slots = document.querySelectorAll('.code-slot');
+      gameState.targetCode.forEach((symbol, index) => {
+        slots[index].textContent = symbol;
+        slots[index].className = 'code-slot filled correct';
+      });
+    }
+
+    function resetHack() {
+      gameState = {
+        isRunning: false,
+        currentStep: 1,
+        targetCode: [],
+        selectedCode: [],
+        attempts: 0,
+        maxAttempts: 3
+      };
+      
+      updateStatus('Подключение...', 'inactive');
+      updateProgress();
+      updateDisplay();
+      
+      startBtn.disabled = false;
+      startBtn.textContent = 'Начать взлом';
+      
+      // Сбрасываем символы
+      document.querySelectorAll('.hack-symbol').forEach(symbol => {
+        symbol.className = 'hack-symbol';
+      });
+    }
+
+    function updateStatus(text, type) {
+      statusText.textContent = text;
+      statusDot.className = 'status-dot';
+      
+      switch (type) {
+        case 'active':
+          statusDot.classList.add('active');
+          break;
+        case 'error':
+          statusDot.style.background = 'var(--error)';
+          break;
+        case 'warning':
+          statusDot.style.background = 'var(--warning)';
+          break;
+        default:
+          statusDot.style.background = 'var(--text-muted)';
+      }
+    }
+
+    function updateProgress() {
+      const progress = (gameState.currentStep / 3) * 100;
+      progressBar.style.width = progress + '%';
+      
+      // Обновляем шаги
+      for (let i = 1; i <= 3; i++) {
+        const step = document.getElementById(`step${i}`);
+        step.className = 'step';
+        
+        if (i < gameState.currentStep) {
+          step.classList.add('completed');
+        } else if (i === gameState.currentStep) {
+          step.classList.add('active');
+        }
+      }
+    }
+
+    function updateDisplay() {
+      const slots = document.querySelectorAll('.code-slot');
+      
+      slots.forEach((slot, index) => {
+        if (index < gameState.selectedCode.length) {
+          slot.textContent = gameState.selectedCode[index];
+          slot.className = 'code-slot filled';
+        } else {
+          slot.textContent = '?';
+          slot.className = 'code-slot';
+        }
+      });
+    }
+
+    // Запуск
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Поиск сокровищ — Квест‑Хаб</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../quests.css" />
+  <style>
+    .treasure-map {
+      position: relative;
+      height: 400px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      overflow: hidden;
+      cursor: crosshair;
+      transition: all 0.3s ease;
+    }
+    
+    .treasure-map:hover {
+      border-color: var(--glow1);
+      box-shadow: 0 0 30px rgba(102, 247, 213, 0.2);
+    }
+    
+    .map-background {
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(120% 100% at 60% 30%, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+        url('https://picsum.photos/seed/treasure/800/400') center/cover;
+      filter: sepia(0.3) contrast(1.2);
+    }
+    
+    .flash-effect {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--flash-x, 50%) var(--flash-y, 50%), 
+        rgba(255, 226, 122, 0.8) 0%, 
+        rgba(255, 226, 122, 0.4) 20%, 
+        transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .flash-effect.active {
+      opacity: 1;
+    }
+    
+    .treasure-hint {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+    }
+    
+    .progress-container {
+      margin: 20px 0;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .stat-card {
+      background: var(--glass);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .treasure-found {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, var(--success), #22C55E);
+      color: white;
+      padding: 20px 30px;
+      border-radius: var(--radius);
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
+    }
+    
+    .treasure-found.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: sparkle 2s ease-out forwards;
+    }
+    
+    @keyframes sparkle {
+      0% {
+        opacity: 1;
+        transform: scale(0) rotate(0deg);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1) rotate(180deg);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0) rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>Поиск сокровищ</h1>
+        <div class="badge">Дикий запад</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <div class="quest-container">
+      <div class="quest-header">
+        <h2>🗺️ Поиск сокровищ</h2>
+        <div class="theme">Дикий запад • Легкий уровень</div>
+      </div>
+
+      <div class="quest-content">
+        <div class="banner">
+          <strong>Задача:</strong> Исследуй загадочную карту и следуй за вспышками света, чтобы найти спрятанные сокровища.
+        </div>
+
+        <div class="treasure-map" id="treasureMap">
+          <div class="map-background"></div>
+          <div class="flash-effect" id="flashEffect"></div>
+          <div class="treasure-hint">
+            💡 Подсказка: Три вспышки укажут на тайник. Нажми на карту, когда вспышка затухает.
+          </div>
+          <div class="particles" id="particles"></div>
+          <div class="treasure-found" id="treasureFound">
+            🎉 Сокровище найдено!<br>
+            <small>+2 фрагмента</small>
+          </div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value" id="triesValue">0</div>
+            <div class="stat-label">Попытки</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="hitsValue">0</div>
+            <div class="stat-label">Попадания</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="scoreValue">0</div>
+            <div class="stat-label">Очки</div>
+          </div>
+        </div>
+
+        <div class="questActions">
+          <button id="startBtn" class="btn primary">Начать поиск</button>
+          <button id="resetBtn" class="btn ghost">Сбросить</button>
+        </div>
+      </div>
+
+      <div class="quest-footer">
+        <div class="banner">
+          <strong>Награды:</strong> Фрагменты +2, Опыт +50
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Конфигурация
+    const QUEST_CONFIG = {
+      maxTries: 3,
+      flashDuration: 900,
+      flashInterval: 700,
+      hitRadius: 50,
+      rewards: { fragments: 2, experience: 50 }
+    };
+
+    // Состояние игры
+    let gameState = {
+      tries: 0,
+      hits: 0,
+      score: 0,
+      isRunning: false,
+      currentFlash: null
+    };
+
+    // Элементы
+    const map = document.getElementById('treasureMap');
+    const flashEffect = document.getElementById('flashEffect');
+    const particles = document.getElementById('particles');
+    const treasureFound = document.getElementById('treasureFound');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+    const triesValue = document.getElementById('triesValue');
+    const hitsValue = document.getElementById('hitsValue');
+    const scoreValue = document.getElementById('scoreValue');
+    const btnBack = document.getElementById('btnBack');
+
+    // Утилиты
+    const toast = (msg, type = 'info') => {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    };
+
+    // Инициализация
+    function init() {
+      updateStats();
+      setupEventListeners();
+    }
+
+    function setupEventListeners() {
+      startBtn.addEventListener('click', startGame);
+      resetBtn.addEventListener('click', resetGame);
+      btnBack.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '../quests.html';
+        }
+      });
+
+      map.addEventListener('click', handleMapClick);
+    }
+
+    function startGame() {
+      if (gameState.isRunning) return;
+      
+      gameState.isRunning = true;
+      gameState.tries = 0;
+      gameState.hits = 0;
+      gameState.score = 0;
+      
+      updateStats();
+      startBtn.disabled = true;
+      startBtn.textContent = 'Поиск...';
+      
+      runFlashSequence();
+    }
+
+    function runFlashSequence() {
+      if (gameState.tries >= QUEST_CONFIG.maxTries) {
+        endGame();
+        return;
+      }
+
+      gameState.tries++;
+      updateStats();
+
+      // Случайная позиция вспышки
+      const x = Math.random() * 80 + 10; // 10-90%
+      const y = Math.random() * 80 + 10; // 10-90%
+      
+      gameState.currentFlash = { x, y };
+      
+      // Показываем вспышку
+      flashEffect.style.setProperty('--flash-x', x + '%');
+      flashEffect.style.setProperty('--flash-y', y + '%');
+      flashEffect.classList.add('active');
+      
+      // Скрываем через время
+      setTimeout(() => {
+        flashEffect.classList.remove('active');
+        gameState.currentFlash = null;
+        
+        // Следующая вспышка
+        if (gameState.tries < QUEST_CONFIG.maxTries) {
+          setTimeout(runFlashSequence, QUEST_CONFIG.flashInterval);
+        } else {
+          setTimeout(endGame, 500);
+        }
+      }, QUEST_CONFIG.flashDuration);
+    }
+
+    function handleMapClick(e) {
+      if (!gameState.currentFlash) return;
+      
+      const rect = map.getBoundingClientRect();
+      const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+      const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      const distance = Math.sqrt(
+        Math.pow(clickX - gameState.currentFlash.x, 2) + 
+        Math.pow(clickY - gameState.currentFlash.y, 2)
+      );
+      
+      if (distance <= QUEST_CONFIG.hitRadius) {
+        gameState.hits++;
+        gameState.score += 10;
+        toast('🎯 Попадание! +10 очков', 'success');
+        createParticles(e.clientX - rect.left, e.clientY - rect.top);
+      } else {
+        toast('💨 Промах!', 'warning');
+      }
+      
+      updateStats();
+    }
+
+    function createParticles(x, y) {
+      for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.animationDelay = Math.random() * 0.5 + 's';
+        particle.style.animationDuration = (1 + Math.random()) + 's';
+        
+        particles.appendChild(particle);
+        
+        setTimeout(() => {
+          particle.remove();
+        }, 2000);
+      }
+    }
+
+    function endGame() {
+      gameState.isRunning = false;
+      startBtn.disabled = false;
+      startBtn.textContent = 'Начать поиск';
+      
+      const progress = (gameState.hits / QUEST_CONFIG.maxTries) * 100;
+      progressBar.style.width = progress + '%';
+      
+      if (gameState.hits >= 2) {
+        showTreasureFound();
+        toast(`🎉 Отличная работа! Найдено ${gameState.hits}/3 сокровищ!`, 'success');
+      } else if (gameState.hits >= 1) {
+        toast(`👍 Хорошо! Найдено ${gameState.hits}/3 сокровищ`, 'info');
+      } else {
+        toast('😔 Попробуй еще раз!', 'warning');
+      }
+    }
+
+    function showTreasureFound() {
+      treasureFound.classList.add('show');
+      setTimeout(() => {
+        treasureFound.classList.remove('show');
+      }, 3000);
+    }
+
+    function resetGame() {
+      gameState = {
+        tries: 0,
+        hits: 0,
+        score: 0,
+        isRunning: false,
+        currentFlash: null
+      };
+      
+      updateStats();
+      progressBar.style.width = '0%';
+      flashEffect.classList.remove('active');
+      startBtn.disabled = false;
+      startBtn.textContent = 'Начать поиск';
+    }
+
+    function updateStats() {
+      triesValue.textContent = gameState.tries;
+      hitsValue.textContent = gameState.hits;
+      scoreValue.textContent = gameState.score;
+    }
+
+    // Запуск
+    init();
+  </script>
+</body>
+</html>

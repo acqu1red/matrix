@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ROI‑калькулятор — Квест‑Хаб</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../quests.css" />
+  <style>
+    .roi-analyzer {
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .campaign-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    
+    .campaign-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .campaign-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--glow1), var(--glow2));
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .campaign-card:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .campaign-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--glow1);
+    }
+    
+    .campaign-card.selected {
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(166, 180, 255, 0.1));
+      border-color: var(--glow1);
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.2);
+    }
+    
+    .campaign-card.correct {
+      background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(34, 197, 94, 0.1));
+      border-color: var(--success);
+    }
+    
+    .campaign-card.wrong {
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.1), rgba(239, 68, 68, 0.1));
+      border-color: var(--error);
+    }
+    
+    .campaign-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .campaign-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .campaign-badge {
+      padding: 4px 8px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .campaign-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--bg1);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .roi-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+    }
+    
+    .roi-value {
+      font-size: 16px;
+      color: var(--accent);
+    }
+    
+    .roi-percentage {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .roi-positive {
+      color: var(--success);
+    }
+    
+    .roi-negative {
+      color: var(--error);
+    }
+    
+    .analysis-panel {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      text-align: center;
+    }
+    
+    .analysis-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    
+    .analysis-description {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .metric-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .metric-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .metric-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+    
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .result-panel {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+    
+    .result-panel.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .result-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .result-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .result-description {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .stat-card {
+      background: var(--glass);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .chart-container {
+      height: 200px;
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin: 20px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .chart-bar {
+      position: absolute;
+      bottom: 0;
+      width: 60px;
+      background: linear-gradient(to top, var(--glow1), var(--glow2));
+      border-radius: 4px 4px 0 0;
+      transition: all 0.5s ease;
+    }
+    
+    .chart-label {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>ROI‑калькулятор</h1>
+        <div class="badge">Маркетинг</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <div class="quest-container">
+      <div class="quest-header">
+        <h2>📊 ROI‑калькулятор</h2>
+        <div class="theme">Маркетинг • Средний уровень</div>
+      </div>
+
+      <div class="quest-content">
+        <div class="banner">
+          <strong>Задача:</strong> Проанализируй данные маркетинговых кампаний и выбери наиболее прибыльную.
+        </div>
+
+        <div class="roi-analyzer" id="roiAnalyzer">
+          <div class="analysis-panel">
+            <div class="analysis-title">Анализ маркетинговых кампаний</div>
+            <div class="analysis-description">
+              Изучите данные трех кампаний и выберите ту, которая показывает лучший ROI (возврат на инвестиции).
+            </div>
+            
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-icon">💰</div>
+                <div class="metric-value" id="totalSpent">$0</div>
+                <div class="metric-label">Общие затраты</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-icon">📈</div>
+                <div class="metric-value" id="totalRevenue">$0</div>
+                <div class="metric-label">Общий доход</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-value" id="avgROI">0%</div>
+                <div class="metric-label">Средний ROI</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-panel">
+            <div class="stat-card">
+              <div class="stat-value" id="roundsValue">0</div>
+              <div class="stat-label">Раунды</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="correctValue">0</div>
+              <div class="stat-label">Правильно</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="accuracyValue">0%</div>
+              <div class="stat-label">Точность</div>
+            </div>
+          </div>
+
+          <div class="campaign-grid" id="campaignGrid">
+            <!-- Кампании будут добавлены динамически -->
+          </div>
+
+          <div class="chart-container" id="chartContainer">
+            <!-- График будет добавлен динамически -->
+          </div>
+
+          <div class="result-panel" id="resultPanel">
+            <div class="result-icon" id="resultIcon">📊</div>
+            <div class="result-title" id="resultTitle">Анализ завершен</div>
+            <div class="result-description" id="resultDescription">Результат анализа ROI</div>
+          </div>
+
+          <div class="questActions">
+            <button id="startBtn" class="btn primary">Начать анализ</button>
+            <button id="nextBtn" class="btn primary" style="display: none;">Следующий раунд</button>
+            <button id="resetBtn" class="btn ghost">Сбросить</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="quest-footer">
+        <div class="banner">
+          <strong>Награды:</strong> Фрагменты +3, Опыт +80
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Конфигурация
+    const QUEST_CONFIG = {
+      roundsPerGame: 5,
+      campaignsPerRound: 3,
+      rewards: { fragments: 3, experience: 80 }
+    };
+
+    // Состояние игры
+    let gameState = {
+      isRunning: false,
+      currentRound: 0,
+      correctAnswers: 0,
+      currentCampaigns: [],
+      selectedCampaign: null
+    };
+
+    // Элементы
+    const campaignGrid = document.getElementById('campaignGrid');
+    const chartContainer = document.getElementById('chartContainer');
+    const resultPanel = document.getElementById('resultPanel');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultDescription = document.getElementById('resultDescription');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const btnBack = document.getElementById('btnBack');
+    const roundsValue = document.getElementById('roundsValue');
+    const correctValue = document.getElementById('correctValue');
+    const accuracyValue = document.getElementById('accuracyValue');
+    const totalSpent = document.getElementById('totalSpent');
+    const totalRevenue = document.getElementById('totalRevenue');
+    const avgROI = document.getElementById('avgROI');
+
+    // Утилиты
+    const toast = (msg, type = 'info') => {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    };
+
+    // Инициализация
+    function init() {
+      setupEventListeners();
+      updateStats();
+    }
+
+    function setupEventListeners() {
+      startBtn.addEventListener('click', startGame);
+      nextBtn.addEventListener('click', nextRound);
+      resetBtn.addEventListener('click', resetGame);
+      btnBack.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '../quests.html';
+        }
+      });
+    }
+
+    function startGame() {
+      if (gameState.isRunning) return;
+      
+      gameState.isRunning = true;
+      gameState.currentRound = 0;
+      gameState.correctAnswers = 0;
+      
+      updateStats();
+      startBtn.style.display = 'none';
+      nextBtn.style.display = 'inline-block';
+      
+      nextRound();
+      toast('📊 Анализ ROI начат...', 'info');
+    }
+
+    function nextRound() {
+      if (gameState.currentRound >= QUEST_CONFIG.roundsPerGame) {
+        endGame();
+        return;
+      }
+      
+      gameState.currentRound++;
+      gameState.selectedCampaign = null;
+      
+      // Генерируем кампании
+      generateCampaigns();
+      
+      // Обновляем интерфейс
+      updateCampaigns();
+      updateChart();
+      updateMetrics();
+      
+      // Сбрасываем выбор
+      document.querySelectorAll('.campaign-card').forEach(card => {
+        card.className = 'campaign-card';
+      });
+      
+      // Скрываем результат
+      resultPanel.classList.remove('show');
+      
+      updateStats();
+      nextBtn.textContent = 'Следующий раунд';
+      nextBtn.disabled = true;
+      
+      toast(`Раунд ${gameState.currentRound}/${QUEST_CONFIG.roundsPerGame}`, 'info');
+    }
+
+    function generateCampaigns() {
+      gameState.currentCampaigns = [];
+      
+      for (let i = 0; i < QUEST_CONFIG.campaignsPerRound; i++) {
+        const spend = 100 + Math.floor(Math.random() * 400) * 50; // 100-2000
+        const roi = 0.5 + Math.random() * 2; // 50%-250%
+        const revenue = Math.round(spend * roi);
+        
+        gameState.currentCampaigns.push({
+          id: i,
+          name: `Кампания ${String.fromCharCode(65 + i)}`,
+          spend: spend,
+          revenue: revenue,
+          roi: roi,
+          ctr: (2 + Math.random() * 8).toFixed(1), // 2-10%
+          cpc: (0.5 + Math.random() * 2).toFixed(2) // $0.5-$2.5
+        });
+      }
+    }
+
+    function updateCampaigns() {
+      campaignGrid.innerHTML = '';
+      
+      gameState.currentCampaigns.forEach(campaign => {
+        const card = document.createElement('div');
+        card.className = 'campaign-card';
+        card.dataset.campaignId = campaign.id;
+        
+        const roiClass = campaign.roi > 1 ? 'roi-positive' : 'roi-negative';
+        const roiPercent = ((campaign.roi - 1) * 100).toFixed(1);
+        
+        card.innerHTML = `
+          <div class="campaign-header">
+            <div class="campaign-name">${campaign.name}</div>
+            <div class="campaign-badge">ROI</div>
+          </div>
+          <div class="campaign-stats">
+            <div class="stat-item">
+              <div class="stat-value">$${campaign.spend.toLocaleString()}</div>
+              <div class="stat-label">Затраты</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">$${campaign.revenue.toLocaleString()}</div>
+              <div class="stat-label">Доход</div>
+            </div>
+          </div>
+          <div class="roi-indicator">
+            <div class="roi-value ${roiClass}">${roiPercent}%</div>
+            <div class="roi-percentage">ROI</div>
+          </div>
+          <div style="margin-top: 12px; font-size: 11px; color: var(--text-muted);">
+            CTR: ${campaign.ctr}% | CPC: $${campaign.cpc}
+          </div>
+        `;
+        
+        card.addEventListener('click', () => selectCampaign(campaign));
+        campaignGrid.appendChild(card);
+      });
+    }
+
+    function updateChart() {
+      chartContainer.innerHTML = '';
+      
+      const maxRevenue = Math.max(...gameState.currentCampaigns.map(c => c.revenue));
+      const barWidth = (chartContainer.clientWidth - 80) / QUEST_CONFIG.campaignsPerRound;
+      
+      gameState.currentCampaigns.forEach((campaign, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.left = (20 + index * (barWidth + 20)) + 'px';
+        bar.style.width = barWidth + 'px';
+        bar.style.height = (campaign.revenue / maxRevenue * 160) + 'px';
+        
+        const label = document.createElement('div');
+        label.className = 'chart-label';
+        label.textContent = campaign.name;
+        label.style.left = (20 + index * (barWidth + 20) + barWidth / 2) + 'px';
+        
+        chartContainer.appendChild(bar);
+        chartContainer.appendChild(label);
+      });
+    }
+
+    function updateMetrics() {
+      const totalSpentValue = gameState.currentCampaigns.reduce((sum, c) => sum + c.spend, 0);
+      const totalRevenueValue = gameState.currentCampaigns.reduce((sum, c) => sum + c.revenue, 0);
+      const avgROIValue = ((totalRevenueValue / totalSpentValue - 1) * 100).toFixed(1);
+      
+      totalSpent.textContent = '$' + totalSpentValue.toLocaleString();
+      totalRevenue.textContent = '$' + totalRevenueValue.toLocaleString();
+      avgROI.textContent = avgROIValue + '%';
+    }
+
+    function selectCampaign(campaign) {
+      if (!gameState.isRunning || gameState.selectedCampaign) return;
+      
+      gameState.selectedCampaign = campaign;
+      
+      // Подсвечиваем выбранную кампанию
+      document.querySelectorAll('.campaign-card').forEach(card => {
+        card.className = 'campaign-card';
+        if (parseInt(card.dataset.campaignId) === campaign.id) {
+          card.classList.add('selected');
+        }
+      });
+      
+      // Находим лучшую кампанию
+      const bestCampaign = gameState.currentCampaigns.reduce((best, current) => 
+        current.roi > best.roi ? current : best
+      );
+      
+      const isCorrect = campaign.id === bestCampaign.id;
+      
+      if (isCorrect) {
+        gameState.correctAnswers++;
+        showResult('correct', campaign);
+        toast('🎯 Правильно! Отличный анализ ROI!', 'success');
+      } else {
+        showResult('wrong', campaign, bestCampaign);
+        toast('❌ Неверно. Изучите данные внимательнее.', 'warning');
+      }
+      
+      // Подсвечиваем правильный и неправильный ответы
+      document.querySelectorAll('.campaign-card').forEach(card => {
+        const cardId = parseInt(card.dataset.campaignId);
+        if (cardId === bestCampaign.id) {
+          card.classList.add('correct');
+        } else if (cardId === campaign.id && !isCorrect) {
+          card.classList.add('wrong');
+        }
+      });
+      
+      updateStats();
+      nextBtn.disabled = false;
+    }
+
+    function showResult(type, selectedCampaign, bestCampaign = null) {
+      if (type === 'correct') {
+        resultIcon.textContent = '🎯';
+        resultTitle.textContent = 'Правильно!';
+        resultDescription.textContent = `Вы выбрали ${selectedCampaign.name} с ROI ${((selectedCampaign.roi - 1) * 100).toFixed(1)}%`;
+      } else {
+        resultIcon.textContent = '❌';
+        resultTitle.textContent = 'Неверно';
+        resultDescription.textContent = `Вы выбрали ${selectedCampaign.name}. Лучшая: ${bestCampaign.name} (ROI ${((bestCampaign.roi - 1) * 100).toFixed(1)}%)`;
+      }
+      
+      resultPanel.classList.add('show');
+    }
+
+    function endGame() {
+      gameState.isRunning = false;
+      startBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+      
+      const accuracy = Math.round((gameState.correctAnswers / QUEST_CONFIG.roundsPerGame) * 100);
+      
+      if (accuracy >= 80) {
+        toast(`🎉 Отличная работа! Точность: ${accuracy}%`, 'success');
+      } else if (accuracy >= 60) {
+        toast(`👍 Хорошо! Точность: ${accuracy}%`, 'info');
+      } else {
+        toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
+      }
+    }
+
+    function resetGame() {
+      gameState = {
+        isRunning: false,
+        currentRound: 0,
+        correctAnswers: 0,
+        currentCampaigns: [],
+        selectedCampaign: null
+      };
+      
+      campaignGrid.innerHTML = '';
+      chartContainer.innerHTML = '';
+      resultPanel.classList.remove('show');
+      startBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+      
+      updateStats();
+    }
+
+    function updateStats() {
+      roundsValue.textContent = gameState.currentRound;
+      correctValue.textContent = gameState.correctAnswers;
+      
+      const accuracy = gameState.currentRound > 0 
+        ? Math.round((gameState.correctAnswers / gameState.currentRound) * 100)
+        : 0;
+      accuracyValue.textContent = accuracy + '%';
+    }
+
+    // Запуск
+    init();
+  </script>
+</body>
+</html>

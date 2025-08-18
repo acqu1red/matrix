@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Язык тела — Квест‑Хаб</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../quests.css" />
+  <style>
+    .emotion-analyzer {
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .face-container {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      margin: 0 auto 30px;
+      background: linear-gradient(180deg, #1b2742, #0f1a2a);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      box-shadow: inset 0 0 40px rgba(166,180,255,.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .face {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #2a3a5a, #1a2332);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 0 30px rgba(166,180,255,.12);
+    }
+    
+    .eye {
+      width: 24px;
+      height: 14px;
+      border-radius: 10px;
+      background: var(--text);
+      position: absolute;
+      top: 90px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .eye.left { left: 68px; }
+    .eye.right { right: 68px; }
+    
+    .brow {
+      position: absolute;
+      width: 60px;
+      height: 8px;
+      border-radius: 8px;
+      background: var(--glow2);
+      top: 70px;
+      opacity: 0.85;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .brow.left { left: 45px; }
+    .brow.right { right: 45px; }
+    
+    .mouth {
+      position: absolute;
+      width: 70px;
+      height: 40px;
+      border-radius: 0 0 70px 70px / 0 0 40px 40px;
+      border: 4px solid var(--text);
+      border-top: none;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Expression variants */
+    .face.happy .mouth {
+      height: 36px;
+      border-radius: 0 0 70px 70px / 0 0 36px 36px;
+    }
+    
+    .face.angry .brow.left {
+      transform: rotate(-18deg) translateY(-6px);
+    }
+    
+    .face.angry .brow.right {
+      transform: rotate(18deg) translateY(-6px);
+    }
+    
+    .face.sad .mouth {
+      border-radius: 70px 70px 0 0 / 40px 40px 0 0;
+      border-bottom: none;
+      border-top: 4px solid var(--text);
+    }
+    
+    .face.fear .eye {
+      height: 22px;
+    }
+    
+    .face.surprise .mouth {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 4px solid var(--text);
+    }
+    
+    .face.disgust .mouth {
+      width: 60px;
+      transform: translateX(-50%) rotate(-8deg);
+    }
+    
+    .face.contempt .brow.left {
+      transform: translateY(-6px);
+    }
+    
+    .face.contempt .brow.right {
+      opacity: 0.4;
+    }
+    
+    .face.dominance .brow.right {
+      transform: translateY(-6px);
+    }
+    
+    .face.dominance .mouth {
+      transform: translateX(-50%) rotate(4deg);
+    }
+    
+    .face.submission .brow.left,
+    .face.submission .brow.right {
+      opacity: 0.5;
+    }
+    
+    .face.submission .mouth {
+      opacity: 0.7;
+    }
+    
+    .face.uncertainty .eye {
+      width: 20px;
+    }
+    
+    .face.uncertainty .mouth {
+      width: 62px;
+    }
+    
+    .face.skeptic .brow.left {
+      transform: translateY(-8px);
+    }
+    
+    .face.skeptic .brow.right {
+      transform: translateY(2px);
+    }
+    
+    .face.interest .eye {
+      height: 16px;
+    }
+    
+    .face.interest .brow.left,
+    .face.interest .brow.right {
+      opacity: 0.95;
+    }
+    
+    .face.determination .brow.left {
+      transform: rotate(-8deg);
+    }
+    
+    .face.determination .brow.right {
+      transform: rotate(8deg);
+    }
+    
+    .face.hesitation .mouth {
+      width: 50px;
+    }
+    
+    .face.neutral .eye {
+      opacity: 0.9;
+    }
+    
+    .emotion-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin: 30px 0;
+    }
+    
+    .emotion-option {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .emotion-option:hover {
+      background: var(--glass-strong);
+      border-color: var(--glow1);
+      transform: translateY(-2px);
+    }
+    
+    .emotion-option.selected {
+      background: var(--glow1);
+      color: var(--bg0);
+      border-color: var(--glow1);
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
+    }
+    
+    .emotion-option.correct {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+    
+    .emotion-option.wrong {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+    
+    .analysis-result {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+    
+    .analysis-result.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .result-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .result-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .result-description {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .stat-item {
+      background: var(--glass);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .scanning-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--glow1), transparent);
+      animation: scan 2s ease-in-out infinite;
+    }
+    
+    @keyframes scan {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(280px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>Язык тела</h1>
+        <div class="badge">Психология</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <div class="quest-container">
+      <div class="quest-header">
+        <h2>🧠 Язык тела</h2>
+        <div class="theme">Психология • Средний уровень</div>
+      </div>
+
+      <div class="quest-content">
+        <div class="banner">
+          <strong>Задача:</strong> Анализируй выражения лица и жесты, чтобы определить эмоциональное состояние персонажа.
+        </div>
+
+        <div class="emotion-analyzer" id="emotionAnalyzer">
+          <div class="scanning-effect" id="scanningEffect"></div>
+          
+          <div class="face-container">
+            <div class="face" id="face">
+              <div class="brow left"></div>
+              <div class="brow right"></div>
+              <div class="eye left"></div>
+              <div class="eye right"></div>
+              <div class="mouth"></div>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="roundsValue">0</div>
+              <div class="stat-label">Раунды</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="correctValue">0</div>
+              <div class="stat-label">Правильно</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="accuracyValue">0%</div>
+              <div class="stat-label">Точность</div>
+            </div>
+          </div>
+
+          <div class="emotion-options" id="emotionOptions">
+            <!-- Опции будут добавлены динамически -->
+          </div>
+
+          <div class="analysis-result" id="analysisResult">
+            <div class="result-icon" id="resultIcon">🎯</div>
+            <div class="result-title" id="resultTitle">Анализ завершен</div>
+            <div class="result-description" id="resultDescription">Результат анализа эмоции</div>
+          </div>
+
+          <div class="questActions">
+            <button id="startBtn" class="btn primary">Начать анализ</button>
+            <button id="nextBtn" class="btn primary" style="display: none;">Следующая эмоция</button>
+            <button id="resetBtn" class="btn ghost">Сбросить</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="quest-footer">
+        <div class="banner">
+          <strong>Награды:</strong> Фрагменты +2, Опыт +60
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Конфигурация
+    const QUEST_CONFIG = {
+      emotions: [
+        { id: 'happy', name: 'Радость', description: 'Положительные эмоции, удовольствие' },
+        { id: 'sad', name: 'Грусть', description: 'Отрицательные эмоции, печаль' },
+        { id: 'angry', name: 'Гнев', description: 'Агрессия, раздражение' },
+        { id: 'fear', name: 'Страх', description: 'Тревога, беспокойство' },
+        { id: 'surprise', name: 'Удивление', description: 'Неожиданность, изумление' },
+        { id: 'disgust', name: 'Отвращение', description: 'Неприязнь, отторжение' },
+        { id: 'contempt', name: 'Презрение', description: 'Пренебрежение, надменность' },
+        { id: 'dominance', name: 'Доминантность', description: 'Уверенность, превосходство' },
+        { id: 'submission', name: 'Подчинение', description: 'Покорность, уступчивость' },
+        { id: 'uncertainty', name: 'Неуверенность', description: 'Сомнения, колебания' },
+        { id: 'skeptic', name: 'Скептицизм', description: 'Недоверие, сомнение' },
+        { id: 'interest', name: 'Заинтересованность', description: 'Внимание, любопытство' },
+        { id: 'determination', name: 'Решительность', description: 'Твердость, настойчивость' },
+        { id: 'hesitation', name: 'Колебание', description: 'Нерешительность, сомнения' },
+        { id: 'neutral', name: 'Нейтральность', description: 'Спокойствие, равнодушие' }
+      ],
+      roundsPerGame: 5,
+      rewards: { fragments: 2, experience: 60 }
+    };
+
+    // Состояние игры
+    let gameState = {
+      isRunning: false,
+      currentRound: 0,
+      correctAnswers: 0,
+      currentEmotion: null,
+      selectedEmotion: null
+    };
+
+    // Элементы
+    const face = document.getElementById('face');
+    const emotionOptions = document.getElementById('emotionOptions');
+    const analysisResult = document.getElementById('analysisResult');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultDescription = document.getElementById('resultDescription');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const btnBack = document.getElementById('btnBack');
+    const roundsValue = document.getElementById('roundsValue');
+    const correctValue = document.getElementById('correctValue');
+    const accuracyValue = document.getElementById('accuracyValue');
+
+    // Утилиты
+    const toast = (msg, type = 'info') => {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    };
+
+    // Инициализация
+    function init() {
+      createEmotionOptions();
+      setupEventListeners();
+      updateStats();
+    }
+
+    function createEmotionOptions() {
+      emotionOptions.innerHTML = '';
+      
+      QUEST_CONFIG.emotions.forEach(emotion => {
+        const option = document.createElement('div');
+        option.className = 'emotion-option';
+        option.textContent = emotion.name;
+        option.dataset.emotion = emotion.id;
+        option.addEventListener('click', () => selectEmotion(emotion));
+        emotionOptions.appendChild(option);
+      });
+    }
+
+    function setupEventListeners() {
+      startBtn.addEventListener('click', startGame);
+      nextBtn.addEventListener('click', nextRound);
+      resetBtn.addEventListener('click', resetGame);
+      btnBack.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '../quests.html';
+        }
+      });
+    }
+
+    function startGame() {
+      if (gameState.isRunning) return;
+      
+      gameState.isRunning = true;
+      gameState.currentRound = 0;
+      gameState.correctAnswers = 0;
+      
+      updateStats();
+      startBtn.style.display = 'none';
+      nextBtn.style.display = 'inline-block';
+      
+      nextRound();
+      toast('🧠 Анализ начат. Изучите выражение лица...', 'info');
+    }
+
+    function nextRound() {
+      if (gameState.currentRound >= QUEST_CONFIG.roundsPerGame) {
+        endGame();
+        return;
+      }
+      
+      gameState.currentRound++;
+      gameState.selectedEmotion = null;
+      
+      // Выбираем случайную эмоцию
+      const randomIndex = Math.floor(Math.random() * QUEST_CONFIG.emotions.length);
+      gameState.currentEmotion = QUEST_CONFIG.emotions[randomIndex];
+      
+      // Применяем выражение лица
+      applyEmotion(gameState.currentEmotion.id);
+      
+      // Сбрасываем опции
+      document.querySelectorAll('.emotion-option').forEach(option => {
+        option.className = 'emotion-option';
+      });
+      
+      // Скрываем результат
+      analysisResult.classList.remove('show');
+      
+      updateStats();
+      nextBtn.textContent = 'Следующая эмоция';
+      nextBtn.disabled = true;
+      
+      toast(`Раунд ${gameState.currentRound}/${QUEST_CONFIG.roundsPerGame}`, 'info');
+    }
+
+    function selectEmotion(emotion) {
+      if (!gameState.isRunning || gameState.selectedEmotion) return;
+      
+      gameState.selectedEmotion = emotion;
+      
+      // Подсвечиваем выбранную опцию
+      document.querySelectorAll('.emotion-option').forEach(option => {
+        option.className = 'emotion-option';
+        if (option.dataset.emotion === emotion.id) {
+          option.classList.add('selected');
+        }
+      });
+      
+      // Проверяем правильность
+      const isCorrect = emotion.id === gameState.currentEmotion.id;
+      
+      if (isCorrect) {
+        gameState.correctAnswers++;
+        showResult('correct', emotion);
+        toast('🎯 Правильно! Отличный анализ!', 'success');
+      } else {
+        showResult('wrong', emotion);
+        toast('❌ Неверно. Изучите выражение внимательнее.', 'warning');
+      }
+      
+      updateStats();
+      nextBtn.disabled = false;
+    }
+
+    function showResult(type, selectedEmotion) {
+      const correctEmotion = gameState.currentEmotion;
+      
+      if (type === 'correct') {
+        resultIcon.textContent = '🎯';
+        resultTitle.textContent = 'Правильно!';
+        resultDescription.textContent = `Вы верно определили: ${correctEmotion.name}`;
+      } else {
+        resultIcon.textContent = '❌';
+        resultTitle.textContent = 'Неверно';
+        resultDescription.textContent = `Вы выбрали: ${selectedEmotion.name}. Правильно: ${correctEmotion.name}`;
+      }
+      
+      // Подсвечиваем правильный ответ
+      document.querySelectorAll('.emotion-option').forEach(option => {
+        if (option.dataset.emotion === correctEmotion.id) {
+          option.classList.add('correct');
+        } else if (option.dataset.emotion === selectedEmotion.id && type === 'wrong') {
+          option.classList.add('wrong');
+        }
+      });
+      
+      analysisResult.classList.add('show');
+    }
+
+    function endGame() {
+      gameState.isRunning = false;
+      startBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+      
+      const accuracy = Math.round((gameState.correctAnswers / QUEST_CONFIG.roundsPerGame) * 100);
+      
+      if (accuracy >= 80) {
+        toast(`🎉 Отличная работа! Точность: ${accuracy}%`, 'success');
+      } else if (accuracy >= 60) {
+        toast(`👍 Хорошо! Точность: ${accuracy}%`, 'info');
+      } else {
+        toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
+      }
+    }
+
+    function resetGame() {
+      gameState = {
+        isRunning: false,
+        currentRound: 0,
+        correctAnswers: 0,
+        currentEmotion: null,
+        selectedEmotion: null
+      };
+      
+      face.className = 'face';
+      document.querySelectorAll('.emotion-option').forEach(option => {
+        option.className = 'emotion-option';
+      });
+      
+      analysisResult.classList.remove('show');
+      startBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+      
+      updateStats();
+    }
+
+    function applyEmotion(emotionId) {
+      face.className = 'face ' + emotionId;
+    }
+
+    function updateStats() {
+      roundsValue.textContent = gameState.currentRound;
+      correctValue.textContent = gameState.correctAnswers;
+      
+      const accuracy = gameState.currentRound > 0 
+        ? Math.round((gameState.correctAnswers / gameState.currentRound) * 100)
+        : 0;
+      accuracyValue.textContent = accuracy + '%';
+    }
+
+    // Запуск
+    init();
+  </script>
+</body>
+</html>
