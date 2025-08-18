@@ -12,7 +12,6 @@ import json
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
-ISLAND_URL = "https://acqu1red.github.io/formulaprivate/apps/webapp/island.html"
 ISLAND = "https://acqu1red.github.io/formulaprivate/island.html"
 
 # Supabase configuration
@@ -463,7 +462,7 @@ def build_start_content():
         "<b>⬇️ Ниже — кнопка. Жмешь — и проходишь туда, где люди не ноют, а ебут этот мир в обе щеки.</b>"
     )
     keyboard = [
-        [InlineKeyboardButton("🏝️ Остров Архив", web_app=WebAppInfo(url=ISLAND))],
+        [InlineKeyboardButton("🏝️ Карта навигации", web_app=WebAppInfo(url=ISLAND))],
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
         [InlineKeyboardButton("📋 Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
         [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
