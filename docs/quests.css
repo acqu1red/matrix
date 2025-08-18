@@ -367,18 +367,21 @@ h3 { font-size: 1.25rem; }
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--glass-strong);
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
   border: 2px solid var(--glow1);
-  border-radius: var(--radius);
-  padding: 30px;
+  border-radius: 20px;
+  padding: 40px 30px;
   text-align: center;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.5s ease;
-  z-index: 20;
-  backdrop-filter: blur(20px);
-  max-width: 400px;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  max-width: 450px;
   width: 90%;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 20px 40px rgba(0,0,0,0.3),
+    0 0 30px rgba(102, 247, 213, 0.2);
 }
 
 .prize-modal.show {
@@ -387,14 +390,19 @@ h3 { font-size: 1.25rem; }
 }
 
 .prize-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-  animation: prizeBounce 1s infinite;
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: prizeBounce 2s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
 @keyframes prizeBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { 
+    transform: translateY(0) scale(1); 
+  }
+  50% { 
+    transform: translateY(-8px) scale(1.05); 
+  }
 }
 
 @keyframes fadeIn {
@@ -1028,15 +1036,13 @@ h3 { font-size: 1.25rem; }
 
 /* Кнопка рулетки состояния */
 .btn.spinning {
-  animation: spinButton 0.5s ease-in-out infinite;
+  opacity: 0.7;
   pointer-events: none;
 }
 
 .btn.prize-ready {
   background: linear-gradient(135deg, #FFD700, #FFA500) !important;
   color: var(--bg0) !important;
-  animation: prizeReady 2s ease-in-out infinite;
-  transform: scale(1.02);
   cursor: pointer !important;
   pointer-events: auto !important;
 }
@@ -1051,22 +1057,6 @@ h3 { font-size: 1.25rem; }
 .btn.disabled:hover {
   transform: none !important;
   box-shadow: none !important;
-}
-
-@keyframes spinButton {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-}
-
-@keyframes prizeReady {
-  0%, 100% { 
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-    transform: scale(1.02);
-  }
-  50% { 
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
-    transform: scale(1.05);
-  }
 }
 
 /* Улучшенные анимации для рулетки */

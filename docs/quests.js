@@ -274,7 +274,7 @@ function spinRoulette(isFree = false) {
     // Сразу показываем модальное окно с призом
     showPrizeModal(prize);
     
-    // Восстанавливаем кнопку
+    // Восстанавливаем кнопку без анимации
     spinBtn.textContent = "🎰 Крутить рулетку";
     spinBtn.disabled = false;
     buyBtn.disabled = false;
@@ -330,6 +330,10 @@ async function showPrizeModal(prize) {
     `;
   } else if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
     const promoCode = generatePromoCode(prize);
+    
+    // Сохраняем промокод в базу данных
+    await savePromocode(prize, promoCode);
+    
     contentHTML = `
       <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
       <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
@@ -349,6 +353,10 @@ async function showPrizeModal(prize) {
     activateQuest24h();
   } else if (prize.id === 'frodCourse') {
     const promoCode = generatePromoCode(prize);
+    
+    // Сохраняем промокод в базу данных
+    await savePromocode(prize, promoCode);
+    
     contentHTML = `
       <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
       <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
@@ -529,6 +537,54 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
       }
     } catch (error) {
       console.error('Ошибка подключения к Supabase для истории рулетки:', error);
+    }
+  }
+}
+
+// Функция для сохранения промокодов в базу данных
+async function savePromocode(prize, promoCode) {
+  if (supabase && userData.telegramId) {
+    try {
+      // Определяем тип промокода
+      let promoType = 'discount';
+      let promoValue = 0;
+      
+      if (prize.id === 'subscription') {
+        promoType = 'subscription';
+        promoValue = 30; // 30 дней
+      } else if (prize.id === 'frodCourse') {
+        promoType = 'frod_course';
+        promoValue = 60; // 60 дней
+      } else if (prize.id === 'discount500') {
+        promoValue = 500;
+      } else if (prize.id === 'discount100') {
+        promoValue = 100;
+      } else if (prize.id === 'discount50') {
+        promoValue = 50;
+      }
+      
+      // Вычисляем дату истечения
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + (prize.id === 'subscription' ? 30 : 7));
+      
+      const { error } = await supabase
+        .from('promocodes')
+        .insert({
+          code: promoCode,
+          type: promoType,
+          value: promoValue,
+          issued_to: userData.telegramId,
+          expires_at: expiresAt.toISOString(),
+          status: 'issued'
+        });
+      
+      if (error) {
+        console.error('Ошибка сохранения промокода:', error);
+      } else {
+        console.log('Промокод успешно сохранен в базу данных:', promoCode);
+      }
+    } catch (error) {
+      console.error('Ошибка подключения к Supabase для промокода:', error);
     }
   }
 }
