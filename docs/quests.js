@@ -435,14 +435,12 @@ function startQuest(q, state) {
     return;
   }
   
-  // Перенаправляем на отдельную страницу квеста
+  // Открываем квест внутри Mini App
   const questUrl = `./quests/${questId}.html`;
   
-  if (tg && tg.openLink) {
-    tg.openLink(questUrl, {try_instant_view: false});
-  } else {
-    window.location.href = questUrl;
-  }
+  // Используем window.location.href для навигации внутри Mini App
+  // tg.openLink открывает в браузере, а нам нужно остаться в Mini App
+  window.location.href = questUrl;
 }
 
 /* ====== Modal functions ====== */

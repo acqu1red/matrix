@@ -9,432 +9,497 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../quests.css" />
   <style>
-    .emotion-analyzer {
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      padding: 30px;
-      text-align: center;
+    .bodylang-quest {
       position: relative;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0B1020 0%, #1A2332 100%);
       overflow: hidden;
     }
     
-    .face-container {
+    .video-container {
       position: relative;
-      width: 280px;
-      height: 280px;
-      margin: 0 auto 30px;
-      background: linear-gradient(180deg, #1b2742, #0f1a2a);
+      width: 100%;
+      height: 300px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 20px 0;
+      background: var(--bg1);
       border: 2px solid var(--border);
-      border-radius: 50%;
-      box-shadow: inset 0 0 40px rgba(166,180,255,.15);
+    }
+    
+    .video-placeholder {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, var(--bg1), var(--bg2));
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      color: var(--text-muted);
     }
     
-    .face {
-      position: relative;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: linear-gradient(180deg, #2a3a5a, #1a2332);
-      border: 1px solid var(--border);
-      box-shadow: inset 0 0 30px rgba(166,180,255,.12);
-    }
-    
-    .eye {
-      width: 24px;
-      height: 14px;
-      border-radius: 10px;
-      background: var(--text);
-      position: absolute;
-      top: 90px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .eye.left { left: 68px; }
-    .eye.right { right: 68px; }
-    
-    .brow {
-      position: absolute;
-      width: 60px;
-      height: 8px;
-      border-radius: 8px;
-      background: var(--glow2);
-      top: 70px;
-      opacity: 0.85;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .brow.left { left: 45px; }
-    .brow.right { right: 45px; }
-    
-    .mouth {
-      position: absolute;
-      width: 70px;
-      height: 40px;
-      border-radius: 0 0 70px 70px / 0 0 40px 40px;
-      border: 4px solid var(--text);
-      border-top: none;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    /* Expression variants */
-    .face.happy .mouth {
-      height: 36px;
-      border-radius: 0 0 70px 70px / 0 0 36px 36px;
-    }
-    
-    .face.angry .brow.left {
-      transform: rotate(-18deg) translateY(-6px);
-    }
-    
-    .face.angry .brow.right {
-      transform: rotate(18deg) translateY(-6px);
-    }
-    
-    .face.sad .mouth {
-      border-radius: 70px 70px 0 0 / 40px 40px 0 0;
-      border-bottom: none;
-      border-top: 4px solid var(--text);
-    }
-    
-    .face.fear .eye {
-      height: 22px;
-    }
-    
-    .face.surprise .mouth {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 4px solid var(--text);
-    }
-    
-    .face.disgust .mouth {
-      width: 60px;
-      transform: translateX(-50%) rotate(-8deg);
-    }
-    
-    .face.contempt .brow.left {
-      transform: translateY(-6px);
-    }
-    
-    .face.contempt .brow.right {
-      opacity: 0.4;
-    }
-    
-    .face.dominance .brow.right {
-      transform: translateY(-6px);
-    }
-    
-    .face.dominance .mouth {
-      transform: translateX(-50%) rotate(4deg);
-    }
-    
-    .face.submission .brow.left,
-    .face.submission .brow.right {
+    .video-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
       opacity: 0.5;
     }
     
-    .face.submission .mouth {
-      opacity: 0.7;
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.8);
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
-    .face.uncertainty .eye {
-      width: 20px;
+    .play-btn {
+      background: var(--glow1);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
     
-    .face.uncertainty .mouth {
-      width: 62px;
+    .play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.5);
     }
     
-    .face.skeptic .brow.left {
-      transform: translateY(-8px);
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
     }
     
-    .face.skeptic .brow.right {
-      transform: translateY(2px);
+    .progress-fill {
+      height: 100%;
+      background: var(--glow1);
+      width: 0%;
+      transition: width 0.3s ease;
     }
     
-    .face.interest .eye {
-      height: 16px;
-    }
-    
-    .face.interest .brow.left,
-    .face.interest .brow.right {
-      opacity: 0.95;
-    }
-    
-    .face.determination .brow.left {
-      transform: rotate(-8deg);
-    }
-    
-    .face.determination .brow.right {
-      transform: rotate(8deg);
-    }
-    
-    .face.hesitation .mouth {
-      width: 50px;
-    }
-    
-    .face.neutral .eye {
-      opacity: 0.9;
-    }
-    
-    .emotion-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-      margin: 30px 0;
-    }
-    
-    .emotion-option {
+    .analysis-panel {
       background: var(--glass);
       border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .analysis-item {
+      background: var(--glass-strong);
+      border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 16px;
+      padding: 15px;
       cursor: pointer;
       transition: all 0.3s ease;
       text-align: center;
-      font-weight: 500;
     }
     
-    .emotion-option:hover {
-      background: var(--glass-strong);
+    .analysis-item:hover {
       border-color: var(--glow1);
       transform: translateY(-2px);
     }
     
-    .emotion-option.selected {
-      background: var(--glow1);
-      color: var(--bg0);
-      border-color: var(--glow1);
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
-    }
-    
-    .emotion-option.correct {
-      background: var(--success);
-      color: white;
+    .analysis-item.correct {
       border-color: var(--success);
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--success);
     }
     
-    .emotion-option.wrong {
-      background: var(--error);
-      color: white;
+    .analysis-item.incorrect {
       border-color: var(--error);
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--error);
     }
     
-    .analysis-result {
+    .analysis-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .confidence-meter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+      padding: 10px;
       background: var(--glass);
-      border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    
+    .confidence-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--bg1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--error), var(--warning), var(--success));
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    .confidence-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      min-width: 80px;
+    }
+    
+    .body-parts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
       margin: 20px 0;
+    }
+    
+    .body-part {
+      aspect-ratio: 1;
+      background: var(--glass);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 20px;
+    }
+    
+    .body-part:hover {
+      border-color: var(--glow1);
+      transform: scale(1.05);
+    }
+    
+    .body-part.active {
+      border-color: var(--glow1);
+      background: rgba(102, 247, 213, 0.1);
+    }
+    
+    .quest-phase {
+      display: none;
+    }
+    
+    .quest-phase.active {
+      display: block;
+    }
+    
+    .phase-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 0;
+    }
+    
+    .phase-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .phase-dot.active {
+      background: var(--glow1);
+      transform: scale(1.2);
+    }
+    
+    .phase-dot.completed {
+      background: var(--success);
+    }
+    
+    .analysis-complete {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--glass-strong);
+      border: 2px solid var(--glow1);
+      border-radius: var(--radius);
+      padding: 30px;
       text-align: center;
       opacity: 0;
-      transform: translateY(20px);
+      pointer-events: none;
       transition: all 0.5s ease;
+      z-index: 20;
+      backdrop-filter: blur(20px);
     }
     
-    .analysis-result.show {
+    .analysis-complete.show {
       opacity: 1;
-      transform: translateY(0);
+      pointer-events: all;
     }
     
-    .result-icon {
+    .analysis-icon-large {
       font-size: 48px;
-      margin-bottom: 12px;
+      margin-bottom: 15px;
+      animation: analysisBounce 1s infinite;
     }
     
-    .result-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    
-    .result-description {
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-    
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 12px;
-      margin: 20px 0;
-    }
-    
-    .stat-item {
-      background: var(--glass);
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      text-align: center;
-      border: 1px solid var(--border);
-    }
-    
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--glow1);
-      margin-bottom: 4px;
-    }
-    
-    .stat-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .scanning-effect {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--glow1), transparent);
-      animation: scan 2s ease-in-out infinite;
-    }
-    
-    @keyframes scan {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(280px); }
-      100% { transform: translateY(0); }
+    @keyframes analysisBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
   </style>
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="glass topbar">
-      <div class="brand">
-        <span class="logoGlow"></span>
-        <h1>Язык тела</h1>
-        <div class="badge">Психология</div>
-      </div>
-      <div class="actions">
-        <button id="btnBack" class="btn ghost">← Назад</button>
-      </div>
-    </header>
+  <div class="bodylang-quest">
+    <div class="app">
+      <header class="glass topbar">
+        <div class="brand">
+          <button id="btnBack" class="btn ghost">← Назад</button>
+          <h1>Язык тела</h1>
+          <div class="badge">Фаза <span id="currentPhase">1</span>/3</div>
+        </div>
+        <div class="actions">
+          <button id="btnHelp" class="btn ghost">❓</button>
+        </div>
+      </header>
 
-    <div class="quest-container">
-      <div class="quest-header">
-        <h2>🧠 Язык тела</h2>
-        <div class="theme">Психология • Средний уровень</div>
-      </div>
-
-      <div class="quest-content">
-        <div class="banner">
-          <strong>Задача:</strong> Анализируй выражения лица и жесты, чтобы определить эмоциональное состояние персонажа.
+      <main class="content">
+        <div class="phase-indicator">
+          <div class="phase-dot active" data-phase="1"></div>
+          <div class="phase-dot" data-phase="2"></div>
+          <div class="phase-dot" data-phase="3"></div>
         </div>
 
-        <div class="emotion-analyzer" id="emotionAnalyzer">
-          <div class="scanning-effect" id="scanningEffect"></div>
-          
-          <div class="face-container">
-            <div class="face" id="face">
-              <div class="brow left"></div>
-              <div class="brow right"></div>
-              <div class="eye left"></div>
-              <div class="eye right"></div>
-              <div class="mouth"></div>
+        <!-- Фаза 1: Наблюдение -->
+        <div id="phase1" class="quest-phase active">
+          <div class="clue-container">
+            <h3>👁️ Наблюдение за поведением</h3>
+            <div class="clue-text">
+              Ты наблюдаешь за подозреваемым во время допроса. Обрати внимание на его жесты, 
+              мимику и позу. Что они могут означать?
+            </div>
+            
+            <div class="video-container">
+              <div class="video-placeholder">
+                <div class="video-icon">🎥</div>
+                <div>Видео допроса</div>
+              </div>
+              <div class="video-controls">
+                <button class="play-btn" id="playBtn">▶️</button>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="videoProgress"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="analysis-panel">
+              <h4>Что ты заметил?</h4>
+              <div class="analysis-grid" id="phase1Options">
+                <!-- Опции будут добавлены динамически -->
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-value" id="roundsValue">0</div>
-              <div class="stat-label">Раунды</div>
+        <!-- Фаза 2: Анализ частей тела -->
+        <div id="phase2" class="quest-phase">
+          <div class="clue-container">
+            <h3>🔍 Анализ частей тела</h3>
+            <div class="clue-text">
+              Выбери часть тела, которую нужно проанализировать более детально. 
+              Каждая часть может дать важные подсказки о состоянии человека.
             </div>
-            <div class="stat-item">
-              <div class="stat-value" id="correctValue">0</div>
-              <div class="stat-label">Правильно</div>
+            
+            <div class="body-parts" id="bodyParts">
+              <div class="body-part" data-part="eyes">👁️</div>
+              <div class="body-part" data-part="hands">✋</div>
+              <div class="body-part" data-part="legs">🦵</div>
+              <div class="body-part" data-part="face">😐</div>
+              <div class="body-part" data-part="posture">🧍</div>
+              <div class="body-part" data-part="voice">🗣️</div>
             </div>
-            <div class="stat-item">
-              <div class="stat-value" id="accuracyValue">0%</div>
-              <div class="stat-label">Точность</div>
+            
+            <div class="analysis-panel" id="bodyAnalysis" style="display: none;">
+              <h4 id="analysisTitle">Анализ</h4>
+              <div class="clue-text" id="analysisText"></div>
+              <div class="clue-options" id="phase2Options">
+                <!-- Опции будут добавлены динамически -->
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="emotion-options" id="emotionOptions">
-            <!-- Опции будут добавлены динамически -->
+        <!-- Фаза 3: Финальный вывод -->
+        <div id="phase3" class="quest-phase">
+          <div class="clue-container">
+            <h3>🧠 Финальный вывод</h3>
+            <div class="clue-text">
+              На основе всех наблюдений сделай вывод о том, говорит ли человек правду 
+              или лжет. Уровень уверенности в анализе влияет на точность.
+            </div>
+            
+            <div class="confidence-meter">
+              <span class="confidence-text">Уверенность:</span>
+              <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+              </div>
+              <span class="confidence-text" id="confidenceText">0%</span>
+            </div>
+            
+            <div class="analysis-panel">
+              <h4>Твой вывод:</h4>
+              <div class="clue-options" id="phase3Options">
+                <!-- Опции будут добавлены динамически -->
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div class="analysis-result" id="analysisResult">
-            <div class="result-icon" id="resultIcon">🎯</div>
-            <div class="result-title" id="resultTitle">Анализ завершен</div>
-            <div class="result-description" id="resultDescription">Результат анализа эмоции</div>
-          </div>
-
+        <div class="analysis-complete" id="analysisComplete">
+          <div class="analysis-icon-large">🧠</div>
+          <h3>Анализ завершен!</h3>
+          <p>Ты успешно проанализировал язык тела!</p>
           <div class="questActions">
-            <button id="startBtn" class="btn primary">Начать анализ</button>
-            <button id="nextBtn" class="btn primary" style="display: none;">Следующая эмоция</button>
-            <button id="resetBtn" class="btn ghost">Сбросить</button>
+            <button id="completeBtn" class="btn primary">Завершить</button>
           </div>
         </div>
-      </div>
-
-      <div class="quest-footer">
-        <div class="banner">
-          <strong>Награды:</strong> Фрагменты +2, Опыт +60
-        </div>
-      </div>
+      </main>
     </div>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // Конфигурация
+    // Конфигурация квеста
     const QUEST_CONFIG = {
-      emotions: [
-        { id: 'happy', name: 'Радость', description: 'Положительные эмоции, удовольствие' },
-        { id: 'sad', name: 'Грусть', description: 'Отрицательные эмоции, печаль' },
-        { id: 'angry', name: 'Гнев', description: 'Агрессия, раздражение' },
-        { id: 'fear', name: 'Страх', description: 'Тревога, беспокойство' },
-        { id: 'surprise', name: 'Удивление', description: 'Неожиданность, изумление' },
-        { id: 'disgust', name: 'Отвращение', description: 'Неприязнь, отторжение' },
-        { id: 'contempt', name: 'Презрение', description: 'Пренебрежение, надменность' },
-        { id: 'dominance', name: 'Доминантность', description: 'Уверенность, превосходство' },
-        { id: 'submission', name: 'Подчинение', description: 'Покорность, уступчивость' },
-        { id: 'uncertainty', name: 'Неуверенность', description: 'Сомнения, колебания' },
-        { id: 'skeptic', name: 'Скептицизм', description: 'Недоверие, сомнение' },
-        { id: 'interest', name: 'Заинтересованность', description: 'Внимание, любопытство' },
-        { id: 'determination', name: 'Решительность', description: 'Твердость, настойчивость' },
-        { id: 'hesitation', name: 'Колебание', description: 'Нерешительность, сомнения' },
-        { id: 'neutral', name: 'Нейтральность', description: 'Спокойствие, равнодушие' }
-      ],
-      roundsPerGame: 5,
+      videoDuration: 30,
       rewards: { fragments: 2, experience: 60 }
+    };
+
+    // Данные квеста
+    const QUEST_DATA = {
+      phase1: {
+        question: "Что ты заметил в поведении?",
+        options: [
+          { text: "Частое моргание", correct: true },
+          { text: "Спокойные движения", correct: false },
+          { text: "Открытая поза", correct: false },
+          { text: "Уверенный взгляд", correct: false }
+        ]
+      },
+      phase2: {
+        parts: {
+          eyes: {
+            title: "Анализ глаз",
+            description: "Подозреваемый часто отводит взгляд и моргает. Это может указывать на...",
+            options: [
+              { text: "Нервозность и ложь", correct: true },
+              { text: "Усталость", correct: false },
+              { text: "Концентрацию", correct: false },
+              { text: "Уверенность", correct: false }
+            ]
+          },
+          hands: {
+            title: "Анализ рук",
+            description: "Руки постоянно двигаются, человек теребит предметы. Это означает...",
+            options: [
+              { text: "Стресс и тревогу", correct: true },
+              { text: "Энергичность", correct: false },
+              { text: "Уверенность", correct: false },
+              { text: "Расслабленность", correct: false }
+            ]
+          },
+          legs: {
+            title: "Анализ ног",
+            description: "Ноги подергиваются, человек стучит ногой. Это указывает на...",
+            options: [
+              { text: "Нервозность", correct: true },
+              { text: "Удобство", correct: false },
+              { text: "Уверенность", correct: false },
+              { text: "Расслабленность", correct: false }
+            ]
+          },
+          face: {
+            title: "Анализ лица",
+            description: "Лицевые мышцы напряжены, есть микровыражения. Это говорит о...",
+            options: [
+              { text: "Попытке скрыть эмоции", correct: true },
+              { text: "Естественности", correct: false },
+              { text: "Уверенности", correct: false },
+              { text: "Расслабленности", correct: false }
+            ]
+          },
+          posture: {
+            title: "Анализ позы",
+            description: "Поза закрытая, руки скрещены. Это означает...",
+            options: [
+              { text: "Защиту и закрытость", correct: true },
+              { text: "Уверенность", correct: false },
+              { text: "Расслабленность", correct: false },
+              { text: "Открытость", correct: false }
+            ]
+          },
+          voice: {
+            title: "Анализ голоса",
+            description: "Голос дрожит, есть паузы в речи. Это указывает на...",
+            options: [
+              { text: "Волнение и ложь", correct: true },
+              { text: "Уверенность", correct: false },
+              { text: "Естественность", correct: false },
+              { text: "Расслабленность", correct: false }
+            ]
+          }
+        }
+      },
+      phase3: {
+        question: "Твой вывод о правдивости:",
+        options: [
+          { text: "Человек говорит правду", correct: false },
+          { text: "Человек лжет", correct: true },
+          { text: "Не могу определить", correct: false },
+          { text: "Нужно больше данных", correct: false }
+        ]
+      }
     };
 
     // Состояние игры
     let gameState = {
-      isRunning: false,
-      currentRound: 0,
-      correctAnswers: 0,
-      currentEmotion: null,
-      selectedEmotion: null
+      currentPhase: 1,
+      confidence: 0,
+      selectedParts: [],
+      isVideoPlaying: false,
+      videoProgress: 0
     };
 
     // Элементы
-    const face = document.getElementById('face');
-    const emotionOptions = document.getElementById('emotionOptions');
-    const analysisResult = document.getElementById('analysisResult');
-    const resultIcon = document.getElementById('resultIcon');
-    const resultTitle = document.getElementById('resultTitle');
-    const resultDescription = document.getElementById('resultDescription');
-    const startBtn = document.getElementById('startBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const resetBtn = document.getElementById('resetBtn');
+    const playBtn = document.getElementById('playBtn');
+    const videoProgress = document.getElementById('videoProgress');
+    const bodyParts = document.getElementById('bodyParts');
+    const bodyAnalysis = document.getElementById('bodyAnalysis');
+    const analysisTitle = document.getElementById('analysisTitle');
+    const analysisText = document.getElementById('analysisText');
+    const confidenceFill = document.getElementById('confidenceFill');
+    const confidenceText = document.getElementById('confidenceText');
     const btnBack = document.getElementById('btnBack');
-    const roundsValue = document.getElementById('roundsValue');
-    const correctValue = document.getElementById('correctValue');
-    const accuracyValue = document.getElementById('accuracyValue');
+    const btnHelp = document.getElementById('btnHelp');
+    const completeBtn = document.getElementById('completeBtn');
+    const analysisComplete = document.getElementById('analysisComplete');
 
     // Утилиты
     const toast = (msg, type = 'info') => {
@@ -447,28 +512,11 @@
 
     // Инициализация
     function init() {
-      createEmotionOptions();
       setupEventListeners();
-      updateStats();
-    }
-
-    function createEmotionOptions() {
-      emotionOptions.innerHTML = '';
-      
-      QUEST_CONFIG.emotions.forEach(emotion => {
-        const option = document.createElement('div');
-        option.className = 'emotion-option';
-        option.textContent = emotion.name;
-        option.dataset.emotion = emotion.id;
-        option.addEventListener('click', () => selectEmotion(emotion));
-        emotionOptions.appendChild(option);
-      });
+      loadPhase(1);
     }
 
     function setupEventListeners() {
-      startBtn.addEventListener('click', startGame);
-      nextBtn.addEventListener('click', nextRound);
-      resetBtn.addEventListener('click', resetGame);
       btnBack.addEventListener('click', () => {
         if (window.history.length > 1) {
           window.history.back();
@@ -476,157 +524,254 @@
           window.location.href = '../quests.html';
         }
       });
+      btnHelp.addEventListener('click', showHelp);
+      completeBtn.addEventListener('click', completeQuest);
+      playBtn.addEventListener('click', toggleVideo);
     }
 
-    function startGame() {
-      if (gameState.isRunning) return;
+    function loadPhase(phase) {
+      gameState.currentPhase = phase;
       
-      gameState.isRunning = true;
-      gameState.currentRound = 0;
-      gameState.correctAnswers = 0;
+      // Скрываем все фазы
+      document.querySelectorAll('.quest-phase').forEach(p => p.classList.remove('active'));
       
-      updateStats();
-      startBtn.style.display = 'none';
-      nextBtn.style.display = 'inline-block';
+      // Показываем нужную фазу
+      document.getElementById(`phase${phase}`).classList.add('active');
       
-      nextRound();
-      toast('🧠 Анализ начат. Изучите выражение лица...', 'info');
-    }
-
-    function nextRound() {
-      if (gameState.currentRound >= QUEST_CONFIG.roundsPerGame) {
-        endGame();
-        return;
+      // Обновляем индикатор фаз
+      updatePhaseIndicator(phase);
+      
+      // Загружаем контент фазы
+      if (phase === 1) {
+        loadPhase1();
+      } else if (phase === 2) {
+        loadPhase2();
+      } else if (phase === 3) {
+        loadPhase3();
       }
-      
-      gameState.currentRound++;
-      gameState.selectedEmotion = null;
-      
-      // Выбираем случайную эмоцию
-      const randomIndex = Math.floor(Math.random() * QUEST_CONFIG.emotions.length);
-      gameState.currentEmotion = QUEST_CONFIG.emotions[randomIndex];
-      
-      // Применяем выражение лица
-      applyEmotion(gameState.currentEmotion.id);
-      
-      // Сбрасываем опции
-      document.querySelectorAll('.emotion-option').forEach(option => {
-        option.className = 'emotion-option';
-      });
-      
-      // Скрываем результат
-      analysisResult.classList.remove('show');
-      
-      updateStats();
-      nextBtn.textContent = 'Следующая эмоция';
-      nextBtn.disabled = true;
-      
-      toast(`Раунд ${gameState.currentRound}/${QUEST_CONFIG.roundsPerGame}`, 'info');
     }
 
-    function selectEmotion(emotion) {
-      if (!gameState.isRunning || gameState.selectedEmotion) return;
-      
-      gameState.selectedEmotion = emotion;
-      
-      // Подсвечиваем выбранную опцию
-      document.querySelectorAll('.emotion-option').forEach(option => {
-        option.className = 'emotion-option';
-        if (option.dataset.emotion === emotion.id) {
-          option.classList.add('selected');
+    function updatePhaseIndicator(phase) {
+      document.querySelectorAll('.phase-dot').forEach((dot, index) => {
+        dot.classList.remove('active', 'completed');
+        if (index + 1 < phase) {
+          dot.classList.add('completed');
+        } else if (index + 1 === phase) {
+          dot.classList.add('active');
         }
       });
       
-      // Проверяем правильность
-      const isCorrect = emotion.id === gameState.currentEmotion.id;
-      
-      if (isCorrect) {
-        gameState.correctAnswers++;
-        showResult('correct', emotion);
-        toast('🎯 Правильно! Отличный анализ!', 'success');
-      } else {
-        showResult('wrong', emotion);
-        toast('❌ Неверно. Изучите выражение внимательнее.', 'warning');
-      }
-      
-      updateStats();
-      nextBtn.disabled = false;
+      document.getElementById('currentPhase').textContent = phase;
     }
 
-    function showResult(type, selectedEmotion) {
-      const correctEmotion = gameState.currentEmotion;
+    function loadPhase1() {
+      const container = document.getElementById('phase1Options');
+      container.innerHTML = '';
       
-      if (type === 'correct') {
-        resultIcon.textContent = '🎯';
-        resultTitle.textContent = 'Правильно!';
-        resultDescription.textContent = `Вы верно определили: ${correctEmotion.name}`;
-      } else {
-        resultIcon.textContent = '❌';
-        resultTitle.textContent = 'Неверно';
-        resultDescription.textContent = `Вы выбрали: ${selectedEmotion.name}. Правильно: ${correctEmotion.name}`;
-      }
+      QUEST_DATA.phase1.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'clue-option';
+        btn.textContent = option.text;
+        btn.addEventListener('click', () => handlePhase1Answer(index));
+        container.appendChild(btn);
+      });
+    }
+
+    function loadPhase2() {
+      bodyAnalysis.style.display = 'none';
+      gameState.selectedParts = [];
       
-      // Подсвечиваем правильный ответ
-      document.querySelectorAll('.emotion-option').forEach(option => {
-        if (option.dataset.emotion === correctEmotion.id) {
-          option.classList.add('correct');
-        } else if (option.dataset.emotion === selectedEmotion.id && type === 'wrong') {
-          option.classList.add('wrong');
+      // Добавляем обработчики для частей тела
+      document.querySelectorAll('.body-part').forEach(part => {
+        part.classList.remove('active');
+        part.addEventListener('click', () => handleBodyPartClick(part));
+      });
+    }
+
+    function loadPhase3() {
+      const container = document.getElementById('phase3Options');
+      container.innerHTML = '';
+      
+      QUEST_DATA.phase3.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'clue-option';
+        btn.textContent = option.text;
+        btn.addEventListener('click', () => handlePhase3Answer(index));
+        container.appendChild(btn);
+      });
+      
+      updateConfidence();
+    }
+
+    function handlePhase1Answer(index) {
+      const options = document.querySelectorAll('#phase1Options .clue-option');
+      const correct = QUEST_DATA.phase1.options[index].correct;
+      
+      options.forEach((opt, i) => {
+        if (i === index) {
+          opt.classList.add(correct ? 'correct' : 'incorrect');
         }
+        opt.style.pointerEvents = 'none';
       });
       
-      analysisResult.classList.add('show');
-    }
-
-    function endGame() {
-      gameState.isRunning = false;
-      startBtn.style.display = 'inline-block';
-      nextBtn.style.display = 'none';
-      
-      const accuracy = Math.round((gameState.correctAnswers / QUEST_CONFIG.roundsPerGame) * 100);
-      
-      if (accuracy >= 80) {
-        toast(`🎉 Отличная работа! Точность: ${accuracy}%`, 'success');
-      } else if (accuracy >= 60) {
-        toast(`👍 Хорошо! Точность: ${accuracy}%`, 'info');
+      if (correct) {
+        toast('Правильное наблюдение! Переходим к детальному анализу.', 'success');
+        setTimeout(() => loadPhase(2), 1500);
       } else {
-        toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
+        toast('Неправильное наблюдение! Попробуй еще раз.', 'error');
+        setTimeout(() => {
+          options.forEach(opt => {
+            opt.classList.remove('correct', 'incorrect');
+            opt.style.pointerEvents = 'auto';
+          });
+        }, 2000);
       }
     }
 
-    function resetGame() {
-      gameState = {
-        isRunning: false,
-        currentRound: 0,
-        correctAnswers: 0,
-        currentEmotion: null,
-        selectedEmotion: null
-      };
+    function handleBodyPartClick(part) {
+      const partType = part.dataset.part;
       
-      face.className = 'face';
-      document.querySelectorAll('.emotion-option').forEach(option => {
-        option.className = 'emotion-option';
+      // Убираем активность с других частей
+      document.querySelectorAll('.body-part').forEach(p => p.classList.remove('active'));
+      part.classList.add('active');
+      
+      // Показываем анализ
+      const partData = QUEST_DATA.phase2.parts[partType];
+      analysisTitle.textContent = partData.title;
+      analysisText.textContent = partData.description;
+      
+      // Загружаем опции
+      const container = document.getElementById('phase2Options');
+      container.innerHTML = '';
+      
+      partData.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'clue-option';
+        btn.textContent = option.text;
+        btn.addEventListener('click', () => handleBodyPartAnswer(index, partType));
+        container.appendChild(btn);
       });
       
-      analysisResult.classList.remove('show');
-      startBtn.style.display = 'inline-block';
-      nextBtn.style.display = 'none';
-      
-      updateStats();
+      bodyAnalysis.style.display = 'block';
     }
 
-    function applyEmotion(emotionId) {
-      face.className = 'face ' + emotionId;
+    function handleBodyPartAnswer(index, partType) {
+      const options = document.querySelectorAll('#phase2Options .clue-option');
+      const correct = QUEST_DATA.phase2.parts[partType].options[index].correct;
+      
+      options.forEach((opt, i) => {
+        if (i === index) {
+          opt.classList.add(correct ? 'correct' : 'incorrect');
+        }
+        opt.style.pointerEvents = 'none';
+      });
+      
+      if (correct) {
+        gameState.selectedParts.push(partType);
+        gameState.confidence += 20;
+        toast('Правильный анализ! +20% уверенности', 'success');
+        
+        if (gameState.selectedParts.length >= 3) {
+          setTimeout(() => loadPhase(3), 1500);
+        } else {
+          setTimeout(() => {
+            bodyAnalysis.style.display = 'none';
+            document.querySelectorAll('.body-part').forEach(p => p.classList.remove('active'));
+          }, 2000);
+        }
+      } else {
+        gameState.confidence = Math.max(0, gameState.confidence - 10);
+        toast('Неправильный анализ! -10% уверенности', 'error');
+        setTimeout(() => {
+          options.forEach(opt => {
+            opt.classList.remove('correct', 'incorrect');
+            opt.style.pointerEvents = 'auto';
+          });
+        }, 2000);
+      }
+      
+      updateConfidence();
     }
 
-    function updateStats() {
-      roundsValue.textContent = gameState.currentRound;
-      correctValue.textContent = gameState.correctAnswers;
+    function handlePhase3Answer(index) {
+      const options = document.querySelectorAll('#phase3Options .clue-option');
+      const correct = QUEST_DATA.phase3.options[index].correct;
       
-      const accuracy = gameState.currentRound > 0 
-        ? Math.round((gameState.correctAnswers / gameState.currentRound) * 100)
-        : 0;
-      accuracyValue.textContent = accuracy + '%';
+      options.forEach((opt, i) => {
+        if (i === index) {
+          opt.classList.add(correct ? 'correct' : 'incorrect');
+        }
+        opt.style.pointerEvents = 'none';
+      });
+      
+      if (correct) {
+        toast('Правильный вывод! Анализ завершен!', 'success');
+        setTimeout(() => {
+          analysisComplete.classList.add('show');
+        }, 1500);
+      } else {
+        toast('Неправильный вывод! Попробуй еще раз.', 'error');
+        setTimeout(() => {
+          options.forEach(opt => {
+            opt.classList.remove('correct', 'incorrect');
+            opt.style.pointerEvents = 'auto';
+          });
+        }, 2000);
+      }
+    }
+
+    function toggleVideo() {
+      gameState.isVideoPlaying = !gameState.isVideoPlaying;
+      
+      if (gameState.isVideoPlaying) {
+        playBtn.textContent = '⏸️';
+        startVideoProgress();
+      } else {
+        playBtn.textContent = '▶️';
+        stopVideoProgress();
+      }
+    }
+
+    function startVideoProgress() {
+      const interval = setInterval(() => {
+        if (!gameState.isVideoPlaying) {
+          clearInterval(interval);
+          return;
+        }
+        
+        gameState.videoProgress += 1;
+        videoProgress.style.width = `${(gameState.videoProgress / QUEST_CONFIG.videoDuration) * 100}%`;
+        
+        if (gameState.videoProgress >= QUEST_CONFIG.videoDuration) {
+          gameState.isVideoPlaying = false;
+          playBtn.textContent = '▶️';
+          clearInterval(interval);
+        }
+      }, 100);
+    }
+
+    function stopVideoProgress() {
+      // Останавливаем прогресс
+    }
+
+    function updateConfidence() {
+      confidenceFill.style.width = `${gameState.confidence}%`;
+      confidenceText.textContent = `${gameState.confidence}%`;
+    }
+
+    function showHelp() {
+      toast('Наблюдай за поведением, анализируй части тела и делай выводы!', 'info');
+    }
+
+    function completeQuest() {
+      toast('Анализ завершен! Возвращаемся в хаб...', 'success');
+      setTimeout(() => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '../quests.html';
+        }
+      }, 1500);
     }
 
     // Запуск
