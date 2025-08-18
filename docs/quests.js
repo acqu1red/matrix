@@ -888,7 +888,7 @@ function showSubscriptionPrompt() {
     <div class="questIntro">
       <h3>🔒 Доступ ограничен</h3>
       <p>Этот квест доступен только для подписчиков</p>
-    </div>
+      </div>
     <div class="questBody">
       <div class="banner success">
         <strong>Преимущества подписки:</strong>
