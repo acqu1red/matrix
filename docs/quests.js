@@ -1222,20 +1222,20 @@ $("#closePrize").addEventListener("click", ()=>{
   $("#prizeModal").classList.remove("show");
 });
 
-// Обработчик сворачивания/разворачивания превью призов
+// Простой обработчик для кнопки превью призов
 function initPreviewToggle() {
-  const header = $("#previewHeader");
-  if (header) {
-    header.addEventListener("click", ()=>{
-      const content = $("#previewContent");
-      const toggle = $("#previewHeader .preview-toggle");
+  const button = $("#previewButton");
+  if (button) {
+    button.addEventListener("click", ()=>{
+      const list = $("#previewList");
+      const arrow = $("#previewButton .preview-arrow");
       
-      if (content.classList.contains("expanded")) {
-        content.classList.remove("expanded");
-        toggle.classList.remove("expanded");
+      if (list.classList.contains("expanded")) {
+        list.classList.remove("expanded");
+        arrow.classList.remove("expanded");
       } else {
-        content.classList.add("expanded");
-        toggle.classList.add("expanded");
+        list.classList.add("expanded");
+        arrow.classList.add("expanded");
       }
     });
   }

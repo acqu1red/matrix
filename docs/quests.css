@@ -394,44 +394,51 @@ h3 { font-size: 1.25rem; }
   overflow: hidden;
 }
 
-.preview-header {
+.preview-button {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
+  background: rgba(255,255,255,0.05);
+  border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  font-family: inherit;
 }
 
-.preview-header:hover {
+.preview-button:hover {
   background: rgba(255,255,255,0.1);
+}
+
+.preview-button:active {
+  background: rgba(255,255,255,0.15);
 }
 
 .preview-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
-  margin: 0;
 }
 
-.preview-toggle {
+.preview-arrow {
   font-size: 12px;
   color: var(--text-muted);
   transition: transform 0.3s ease;
 }
 
-.preview-toggle.expanded {
+.preview-arrow.expanded {
   transform: rotate(180deg);
 }
 
-.preview-content {
+.preview-list {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
 }
 
-.preview-content.expanded {
+.preview-list.expanded {
   max-height: 200px;
 }
 
