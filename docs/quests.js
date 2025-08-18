@@ -73,7 +73,7 @@ let userData = {
   exp: 0,
   level: 1,
   userId: null,
-  lastFreeSpin: null
+  lastFreeSpin: null // Добавляем отслеживание последнего бесплатного прокрута
 };
 
 function calculateLevel(exp) {
@@ -154,15 +154,34 @@ function createRouletteWheel() {
   sectors.forEach((prize, index) => {
     const sector = document.createElement('div');
     sector.className = 'roulette-sector';
+    sector.style.setProperty('--rotation', `${index * sectorAngle}deg`);
     sector.style.transform = `rotate(${index * sectorAngle}deg)`;
-    sector.style.background = getSectorColor(prize.id);
-    sector.innerHTML = `
-      <div style="transform: rotate(${sectorAngle / 2}deg)">
-        <div style="font-size: 16px; margin-bottom: 4px;">${prize.icon}</div>
-        <div style="font-size: 8px;">${prize.name}</div>
-      </div>
-    `;
     sector.dataset.prize = prize.id;
+    
+    // Создаем содержимое сектора
+    const content = document.createElement('div');
+    content.style.transform = `rotate(${sectorAngle / 2}deg)`;
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.alignItems = 'center';
+    content.style.justifyContent = 'center';
+    content.style.height = '100%';
+    content.style.padding = '8px';
+    
+    const icon = document.createElement('div');
+    icon.style.fontSize = '16px';
+    icon.style.marginBottom = '4px';
+    icon.textContent = prize.icon;
+    
+    const name = document.createElement('div');
+    name.style.fontSize = '8px';
+    name.style.textAlign = 'center';
+    name.style.lineHeight = '1.2';
+    name.textContent = prize.name;
+    
+    content.appendChild(icon);
+    content.appendChild(name);
+    sector.appendChild(content);
     wheel.appendChild(sector);
   });
 }
@@ -179,21 +198,40 @@ function getSectorColor(prizeId) {
   return colors[prizeId] || 'linear-gradient(45deg, #74B9FF, #0984E3)';
 }
 
-function spinRoulette() {
+function spinRoulette(isFree = false) {
   const wheel = $("#rouletteWheel");
   const spinBtn = $("#spinRoulette");
   const buyBtn = $("#buySpin");
   
   if (!wheel || !spinBtn) return;
   
-  // Отключаем кнопки во время вращения
+  // Проверяем возможность бесплатного прокрута
+  if (isFree && !canSpinFree()) {
+    toast("Бесплатный прокрут доступен раз в день!", "error");
+    return;
+  }
+  
+  // Списываем mulacoin только если это не бесплатный прокрут
+  if (!isFree && userData.mulacoin < SPIN_COST) {
+    toast("Недостаточно mulacoin для прокрута рулетки!", "error");
+    return;
+  }
+  
+  if (!isFree) {
+    userData.mulacoin -= SPIN_COST;
+    updateCurrencyDisplay();
+  } else {
+    userData.lastFreeSpin = new Date().toISOString();
+    updateRouletteButton();
+  }
+  
+  saveUserData();
+  
   spinBtn.disabled = true;
   buyBtn.disabled = true;
   
-  // Добавляем эффект нажатия
-  spinBtn.style.transform = "scale(0.95)";
-  spinBtn.textContent = "🎰 Крутится...";
-  spinBtn.className = "btn ghost large";
+  // Добавляем класс для анимации нажатия
+  spinBtn.classList.add("spinning");
   
   // Выбираем приз на основе вероятностей
   const prize = selectPrizeByProbability();
@@ -214,27 +252,38 @@ function spinRoulette() {
   
   const sectorAngle = 360 / sectors.length;
   const targetAngle = targetIndex * sectorAngle + sectorAngle / 2;
-  const spinAngle = 360 * 8 + (360 - targetAngle); // 8 полных оборотов + до цели
+  const spinAngle = 360 * 8 + (360 - targetAngle); // Увеличиваем количество оборотов для более эффектной анимации
   
-  // Добавляем эффект свечения во время вращения
-  wheel.style.boxShadow = "0 0 60px rgba(102, 247, 213, 0.8)";
-  wheel.style.transition = "transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+  // Добавляем плавную анимацию запуска
+  wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
   wheel.style.transform = `rotate(${spinAngle}deg)`;
   
+  // Показываем анимацию ожидания
   setTimeout(() => {
-    // Возвращаем нормальное свечение
-    wheel.style.boxShadow = "0 0 40px rgba(102, 247, 213, 0.4), inset 0 0 20px rgba(0,0,0,0.3)";
-    
-    // Показываем кнопку "Получить приз"
-    spinBtn.disabled = false;
+    spinBtn.classList.remove("spinning");
     spinBtn.textContent = "🎁 Получить приз";
-    spinBtn.className = "btn success large";
-    spinBtn.style.transform = "scale(1)";
+    spinBtn.classList.add("prize-ready");
     
-    // Сохраняем выбранный приз для показа
-    spinBtn.dataset.prize = JSON.stringify(prize);
-    
-    buyBtn.disabled = false;
+    // Добавляем обработчик для получения приза
+    spinBtn.onclick = () => {
+      showPrizeModal(prize);
+      spinBtn.textContent = "🎰 Крутить рулетку";
+      spinBtn.classList.remove("prize-ready");
+      spinBtn.disabled = false;
+      buyBtn.disabled = false;
+      updateRouletteButton();
+      
+      // Восстанавливаем оригинальный обработчик
+      spinBtn.onclick = () => {
+        if (canSpinFree()) {
+          spinRoulette(true);
+        } else if (userData.mulacoin >= SPIN_COST) {
+          spinRoulette(false);
+        } else {
+          toast("Недостаточно mulacoin для прокрута рулетки!", "error");
+        }
+      };
+    };
   }, 4000);
 }
 
@@ -362,7 +411,7 @@ function loadUserData(userId) {
     userData = { ...userData, ...parsed };
   }
   updateCurrencyDisplay();
-  updateRouletteControls();
+  updateRouletteButton(); // Обновляем состояние кнопки рулетки
 }
 
 function dayIndex(){ return Math.floor(Date.now() / (24*60*60*1000)); }
@@ -734,11 +783,8 @@ function showSubscriptionPrompt() {
 }
 
 function openSubscription() {
-  if(tg && tg.openLink){
-    tg.openLink(PAYMENT_URL, {try_instant_view:false});
-  } else {
-    window.open(PAYMENT_URL, "_blank");
-  }
+  // Используем window.location.href вместо tg.openLink для открытия внутри Mini App
+  window.location.href = PAYMENT_URL;
   closeModal();
 }
 
@@ -854,9 +900,38 @@ async function savePromo(code, uid){
   return true;
 }
 
+function canSpinFree() {
+  if (!userData.lastFreeSpin) return true;
+  const now = new Date();
+  const lastSpin = new Date(userData.lastFreeSpin);
+  const diffTime = now - lastSpin;
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+  return diffDays >= 1;
+}
+
+function updateRouletteButton() {
+  const spinBtn = $("#spinRoulette");
+  const buyBtn = $("#buySpin");
+  
+  if (!spinBtn || !buyBtn) return;
+  
+  if (canSpinFree()) {
+    spinBtn.textContent = "🎰 Крутить рулетку";
+    spinBtn.disabled = false;
+    spinBtn.classList.remove("disabled");
+  } else {
+    spinBtn.textContent = "⏰ Лимит исчерпан";
+    spinBtn.disabled = true;
+    spinBtn.classList.add("disabled");
+  }
+  
+  // Обновляем текст кнопки покупки
+  buyBtn.textContent = `Крутить за ${SPIN_COST} MULACOIN`;
+}
+
 /* ====== Header buttons ====== */
 $("#btnSubscribe").addEventListener("click", ()=>{
-  window.location.href = "subscription.html";
+  openSubscription();
 });
 
 $("#btnHistory").addEventListener("click", ()=>{ 
@@ -865,37 +940,10 @@ $("#btnHistory").addEventListener("click", ()=>{
 
 // Обработчики рулетки
 $("#spinRoulette").addEventListener("click", ()=>{
-  const spinBtn = $("#spinRoulette");
-  
-  // Если кнопка показывает "Получить приз", показываем модальное окно
-  if (spinBtn.textContent === "🎁 Получить приз") {
-    const prize = JSON.parse(spinBtn.dataset.prize);
-    showPrizeModal(prize);
-    
-    // Возвращаем кнопку в исходное состояние
-    if (canSpinFree()) {
-      spinBtn.textContent = "🎰 Крутить рулетку";
-      spinBtn.className = "btn primary large";
-    } else {
-      spinBtn.textContent = "⏰ Завтра бесплатно";
-      spinBtn.className = "btn ghost large";
-    }
-    return;
-  }
-  
-  // Обычная логика прокрута
   if (canSpinFree()) {
-    // Бесплатный прокрут
-    userData.lastFreeSpin = new Date().toISOString();
-    saveUserData();
-    updateRouletteControls();
-    spinRoulette();
+    spinRoulette(true);
   } else if (userData.mulacoin >= SPIN_COST) {
-    // Платный прокрут
-    userData.mulacoin -= SPIN_COST;
-    updateCurrencyDisplay();
-    saveUserData();
-    spinRoulette();
+    spinRoulette(false);
   } else {
     toast("Недостаточно mulacoin для прокрута рулетки!", "error");
   }
@@ -903,10 +951,7 @@ $("#spinRoulette").addEventListener("click", ()=>{
 
 $("#buySpin").addEventListener("click", ()=>{
   if (userData.mulacoin >= SPIN_COST) {
-    userData.mulacoin -= SPIN_COST;
-    updateCurrencyDisplay();
-    saveUserData();
-    spinRoulette();
+    spinRoulette(false);
   } else {
     toast("Недостаточно mulacoin для покупки прокрута!", "error");
   }

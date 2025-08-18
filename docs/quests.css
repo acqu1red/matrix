@@ -219,14 +219,12 @@ h3 { font-size: 1.25rem; }
 
 /* Roulette Section */
 .roulette-section {
-  margin: 12px;
-  padding: 20px;
+  background: var(--glass);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 20px 0;
   text-align: center;
-}
-
-.roulette-section h2 {
-  margin-bottom: 8px;
-  font-size: 20px;
+  border: 1px solid var(--border);
 }
 
 .roulette-description {
@@ -254,6 +252,7 @@ h3 { font-size: 1.25rem; }
     0 0 40px rgba(102, 247, 213, 0.4),
     inset 0 0 20px rgba(0,0,0,0.3);
   background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+  overflow: hidden;
 }
 
 .roulette-sector {
@@ -272,6 +271,13 @@ h3 { font-size: 1.25rem; }
   border: 2px solid rgba(255,255,255,0.4);
   text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.roulette-sector:hover {
+  transform: scale(1.05);
+  box-shadow: inset 0 0 15px rgba(255,255,255,0.2);
 }
 
 .roulette-pointer {
@@ -321,22 +327,11 @@ h3 { font-size: 1.25rem; }
   flex-direction: column;
   gap: 12px;
   align-items: center;
-  margin-bottom: 16px;
 }
 
 .roulette-balance {
   font-size: 14px;
   color: var(--text-muted);
-}
-
-.btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn.disabled:hover {
-  transform: none;
-  box-shadow: none;
 }
 
 /* Prize Modal */
@@ -966,30 +961,6 @@ h3 { font-size: 1.25rem; }
   border-top: 1px solid var(--border);
 }
 
-.quest-footer.fixed-bottom {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--bg0);
-  border-top: 1px solid var(--border);
-  padding: 16px;
-  z-index: 100;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-}
-
-.quest-controls {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.quest-controls .btn {
-  flex: 1;
-  max-width: 200px;
-}
-
 /* Success animation */
 .success-animation {
   display: flex;
@@ -1026,4 +997,108 @@ h3 { font-size: 1.25rem; }
   color: var(--bg0);
   font-weight: bold;
   box-shadow: 0 4px 12px rgba(255, 226, 122, 0.4);
+}
+
+/* Кнопка рулетки состояния */
+.btn.spinning {
+  animation: spinButton 0.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.btn.prize-ready {
+  background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+  color: var(--bg0) !important;
+  animation: prizeReady 1s ease-in-out infinite alternate;
+  transform: scale(1.05);
+}
+
+.btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--glass) !important;
+  color: var(--text-muted) !important;
+}
+
+.btn.disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+@keyframes spinButton {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+}
+
+@keyframes prizeReady {
+  0% { 
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
+  }
+  100% { 
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+    transform: scale(1.1);
+  }
+}
+
+/* Улучшенные анимации для рулетки */
+.roulette-wheel.spinning {
+  animation: wheelSpin 4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes wheelSpin {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(720deg); }
+  40% { transform: rotate(1440deg); }
+  60% { transform: rotate(2160deg); }
+  80% { transform: rotate(2880deg); }
+  100% { transform: rotate(3600deg); }
+}
+
+/* Казино-стиль для секторов */
+.roulette-sector[data-prize="subscription"] {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+}
+
+.roulette-sector[data-prize="discount500"] {
+  background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+}
+
+.roulette-sector[data-prize="discount100"] {
+  background: linear-gradient(45deg, #4ECDC4, #44A08D);
+}
+
+.roulette-sector[data-prize="discount50"] {
+  background: linear-gradient(45deg, #A8E6CF, #7FCDCD);
+}
+
+.roulette-sector[data-prize="quest24h"] {
+  background: linear-gradient(45deg, #FFEAA7, #DDA0DD);
+}
+
+.roulette-sector[data-prize="frodCourse"] {
+  background: linear-gradient(45deg, #6C5CE7, #A29BFE);
+}
+
+/* Анимация появления секторов */
+.roulette-sector {
+  animation: sectorAppear 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.roulette-sector:nth-child(1) { animation-delay: 0.1s; }
+.roulette-sector:nth-child(2) { animation-delay: 0.2s; }
+.roulette-sector:nth-child(3) { animation-delay: 0.3s; }
+.roulette-sector:nth-child(4) { animation-delay: 0.4s; }
+.roulette-sector:nth-child(5) { animation-delay: 0.5s; }
+.roulette-sector:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes sectorAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(var(--rotation));
+  }
 }
