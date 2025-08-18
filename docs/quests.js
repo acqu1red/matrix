@@ -540,6 +540,45 @@ $("#btnAlbum").addEventListener("click", ()=>{
   toast("Коллекция скоро здесь ✨", "info"); 
 });
 
+$("#btnHistory").addEventListener("click", ()=>{ 
+  showHistory();
+});
+
+function showHistory() {
+  const modal = $("#modal");
+  const modalBody = $("#modalBody");
+  
+  modalBody.innerHTML = `
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+      <h3 style="margin-bottom: 16px;">История прохождения</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Здесь будут отображаться результаты всех пройденных квестов
+      </p>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Статистика</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--glow1);">0</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Пройдено квестов</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--glow2);">0</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Получено фрагментов</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent);">0</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Накоплено опыта</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn primary" onclick="closeModal()">Закрыть</button>
+    </div>
+  `;
+  
+  modal.classList.add("show");
+}
+
 /* ====== Init ====== */
 loadState().then(state=>{
   buildCards(state);

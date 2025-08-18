@@ -436,8 +436,24 @@
 
         <div class="hack-complete" id="hackComplete">
           <div class="hack-icon">💻</div>
-          <h3>Взлом успешен!</h3>
-          <p>Система взломана! Доступ получен.</p>
+          <h3>Квест завершен!</h3>
+          <p>Отличная работа! Система успешно взломана.</p>
+          <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Результаты сохранены</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+              <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--glow1);">+3</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Фрагмента</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--glow2);">+80</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Опыта</div>
+              </div>
+            </div>
+          </div>
+          <p style="font-size: 14px; color: var(--text-muted); margin-top: 16px;">
+            Результаты сохраняются в главном меню по кнопке "История"
+          </p>
           <div class="questActions">
             <button id="completeBtn" class="btn primary">Завершить</button>
           </div>
