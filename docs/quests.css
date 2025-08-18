@@ -235,68 +235,73 @@ h3 { font-size: 1.25rem; }
 
 .roulette-container {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: 320px;
+  height: 120px;
   margin: 0 auto 30px;
   padding: 20px;
+  background: linear-gradient(135deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+  border-radius: 15px;
+  border: 2px solid var(--glow1);
+  box-shadow: 
+    0 0 30px rgba(102, 247, 213, 0.3),
+    inset 0 0 20px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
 
-.roulette-wheel {
+.roulette-field {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   position: relative;
-  transition: transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: 6px solid var(--glow1);
-  box-shadow: 
-    0 0 40px rgba(102, 247, 213, 0.4),
-    inset 0 0 20px rgba(0,0,0,0.3);
-  background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-  overflow: hidden;
-}
-
-.roulette-sector {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  transform-origin: 100% 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: white;
-  text-align: center;
-  line-height: 1.2;
-  border: 2px solid rgba(255,255,255,0.4);
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-  cursor: pointer;
-  transition: all 0.3s ease;
   overflow: hidden;
+  background: linear-gradient(90deg, 
+    rgba(102, 247, 213, 0.1) 0%, 
+    rgba(102, 247, 213, 0.05) 50%, 
+    rgba(102, 247, 213, 0.1) 100%);
 }
 
-.sector-content {
+.roulette-icon {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 24px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.icon-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 8px;
+  padding: 4px;
   color: white;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
-.sector-icon {
-  font-size: 18px;
-  margin-bottom: 4px;
+.icon-symbol {
+  font-size: 20px;
+  margin-bottom: 2px;
   filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.8));
 }
 
-.sector-name {
-  font-size: 10px;
+.icon-label {
+  font-size: 8px;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.1;
   font-weight: 600;
   max-width: 100%;
   word-wrap: break-word;
@@ -307,46 +312,31 @@ h3 { font-size: 1.25rem; }
   box-shadow: inset 0 0 15px rgba(255,255,255,0.2);
 }
 
-.roulette-pointer {
-  position: absolute;
-  top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-top: 30px solid var(--glow1);
-  z-index: 10;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-}
-
-.roulette-center {
+.roulette-indicator {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  background: radial-gradient(circle, var(--glow1) 0%, var(--glow2) 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  box-shadow: 
-    0 0 20px rgba(102, 247, 213, 0.6),
-    inset 0 0 10px rgba(255,255,255,0.3);
+  z-index: 10;
+  pointer-events: none;
 }
 
-.roulette-logo {
+.indicator-arrow {
   font-size: 24px;
-  animation: roulettePulse 2s ease-in-out infinite;
+  color: var(--glow1);
+  text-shadow: 0 0 10px rgba(102, 247, 213, 0.8);
+  animation: indicatorPulse 1s ease-in-out infinite;
 }
 
-@keyframes roulettePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+@keyframes indicatorPulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.8;
+  }
+  50% { 
+    transform: scale(1.2); 
+    opacity: 1;
+  }
 }
 
 .roulette-controls {
@@ -1060,76 +1050,85 @@ h3 { font-size: 1.25rem; }
 }
 
 /* Улучшенные анимации для рулетки */
-.roulette-wheel.spinning {
-  animation: wheelSpin 4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+.roulette-field.spinning {
+  animation: fieldSlide 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-@keyframes wheelSpin {
-  0% { transform: rotate(0deg); }
-  20% { transform: rotate(720deg); }
-  40% { transform: rotate(1440deg); }
-  60% { transform: rotate(2160deg); }
-  80% { transform: rotate(2880deg); }
-  100% { transform: rotate(3600deg); }
+@keyframes fieldSlide {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-400px); }
+  40% { transform: translateX(-800px); }
+  60% { transform: translateX(-1200px); }
+  80% { transform: translateX(-1600px); }
+  100% { transform: translateX(-2000px); }
 }
 
-/* Казино-стиль для секторов */
-.roulette-sector[data-prize="subscription"] {
+/* Казино-стиль для иконок */
+.roulette-icon[data-prize="subscription"] {
   background: linear-gradient(45deg, #FFD700, #FFA500) !important;
+  border-color: rgba(255, 215, 0, 0.8) !important;
 }
 
-.roulette-sector[data-prize="discount500"] {
+.roulette-icon[data-prize="discount500"] {
   background: linear-gradient(45deg, #FF6B6B, #FF8E8E) !important;
+  border-color: rgba(255, 107, 107, 0.8) !important;
 }
 
-.roulette-sector[data-prize="discount100"] {
+.roulette-icon[data-prize="discount100"] {
   background: linear-gradient(45deg, #4ECDC4, #44A08D) !important;
+  border-color: rgba(78, 205, 196, 0.8) !important;
 }
 
-.roulette-sector[data-prize="discount50"] {
+.roulette-icon[data-prize="discount50"] {
   background: linear-gradient(45deg, #A8E6CF, #7FCDCD) !important;
+  border-color: rgba(168, 230, 207, 0.8) !important;
 }
 
-.roulette-sector[data-prize="quest24h"] {
+.roulette-icon[data-prize="quest24h"] {
   background: linear-gradient(45deg, #FFEAA7, #DDA0DD) !important;
+  border-color: rgba(255, 234, 167, 0.8) !important;
 }
 
-.roulette-sector[data-prize="frodCourse"] {
+.roulette-icon[data-prize="frodCourse"] {
   background: linear-gradient(45deg, #6C5CE7, #A29BFE) !important;
+  border-color: rgba(108, 92, 231, 0.8) !important;
 }
 
-.roulette-sector[data-prize="mulacoin100"] {
+.roulette-icon[data-prize="mulacoin100"] {
   background: linear-gradient(45deg, #FFEAA7, #FDCB6E) !important;
+  border-color: rgba(255, 234, 167, 0.8) !important;
 }
 
-.roulette-sector[data-prize="mulacoin50"] {
+.roulette-icon[data-prize="mulacoin50"] {
   background: linear-gradient(45deg, #DDA0DD, #E056FD) !important;
+  border-color: rgba(221, 160, 221, 0.8) !important;
 }
 
-.roulette-sector[data-prize="mulacoin25"] {
+.roulette-icon[data-prize="mulacoin25"] {
   background: linear-gradient(45deg, #98D8C8, #00B894) !important;
+  border-color: rgba(152, 216, 200, 0.8) !important;
 }
 
-/* Анимация появления секторов */
-.roulette-sector {
-  animation: sectorAppear 0.5s ease-out;
+/* Анимация появления иконок */
+.roulette-icon {
+  animation: iconAppear 0.5s ease-out;
   animation-fill-mode: both;
 }
 
-.roulette-sector:nth-child(1) { animation-delay: 0.1s; }
-.roulette-sector:nth-child(2) { animation-delay: 0.2s; }
-.roulette-sector:nth-child(3) { animation-delay: 0.3s; }
-.roulette-sector:nth-child(4) { animation-delay: 0.4s; }
-.roulette-sector:nth-child(5) { animation-delay: 0.5s; }
-.roulette-sector:nth-child(6) { animation-delay: 0.6s; }
+.roulette-icon:nth-child(1) { animation-delay: 0.1s; }
+.roulette-icon:nth-child(2) { animation-delay: 0.2s; }
+.roulette-icon:nth-child(3) { animation-delay: 0.3s; }
+.roulette-icon:nth-child(4) { animation-delay: 0.4s; }
+.roulette-icon:nth-child(5) { animation-delay: 0.5s; }
+.roulette-icon:nth-child(6) { animation-delay: 0.6s; }
 
-@keyframes sectorAppear {
+@keyframes iconAppear {
   from {
     opacity: 0;
-    transform: scale(0.8) rotate(0deg);
+    transform: scale(0.8) translateY(20px);
   }
   to {
     opacity: 1;
-    transform: scale(1) rotate(var(--rotation));
+    transform: scale(1) translateY(0);
   }
 }
