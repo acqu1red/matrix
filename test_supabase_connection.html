@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Supabase подключения</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Тест подключения к Supabase</h1>
+        
+        <div class="test-section info">
+            <h3>📊 Информация о подключении</h3>
+            <p><strong>URL:</strong> <span id="supabaseUrl"></span></p>
+            <p><strong>Статус:</strong> <span id="connectionStatus">Проверяется...</span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 Тест пользователя</h3>
+            <p>Telegram ID для теста: <input type="number" id="testTelegramId" value="123456789" style="width: 150px;"></p>
+            <button onclick="testCreateUser()">Создать тестового пользователя</button>
+            <button onclick="testLoadUser()">Загрузить пользователя</button>
+            <button onclick="testUpdateUser()">Обновить прогресс</button>
+            <button onclick="testDeleteUser()">Удалить пользователя</button>
+            <div id="userResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Тест истории квестов</h3>
+            <button onclick="testQuestHistory()">Добавить запись в историю квестов</button>
+            <button onclick="testLoadQuestHistory()">Загрузить историю квестов</button>
+            <div id="questResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎰 Тест рулетки</h3>
+            <button onclick="testRouletteHistory()">Добавить запись в историю рулетки</button>
+            <button onclick="testLoadRouletteHistory()">Загрузить историю рулетки</button>
+            <div id="rouletteResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎫 Тест промокодов</h3>
+            <button onclick="testCreatePromocode()">Создать промокод</button>
+            <button onclick="testLoadPromocodes()">Загрузить промокоды</button>
+            <div id="promocodeResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧹 Очистка тестовых данных</h3>
+            <button onclick="cleanupTestData()">Удалить все тестовые данные</button>
+            <div id="cleanupResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация Supabase
+        const SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
+
+        // Инициализация Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Отображение информации о подключении
+        document.getElementById('supabaseUrl').textContent = SUPABASE_URL;
+        document.getElementById('connectionStatus').textContent = 'Подключено';
+        document.getElementById('connectionStatus').style.color = 'green';
+
+        // Функции для работы с пользователями
+        async function testCreateUser() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('userResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('bot_user')
+                    .upsert({
+                        telegram_id: telegramId,
+                        username: 'test_user',
+                        first_name: 'Test',
+                        last_name: 'User',
+                        mulacoin: 100,
+                        experience: 500,
+                        level: 2
+                    })
+                    .select();
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Пользователь создан/обновлен:\n${JSON.stringify(data[0], null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        async function testLoadUser() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('userResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('bot_user')
+                    .select('*')
+                    .eq('telegram_id', telegramId)
+                    .single();
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Пользователь загружен:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        async function testUpdateUser() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('userResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('bot_user')
+                    .update({
+                        mulacoin: 200,
+                        experience: 1000,
+                        level: 3,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('telegram_id', telegramId)
+                    .select();
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Прогресс обновлен:\n${JSON.stringify(data[0], null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        async function testDeleteUser() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('userResult');
+            
+            try {
+                const { error } = await supabase
+                    .from('bot_user')
+                    .delete()
+                    .eq('telegram_id', telegramId);
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ Пользователь удален';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        // Функции для работы с историей квестов
+        async function testQuestHistory() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('questResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('quest_history')
+                    .insert({
+                        user_id: telegramId,
+                        quest_id: 'test_quest',
+                        quest_name: 'Тестовый квест',
+                        difficulty: 'medium',
+                        mulacoin_earned: 3,
+                        experience_earned: 500
+                    })
+                    .select();
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Запись в истории квестов добавлена:\n${JSON.stringify(data[0], null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        async function testLoadQuestHistory() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('questResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('quest_history')
+                    .select('*')
+                    .eq('user_id', telegramId);
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ История квестов загружена:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        // Функции для работы с историей рулетки
+        async function testRouletteHistory() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('rouletteResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('roulette_history')
+                    .insert({
+                        user_id: telegramId,
+                        prize_type: 'discount',
+                        prize_name: 'Скидка 100 рублей',
+                        is_free: false,
+                        mulacoin_spent: 13
+                    })
+                    .select();
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Запись в истории рулетки добавлена:\n${JSON.stringify(data[0], null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        async function testLoadRouletteHistory() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('rouletteResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('roulette_history')
+                    .select('*')
+                    .eq('user_id', telegramId);
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ История рулетки загружена:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        // Функции для работы с промокодами
+        async function testCreatePromocode() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('promocodeResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('promocodes')
+                    .insert({
+                        code: 'TEST' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                        type: 'discount',
+                        value: 100,
+                        issued_to: telegramId,
+                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                    })
+                    .select();
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Промокод создан:\n${JSON.stringify(data[0], null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        async function testLoadPromocodes() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('promocodeResult');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('promocodes')
+                    .select('*')
+                    .eq('issued_to', telegramId);
+
+                if (error) throw error;
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Промокоды загружены:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+
+        // Функция очистки тестовых данных
+        async function cleanupTestData() {
+            const telegramId = parseInt(document.getElementById('testTelegramId').value);
+            const resultDiv = document.getElementById('cleanupResult');
+            
+            try {
+                // Удаляем данные из всех таблиц
+                await supabase.from('roulette_history').delete().eq('user_id', telegramId);
+                await supabase.from('quest_history').delete().eq('user_id', telegramId);
+                await supabase.from('promocodes').delete().eq('issued_to', telegramId);
+                await supabase.from('bot_user').delete().eq('telegram_id', telegramId);
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ Все тестовые данные удалены';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Ошибка: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
