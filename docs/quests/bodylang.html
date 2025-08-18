@@ -744,16 +744,21 @@
       const modal = document.getElementById('questComplete');
       modal.classList.add('show');
       
-      // Сохраняем награды в localStorage
-      const userId = localStorage.getItem('currentUserId') || 'default';
-      const userDataKey = `userData_${userId}`;
-      const savedData = localStorage.getItem(userDataKey);
-      
-      if (savedData) {
-        const userData = JSON.parse(savedData);
-        userData.mulacoin = (userData.mulacoin || 0) + 3;
-        userData.exp = (userData.exp || 0) + 500;
-        localStorage.setItem(userDataKey, JSON.stringify(userData));
+      // Сохраняем награды через новую систему
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(3, 500, 'bodylang', 'Язык тела', 'medium');
+      } else {
+        // Fallback на localStorage
+        const userId = localStorage.getItem('currentUserId') || 'default';
+        const userDataKey = `userData_${userId}`;
+        const savedData = localStorage.getItem(userDataKey);
+        
+        if (savedData) {
+          const userData = JSON.parse(savedData);
+          userData.mulacoin = (userData.mulacoin || 0) + 3;
+          userData.exp = (userData.exp || 0) + 500;
+          localStorage.setItem(userDataKey, JSON.stringify(userData));
+        }
       }
     }
 

@@ -797,6 +797,11 @@
     }
 
     function completeQuest() {
+      // Сохраняем награды через новую систему
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(5, 1000, 'cyber', 'Кибер-взлом', 'hard');
+      }
+      
       toast('Взлом завершен! Возвращаемся в хаб...', 'success');
       setTimeout(() => {
         if (window.history.length > 1) {

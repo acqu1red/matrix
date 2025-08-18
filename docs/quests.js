@@ -14,14 +14,17 @@ const MAX_DAILY_FREE = 5;
 const TOTAL_QUESTS = 10; // Уменьшил до 10 квестов
 const VARIATIONS_PER_QUEST = 10;
 
-// Система рулетки
+// Система рулетки - обновленная с mulacoin призами
 const ROULETTE_PRIZES = [
-  { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 3, probability: 0.03 },
-  { id: "discount500", name: "Скидка 500 рублей", icon: "💰", count: 1, probability: 0.10 },
-  { id: "discount100", name: "Скидка 100 рублей", icon: "💵", count: 3, probability: 0.15 },
-  { id: "discount50", name: "Скидка 50 рублей", icon: "🪙", count: 4, probability: 0.20 },
-  { id: "quest24h", name: "+1 открытый квест на 24ч", icon: "🎯", count: 5, probability: 0.75 },
-  { id: "frodCourse", name: "ПОЛНЫЙ КУРС ПО ФРОДУ", icon: "📚", count: 1, probability: 0.0005 }
+  { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 2, probability: 0.02, color: "#FFD700" },
+  { id: "discount500", name: "Скидка 500₽", icon: "💰", count: 1, probability: 0.05, color: "#FF6B6B" },
+  { id: "discount100", name: "Скидка 100₽", icon: "💵", count: 2, probability: 0.08, color: "#4ECDC4" },
+  { id: "discount50", name: "Скидка 50₽", icon: "🪙", count: 3, probability: 0.12, color: "#A8E6CF" },
+  { id: "mulacoin100", name: "100 MULACOIN", icon: "🪙", count: 4, probability: 0.15, color: "#FFEAA7" },
+  { id: "mulacoin50", name: "50 MULACOIN", icon: "🪙", count: 5, probability: 0.18, color: "#DDA0DD" },
+  { id: "mulacoin25", name: "25 MULACOIN", icon: "🪙", count: 6, probability: 0.20, color: "#98D8C8" },
+  { id: "quest24h", name: "+1 квест 24ч", icon: "🎯", count: 3, probability: 0.15, color: "#F7DC6F" },
+  { id: "frodCourse", name: "КУРС ФРОДА", icon: "📚", count: 1, probability: 0.0001, color: "#6C5CE7" }
 ];
 
 // Система уровней
@@ -142,7 +145,7 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   }
 }
 
-// Система рулетки
+// Система рулетки - полностью переработанная
 function createRouletteWheel() {
   const wheel = $("#rouletteWheel");
   if (!wheel) return;
@@ -157,7 +160,7 @@ function createRouletteWheel() {
     }
   });
   
-  // Перемешиваем секторы
+  // Перемешиваем секторы для разнообразия
   sectors.sort(() => Math.random() - 0.5);
   
   const sectorAngle = 360 / sectors.length;
@@ -169,28 +172,20 @@ function createRouletteWheel() {
     sector.style.transform = `rotate(${index * sectorAngle}deg)`;
     sector.dataset.prize = prize.id;
     
+    // Применяем цвет сектора
+    sector.style.background = prize.color;
+    
     // Создаем содержимое сектора
     const content = document.createElement('div');
+    content.className = 'sector-content';
     content.style.transform = `rotate(${sectorAngle / 2}deg)`;
-    content.style.display = 'flex';
-    content.style.flexDirection = 'column';
-    content.style.alignItems = 'center';
-    content.style.justifyContent = 'center';
-    content.style.height = '100%';
-    content.style.padding = '8px';
-    content.style.color = 'white';
-    content.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
     
     const icon = document.createElement('div');
-    icon.style.fontSize = '20px';
-    icon.style.marginBottom = '4px';
+    icon.className = 'sector-icon';
     icon.textContent = prize.icon;
     
     const name = document.createElement('div');
-    name.style.fontSize = '10px';
-    name.style.textAlign = 'center';
-    name.style.lineHeight = '1.2';
-    name.style.fontWeight = '600';
+    name.className = 'sector-name';
     name.textContent = prize.name;
     
     content.appendChild(icon);
@@ -266,43 +261,25 @@ function spinRoulette(isFree = false) {
   
   const sectorAngle = 360 / sectors.length;
   const targetAngle = targetIndex * sectorAngle + sectorAngle / 2;
-  const spinAngle = 360 * 8 + (360 - targetAngle); // Увеличиваем количество оборотов для более эффектной анимации
+  const spinAngle = 360 * 10 + (360 - targetAngle); // Больше оборотов для эффекта
   
-  // Добавляем плавную анимацию запуска
-  wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  // Добавляем плавную анимацию запуска с замедлением
+  wheel.style.transition = 'transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
   wheel.style.transform = `rotate(${spinAngle}deg)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
     spinBtn.classList.remove("spinning");
-    spinBtn.textContent = "🎁 Получить приз";
-    spinBtn.classList.add("prize-ready");
+    
+    // Сразу показываем модальное окно с призом
+    showPrizeModal(prize);
+    
+    // Восстанавливаем кнопку
+    spinBtn.textContent = "🎰 Крутить рулетку";
     spinBtn.disabled = false;
-    
-    // Сохраняем приз для использования в обработчике
-    spinBtn.dataset.wonPrize = JSON.stringify(prize);
-    
-    // Добавляем обработчик для получения приза
-    const prizeHandler = () => {
-      const wonPrize = JSON.parse(spinBtn.dataset.wonPrize);
-      showPrizeModal(wonPrize);
-      spinBtn.textContent = "🎰 Крутить рулетку";
-      spinBtn.classList.remove("prize-ready");
-      spinBtn.disabled = false;
-      buyBtn.disabled = false;
-      updateRouletteButton();
-      
-      // Удаляем обработчик приза
-      spinBtn.removeEventListener('click', prizeHandler);
-      
-      // Восстанавливаем оригинальный обработчик
-      spinBtn.addEventListener('click', originalSpinHandler);
-    };
-    
-    // Удаляем оригинальный обработчик и добавляем новый
-    spinBtn.removeEventListener('click', originalSpinHandler);
-    spinBtn.addEventListener('click', prizeHandler);
-  }, 4000);
+    buyBtn.disabled = false;
+    updateRouletteButton();
+  }, 5000);
 }
 
 function selectPrizeByProbability() {
@@ -336,7 +313,22 @@ async function showPrizeModal(prize) {
   
   let contentHTML = '';
   
-  if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
+  // Обрабатываем mulacoin призы
+  if (prize.id.startsWith('mulacoin')) {
+    const mulacoinAmount = parseInt(prize.id.replace('mulacoin', ''));
+    userData.mulacoin += mulacoinAmount;
+    updateCurrencyDisplay();
+    await saveUserData();
+    
+    contentHTML = `
+      <p style="font-size: 16px; color: var(--accent); font-weight: bold;">
+        +${mulacoinAmount} MULACOIN добавлено к вашему балансу!
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        Текущий баланс: ${userData.mulacoin} MULACOIN
+      </p>
+    `;
+  } else if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
     const promoCode = generatePromoCode(prize);
     contentHTML = `
       <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>

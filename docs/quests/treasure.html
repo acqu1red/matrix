@@ -787,6 +787,11 @@
     }
 
     function completeQuest() {
+      // Сохраняем награды через новую систему
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(1, 150, 'treasure', 'Поиск сокровищ', 'easy');
+      }
+      
       toast('Квест завершен! Возвращаемся в хаб...', 'success');
       setTimeout(() => {
         if (window.history.length > 1) {
