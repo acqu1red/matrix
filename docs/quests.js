@@ -11,7 +11,7 @@ const PAYMENT_URL = "https://acqu1red.github.io/formulaprivate/payment.html";
 const ISLAND_MINIAPP_URL = "./island.html";
 
 const MAX_DAILY_FREE = 5;
-const TOTAL_QUESTS = 10; // Уменьшил до 10 квестов
+const TOTAL_QUESTS = 9; // Обновлено количество квестов
 const VARIATIONS_PER_QUEST = 10;
 
 // Система рулетки - обновленная с mulacoin призами
@@ -704,30 +704,17 @@ fireflies();
 /* ====== Quests model (10 квестов) ====== */
 const QUESTS = [
   { 
-    id: "treasure", 
-    theme: "Приключения", 
-    style: "artdeco", 
-    name: "Поиск сокровищ", 
-    intro: "Собери карту и найди клад раньше других.", 
-    description: "Исследуй загадочную карту и следуй за вспышками света, чтобы найти спрятанные сокровища.",
-    type: "puzzle", 
-    difficulty: "easy",
-    rewards: { fragments: 2, experience: 50 },
+    id: "competitors", 
+    theme: "Стратегия", 
+    style: "neo", 
+    name: "Анализ конкурентов", 
+    intro: "Изучи конкурентную среду.", 
+    description: "Изучи конкурентную среду и выбери наиболее сильного конкурента в отрасли.",
+    type: "analysis", 
+    difficulty: "hard",
+    rewards: { fragments: 5, experience: 120 },
     available: true,
-    url: "quests/treasure.html"
-  },
-  { 
-    id: "cyber", 
-    theme: "Технологии", 
-    style: "synthwave", 
-    name: "Кибер‑взлом", 
-    intro: "Подбери паттерн, чтобы открыть шлюз.", 
-    description: "Взломай защищенную систему, подбирая правильные символы в нужном порядке.",
-    type: "minigame", 
-    difficulty: "medium",
-    rewards: { fragments: 3, experience: 75 },
-    available: true,
-    url: "quests/cyber.html"
+    url: "quests/competitors.html"
   },
   { 
     id: "bodylang", 
@@ -741,6 +728,32 @@ const QUESTS = [
     rewards: { fragments: 2, experience: 60 },
     available: true,
     url: "quests/bodylang.html"
+  },
+  { 
+    id: "manipulation", 
+    theme: "Психология", 
+    style: "neo", 
+    name: "Психология манипуляций", 
+    intro: "Распознай техники влияния и убеждения.", 
+    description: "Изучи различные техники психологического влияния и научись их распознавать в реальных ситуациях.",
+    type: "analysis", 
+    difficulty: "medium",
+    rewards: { fragments: 3, experience: 80 },
+    available: true,
+    url: "quests/manipulation.html"
+  },
+  { 
+    id: "cyber", 
+    theme: "Технологии", 
+    style: "synthwave", 
+    name: "Кибер‑взлом", 
+    intro: "Подбери паттерн, чтобы открыть шлюз.", 
+    description: "Взломай защищенную систему, подбирая правильные символы в нужном порядке.",
+    type: "minigame", 
+    difficulty: "medium",
+    rewards: { fragments: 3, experience: 75 },
+    available: false,
+    url: "quests/cyber.html"
   },
   { 
     id: "profiling", 
@@ -806,19 +819,6 @@ const QUESTS = [
     rewards: { fragments: 3, experience: 70 },
     available: false,
     url: "quests/audience.html"
-  },
-  { 
-    id: "competitors", 
-    theme: "Стратегия", 
-    style: "neo", 
-    name: "Анализ конкурентов", 
-    intro: "Изучи конкурентную среду.", 
-    description: "Изучи конкурентную среду и выбери наиболее сильного конкурента в отрасли.",
-    type: "analysis", 
-    difficulty: "hard",
-    rewards: { fragments: 5, experience: 120 },
-    available: false,
-    url: "quests/competitors.html"
   },
   { 
     id: "trends", 

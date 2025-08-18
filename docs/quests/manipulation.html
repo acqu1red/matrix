@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Психология манипуляций</title>
+  <link rel="stylesheet" href="../quests.css">
+  <style>
+    .manipulation-scenario {
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      backdrop-filter: blur(10px);
+    }
+    
+    .scenario-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--glow1);
+      margin-bottom: 15px;
+    }
+    
+    .scenario-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    
+    .technique-options {
+      display: grid;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    
+    .technique-option {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .technique-option:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
+    }
+    
+    .technique-option.selected {
+      background: linear-gradient(135deg, var(--glow1), var(--glow2));
+      border-color: var(--glow1);
+      color: var(--bg0);
+    }
+    
+    .technique-icon {
+      font-size: 20px;
+      width: 30px;
+      text-align: center;
+    }
+    
+    .technique-info {
+      flex: 1;
+    }
+    
+    .technique-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .technique-description {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .feedback {
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      display: none;
+    }
+    
+    .feedback.correct {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1));
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .feedback.incorrect {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--glow1), var(--glow2));
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    
+    .phase-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .phase-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      transition: all 0.3s ease;
+    }
+    
+    .phase-dot.active {
+      background: var(--glow1);
+      transform: scale(1.2);
+    }
+    
+    .phase-dot.completed {
+      background: var(--success);
+    }
+  </style>
+</head>
+<body>
+  <div class="quest-container">
+    <header class="quest-header">
+      <div class="quest-info">
+        <h1>🧠 Психология манипуляций</h1>
+        <p>Распознай техники влияния и убеждения в реальных ситуациях</p>
+      </div>
+      <div class="quest-stats">
+        <div class="stat">
+          <span class="stat-label">Прогресс:</span>
+          <span class="stat-value" id="progress">0/5</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Попытки:</span>
+          <span class="stat-value" id="attempts">3</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="phase-indicator">
+      <div class="phase-dot active" data-phase="1"></div>
+      <div class="phase-dot" data-phase="2"></div>
+      <div class="phase-dot" data-phase="3"></div>
+      <div class="phase-dot" data-phase="4"></div>
+      <div class="phase-dot" data-phase="5"></div>
+    </div>
+
+    <div class="quest-content" id="questContent">
+      <!-- Контент будет загружен динамически -->
+    </div>
+
+    <div class="quest-controls">
+      <button class="btn ghost" id="backBtn">← Назад</button>
+      <button class="btn primary" id="nextBtn" disabled>Далее →</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Данные квеста
+    const MANIPULATION_SCENARIOS = [
+      {
+        id: 1,
+        title: "Сценарий 1: Продажа в магазине",
+        text: "Продавец подходит к вам и говорит: 'Эта модель очень популярна, но у нас осталось всего 2 штуки. Многие клиенты жалеют, что не купили сразу. Хотите посмотреть?'",
+        techniques: [
+          {
+            id: "scarcity",
+            name: "Дефицит",
+            description: "Создание ощущения ограниченности товара",
+            icon: "⏰",
+            correct: true
+          },
+          {
+            id: "social_proof",
+            name: "Социальное доказательство",
+            description: "Ссылка на популярность среди других",
+            icon: "👥",
+            correct: true
+          },
+          {
+            id: "authority",
+            name: "Авторитет",
+            description: "Использование статуса эксперта",
+            icon: "👨‍💼",
+            correct: false
+          },
+          {
+            id: "reciprocity",
+            name: "Взаимность",
+            description: "Предложение услуги в обмен на покупку",
+            icon: "🤝",
+            correct: false
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "Сценарий 2: Переговоры на работе",
+        text: "Коллега говорит: 'Я знаю, что у тебя много работы, но этот проект очень важен для компании. Только ты можешь это сделать качественно. Можешь взять на себя?'",
+        techniques: [
+          {
+            id: "flattery",
+            name: "Лесть",
+            description: "Повышение самооценки собеседника",
+            icon: "😊",
+            correct: true
+          },
+          {
+            id: "urgency",
+            name: "Срочность",
+            description: "Создание ощущения неотложности",
+            icon: "🚨",
+            correct: false
+          },
+          {
+            id: "commitment",
+            name: "Обязательство",
+            description: "Связывание с предыдущими обещаниями",
+            icon: "📋",
+            correct: false
+          },
+          {
+            id: "authority",
+            name: "Авторитет",
+            description: "Использование статуса эксперта",
+            icon: "👨‍💼",
+            correct: true
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "Сценарий 3: Социальные сети",
+        text: "В комментариях к посту: 'Если ты не поддерживаешь эту идею, значит ты не понимаешь важности проблемы. Все умные люди уже согласились. Присоединяйся к нам!'",
+        techniques: [
+          {
+            id: "peer_pressure",
+            name: "Давление сверстников",
+            description: "Принуждение к согласию с группой",
+            icon: "👥",
+            correct: true
+          },
+          {
+            id: "guilt_trip",
+            name: "Чувство вины",
+            description: "Вызов негативных эмоций",
+            icon: "😔",
+            correct: true
+          },
+          {
+            id: "bandwagon",
+            name: "Эффект присоединения",
+            description: "Следование за большинством",
+            icon: "🚂",
+            correct: true
+          },
+          {
+            id: "logical_fallacy",
+            name: "Логическая ошибка",
+            description: "Некорректные аргументы",
+            icon: "❌",
+            correct: false
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "Сценарий 4: Реклама",
+        text: "Рекламный ролик: '9 из 10 стоматологов рекомендуют нашу зубную пасту. Не откладывайте здоровье на завтра. Купите сейчас и получите скидку 50%!'",
+        techniques: [
+          {
+            id: "authority",
+            name: "Авторитет",
+            description: "Использование экспертного мнения",
+            icon: "👨‍⚕️",
+            correct: true
+          },
+          {
+            id: "scarcity",
+            name: "Дефицит",
+            description: "Ограниченное предложение",
+            icon: "⏰",
+            correct: false
+          },
+          {
+            id: "fear_appeal",
+            name: "Обращение к страху",
+            description: "Использование негативных эмоций",
+            icon: "😨",
+            correct: true
+          },
+          {
+            id: "discount",
+            name: "Скидка",
+            description: "Финансовое стимулирование",
+            icon: "💰",
+            correct: true
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "Сценарий 5: Личные отношения",
+        text: "Партнер говорит: 'Если ты действительно меня любишь, ты сделаешь это для меня. Я всегда делаю то, что ты просишь. Разве я не заслуживаю того же?'",
+        techniques: [
+          {
+            id: "emotional_blackmail",
+            name: "Эмоциональный шантаж",
+            description: "Использование чувств для манипуляции",
+            icon: "💔",
+            correct: true
+          },
+          {
+            id: "reciprocity",
+            name: "Взаимность",
+            description: "Напоминание о прошлых услугах",
+            icon: "🤝",
+            correct: true
+          },
+          {
+            id: "guilt_trip",
+            name: "Чувство вины",
+            description: "Вызов негативных эмоций",
+            icon: "😔",
+            correct: true
+          },
+          {
+            id: "love_bombing",
+            name: "Любовная бомбардировка",
+            description: "Избыточное проявление чувств",
+            icon: "💕",
+            correct: false
+          }
+        ]
+      }
+    ];
+
+    let currentScenario = 0;
+    let selectedTechniques = [];
+    let attempts = 3;
+    let score = 0;
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      loadScenario();
+      updateDisplay();
+      
+      // Обработчики событий
+      document.getElementById('backBtn').addEventListener('click', goBack);
+      document.getElementById('nextBtn').addEventListener('click', nextScenario);
+    });
+
+    function loadScenario() {
+      const scenario = MANIPULATION_SCENARIOS[currentScenario];
+      const content = document.getElementById('questContent');
+      
+      content.innerHTML = `
+        <div class="manipulation-scenario">
+          <div class="scenario-title">${scenario.title}</div>
+          <div class="scenario-text">${scenario.text}</div>
+          
+          <div class="technique-options">
+            ${scenario.techniques.map(technique => `
+              <div class="technique-option" data-technique="${technique.id}">
+                <div class="technique-icon">${technique.icon}</div>
+                <div class="technique-info">
+                  <div class="technique-name">${technique.name}</div>
+                  <div class="technique-description">${technique.description}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="feedback" id="feedback"></div>
+        </div>
+      `;
+
+      // Добавляем обработчики для выбора техник
+      document.querySelectorAll('.technique-option').forEach(option => {
+        option.addEventListener('click', () => {
+          if (option.classList.contains('selected')) {
+            option.classList.remove('selected');
+            selectedTechniques = selectedTechniques.filter(t => t !== option.dataset.technique);
+          } else {
+            option.classList.add('selected');
+            selectedTechniques.push(option.dataset.technique);
+          }
+          updateNextButton();
+        });
+      });
+    }
+
+    function updateDisplay() {
+      document.getElementById('progress').textContent = `${currentScenario + 1}/${MANIPULATION_SCENARIOS.length}`;
+      document.getElementById('attempts').textContent = attempts;
+      document.getElementById('progressFill').style.width = `${((currentScenario + 1) / MANIPULATION_SCENARIOS.length) * 100}%`;
+      
+      // Обновляем индикаторы фаз
+      document.querySelectorAll('.phase-dot').forEach((dot, index) => {
+        dot.classList.remove('active', 'completed');
+        if (index < currentScenario) {
+          dot.classList.add('completed');
+        } else if (index === currentScenario) {
+          dot.classList.add('active');
+        }
+      });
+    }
+
+    function updateNextButton() {
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.disabled = selectedTechniques.length === 0;
+    }
+
+    function checkAnswer() {
+      const scenario = MANIPULATION_SCENARIOS[currentScenario];
+      const correctTechniques = scenario.techniques.filter(t => t.correct).map(t => t.id);
+      const isCorrect = selectedTechniques.length === correctTechniques.length && 
+                       selectedTechniques.every(t => correctTechniques.includes(t));
+      
+      const feedback = document.getElementById('feedback');
+      feedback.style.display = 'block';
+      
+      if (isCorrect) {
+        feedback.className = 'feedback correct';
+        feedback.innerHTML = `
+          <div style="color: var(--success); font-weight: 600; margin-bottom: 8px;">✅ Правильно!</div>
+          <div>Вы правильно распознали техники манипуляции: ${selectedTechniques.map(id => 
+            scenario.techniques.find(t => t.id === id).name
+          ).join(', ')}</div>
+        `;
+        score++;
+      } else {
+        attempts--;
+        feedback.className = 'feedback incorrect';
+        feedback.innerHTML = `
+          <div style="color: var(--warning); font-weight: 600; margin-bottom: 8px;">❌ Неправильно</div>
+          <div>Правильные техники: ${correctTechniques.map(id => 
+            scenario.techniques.find(t => t.id === id).name
+          ).join(', ')}</div>
+          <div style="margin-top: 8px; font-size: 12px;">Осталось попыток: ${attempts}</div>
+        `;
+      }
+      
+      // Отключаем выбор техник после ответа
+      document.querySelectorAll('.technique-option').forEach(option => {
+        option.style.pointerEvents = 'none';
+      });
+      
+      updateDisplay();
+      
+      if (attempts <= 0) {
+        setTimeout(() => {
+          completeQuest();
+        }, 2000);
+      }
+    }
+
+    function nextScenario() {
+      if (selectedTechniques.length === 0) return;
+      
+      checkAnswer();
+      
+      setTimeout(() => {
+        currentScenario++;
+        selectedTechniques = [];
+        
+        if (currentScenario >= MANIPULATION_SCENARIOS.length) {
+          completeQuest();
+        } else {
+          loadScenario();
+          updateDisplay();
+        }
+      }, 2000);
+    }
+
+    function goBack() {
+      if (window.parent && window.parent.history) {
+        window.parent.history.back();
+      } else {
+        window.location.href = '../quests.html';
+      }
+    }
+
+    function completeQuest() {
+      const modal = document.createElement('div');
+      modal.className = 'modal show';
+      modal.innerHTML = `
+        <div class="modalContent glass">
+          <div style="text-align: center; padding: 40px;">
+            <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+            <h2 style="margin-bottom: 16px;">Квест завершен!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">
+              Вы успешно прошли квест "Психология манипуляций"
+            </p>
+            <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 20px; margin: 20px 0;">
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: var(--glow1);">${score}</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Правильных ответов</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: var(--glow2);">3</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Mulacoin</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn primary" onclick="returnToHub()">Вернуться в хаб</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Сохраняем награды через новую систему
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(3, 500, 'manipulation', 'Психология манипуляций', 'medium');
+      }
+    }
+
+    function returnToHub() {
+      if (window.parent && window.parent.history) {
+        window.parent.history.back();
+      } else {
+        window.location.href = '../quests.html';
+      }
+    }
+
+    // Функция для показа уведомлений
+    function toast(message, type = 'info') {
+      const toastEl = document.getElementById('toast');
+      toastEl.textContent = message;
+      toastEl.className = `toast ${type}`;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>
