@@ -201,11 +201,14 @@ function createRouletteWheel() {
     const name = document.createElement('span');
     name.textContent = prize.name;
     
-    previewItem.appendChild(icon);
-    previewItem.appendChild(name);
-    preview.appendChild(previewItem);
-  });
-}
+         previewItem.appendChild(icon);
+     previewItem.appendChild(name);
+     preview.appendChild(previewItem);
+   });
+   
+   // Инициализируем переключатель превью
+   initPreviewToggle();
+ }
 
 function getSectorColor(prizeId) {
   const colors = {
@@ -246,6 +249,13 @@ function spinRoulette(isFree = false) {
     updateRouletteButton();
   }
   
+  // Начисляем опыт за прокрут рулетки
+  userData.exp += 25;
+  updateCurrencyDisplay();
+  
+  // Показываем уведомление о полученном опыте
+  toast("+25 опыта за прокрут рулетки!", "success");
+  
   saveUserData();
   
   spinBtn.disabled = true;
@@ -277,9 +287,10 @@ function spinRoulette(isFree = false) {
   const targetPosition = targetIndex * itemWidth + centerOffset;
   const slideDistance = 3000 - targetPosition; // Общее расстояние минус позиция цели
   
-  // Добавляем плавную анимацию скольжения
+  // Добавляем плавную анимацию скольжения с дополнительными оборотами
   items.classList.add('spinning');
-  items.style.transform = `translateX(-${slideDistance}px)`;
+  const extraDistance = 2000; // Дополнительное расстояние для плавности
+  items.style.transform = `translateX(-${slideDistance + extraDistance}px)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
@@ -1212,18 +1223,23 @@ $("#closePrize").addEventListener("click", ()=>{
 });
 
 // Обработчик сворачивания/разворачивания превью призов
-$("#previewHeader").addEventListener("click", ()=>{
-  const content = $("#previewContent");
-  const toggle = $("#previewHeader .preview-toggle");
-  
-  if (content.classList.contains("expanded")) {
-    content.classList.remove("expanded");
-    toggle.classList.remove("expanded");
-  } else {
-    content.classList.add("expanded");
-    toggle.classList.add("expanded");
+function initPreviewToggle() {
+  const header = $("#previewHeader");
+  if (header) {
+    header.addEventListener("click", ()=>{
+      const content = $("#previewContent");
+      const toggle = $("#previewHeader .preview-toggle");
+      
+      if (content.classList.contains("expanded")) {
+        content.classList.remove("expanded");
+        toggle.classList.remove("expanded");
+      } else {
+        content.classList.add("expanded");
+        toggle.classList.add("expanded");
+      }
+    });
   }
-});
+}
 
 // Обработчик клика по уровню
 $("#levelDisplay").addEventListener("click", ()=>{
