@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Демо — Язык тела (PNG спрайтшиты)</title>
+<style>
+  :root { --bg:#0b1020; --text:#eaf4ff; --muted:#9fb0c6; --border:#2a3450; }
+  body { margin:0; font-family:system-ui, -apple-system, Segoe UI, Inter, Roboto, sans-serif; background: radial-gradient(120% 80% at 70% 30%, #12344B 0%, #0B1020 60%, #090D18 100%); color:var(--text); }
+  header { padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:16px; padding:16px; }
+  .card { background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:12px; }
+  .sprite { width:256px; height:256px; background-size: calc(var(--cols)*100%) calc(var(--rows)*100%); image-rendering: auto; border-radius:12px; border:1px solid rgba(255,255,255,.14); }
+  .meta { font-size:13px; color:var(--muted); margin-top:8px;}
+  .wrap { display:flex; align-items:center; justify-content:center; width:100%; background:rgba(255,255,255,.03); border-radius:12px; border:1px dashed rgba(255,255,255,.12); }
+  .ctrl { display:flex; gap:10px; align-items:center; }
+  button { background:#1b2642; color:#eaf4ff; border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:8px 10px; cursor:pointer; }
+  input[type=range]{ width:160px; }
+</style>
+</head>
+<body>
+<header>
+  <div><b>Демо — "Язык тела"</b> • 50 анимированных лиц (PNG-спрайтшиты с прозрачным фоном)</div>
+  <div class="ctrl">
+    <label>Скорость (fps): <input type="range" id="fps" min="4" max="16" value="8"></label>
+    <button id="pause">Пауза</button>
+    <button id="play">Пуск</button>
+  </div>
+</header>
+<div class="grid" id="grid"></div>
+
+<script>
+const grid = document.getElementById('grid');
+let fps = 8, paused = false;
+const manifest = [{"file": "faces/face_001_dominance.png", "expression_key": "dominance", "expression_ru": "доминантность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_002_uncertainty.png", "expression_key": "uncertainty", "expression_ru": "неуверенность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_003_happy.png", "expression_key": "happy", "expression_ru": "радость", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_004_angry.png", "expression_key": "angry", "expression_ru": "гнев", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_005_skeptic.png", "expression_key": "skeptic", "expression_ru": "скепсис", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_006_surprise.png", "expression_key": "surprise", "expression_ru": "удивление", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_007_contempt.png", "expression_key": "contempt", "expression_ru": "презрение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_008_fear.png", "expression_key": "fear", "expression_ru": "страх", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_009_interest.png", "expression_key": "interest", "expression_ru": "заинтересованность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_010_determination.png", "expression_key": "determination", "expression_ru": "решительность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_011_hesitation.png", "expression_key": "hesitation", "expression_ru": "колебание", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_012_disgust.png", "expression_key": "disgust", "expression_ru": "отвращение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_013_sad.png", "expression_key": "sad", "expression_ru": "грусть", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_014_submission.png", "expression_key": "submission", "expression_ru": "подчинение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_015_neutral.png", "expression_key": "neutral", "expression_ru": "нейтральность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_016_dominance.png", "expression_key": "dominance", "expression_ru": "доминантность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_017_uncertainty.png", "expression_key": "uncertainty", "expression_ru": "неуверенность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_018_happy.png", "expression_key": "happy", "expression_ru": "радость", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_019_angry.png", "expression_key": "angry", "expression_ru": "гнев", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_020_skeptic.png", "expression_key": "skeptic", "expression_ru": "скепсис", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_021_surprise.png", "expression_key": "surprise", "expression_ru": "удивление", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_022_contempt.png", "expression_key": "contempt", "expression_ru": "презрение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_023_fear.png", "expression_key": "fear", "expression_ru": "страх", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_024_interest.png", "expression_key": "interest", "expression_ru": "заинтересованность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_025_determination.png", "expression_key": "determination", "expression_ru": "решительность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_026_hesitation.png", "expression_key": "hesitation", "expression_ru": "колебание", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_027_disgust.png", "expression_key": "disgust", "expression_ru": "отвращение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_028_sad.png", "expression_key": "sad", "expression_ru": "грусть", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_029_submission.png", "expression_key": "submission", "expression_ru": "подчинение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_030_neutral.png", "expression_key": "neutral", "expression_ru": "нейтральность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_031_dominance.png", "expression_key": "dominance", "expression_ru": "доминантность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_032_uncertainty.png", "expression_key": "uncertainty", "expression_ru": "неуверенность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_033_happy.png", "expression_key": "happy", "expression_ru": "радость", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_034_angry.png", "expression_key": "angry", "expression_ru": "гнев", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_035_skeptic.png", "expression_key": "skeptic", "expression_ru": "скепсис", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_036_surprise.png", "expression_key": "surprise", "expression_ru": "удивление", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_037_contempt.png", "expression_key": "contempt", "expression_ru": "презрение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_038_fear.png", "expression_key": "fear", "expression_ru": "страх", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_039_interest.png", "expression_key": "interest", "expression_ru": "заинтересованность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_040_determination.png", "expression_key": "determination", "expression_ru": "решительность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_041_hesitation.png", "expression_key": "hesitation", "expression_ru": "колебание", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_042_disgust.png", "expression_key": "disgust", "expression_ru": "отвращение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_043_sad.png", "expression_key": "sad", "expression_ru": "грусть", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_044_submission.png", "expression_key": "submission", "expression_ru": "подчинение", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_045_neutral.png", "expression_key": "neutral", "expression_ru": "нейтральность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_046_dominance.png", "expression_key": "dominance", "expression_ru": "доминантность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_047_uncertainty.png", "expression_key": "uncertainty", "expression_ru": "неуверенность", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_048_happy.png", "expression_key": "happy", "expression_ru": "радость", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_049_angry.png", "expression_key": "angry", "expression_ru": "гнев", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}, {"file": "faces/face_050_skeptic.png", "expression_key": "skeptic", "expression_ru": "скепсис", "frames": 16, "fps": 8, "frame_w": 256, "frame_h": 256, "grid_cols": 4, "grid_rows": 4}];
+
+function makeCard(item){
+  const card = document.createElement('div'); card.className='card';
+  const wrap = document.createElement('div'); wrap.className='wrap';
+  const spr = document.createElement('div'); spr.className='sprite';
+  spr.style.setProperty('--cols', item.grid_cols);
+  spr.style.setProperty('--rows', item.grid_rows);
+  spr.style.backgroundImage = `url(../${item.file})`;
+  wrap.appendChild(spr);
+  const meta = document.createElement('div'); meta.className='meta';
+  meta.textContent = `${item.expression_ru} (${item.expression_key}) • ${item.frames} к/ф • ${item.fps} fps`;
+  card.append(wrap, meta);
+  return {card, spr};
+}
+
+const items = manifest;
+const sprites = [];
+items.forEach(it => {
+  const {card, spr} = makeCard(it);
+  grid.appendChild(card);
+  sprites.push({el:spr, it, frame:0});
+});
+
+function step(){
+  if (!paused){
+    sprites.forEach(o => {
+      o.frame = (o.frame + 1) % o.it.frames;
+      const c = o.it.grid_cols;
+      const r = o.it.grid_rows;
+      const col = o.frame % c;
+      const row = Math.floor(o.frame / c);
+      const x = (col / (c-1)) * 100;
+      const y = (row / (r-1)) * 100;
+      o.el.style.backgroundPosition = `${x}% ${y}%`;
+    });
+  }
+  setTimeout(step, 1000/Math.max(1, fps));
+}
+step();
+
+document.getElementById('fps').addEventListener('input', e => {
+  fps = parseInt(e.target.value, 10) || 8;
+});
+document.getElementById('pause').addEventListener('click', ()=> paused = true);
+document.getElementById('play').addEventListener('click', ()=> paused = false);
+</script>
+</body>
+</html>

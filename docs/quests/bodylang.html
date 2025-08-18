@@ -1,503 +1,198 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Язык тела — Квест‑Хаб</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../quests.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Язык тела - Формула Quests</title>
+  <link rel="stylesheet" href="../quests.css">
   <style>
-    .bodylang-quest {
-      position: relative;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0B1020 0%, #1A2332 100%);
-      overflow: hidden;
+    /* Специфичные стили для квеста "Язык тела" */
+    .quest-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
     }
-    
+
+    .phase-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .phase-badge {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .phase-badge.active {
+      background: var(--glow1);
+      color: var(--bg0);
+      font-weight: 600;
+    }
+
+    /* Видео контейнер */
     .video-container {
-      position: relative;
-      width: 100%;
-      height: 300px;
+      background: var(--glass);
       border-radius: var(--radius);
-      overflow: hidden;
-      margin: 20px 0;
-      background: var(--bg1);
-      border: 2px solid var(--border);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
     }
-    
+
     .video-player {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: var(--bg0);
+      max-width: 400px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
     }
-    
+
     .video-controls {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0,0,0,0.8);
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .play-btn {
-      background: var(--glow1);
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 18px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
-    
+
+    .play-btn {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
     .play-btn:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.5);
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.4);
     }
-    
+
     .progress-bar {
       flex: 1;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
+      max-width: 300px;
+      height: 6px;
+      background: var(--glass-strong);
+      border-radius: 3px;
       overflow: hidden;
     }
-    
+
     .progress-fill {
       height: 100%;
       background: var(--glow1);
       width: 0%;
-      transition: width 0.3s ease;
+      transition: width 0.1s ease;
     }
-    
+
+    .video-annotation {
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
+      border: 1px solid rgba(102, 247, 213, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    /* Контейнер для анимированных лиц */
     .face-container {
-      position: relative;
-      width: 100%;
-      height: 400px;
+      background: var(--glass);
       border-radius: var(--radius);
-      overflow: hidden;
-      margin: 20px 0;
-      background: var(--bg1);
-      border: 2px solid var(--border);
+      padding: 30px;
+      margin-bottom: 30px;
+      text-align: center;
+      min-height: 400px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
     }
-    
-    .face {
-      position: relative;
-      width: 200px;
-      height: 200px;
-      background: linear-gradient(180deg, #F7FAFC 0%, #E2E8F0 100%);
-      border-radius: 50%;
-      border: 3px solid #CBD5E0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      transition: all 0.5s ease;
+
+    .face-sprite {
+      width: 256px;
+      height: 256px;
+      background-size: calc(var(--cols) * 100%) calc(var(--rows) * 100%);
+      image-rendering: auto;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
-    
-    .face-eyes {
-      position: absolute;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 120px;
-      height: 30px;
-      display: flex;
-      justify-content: space-between;
+
+    .face-instruction {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 500;
     }
-    
-    .face-eye {
-      width: 25px;
-      height: 25px;
-      background: #2D3748;
-      border-radius: 50%;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    
-    .face-eye::after {
-      content: '';
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 8px;
-      height: 8px;
-      background: white;
-      border-radius: 50%;
-    }
-    
-    .face-brows {
-      position: absolute;
-      top: 45px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 120px;
-      height: 20px;
-      display: flex;
-      justify-content: space-between;
-    }
-    
-    .face-brow {
-      width: 30px;
-      height: 8px;
-      background: #4A5568;
-      border-radius: 4px;
-      transition: all 0.3s ease;
-    }
-    
-    .face-mouth {
-      position: absolute;
-      bottom: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 30px;
-      background: #E53E3E;
-      border-radius: 0 0 60px 60px;
-      transition: all 0.3s ease;
-    }
-    
-    .face-nose {
-      position: absolute;
-      top: 90px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 20px;
-      height: 30px;
-      background: #CBD5E0;
-      border-radius: 10px;
-    }
-    
-    /* Face expressions */
-    .face.happy .face-mouth {
-      width: 50px;
-      height: 25px;
-      border-radius: 0 0 50px 50px;
-    }
-    
-    .face.happy .face-brow {
-      transform: translateY(-2px);
-    }
-    
-    .face.sad .face-mouth {
-      width: 40px;
-      height: 15px;
-      border-radius: 50px 50px 0 0;
-      transform: translateX(-50%) translateY(5px);
-    }
-    
-    .face.sad .face-brow {
-      transform: translateY(2px) rotate(-5deg);
-    }
-    
-    .face.angry .face-brow {
-      transform: translateY(-3px) rotate(-15deg);
-    }
-    
-    .face.angry .face-mouth {
-      width: 45px;
-      height: 20px;
-      border-radius: 0 0 45px 45px;
-    }
-    
-    .face.surprised .face-eye {
-      width: 30px;
-      height: 30px;
-    }
-    
-    .face.surprised .face-mouth {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-    }
-    
-    .face.fear .face-eye {
-      width: 20px;
-      height: 30px;
-    }
-    
-    .face.fear .face-brow {
-      transform: translateY(3px);
-    }
-    
-    .face.disgust .face-mouth {
-      width: 30px;
-      height: 15px;
-      border-radius: 0 0 30px 30px;
-    }
-    
-    .face.contempt .face-brow {
-      transform: translateY(-2px);
-    }
-    
-    .face.contempt .face-mouth {
-      width: 40px;
-      height: 8px;
-      border-radius: 0 0 40px 40px;
-    }
-    
-    .face.confused .face-brow {
-      transform: translateY(-1px) rotate(5deg);
-    }
-    
-    .face.confused .face-eye {
-      width: 22px;
-      height: 22px;
-    }
-    
-    .face.determined .face-brow {
-      transform: translateY(-3px);
-    }
-    
-    .face.determined .face-mouth {
-      width: 45px;
-      height: 12px;
-      border-radius: 0 0 45px 45px;
-    }
-    
-    .face.anxious .face-eye {
-      width: 18px;
-      height: 25px;
-    }
-    
-    .face.anxious .face-brow {
-      transform: translateY(1px);
-    }
-    
-    .face.anxious .face-mouth {
-      width: 35px;
-      height: 10px;
-      border-radius: 0 0 35px 35px;
-    }
-    
-    .face.excited .face-eye {
-      width: 28px;
-      height: 28px;
-    }
-    
-    .face.excited .face-mouth {
-      width: 55px;
-      height: 30px;
-      border-radius: 0 0 55px 55px;
-    }
-    
-    .face.thoughtful .face-brow {
-      transform: translateY(-2px) rotate(-3deg);
-    }
-    
-    .face.thoughtful .face-mouth {
-      width: 30px;
-      height: 8px;
-      border-radius: 0 0 30px 30px;
-    }
-    
-    .face.skeptical .face-brow {
-      transform: translateY(-1px) rotate(10deg);
-    }
-    
-    .face.skeptical .face-mouth {
-      width: 25px;
-      height: 6px;
-      border-radius: 0 0 25px 25px;
-    }
-    
-    .face.relieved .face-eye {
-      width: 20px;
-      height: 20px;
-    }
-    
-    .face.relieved .face-mouth {
-      width: 40px;
-      height: 20px;
-      border-radius: 0 0 40px 40px;
-    }
-    
-    .face.frustrated .face-brow {
-      transform: translateY(-2px) rotate(-8deg);
-    }
-    
-    .face.frustrated .face-mouth {
-      width: 35px;
-      height: 15px;
-      border-radius: 0 0 35px 35px;
-    }
-    
-    .face.curious .face-eye {
-      width: 26px;
-      height: 26px;
-    }
-    
-    .face.curious .face-brow {
-      transform: translateY(-1px);
-    }
-    
-    .face.curious .face-mouth {
-      width: 30px;
-      height: 12px;
-      border-radius: 0 0 30px 30px;
-    }
-    
-    .analysis-options {
+
+    /* Варианты ответов */
+    .answer-options {
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
-      margin: 20px 0;
+      margin-top: 20px;
     }
-    
-    .analysis-option {
-      background: var(--glass-strong);
+
+    .answer-option {
+      background: var(--glass);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .analysis-option:hover {
-      border-color: var(--glow1);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.1);
-    }
-    
-    .analysis-option.correct {
-      border-color: var(--success);
-      background: rgba(74, 222, 128, 0.1);
-    }
-    
-    .analysis-option.incorrect {
-      border-color: var(--error);
-      background: rgba(248, 113, 113, 0.1);
-    }
-    
-    .option-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--glass);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    
-    .option-content {
-      flex: 1;
-    }
-    
-    .option-title {
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text);
-    }
-    
-    .option-description {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-    
-    .quest-phase {
-      display: none;
-    }
-    
-    .quest-phase.active {
-      display: block;
-    }
-    
-    .phase-indicator {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin: 20px 0;
-    }
-    
-    .phase-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: all 0.3s ease;
-    }
-    
-    .phase-dot.active {
-      background: var(--glow1);
-      transform: scale(1.2);
-    }
-    
-    .phase-dot.completed {
-      background: var(--success);
-    }
-    
-    .quest-complete {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--glass-strong);
-      border: 2px solid var(--glow1);
-      border-radius: var(--radius);
-      padding: 30px;
       text-align: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.5s ease;
-      z-index: 20;
-      backdrop-filter: blur(20px);
-      max-width: 400px;
-      width: 90%;
+      font-size: 16px;
+      font-weight: 500;
     }
-    
-    .quest-complete.show {
-      opacity: 1;
-      pointer-events: all;
+
+    .answer-option:hover {
+      border-color: var(--glow1);
+      background: var(--glass-strong);
+      transform: translateY(-2px);
     }
-    
-    .complete-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-      animation: completeBounce 1s infinite;
+
+    .answer-option.correct {
+      background: linear-gradient(135deg, var(--success), #22C55E);
+      color: white;
+      border-color: var(--success);
     }
-    
-    @keyframes completeBounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+
+    .answer-option.incorrect {
+      background: linear-gradient(135deg, var(--warning), #F59E0B);
+      color: white;
+      border-color: var(--warning);
     }
-    
+
+    /* Счетчик попыток */
     .attempts-counter {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin: 15px 0;
-      padding: 10px;
-      background: var(--glass);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
     }
-    
+
     .attempts-text {
       font-size: 14px;
       color: var(--text-muted);
     }
-    
+
     .attempts-dots {
       display: flex;
       gap: 4px;
     }
-    
+
     .attempt-dot {
       width: 8px;
       height: 8px;
@@ -505,515 +200,596 @@
       background: var(--border);
       transition: all 0.3s ease;
     }
-    
+
     .attempt-dot.used {
-      background: var(--error);
+      background: var(--warning);
     }
-    
-    .attempt-dot.available {
-      background: var(--success);
+
+    /* Кнопки навигации */
+    .quest-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .btn-back {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back:hover {
+      background: var(--glass-strong);
+      border-color: var(--border-strong);
+    }
+
+    /* Модал завершения */
+    .quest-complete {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .quest-complete.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .quest-complete-content {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .quest-complete-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .quest-complete-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 16px;
+    }
+
+    .quest-complete-description {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .quest-rewards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .reward-item {
+      background: var(--glass);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .reward-amount {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+
+    .reward-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-close {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.3);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .quest-container {
+        padding: 16px;
+      }
+      
+      .face-sprite {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .answer-options {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="bodylang-quest">
-    <div class="app">
-      <header class="glass topbar">
-        <div class="brand">
-          <button id="btnBack" class="btn ghost">←</button>
-          <h1>Язык тела</h1>
-          <div class="badge">Фаза <span id="currentPhase">1</span>/2</div>
-        </div>
-        <div class="actions">
-          <button id="btnHelp" class="btn ghost">❓</button>
-        </div>
-      </header>
+  <div class="quest-container">
+    <!-- Индикатор фазы -->
+    <div class="phase-indicator">
+      <div class="phase-badge" id="phase1Badge">Фаза 1: Видео допрос</div>
+      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ лица</div>
+    </div>
 
-      <main class="content">
-        <div class="phase-indicator">
-          <div class="phase-dot active" data-phase="1"></div>
-          <div class="phase-dot" data-phase="2"></div>
+    <!-- Фаза 1: Видео допрос -->
+    <div id="videoPhase" class="video-container">
+      <h3>Анализ языка тела в видео</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек
+      </p>
+      
+      <video id="videoPlayer" class="video-player" preload="metadata">
+        <source src="../video/dopros1.mp4" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+      </video>
+      
+      <div class="video-controls">
+        <button class="play-btn" id="playBtn">▶️</button>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
         </div>
+      </div>
+      
+      <div class="video-annotation">
+        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше 
+        (это работает и как это замечать, как использовать и тд) - научишься определять язык тела 
+        так, что за секунду начнешь понимать.
+      </div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="videoAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
+      </div>
+      
+      <div class="answer-options" id="videoOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
 
-        <!-- Фаза 1: Видео допрос -->
-        <div id="phase1" class="quest-phase active">
-          <div class="clue-container">
-            <h3>🎥 Анализ видео допроса</h3>
-            <div class="clue-text">
-              Внимательно наблюдай за поведением подозреваемого во время допроса. 
-              Обрати внимание на жесты, мимику и движения тела.
-            </div>
-            
-            <div class="video-container">
-              <video id="videoPlayer" class="video-player" preload="metadata">
-                <source id="videoSource" src="" type="video/mp4">
-                Ваш браузер не поддерживает видео.
-              </video>
-              <div class="video-controls">
-                <button class="play-btn" id="playBtn">▶️</button>
-                <div class="progress-bar">
-                  <div class="progress-fill" id="videoProgress"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="attempts-counter">
-              <span class="attempts-text">Попытки:</span>
-              <div class="attempts-dots" id="attemptsDots">
-                <div class="attempt-dot available"></div>
-                <div class="attempt-dot available"></div>
-                <div class="attempt-dot available"></div>
-              </div>
-            </div>
-            
-            <div class="analysis-panel">
-              <h4>Что ты заметил в поведении подозреваемого?</h4>
-              <div class="analysis-options" id="phase1Options">
-                <!-- Опции будут добавлены динамически -->
-              </div>
-            </div>
-          </div>
+    <!-- Фаза 2: Анализ лица -->
+    <div id="facePhase" class="face-container" style="display: none;">
+      <h3>Анализ выражения лица</h3>
+      <p class="face-instruction">
+        Определите эмоцию по выражению лица персонажа
+      </p>
+      
+      <div class="face-sprite" id="faceSprite"></div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="faceAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
         </div>
+      </div>
+      
+      <div class="answer-options" id="faceOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
 
-        <!-- Фаза 2: Анализ лица -->
-        <div id="phase2" class="quest-phase">
-          <div class="clue-container">
-            <h3>😐 Анализ выражения лица</h3>
-            <div class="clue-text">
-              Теперь изучи выражение лица человека. Какие эмоции он испытывает?
-              Обрати внимание на глаза, брови, рот и общее выражение.
-            </div>
-            
-            <div class="face-container">
-              <div class="face" id="face">
-                <div class="face-brows">
-                  <div class="face-brow"></div>
-                  <div class="face-brow"></div>
-                </div>
-                <div class="face-eyes">
-                  <div class="face-eye"></div>
-                  <div class="face-eye"></div>
-                </div>
-                <div class="face-nose"></div>
-                <div class="face-mouth"></div>
-              </div>
-            </div>
-            
-            <div class="attempts-counter">
-              <span class="attempts-text">Попытки:</span>
-              <div class="attempts-dots" id="attemptsDots2">
-                <div class="attempt-dot available"></div>
-                <div class="attempt-dot available"></div>
-                <div class="attempt-dot available"></div>
-              </div>
-            </div>
-            
-            <div class="analysis-panel">
-              <h4>Какие эмоции испытывает человек?</h4>
-              <div class="analysis-options" id="phase2Options">
-                <!-- Опции будут добавлены динамически -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="quest-complete" id="questComplete">
-          <div class="complete-icon">🎉</div>
-          <h3>Квест завершен!</h3>
-          <p>Отличная работа! Ты успешно проанализировал язык тела.</p>
-          <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Результаты сохранены</div>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-              <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: var(--glow1);">+3</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Mulacoin</div>
-              </div>
-              <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: var(--glow2);">+500</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Опыта</div>
-              </div>
-            </div>
-          </div>
-          <p style="font-size: 14px; color: var(--text-muted); margin-top: 16px;">
-            В закрытом канале ты можешь узнать о языке тела намного больше - 
-            как это работает, как замечать и использовать. Научишься определять 
-            язык тела так, что за секунду начнешь понимать.
-          </p>
-          <div class="questActions">
-            <button id="completeBtn" class="btn primary">Завершить</button>
-          </div>
-        </div>
-      </main>
+    <!-- Кнопки навигации -->
+    <div class="quest-controls">
+      <a href="../quests.html" class="btn-back">← Назад к квестам</a>
     </div>
   </div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- Модал завершения квеста -->
+  <div class="quest-complete" id="questComplete">
+    <div class="quest-complete-content">
+      <div class="quest-complete-icon">🎉</div>
+      <h2 class="quest-complete-title">Квест завершен!</h2>
+      <p class="quest-complete-description">
+        Отлично! Вы успешно проанализировали язык тела и выражения лица. 
+        Результаты сохранены в главном меню по кнопке "История".
+      </p>
+      
+      <div class="quest-rewards">
+        <div class="reward-item">
+          <div class="reward-amount">+3</div>
+          <div class="reward-label">Mulacoin</div>
+        </div>
+        <div class="reward-item">
+          <div class="reward-amount">+500</div>
+          <div class="reward-label">Опыта</div>
+        </div>
+      </div>
+      
+      <button class="btn-close" onclick="closeQuestComplete()">Закрыть</button>
+    </div>
+  </div>
 
   <script>
-    // Конфигурация квеста
-    const QUEST_CONFIG = {
-      maxAttempts: 3,
-      rewards: { fragments: 2, experience: 60 }
-    };
-
-    // Данные видео допросов
+    // Данные для видео допроса
     const VIDEO_DATA = {
-      dopros1: { correct: "Сепарирование (уход) от вопроса" },
-      dopros2: { correct: "Легкое нахмуривание" },
-      dopros3: { correct: "Поджатие губ" },
-      dopros4: { correct: "Учащенное моргание" },
-      dopros5: { correct: "Поджатие губ" },
-      dopros6: { correct: "Сепарирование (уход) от вопроса" },
-      dopros7: { correct: "Легкое нахмуривание" },
-      dopros8: { correct: "Поджатие губ" }
+      'dopros1.mp4': 'сепарирование (уход) от вопроса',
+      'dopros2.mp4': 'легкое нахмуривание',
+      'dopros3.mp4': 'поджатие губ',
+      'dopros4.mp4': 'учищенное моргание',
+      'dopros5.mp4': 'поджатие губ',
+      'dopros6.mp4': 'сепарирование (уход) от вопроса',
+      'dopros7.mp4': 'легкое нахмуривание',
+      'dopros8.mp4': 'поджатие губ'
     };
 
-    // Все варианты ответов для видео
     const VIDEO_OPTIONS = [
-      "Поджатие губ",
-      "Учащенное моргание", 
-      "Легкое нахмуривание",
-      "Легкое прикосновение лица (подбородка, носа, виска)",
-      "Покачивание головы в сторону",
-      "Сепарирование (уход) от вопроса",
-      "Отбрасывание головы назад",
-      "Движение суставами (дергание ногой или кистью)",
-      "Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)",
-      "Вскидывание взгляда вверх",
-      "Быстрое облизывание губ",
-      "Сглатывание",
-      "Напряжение челюсти"
+      'Поджатие губ',
+      'Учищенное моргание',
+      'Легкое нахмуривание',
+      'Легкое прикосновение лица (подбородка, носа, вески)',
+      'Покачивание головы в строну',
+      'Сепарирование (уход) от вопроса',
+      'Отбрасывание головы назад',
+      'Движение суставами (дергание ногой или кистью)',
+      'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
+      'Вскидывание взгляда вверх',
+      'Быстрое облизывание губ',
+      'Сглатывание',
+      'Напряжение челюсти'
     ];
 
-    // Данные выражений лица
-    const FACE_DATA = {
-      happy: { correct: "Радость" },
-      sad: { correct: "Грусть" },
-      angry: { correct: "Гнев" },
-      surprised: { correct: "Удивление" },
-      fear: { correct: "Страх" },
-      disgust: { correct: "Отвращение" },
-      contempt: { correct: "Презрение" },
-      confused: { correct: "Растерянность" },
-      determined: { correct: "Решительность" },
-      anxious: { correct: "Тревога" },
-      excited: { correct: "Возбуждение" },
-      thoughtful: { correct: "Задумчивость" },
-      skeptical: { correct: "Скептицизм" },
-      relieved: { correct: "Облегчение" },
-      frustrated: { correct: "Разочарование" },
-      curious: { correct: "Любопытство" }
-    };
-
-    // Варианты ответов для лица
-    const FACE_OPTIONS = [
-      "Радость", "Грусть", "Гнев", "Удивление", "Страх", 
-      "Отвращение", "Презрение", "Растерянность", "Решительность", 
-      "Тревога", "Возбуждение", "Задумчивость", "Скептицизм", 
-      "Облегчение", "Разочарование", "Любопытство"
-    ];
-
-    // Состояние игры
-    let gameState = {
-      currentPhase: 1,
-      currentVideo: null,
-      currentFace: null,
-      attempts: 0,
-      maxAttempts: 3,
-      videoAttempts: 0,
-      faceAttempts: 0
-    };
-
-    // Элементы
-    const videoPlayer = document.getElementById('videoPlayer');
-    const videoSource = document.getElementById('videoSource');
-    const playBtn = document.getElementById('playBtn');
-    const videoProgress = document.getElementById('videoProgress');
-    const face = document.getElementById('face');
-    const btnBack = document.getElementById('btnBack');
-    const btnHelp = document.getElementById('btnHelp');
-    const completeBtn = document.getElementById('completeBtn');
-    const questComplete = document.getElementById('questComplete');
-
-    // Утилиты
-    const toast = (msg, type = 'info') => {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `toast ${type}`;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3000);
-    };
+    // Загружаем manifest для лиц
+    let faceManifest = [];
+    let currentFace = null;
+    let currentVideo = null;
+    let videoAttempts = 0;
+    let faceAttempts = 0;
+    let isVideoPhase = true;
 
     // Инициализация
-    function init() {
-      setupEventListeners();
-      loadPhase(1);
-    }
-
-    function setupEventListeners() {
-      btnBack.addEventListener('click', () => {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = '../quests.html';
-        }
-      });
-      btnHelp.addEventListener('click', showHelp);
-      completeBtn.addEventListener('click', completeQuest);
-      playBtn.addEventListener('click', toggleVideo);
-      videoPlayer.addEventListener('timeupdate', updateVideoProgress);
-      videoPlayer.addEventListener('ended', onVideoEnded);
-    }
-
-    function loadPhase(phase) {
-      gameState.currentPhase = phase;
-      
-      // Скрываем все фазы
-      document.querySelectorAll('.quest-phase').forEach(p => p.classList.remove('active'));
-      
-      // Показываем нужную фазу
-      document.getElementById(`phase${phase}`).classList.add('active');
-      
-      // Обновляем индикатор фаз
-      updatePhaseIndicator(phase);
-      
-      // Загружаем контент фазы
-      if (phase === 1) {
+    async function init() {
+      try {
+        const response = await fetch('../assets/bodylang/manifest.json');
+        faceManifest = await response.json();
         loadVideoPhase();
-      } else if (phase === 2) {
-        loadFacePhase();
+      } catch (error) {
+        console.error('Ошибка загрузки manifest:', error);
+        // Fallback на старые данные
+        loadVideoPhase();
       }
     }
 
-    function updatePhaseIndicator(phase) {
-      document.querySelectorAll('.phase-dot').forEach((dot, index) => {
-        dot.classList.remove('active', 'completed');
-        if (index + 1 < phase) {
-          dot.classList.add('completed');
-        } else if (index + 1 === phase) {
-          dot.classList.add('active');
-        }
-      });
-      
-      document.getElementById('currentPhase').textContent = phase;
-    }
-
+    // Загрузка фазы видео
     function loadVideoPhase() {
-      // Выбираем случайное видео
-      const videoKeys = Object.keys(VIDEO_DATA);
-      const randomVideo = videoKeys[Math.floor(Math.random() * videoKeys.length)];
-      gameState.currentVideo = randomVideo;
+      isVideoPhase = true;
+      updatePhaseIndicator();
       
-      // Загружаем видео
-      videoSource.src = `../video/${randomVideo}.mp4`;
-      videoPlayer.load();
+      // Выбираем случайное видео
+      const videoFiles = Object.keys(VIDEO_DATA);
+      currentVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+      
+      const video = document.getElementById('videoPlayer');
+      video.src = `../video/${currentVideo}`;
+      video.load();
+      
+      // Сбрасываем попытки
+      videoAttempts = 0;
+      updateAttemptsDisplay('video');
       
       // Создаем варианты ответов
-      const correctAnswer = VIDEO_DATA[randomVideo].correct;
+      createVideoOptions();
+      
+      // Показываем фазу видео
+      document.getElementById('videoPhase').style.display = 'block';
+      document.getElementById('facePhase').style.display = 'none';
+    }
+
+    // Загрузка фазы лица
+    function loadFacePhase() {
+      isVideoPhase = false;
+      updatePhaseIndicator();
+      
+      // Выбираем случайное лицо
+      currentFace = faceManifest[Math.floor(Math.random() * faceManifest.length)];
+      
+      // Настраиваем спрайт
+      const sprite = document.getElementById('faceSprite');
+      sprite.style.setProperty('--cols', currentFace.grid_cols);
+      sprite.style.setProperty('--rows', currentFace.grid_rows);
+      sprite.style.backgroundImage = `url(../assets/bodylang/${currentFace.file})`;
+      
+      // Запускаем анимацию
+      startFaceAnimation(sprite, currentFace);
+      
+      // Сбрасываем попытки
+      faceAttempts = 0;
+      updateAttemptsDisplay('face');
+      
+      // Создаем варианты ответов
+      createFaceOptions();
+      
+      // Показываем фазу лица
+      document.getElementById('videoPhase').style.display = 'none';
+      document.getElementById('facePhase').style.display = 'flex';
+    }
+
+    // Анимация лица
+    function startFaceAnimation(sprite, faceData) {
+      let frame = 0;
+      const fps = faceData.fps || 8;
+      
+      function animate() {
+        const cols = faceData.grid_cols;
+        const rows = faceData.grid_rows;
+        const totalFrames = faceData.frames;
+        
+        frame = (frame + 1) % totalFrames;
+        const col = frame % cols;
+        const row = Math.floor(frame / cols);
+        
+        const x = (col / (cols - 1)) * 100;
+        const y = (row / (rows - 1)) * 100;
+        
+        sprite.style.backgroundPosition = `${x}% ${y}%`;
+        
+        setTimeout(animate, 1000 / fps);
+      }
+      
+      animate();
+    }
+
+    // Создание вариантов ответов для видео
+    function createVideoOptions() {
+      const correctAnswer = VIDEO_DATA[currentVideo];
       const options = [correctAnswer];
       
-      // Добавляем случайные неправильные ответы
+      // Добавляем случайные варианты
       const availableOptions = VIDEO_OPTIONS.filter(opt => opt !== correctAnswer);
       for (let i = 0; i < 4; i++) {
-        const randomIndex = Math.floor(Math.random() * availableOptions.length);
-        options.push(availableOptions[randomIndex]);
-        availableOptions.splice(randomIndex, 1);
+        if (availableOptions.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableOptions.length);
+          options.push(availableOptions.splice(randomIndex, 1)[0]);
+        }
       }
       
-      // Перемешиваем варианты
+      // Перемешиваем
       options.sort(() => Math.random() - 0.5);
       
-      // Отображаем варианты
-      const container = document.getElementById('phase1Options');
+      const container = document.getElementById('videoOptions');
       container.innerHTML = '';
       
-      options.forEach((option, index) => {
-        const optionEl = createOptionElement(option, index, handleVideoAnswer);
-        container.appendChild(optionEl);
+      options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = option;
+        button.onclick = () => handleVideoAnswer(option);
+        container.appendChild(button);
       });
-      
-      // Сбрасываем счетчики
-      gameState.videoAttempts = 0;
-      updateAttemptsDisplay('attemptsDots', 0);
     }
 
-    function loadFacePhase() {
-      // Выбираем случайное выражение лица
-      const faceKeys = Object.keys(FACE_DATA);
-      const randomFace = faceKeys[Math.floor(Math.random() * faceKeys.length)];
-      gameState.currentFace = randomFace;
-      
-      // Применяем выражение лица
-      face.className = `face ${randomFace}`;
-      
-      // Создаем варианты ответов
-      const correctAnswer = FACE_DATA[randomFace].correct;
+    // Создание вариантов ответов для лица
+    function createFaceOptions() {
+      const correctAnswer = currentFace.expression_ru;
       const options = [correctAnswer];
       
-      // Добавляем случайные неправильные ответы
-      const availableOptions = FACE_OPTIONS.filter(opt => opt !== correctAnswer);
+      // Добавляем случайные варианты
+      const availableOptions = faceManifest
+        .filter(face => face.expression_ru !== correctAnswer)
+        .map(face => face.expression_ru);
+      
       for (let i = 0; i < 2; i++) {
-        const randomIndex = Math.floor(Math.random() * availableOptions.length);
-        options.push(availableOptions[randomIndex]);
-        availableOptions.splice(randomIndex, 1);
+        if (availableOptions.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableOptions.length);
+          options.push(availableOptions.splice(randomIndex, 1)[0]);
+        }
       }
       
-      // Перемешиваем варианты
+      // Перемешиваем
       options.sort(() => Math.random() - 0.5);
       
-      // Отображаем варианты
-      const container = document.getElementById('phase2Options');
+      const container = document.getElementById('faceOptions');
       container.innerHTML = '';
       
-      options.forEach((option, index) => {
-        const optionEl = createOptionElement(option, index, handleFaceAnswer);
-        container.appendChild(optionEl);
+      options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = option;
+        button.onclick = () => handleFaceAnswer(option);
+        container.appendChild(button);
       });
-      
-      // Сбрасываем счетчики
-      gameState.faceAttempts = 0;
-      updateAttemptsDisplay('attemptsDots2', 0);
     }
 
-    function createOptionElement(option, index, handler) {
-      const optionEl = document.createElement('div');
-      optionEl.className = 'analysis-option';
-      optionEl.innerHTML = `
-        <div class="option-icon">🔍</div>
-        <div class="option-content">
-          <div class="option-title">${option}</div>
-          <div class="option-description">Выбери этот вариант</div>
-        </div>
-      `;
-      optionEl.addEventListener('click', () => handler(index, option));
-      return optionEl;
-    }
-
-    function handleVideoAnswer(index, selectedAnswer) {
-      const options = document.querySelectorAll('#phase1Options .analysis-option');
-      const correctAnswer = VIDEO_DATA[gameState.currentVideo].correct;
-      const isCorrect = selectedAnswer === correctAnswer;
+    // Обработка ответа на видео
+    function handleVideoAnswer(answer) {
+      const correctAnswer = VIDEO_DATA[currentVideo];
+      const buttons = document.querySelectorAll('#videoOptions .answer-option');
       
-      options.forEach((opt, i) => {
-        if (i === index) {
-          opt.classList.add(isCorrect ? 'correct' : 'incorrect');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === answer && answer !== correctAnswer) {
+          btn.classList.add('incorrect');
         }
-        opt.style.pointerEvents = 'none';
       });
       
-      if (isCorrect) {
-        toast('Правильно! Переходим к анализу лица.', 'success');
-        setTimeout(() => loadPhase(2), 1500);
+      if (answer === correctAnswer) {
+        setTimeout(() => {
+          loadFacePhase();
+        }, 2000);
       } else {
-        gameState.videoAttempts++;
-        updateAttemptsDisplay('attemptsDots', gameState.videoAttempts);
+        videoAttempts++;
+        updateAttemptsDisplay('video');
         
-        if (gameState.videoAttempts >= gameState.maxAttempts) {
-          toast('Попытки закончились. Попробуй еще раз!', 'error');
+        if (videoAttempts >= 3) {
           setTimeout(() => {
             loadVideoPhase(); // Загружаем новое видео
           }, 2000);
         } else {
-          toast('Неправильно! Попробуй еще раз.', 'error');
           setTimeout(() => {
-            options.forEach(opt => {
-              opt.classList.remove('correct', 'incorrect');
-              opt.style.pointerEvents = 'auto';
+            createVideoOptions(); // Меняем варианты ответов
+            buttons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
             });
           }, 2000);
         }
       }
     }
 
-    function handleFaceAnswer(index, selectedAnswer) {
-      const options = document.querySelectorAll('#phase2Options .analysis-option');
-      const correctAnswer = FACE_DATA[gameState.currentFace].correct;
-      const isCorrect = selectedAnswer === correctAnswer;
+    // Обработка ответа на лицо
+    function handleFaceAnswer(answer) {
+      const correctAnswer = currentFace.expression_ru;
+      const buttons = document.querySelectorAll('#faceOptions .answer-option');
       
-      options.forEach((opt, i) => {
-        if (i === index) {
-          opt.classList.add(isCorrect ? 'correct' : 'incorrect');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === answer && answer !== correctAnswer) {
+          btn.classList.add('incorrect');
         }
-        opt.style.pointerEvents = 'none';
       });
       
-      if (isCorrect) {
-        toast('Правильно! Квест завершен!', 'success');
+      if (answer === correctAnswer) {
         setTimeout(() => {
-          questComplete.classList.add('show');
-        }, 1500);
+          completeQuest();
+        }, 2000);
       } else {
-        gameState.faceAttempts++;
-        updateAttemptsDisplay('attemptsDots2', gameState.faceAttempts);
+        faceAttempts++;
+        updateAttemptsDisplay('face');
         
-        if (gameState.faceAttempts >= gameState.maxAttempts) {
-          toast('Попытки закончились. Попробуй еще раз!', 'error');
+        if (faceAttempts >= 3) {
           setTimeout(() => {
             loadFacePhase(); // Загружаем новое лицо
           }, 2000);
         } else {
-          toast('Неправильно! Попробуй еще раз.', 'error');
           setTimeout(() => {
-            options.forEach(opt => {
-              opt.classList.remove('correct', 'incorrect');
-              opt.style.pointerEvents = 'auto';
+            createFaceOptions(); // Меняем варианты ответов
+            buttons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
             });
           }, 2000);
         }
       }
     }
 
-    function updateAttemptsDisplay(containerId, usedAttempts) {
-      const container = document.getElementById(containerId);
-      const dots = container.querySelectorAll('.attempt-dot');
+    // Обновление индикатора фазы
+    function updatePhaseIndicator() {
+      const phase1Badge = document.getElementById('phase1Badge');
+      const phase2Badge = document.getElementById('phase2Badge');
+      
+      if (isVideoPhase) {
+        phase1Badge.classList.add('active');
+        phase2Badge.classList.remove('active');
+      } else {
+        phase1Badge.classList.remove('active');
+        phase2Badge.classList.add('active');
+      }
+    }
+
+    // Обновление отображения попыток
+    function updateAttemptsDisplay(phase) {
+      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
+      const attempts = phase === 'video' ? videoAttempts : faceAttempts;
       
       dots.forEach((dot, index) => {
-        dot.className = 'attempt-dot';
-        if (index < usedAttempts) {
+        if (index < attempts) {
           dot.classList.add('used');
         } else {
-          dot.classList.add('available');
+          dot.classList.remove('used');
         }
       });
     }
 
-    function toggleVideo() {
-      if (videoPlayer.paused) {
-        videoPlayer.play();
-        playBtn.textContent = '⏸️';
-      } else {
-        videoPlayer.pause();
-        playBtn.textContent = '▶️';
+    // Завершение квеста
+    function completeQuest() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.add('show');
+      
+      // Сохраняем награды в localStorage
+      const userId = localStorage.getItem('currentUserId') || 'default';
+      const userDataKey = `userData_${userId}`;
+      const savedData = localStorage.getItem(userDataKey);
+      
+      if (savedData) {
+        const userData = JSON.parse(savedData);
+        userData.mulacoin = (userData.mulacoin || 0) + 3;
+        userData.exp = (userData.exp || 0) + 500;
+        localStorage.setItem(userDataKey, JSON.stringify(userData));
       }
     }
 
-    function updateVideoProgress() {
-      const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-      videoProgress.style.width = `${progress}%`;
+    // Закрытие модала завершения
+    function closeQuestComplete() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.remove('show');
+      window.location.href = '../quests.html';
     }
 
-    function onVideoEnded() {
+    // Управление видео
+    const video = document.getElementById('videoPlayer');
+    const playBtn = document.getElementById('playBtn');
+    const progressFill = document.getElementById('progressFill');
+
+    playBtn.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+        playBtn.textContent = '⏸️';
+      } else {
+        video.pause();
+        playBtn.textContent = '▶️';
+      }
+    });
+
+    video.addEventListener('timeupdate', () => {
+      const progress = (video.currentTime / video.duration) * 100;
+      progressFill.style.width = progress + '%';
+    });
+
+    video.addEventListener('ended', () => {
       playBtn.textContent = '▶️';
-      videoPlayer.currentTime = 0;
-    }
+    });
 
-    function showHelp() {
-      toast('Наблюдай за поведением в видео и выражением лица!', 'info');
-    }
-
-    function completeQuest() {
-      toast('Квест завершен! Возвращаемся в хаб...', 'success');
-      setTimeout(() => {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = '../quests.html';
-        }
-      }, 1500);
-    }
-
-    // Запуск
-    init();
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
