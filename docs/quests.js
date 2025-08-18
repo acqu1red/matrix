@@ -145,42 +145,37 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   }
 }
 
-// Система рулетки - диагональное поле с иконками
+// Система рулетки - стиль открытия кейса
 function createRouletteWheel() {
-  const field = $("#rouletteField");
-  if (!field) return;
+  const items = $("#rouletteItems");
+  const preview = $("#previewItems");
   
-  field.innerHTML = '';
+  if (!items || !preview) return;
+  
+  items.innerHTML = '';
+  preview.innerHTML = '';
   
   // Создаем иконки на основе призов
-  let icons = [];
+  let allItems = [];
   ROULETTE_PRIZES.forEach(prize => {
     for (let i = 0; i < prize.count; i++) {
-      icons.push(prize);
+      allItems.push(prize);
     }
   });
   
   // Перемешиваем иконки для разнообразия
-  icons.sort(() => Math.random() - 0.5);
+  allItems.sort(() => Math.random() - 0.5);
   
   // Создаем длинную ленту иконок для плавной анимации
-  const totalIcons = icons.length * 3; // Повторяем 3 раза для плавности
+  const totalItems = allItems.length * 4; // Повторяем 4 раза для плавности
   
-  for (let i = 0; i < totalIcons; i++) {
-    const prize = icons[i % icons.length];
-    const icon = document.createElement('div');
-    icon.className = 'roulette-icon';
-    icon.dataset.prize = prize.id;
-    
-    // Позиционируем иконки горизонтально
-    icon.style.left = `${i * 80}px`; // 80px между иконками
-    icon.style.top = '50%';
-    icon.style.transform = 'translateY(-50%)';
+  for (let i = 0; i < totalItems; i++) {
+    const prize = allItems[i % allItems.length];
+    const item = document.createElement('div');
+    item.className = 'roulette-item';
+    item.dataset.prize = prize.id;
     
     // Создаем содержимое иконки
-    const content = document.createElement('div');
-    content.className = 'icon-content';
-    
     const symbol = document.createElement('div');
     symbol.className = 'icon-symbol';
     symbol.textContent = prize.icon;
@@ -189,11 +184,27 @@ function createRouletteWheel() {
     label.className = 'icon-label';
     label.textContent = prize.name;
     
-    content.appendChild(symbol);
-    content.appendChild(label);
-    icon.appendChild(content);
-    field.appendChild(icon);
+    item.appendChild(symbol);
+    item.appendChild(label);
+    items.appendChild(item);
   }
+  
+  // Создаем превью призов
+  ROULETTE_PRIZES.forEach(prize => {
+    const previewItem = document.createElement('div');
+    previewItem.className = 'preview-item';
+    
+    const icon = document.createElement('span');
+    icon.className = 'preview-icon';
+    icon.textContent = prize.icon;
+    
+    const name = document.createElement('span');
+    name.textContent = prize.name;
+    
+    previewItem.appendChild(icon);
+    previewItem.appendChild(name);
+    preview.appendChild(previewItem);
+  });
 }
 
 function getSectorColor(prizeId) {
@@ -209,28 +220,28 @@ function getSectorColor(prizeId) {
 }
 
 function spinRoulette(isFree = false) {
-  const field = $("#rouletteField");
+  const items = $("#rouletteItems");
   const spinBtn = $("#spinRoulette");
   const buyBtn = $("#buySpin");
   
-  if (!field || !spinBtn) return;
+  if (!items || !spinBtn) return;
   
-  // Проверяем возможность бесплатного прокрута
-  if (isFree && !canSpinFree()) {
+  // Проверяем возможность бесплатного прокрута (кроме админов)
+  if (isFree && !canSpinFree() && !isAdmin()) {
     toast("Бесплатный прокрут доступен раз в день!", "error");
     return;
   }
   
-  // Списываем mulacoin только если это не бесплатный прокрут
-  if (!isFree && userData.mulacoin < SPIN_COST) {
+  // Списываем mulacoin только если это не бесплатный прокрут и не админ
+  if (!isFree && !isAdmin() && userData.mulacoin < SPIN_COST) {
     toast("Недостаточно mulacoin для прокрута рулетки!", "error");
     return;
   }
   
-  if (!isFree) {
+  if (!isFree && !isAdmin()) {
     userData.mulacoin -= SPIN_COST;
     updateCurrencyDisplay();
-  } else {
+  } else if (isFree && !isAdmin()) {
     userData.lastFreeSpin = new Date().toISOString();
     updateRouletteButton();
   }
@@ -247,35 +258,35 @@ function spinRoulette(isFree = false) {
   const prize = selectPrizeByProbability();
   
   // Вычисляем позицию для выбранного приза
-  const icons = field.querySelectorAll('.roulette-icon');
-  let targetIcon = null;
+  const allItems = items.querySelectorAll('.roulette-item');
+  let targetItem = null;
   let targetIndex = 0;
   
-  icons.forEach((icon, index) => {
-    if (icon.dataset.prize === prize.id) {
-      targetIcon = icon;
+  allItems.forEach((item, index) => {
+    if (item.dataset.prize === prize.id) {
+      targetItem = item;
       targetIndex = index;
     }
   });
   
-  if (!targetIcon) return;
+  if (!targetItem) return;
   
   // Вычисляем расстояние для остановки на нужной иконке
-  const iconWidth = 80; // Расстояние между иконками
-  const centerOffset = 160; // Смещение к центру (320px / 2)
-  const targetPosition = targetIndex * iconWidth + centerOffset;
-  const slideDistance = 2000 - targetPosition; // Общее расстояние минус позиция цели
+  const itemWidth = 100; // Ширина иконки + отступы
+  const centerOffset = 300; // Смещение к центру
+  const targetPosition = targetIndex * itemWidth + centerOffset;
+  const slideDistance = 3000 - targetPosition; // Общее расстояние минус позиция цели
   
   // Добавляем плавную анимацию скольжения
-  field.style.transition = 'transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-  field.style.transform = `translateX(-${slideDistance}px)`;
+  items.classList.add('spinning');
+  items.style.transform = `translateX(-${slideDistance}px)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
     spinBtn.classList.remove("spinning");
     
     // Сразу показываем модальное окно с призом
-    showPrizeModal(prize);
+    showPrizeModal(prize, isFree);
     
     // Восстанавливаем кнопку без анимации
     spinBtn.textContent = "🎰 Крутить рулетку";
@@ -285,10 +296,11 @@ function spinRoulette(isFree = false) {
     
     // Сбрасываем позицию поля для следующего спина
     setTimeout(() => {
-      field.style.transition = 'none';
-      field.style.transform = 'translateX(0)';
+      items.classList.remove('spinning');
+      items.style.transition = 'none';
+      items.style.transform = 'translateX(0)';
       setTimeout(() => {
-        field.style.transition = 'transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        items.style.transition = 'transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       }, 50);
     }, 1000);
   }, 5000);
@@ -309,7 +321,7 @@ function selectPrizeByProbability() {
   return ROULETTE_PRIZES[4]; // quest24h
 }
 
-async function showPrizeModal(prize) {
+async function showPrizeModal(prize, isFree = false) {
   const modal = $("#prizeModal");
   const icon = $("#prizeIcon");
   const title = $("#prizeTitle");
@@ -321,7 +333,7 @@ async function showPrizeModal(prize) {
   description.textContent = `Вы выиграли: ${prize.name}`;
   
   // Сохраняем историю рулетки
-  await saveRouletteHistory(prize.id, prize.name, false, SPIN_COST);
+  await saveRouletteHistory(prize.id, prize.name, isFree, isFree ? 0 : SPIN_COST);
   
   let contentHTML = '';
   
@@ -431,34 +443,43 @@ function activateQuest24h() {
 }
 
 async function saveUserData() {
+  console.log('Сохранение данных пользователя:', userData);
+  
+  // Сохраняем в localStorage как fallback
   if (userData.userId) {
-    // Сохраняем в localStorage как fallback
     localStorage.setItem(`userData_${userData.userId}`, JSON.stringify(userData));
-    
-    // Сохраняем в Supabase если доступен
-    if (supabase && userData.telegramId) {
-      try {
-        const { error } = await supabase
-          .from('bot_user')
-          .upsert({
-            telegram_id: userData.telegramId,
-            mulacoin: userData.mulacoin,
-            experience: userData.exp,
-            level: userData.level,
-            last_free_spin: userData.lastFreeSpin
-          });
-        
-        if (error) {
-          console.error('Ошибка сохранения в Supabase:', error);
-        }
-      } catch (error) {
-        console.error('Ошибка подключения к Supabase:', error);
+  }
+  
+  // Сохраняем в Supabase если доступен
+  if (supabase && userData.telegramId) {
+    try {
+      const { data, error } = await supabase
+        .from('bot_user')
+        .upsert({
+          telegram_id: userData.telegramId,
+          mulacoin: userData.mulacoin,
+          experience: userData.exp,
+          level: userData.level,
+          last_free_spin: userData.lastFreeSpin,
+          updated_at: new Date().toISOString()
+        })
+        .select();
+      
+      if (error) {
+        console.error('Ошибка сохранения в Supabase:', error);
+        toast('Ошибка сохранения данных в базу', 'error');
+      } else {
+        console.log('Данные пользователя сохранены в Supabase:', data);
       }
+    } catch (error) {
+      console.error('Ошибка подключения к Supabase:', error);
+      toast('Ошибка подключения к базе данных', 'error');
     }
   }
 }
 
 async function loadUserData(userId) {
+  console.log('Загрузка данных пользователя:', userId);
   userData.userId = userId;
   
   // Пытаемся загрузить из Supabase
@@ -471,16 +492,19 @@ async function loadUserData(userId) {
         .single();
       
       if (data && !error) {
+        console.log('Данные загружены из Supabase:', data);
         userData.mulacoin = data.mulacoin || 0;
         userData.exp = data.experience || 0;
         userData.level = data.level || 1;
         userData.lastFreeSpin = data.last_free_spin;
       } else {
+        console.log('Пользователь не найден в Supabase, загружаем из localStorage');
         // Если пользователя нет в Supabase, загружаем из localStorage
         const saved = localStorage.getItem(`userData_${userId}`);
         if (saved) {
           const parsed = JSON.parse(saved);
           userData = { ...userData, ...parsed };
+          console.log('Данные загружены из localStorage:', parsed);
         }
       }
     } catch (error) {
@@ -490,17 +514,21 @@ async function loadUserData(userId) {
       if (saved) {
         const parsed = JSON.parse(saved);
         userData = { ...userData, ...parsed };
+        console.log('Данные загружены из localStorage (fallback):', parsed);
       }
     }
   } else {
+    console.log('Supabase недоступен, загружаем из localStorage');
     // Fallback на localStorage
     const saved = localStorage.getItem(`userData_${userId}`);
     if (saved) {
       const parsed = JSON.parse(saved);
       userData = { ...userData, ...parsed };
+      console.log('Данные загружены из localStorage:', parsed);
     }
   }
   
+  console.log('Итоговые данные пользователя:', userData);
   updateCurrencyDisplay();
   updateRouletteButton();
 }
@@ -531,9 +559,11 @@ async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, 
 
 // Функция для сохранения истории рулетки
 async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, promoCodeId = null) {
+  console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId });
+  
   if (supabase && userData.telegramId) {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('roulette_history')
         .insert({
           user_id: userData.telegramId,
@@ -541,15 +571,23 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
           prize_name: prizeName,
           is_free: isFree,
           mulacoin_spent: mulacoinSpent,
-          promo_code_id: promoCodeId
-        });
+          promo_code_id: promoCodeId,
+          created_at: new Date().toISOString()
+        })
+        .select();
       
       if (error) {
         console.error('Ошибка сохранения истории рулетки:', error);
+        toast('Ошибка сохранения истории рулетки', 'error');
+      } else {
+        console.log('История рулетки сохранена в Supabase:', data);
       }
     } catch (error) {
       console.error('Ошибка подключения к Supabase для истории рулетки:', error);
+      toast('Ошибка подключения к базе данных для истории', 'error');
     }
+  } else {
+    console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
   }
 }
 
@@ -1102,7 +1140,13 @@ async function savePromo(code, uid){
   return true;
 }
 
+// Функция для проверки, является ли пользователь админом
+function isAdmin() {
+  return userData.telegramId && userData.telegramId.toString() === '123456789'; // Замените на реальный ID админа
+}
+
 function canSpinFree() {
+  if (isAdmin()) return true; // Админы могут крутить бесплатно всегда
   if (!userData.lastFreeSpin) return true;
   const now = new Date();
   const lastSpin = new Date(userData.lastFreeSpin);

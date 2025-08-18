@@ -52,11 +52,20 @@
       <p class="roulette-description">Крути рулетку и выигрывай призы! Подписки, скидки и бонусы ждут тебя.</p>
       
       <div class="roulette-container">
-        <div class="roulette-field" id="rouletteField">
-          <!-- Иконки призов будут добавлены динамически -->
+        <div class="roulette-display">
+          <div class="roulette-items" id="rouletteItems">
+            <!-- Иконки призов будут добавлены динамически -->
+          </div>
+          <div class="roulette-pointer">
+            <div class="pointer-arrow">▼</div>
+            <div class="pointer-glow"></div>
+          </div>
         </div>
-        <div class="roulette-indicator">
-          <div class="indicator-arrow">▼</div>
+        <div class="roulette-preview">
+          <div class="preview-title">Возможные призы:</div>
+          <div class="preview-items" id="previewItems">
+            <!-- Превью призов -->
+          </div>
         </div>
       </div>
       
