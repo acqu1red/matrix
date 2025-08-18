@@ -55,14 +55,73 @@ function initTG(){
       // Получаем Telegram ID пользователя
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userData.telegramId = tg.initDataUnsafe.user.id;
+        console.log('Telegram ID получен:', userData.telegramId);
       }
     }
   }catch(e){ console.log("TG init fail", e); }
 }
-initTG();
+
+// Инициализация после загрузки страницы
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM загружен, инициализация...');
+  initTG();
+  
+  // Проверяем инициализацию Supabase
+  setTimeout(async () => {
+    if (supabase) {
+      console.log('Supabase готов к использованию');
+      
+      // Тестируем подключение
+      try {
+        const { data, error } = await supabase.from('bot_user').select('count').limit(1);
+        if (error) {
+          console.error('Ошибка тестирования Supabase:', error);
+          toast('Ошибка подключения к базе данных', 'error');
+        } else {
+          console.log('Тест подключения к Supabase успешен');
+          toast('Подключение к базе данных установлено', 'success');
+        }
+      } catch (error) {
+        console.error('Ошибка тестирования Supabase:', error);
+      }
+      
+      // Загружаем данные пользователя если есть Telegram ID
+      if (userData.telegramId) {
+        loadUserData(userData.telegramId);
+      }
+    } else {
+      console.error('Supabase не инициализирован');
+      toast('Ошибка инициализации базы данных', 'error');
+    }
+  }, 1000);
+});
 
 /* ====== Supabase ====== */
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let supabase = null;
+
+async function initSupabase() {
+  try {
+    if (window.supabase) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('Supabase клиент успешно инициализирован');
+      
+      // Проверяем подключение
+      const { data, error } = await supabase.from('bot_user').select('count').limit(1);
+      if (error) {
+        console.error('Ошибка подключения к Supabase:', error);
+      } else {
+        console.log('Подключение к Supabase успешно');
+      }
+    } else {
+      console.error('Supabase библиотека не загружена');
+    }
+  } catch (error) {
+    console.error('Ошибка инициализации Supabase:', error);
+  }
+}
+
+// Инициализируем Supabase
+initSupabase();
 
 /* ====== Utils ====== */
 const $ = (sel, el=document)=>el.querySelector(sel);
@@ -443,25 +502,32 @@ function activateQuest24h() {
 
 async function saveUserData() {
   console.log('Сохранение данных пользователя:', userData);
+  console.log('Supabase доступен:', !!supabase);
+  console.log('Telegram ID:', userData.telegramId);
   
   // Сохраняем в localStorage как fallback
   if (userData.userId) {
     localStorage.setItem(`userData_${userData.userId}`, JSON.stringify(userData));
+    console.log('Данные сохранены в localStorage');
   }
   
   // Сохраняем в Supabase если доступен
   if (supabase && userData.telegramId) {
     try {
+      const userDataToSave = {
+        telegram_id: userData.telegramId,
+        mulacoin: userData.mulacoin,
+        experience: userData.exp,
+        level: userData.level,
+        last_free_spin: userData.lastFreeSpin,
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Данные для сохранения в Supabase:', userDataToSave);
+      
       const { data, error } = await supabase
         .from('bot_user')
-        .upsert({
-          telegram_id: userData.telegramId,
-          mulacoin: userData.mulacoin,
-          experience: userData.exp,
-          level: userData.level,
-          last_free_spin: userData.lastFreeSpin,
-          updated_at: new Date().toISOString()
-        })
+        .upsert(userDataToSave)
         .select();
       
       if (error) {
@@ -469,21 +535,31 @@ async function saveUserData() {
         toast('Ошибка сохранения данных в базу', 'error');
       } else {
         console.log('Данные пользователя сохранены в Supabase:', data);
+        toast('Данные успешно сохранены в базу', 'success');
       }
     } catch (error) {
       console.error('Ошибка подключения к Supabase:', error);
       toast('Ошибка подключения к базе данных', 'error');
     }
+  } else {
+    console.log('Supabase недоступен или отсутствует Telegram ID');
+    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
+    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
   }
 }
 
 async function loadUserData(userId) {
   console.log('Загрузка данных пользователя:', userId);
+  console.log('Supabase доступен:', !!supabase);
+  console.log('Telegram ID:', userData.telegramId);
+  
   userData.userId = userId;
   
   // Пытаемся загрузить из Supabase
   if (supabase && userData.telegramId) {
     try {
+      console.log('Попытка загрузки из Supabase для Telegram ID:', userData.telegramId);
+      
       const { data, error } = await supabase
         .from('bot_user')
         .select('*')
@@ -496,6 +572,7 @@ async function loadUserData(userId) {
         userData.exp = data.experience || 0;
         userData.level = data.level || 1;
         userData.lastFreeSpin = data.last_free_spin;
+        toast('Данные загружены из базы данных', 'success');
       } else {
         console.log('Пользователь не найден в Supabase, загружаем из localStorage');
         // Если пользователя нет в Supabase, загружаем из localStorage
@@ -508,6 +585,7 @@ async function loadUserData(userId) {
       }
     } catch (error) {
       console.error('Ошибка загрузки из Supabase:', error);
+      toast('Ошибка загрузки из базы данных', 'error');
       // Fallback на localStorage
       const saved = localStorage.getItem(`userData_${userId}`);
       if (saved) {
@@ -518,6 +596,9 @@ async function loadUserData(userId) {
     }
   } else {
     console.log('Supabase недоступен, загружаем из localStorage');
+    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
+    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
+    
     // Fallback на localStorage
     const saved = localStorage.getItem(`userData_${userId}`);
     if (saved) {
@@ -1301,6 +1382,26 @@ function showHistory() {
           Скопированные промокоды сохраняются здесь и доступны для повторного использования
         </p>
       </div>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Техническая информация</div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Supabase:</span>
+            <span style="color: ${supabase ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
+              ${supabase ? '✅ Подключен' : '❌ Не подключен'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Telegram ID:</span>
+            <span style="color: var(--text-muted); font-weight: 600;">
+              ${userData.telegramId || 'Не получен'}
+            </span>
+          </div>
+        </div>
+        <button class="btn ghost" onclick="testSupabaseConnection()" style="width: 100%; margin-top: 8px;">
+          🔧 Тест подключения
+        </button>
+      </div>
       <button class="btn primary" onclick="closeModal()">Закрыть</button>
     </div>
   `;
@@ -1347,6 +1448,37 @@ function showLevelInfo() {
   `;
   
   modal.classList.add("show");
+}
+
+// Функция для тестирования подключения к Supabase
+async function testSupabaseConnection() {
+  if (!supabase) {
+    toast('Supabase не инициализирован', 'error');
+    return;
+  }
+  
+  try {
+    toast('Тестирование подключения...', 'info');
+    
+    // Тестируем подключение
+    const { data, error } = await supabase.from('bot_user').select('count').limit(1);
+    
+    if (error) {
+      console.error('Ошибка тестирования:', error);
+      toast('Ошибка подключения к базе данных', 'error');
+    } else {
+      console.log('Тест успешен:', data);
+      toast('Подключение к базе данных работает', 'success');
+      
+      // Пробуем сохранить тестовые данные
+      if (userData.telegramId) {
+        await saveUserData();
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка тестирования:', error);
+    toast('Ошибка подключения к базе данных', 'error');
+  }
 }
 
 /* ====== Init ====== */
