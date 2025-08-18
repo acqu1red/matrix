@@ -1008,8 +1008,10 @@ h3 { font-size: 1.25rem; }
 .btn.prize-ready {
   background: linear-gradient(135deg, #FFD700, #FFA500) !important;
   color: var(--bg0) !important;
-  animation: prizeReady 1s ease-in-out infinite alternate;
-  transform: scale(1.05);
+  animation: prizeReady 2s ease-in-out infinite;
+  transform: scale(1.02);
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 .btn.disabled {
@@ -1030,13 +1032,13 @@ h3 { font-size: 1.25rem; }
 }
 
 @keyframes prizeReady {
-  0% { 
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-    transform: scale(1.05);
+  0%, 100% { 
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    transform: scale(1.02);
   }
-  100% { 
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-    transform: scale(1.1);
+  50% { 
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+    transform: scale(1.05);
   }
 }
 
@@ -1056,27 +1058,27 @@ h3 { font-size: 1.25rem; }
 
 /* Казино-стиль для секторов */
 .roulette-sector[data-prize="subscription"] {
-  background: linear-gradient(45deg, #FFD700, #FFA500);
+  background: linear-gradient(45deg, #FFD700, #FFA500) !important;
 }
 
 .roulette-sector[data-prize="discount500"] {
-  background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+  background: linear-gradient(45deg, #FF6B6B, #FF8E8E) !important;
 }
 
 .roulette-sector[data-prize="discount100"] {
-  background: linear-gradient(45deg, #4ECDC4, #44A08D);
+  background: linear-gradient(45deg, #4ECDC4, #44A08D) !important;
 }
 
 .roulette-sector[data-prize="discount50"] {
-  background: linear-gradient(45deg, #A8E6CF, #7FCDCD);
+  background: linear-gradient(45deg, #A8E6CF, #7FCDCD) !important;
 }
 
 .roulette-sector[data-prize="quest24h"] {
-  background: linear-gradient(45deg, #FFEAA7, #DDA0DD);
+  background: linear-gradient(45deg, #FFEAA7, #DDA0DD) !important;
 }
 
 .roulette-sector[data-prize="frodCourse"] {
-  background: linear-gradient(45deg, #6C5CE7, #A29BFE);
+  background: linear-gradient(45deg, #6C5CE7, #A29BFE) !important;
 }
 
 /* Анимация появления секторов */

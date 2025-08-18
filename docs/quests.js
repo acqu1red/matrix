@@ -48,6 +48,11 @@ function initTG(){
       tg.expand();
       tg.enableClosingConfirmation();
       document.body.classList.add("tg-ready");
+      
+      // Получаем Telegram ID пользователя
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        userData.telegramId = tg.initDataUnsafe.user.id;
+      }
     }
   }catch(e){ console.log("TG init fail", e); }
 }
@@ -73,7 +78,8 @@ let userData = {
   exp: 0,
   level: 1,
   userId: null,
-  lastFreeSpin: null // Добавляем отслеживание последнего бесплатного прокрута
+  lastFreeSpin: null, // Добавляем отслеживание последнего бесплатного прокрута
+  telegramId: null
 };
 
 function calculateLevel(exp) {
@@ -113,7 +119,7 @@ function updateCurrencyDisplay() {
   if (progressEl) progressEl.textContent = `${progress}/${total}`;
 }
 
-function addRewards(mulacoin, exp) {
+async function addRewards(mulacoin, exp, questId = null, questName = null, difficulty = null) {
   const oldLevel = userData.level;
   
   userData.mulacoin += mulacoin;
@@ -128,7 +134,12 @@ function addRewards(mulacoin, exp) {
   }
   
   // Сохраняем данные
-  saveUserData();
+  await saveUserData();
+  
+  // Сохраняем историю квеста если указаны параметры
+  if (questId && questName && difficulty) {
+    await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
+  }
 }
 
 // Система рулетки
@@ -167,16 +178,19 @@ function createRouletteWheel() {
     content.style.justifyContent = 'center';
     content.style.height = '100%';
     content.style.padding = '8px';
+    content.style.color = 'white';
+    content.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
     
     const icon = document.createElement('div');
-    icon.style.fontSize = '16px';
+    icon.style.fontSize = '20px';
     icon.style.marginBottom = '4px';
     icon.textContent = prize.icon;
     
     const name = document.createElement('div');
-    name.style.fontSize = '8px';
+    name.style.fontSize = '10px';
     name.style.textAlign = 'center';
     name.style.lineHeight = '1.2';
+    name.style.fontWeight = '600';
     name.textContent = prize.name;
     
     content.appendChild(icon);
@@ -263,27 +277,31 @@ function spinRoulette(isFree = false) {
     spinBtn.classList.remove("spinning");
     spinBtn.textContent = "🎁 Получить приз";
     spinBtn.classList.add("prize-ready");
+    spinBtn.disabled = false;
+    
+    // Сохраняем приз для использования в обработчике
+    spinBtn.dataset.wonPrize = JSON.stringify(prize);
     
     // Добавляем обработчик для получения приза
-    spinBtn.onclick = () => {
-      showPrizeModal(prize);
+    const prizeHandler = () => {
+      const wonPrize = JSON.parse(spinBtn.dataset.wonPrize);
+      showPrizeModal(wonPrize);
       spinBtn.textContent = "🎰 Крутить рулетку";
       spinBtn.classList.remove("prize-ready");
       spinBtn.disabled = false;
       buyBtn.disabled = false;
       updateRouletteButton();
       
+      // Удаляем обработчик приза
+      spinBtn.removeEventListener('click', prizeHandler);
+      
       // Восстанавливаем оригинальный обработчик
-      spinBtn.onclick = () => {
-        if (canSpinFree()) {
-          spinRoulette(true);
-        } else if (userData.mulacoin >= SPIN_COST) {
-          spinRoulette(false);
-        } else {
-          toast("Недостаточно mulacoin для прокрута рулетки!", "error");
-        }
-      };
+      spinBtn.addEventListener('click', originalSpinHandler);
     };
+    
+    // Удаляем оригинальный обработчик и добавляем новый
+    spinBtn.removeEventListener('click', originalSpinHandler);
+    spinBtn.addEventListener('click', prizeHandler);
   }, 4000);
 }
 
@@ -302,7 +320,7 @@ function selectPrizeByProbability() {
   return ROULETTE_PRIZES[4]; // quest24h
 }
 
-function showPrizeModal(prize) {
+async function showPrizeModal(prize) {
   const modal = $("#prizeModal");
   const icon = $("#prizeIcon");
   const title = $("#prizeTitle");
@@ -312,6 +330,9 @@ function showPrizeModal(prize) {
   icon.textContent = prize.icon;
   title.textContent = "Поздравляем!";
   description.textContent = `Вы выиграли: ${prize.name}`;
+  
+  // Сохраняем историю рулетки
+  await saveRouletteHistory(prize.id, prize.name, false, SPIN_COST);
   
   let contentHTML = '';
   
@@ -397,21 +418,127 @@ function activateQuest24h() {
   toast('Дополнительный квест активирован на 24 часа!', 'success');
 }
 
-function saveUserData() {
+async function saveUserData() {
   if (userData.userId) {
+    // Сохраняем в localStorage как fallback
     localStorage.setItem(`userData_${userData.userId}`, JSON.stringify(userData));
+    
+    // Сохраняем в Supabase если доступен
+    if (supabase && userData.telegramId) {
+      try {
+        const { error } = await supabase
+          .from('users')
+          .upsert({
+            telegram_id: userData.telegramId,
+            mulacoin: userData.mulacoin,
+            experience: userData.exp,
+            level: userData.level,
+            last_free_spin: userData.lastFreeSpin
+          });
+        
+        if (error) {
+          console.error('Ошибка сохранения в Supabase:', error);
+        }
+      } catch (error) {
+        console.error('Ошибка подключения к Supabase:', error);
+      }
+    }
   }
 }
 
-function loadUserData(userId) {
+async function loadUserData(userId) {
   userData.userId = userId;
-  const saved = localStorage.getItem(`userData_${userId}`);
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    userData = { ...userData, ...parsed };
+  
+  // Пытаемся загрузить из Supabase
+  if (supabase && userData.telegramId) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('telegram_id', userData.telegramId)
+        .single();
+      
+      if (data && !error) {
+        userData.mulacoin = data.mulacoin || 0;
+        userData.exp = data.experience || 0;
+        userData.level = data.level || 1;
+        userData.lastFreeSpin = data.last_free_spin;
+      } else {
+        // Если пользователя нет в Supabase, загружаем из localStorage
+        const saved = localStorage.getItem(`userData_${userId}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          userData = { ...userData, ...parsed };
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки из Supabase:', error);
+      // Fallback на localStorage
+      const saved = localStorage.getItem(`userData_${userId}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        userData = { ...userData, ...parsed };
+      }
+    }
+  } else {
+    // Fallback на localStorage
+    const saved = localStorage.getItem(`userData_${userId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      userData = { ...userData, ...parsed };
+    }
   }
+  
   updateCurrencyDisplay();
-  updateRouletteButton(); // Обновляем состояние кнопки рулетки
+  updateRouletteButton();
+}
+
+// Функция для сохранения истории квеста
+async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, experienceEarned) {
+  if (supabase && userData.telegramId) {
+    try {
+      const { error } = await supabase
+        .from('quest_history')
+        .insert({
+          user_id: userData.telegramId,
+          quest_id: questId,
+          quest_name: questName,
+          difficulty: difficulty,
+          mulacoin_earned: mulacoinEarned,
+          experience_earned: experienceEarned
+        });
+      
+      if (error) {
+        console.error('Ошибка сохранения истории квеста:', error);
+      }
+    } catch (error) {
+      console.error('Ошибка подключения к Supabase для истории квеста:', error);
+    }
+  }
+}
+
+// Функция для сохранения истории рулетки
+async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, promoCodeId = null) {
+  if (supabase && userData.telegramId) {
+    try {
+      const { error } = await supabase
+        .from('roulette_history')
+        .insert({
+          user_id: userData.telegramId,
+          prize_type: prizeType,
+          prize_name: prizeName,
+          is_free: isFree,
+          mulacoin_spent: mulacoinSpent,
+          promo_code_id: promoCodeId
+        });
+      
+      if (error) {
+        console.error('Ошибка сохранения истории рулетки:', error);
+      }
+    } catch (error) {
+      console.error('Ошибка подключения к Supabase для истории рулетки:', error);
+    }
+  }
 }
 
 function dayIndex(){ return Math.floor(Date.now() / (24*60*60*1000)); }
@@ -938,8 +1065,8 @@ $("#btnHistory").addEventListener("click", ()=>{
   showHistory();
 });
 
-// Обработчики рулетки
-$("#spinRoulette").addEventListener("click", ()=>{
+// Оригинальный обработчик для кнопки рулетки
+const originalSpinHandler = () => {
   if (canSpinFree()) {
     spinRoulette(true);
   } else if (userData.mulacoin >= SPIN_COST) {
@@ -947,7 +1074,10 @@ $("#spinRoulette").addEventListener("click", ()=>{
   } else {
     toast("Недостаточно mulacoin для прокрута рулетки!", "error");
   }
-});
+};
+
+// Обработчики рулетки
+$("#spinRoulette").addEventListener("click", originalSpinHandler);
 
 $("#buySpin").addEventListener("click", ()=>{
   if (userData.mulacoin >= SPIN_COST) {
