@@ -228,9 +228,7 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   // Сохраняем историю квеста если указаны параметры
   if (questId && questName && difficulty) {
     console.log('Сохраняем историю квеста...');
-    // Временно отключаем сохранение истории квестов, так как таблица не создана
-    // await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
-    console.log('История квеста не сохранена (таблица quest_history не создана)');
+    await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
   }
   
   console.log('addRewards завершена');
@@ -659,8 +657,8 @@ async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, 
         quest_name: questName,
         difficulty: difficulty,
         mulacoin_earned: mulacoinEarned,
-        experience_earned: experienceEarned,
-        created_at: new Date().toISOString()
+        experience_earned: experienceEarned
+        // completed_at автоматически устанавливается в now() по умолчанию
       };
       
       console.log('Данные квеста для сохранения:', questData);
@@ -1565,8 +1563,7 @@ async function forceSaveData() {
     await saveUserData();
     
     // Сохраняем тестовую историю квеста
-    // await saveQuestHistory('test', 'Тестовый квест', 'easy', 10, 50);
-    console.log('История квеста не сохранена (таблица quest_history не создана)');
+    await saveQuestHistory('test', 'Тестовый квест', 'easy', 10, 50);
     
     // Сохраняем тестовую историю рулетки
     await saveRouletteHistory('test', 'Тестовый приз', true, 0);

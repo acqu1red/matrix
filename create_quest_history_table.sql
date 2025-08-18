@@ -1,4 +1,11 @@
--- Создание таблицы quest_history
+-- Удаление существующей таблицы quest_history (если существует)
+DROP TABLE IF EXISTS public.quest_history CASCADE;
+
+-- Удаление связанных объектов
+DROP INDEX IF EXISTS idx_quest_history_user_id;
+DROP INDEX IF EXISTS idx_quest_history_quest_id;
+
+-- Создание новой таблицы quest_history
 CREATE TABLE public.quest_history (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id bigint NULL,
@@ -49,3 +56,15 @@ COMMENT ON COLUMN public.quest_history.difficulty IS 'Сложность кве�
 COMMENT ON COLUMN public.quest_history.mulacoin_earned IS 'Количество заработанных mulacoin';
 COMMENT ON COLUMN public.quest_history.experience_earned IS 'Количество заработанного опыта';
 COMMENT ON COLUMN public.quest_history.completed_at IS 'Время завершения квеста';
+
+-- Проверка создания таблицы
+SELECT 
+    table_name,
+    column_name,
+    data_type,
+    is_nullable,
+    column_default
+FROM information_schema.columns 
+WHERE table_schema = 'public' 
+AND table_name = 'quest_history'
+ORDER BY ordinal_position;
