@@ -64,7 +64,7 @@ function initTG(){
 // Инициализация после загрузки страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM загружен, инициализация...');
-  initTG();
+initTG();
   
   // Проверяем инициализацию Supabase
   setTimeout(async () => {
@@ -164,29 +164,55 @@ function getExpForNextLevel(level) {
 }
 
 function updateCurrencyDisplay() {
+  console.log('Обновление отображения валюты:', userData);
+  
   const mulacoinEl = $("#mulacoinAmount");
   const userMulacoinEl = $("#userMulacoin");
   const levelEl = $("#currentLevel");
   const progressEl = $("#levelProgress");
   
-  if (mulacoinEl) mulacoinEl.textContent = userData.mulacoin;
-  if (userMulacoinEl) userMulacoinEl.textContent = userData.mulacoin;
-  if (levelEl) levelEl.textContent = userData.level;
+  console.log('Найденные элементы:', {
+    mulacoinEl: !!mulacoinEl,
+    userMulacoinEl: !!userMulacoinEl,
+    levelEl: !!levelEl,
+    progressEl: !!progressEl
+  });
+  
+  if (mulacoinEl) {
+    mulacoinEl.textContent = userData.mulacoin;
+    console.log('Обновлен mulacoinAmount:', userData.mulacoin);
+  }
+  if (userMulacoinEl) {
+    userMulacoinEl.textContent = userData.mulacoin;
+    console.log('Обновлен userMulacoin:', userData.mulacoin);
+  }
+  if (levelEl) {
+    levelEl.textContent = userData.level;
+    console.log('Обновлен currentLevel:', userData.level);
+  }
   
   const expForNext = getExpForNextLevel(userData.level);
   const currentLevelExp = userData.level > 1 ? LEVEL_EXP[userData.level - 2] : 0;
   const progress = userData.exp - currentLevelExp;
   const total = expForNext - currentLevelExp;
   
-  if (progressEl) progressEl.textContent = `${progress}/${total}`;
+  if (progressEl) {
+    progressEl.textContent = `${progress}/${total}`;
+    console.log('Обновлен levelProgress:', `${progress}/${total}`);
+  }
 }
 
 async function addRewards(mulacoin, exp, questId = null, questName = null, difficulty = null) {
+  console.log('addRewards вызвана с параметрами:', { mulacoin, exp, questId, questName, difficulty });
+  console.log('Текущие данные пользователя:', userData);
+  
   const oldLevel = userData.level;
   
   userData.mulacoin += mulacoin;
   userData.exp += exp;
   userData.level = calculateLevel(userData.exp);
+  
+  console.log('Данные после обновления:', userData);
   
   updateCurrencyDisplay();
   
@@ -196,12 +222,16 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   }
   
   // Сохраняем данные
+  console.log('Начинаем сохранение данных...');
   await saveUserData();
   
   // Сохраняем историю квеста если указаны параметры
   if (questId && questName && difficulty) {
+    console.log('Сохраняем историю квеста...');
     await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
   }
+  
+  console.log('addRewards завершена');
 }
 
 // Система рулетки - стиль открытия кейса
@@ -615,25 +645,44 @@ async function loadUserData(userId) {
 
 // Функция для сохранения истории квеста
 async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, experienceEarned) {
+  console.log('Сохранение истории квеста:', { questId, questName, difficulty, mulacoinEarned, experienceEarned });
+  console.log('Supabase доступен:', !!supabase);
+  console.log('Telegram ID:', userData.telegramId);
+  
   if (supabase && userData.telegramId) {
     try {
-      const { error } = await supabase
+      const questData = {
+        user_id: userData.telegramId,
+        quest_id: questId,
+        quest_name: questName,
+        difficulty: difficulty,
+        mulacoin_earned: mulacoinEarned,
+        experience_earned: experienceEarned,
+        created_at: new Date().toISOString()
+      };
+      
+      console.log('Данные квеста для сохранения:', questData);
+      
+      const { data, error } = await supabase
         .from('quest_history')
-        .insert({
-          user_id: userData.telegramId,
-          quest_id: questId,
-          quest_name: questName,
-          difficulty: difficulty,
-          mulacoin_earned: mulacoinEarned,
-          experience_earned: experienceEarned
-        });
+        .insert(questData)
+        .select();
       
       if (error) {
         console.error('Ошибка сохранения истории квеста:', error);
+        toast('Ошибка сохранения истории квеста', 'error');
+      } else {
+        console.log('История квеста сохранена в Supabase:', data);
+        toast('История квеста сохранена', 'success');
       }
     } catch (error) {
       console.error('Ошибка подключения к Supabase для истории квеста:', error);
+      toast('Ошибка подключения к базе данных для истории квеста', 'error');
     }
+  } else {
+    console.error('Supabase недоступен или отсутствует Telegram ID для истории квеста');
+    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
+    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
   }
 }
 
@@ -1401,6 +1450,9 @@ function showHistory() {
         <button class="btn ghost" onclick="testSupabaseConnection()" style="width: 100%; margin-top: 8px;">
           🔧 Тест подключения
         </button>
+        <button class="btn ghost" onclick="forceSaveData()" style="width: 100%; margin-top: 8px;">
+          💾 Принудительное сохранение
+        </button>
       </div>
       <button class="btn primary" onclick="closeModal()">Закрыть</button>
     </div>
@@ -1478,6 +1530,40 @@ async function testSupabaseConnection() {
   } catch (error) {
     console.error('Ошибка тестирования:', error);
     toast('Ошибка подключения к базе данных', 'error');
+  }
+}
+
+// Функция для принудительного сохранения данных
+async function forceSaveData() {
+  console.log('Принудительное сохранение данных...');
+  console.log('Текущие данные:', userData);
+  
+  if (!userData.telegramId) {
+    toast('Telegram ID не получен', 'error');
+    return;
+  }
+  
+  try {
+    // Добавляем тестовые награды
+    userData.mulacoin += 10;
+    userData.exp += 50;
+    userData.level = calculateLevel(userData.exp);
+    
+    console.log('Данные после добавления наград:', userData);
+    
+    // Сохраняем данные
+    await saveUserData();
+    
+    // Сохраняем тестовую историю квеста
+    await saveQuestHistory('test', 'Тестовый квест', 'easy', 10, 50);
+    
+    // Сохраняем тестовую историю рулетки
+    await saveRouletteHistory('test', 'Тестовый приз', true, 0);
+    
+    toast('Тестовые данные сохранены', 'success');
+  } catch (error) {
+    console.error('Ошибка принудительного сохранения:', error);
+    toast('Ошибка сохранения тестовых данных', 'error');
   }
 }
 

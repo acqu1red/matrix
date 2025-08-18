@@ -1073,6 +1073,13 @@
             gameHistory.push(historyEntry);
             localStorage.setItem('psychologyHistory', JSON.stringify(gameHistory));
             
+            // Начисляем награды за успешное взаимодействие
+            if (isSuccess && window.parent && window.parent.addRewards) {
+                const mulacoinReward = Math.round(money / 1000); // 1 mulacoin за каждые 1000 рублей
+                const expReward = Math.round(money / 100); // 1 опыт за каждые 100 рублей
+                window.parent.addRewards(mulacoinReward, expReward, 'psychology', `Клиент: ${currentClient.name}`, 'medium');
+            }
+            
             // Показываем модальное окно с результатом
             showResultModal(result, option.triggers, money);
         }
@@ -1145,15 +1152,7 @@
         }
 
         function goBack() {
-            // Сохраняем награды через новую систему
-            if (window.parent && window.parent.addRewards) {
-                const totalMoney = gameHistory.reduce((sum, h) => sum + h.money, 0);
-                const successfulClients = gameHistory.filter(h => h.success).length;
-                const experience = successfulClients * 100 + totalMoney / 1000;
-                
-                window.parent.addRewards(3, experience, 'psychology', 'Психология заработка', 'medium');
-            }
-            
+            // Просто возвращаемся в хаб, награды уже начислены за каждое взаимодействие
             window.location.href = '../quests.html';
         }
 
