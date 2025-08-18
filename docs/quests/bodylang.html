@@ -16,7 +16,7 @@
       overflow: hidden;
     }
     
-    .video-container {
+    .character-container {
       position: relative;
       width: 100%;
       height: 300px;
@@ -25,68 +25,164 @@
       margin: 20px 0;
       background: var(--bg1);
       border: 2px solid var(--border);
-    }
-    
-    .video-placeholder {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(45deg, var(--bg1), var(--bg2));
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      color: var(--text-muted);
     }
     
-    .video-icon {
-      font-size: 48px;
-      margin-bottom: 10px;
-      opacity: 0.5;
+    .character {
+      position: relative;
+      width: 120px;
+      height: 200px;
+      transition: all 0.5s ease;
     }
     
-    .video-controls {
+    .character-body {
       position: absolute;
       bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0,0,0,0.8);
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 120px;
+      background: linear-gradient(180deg, #4A5568 0%, #2D3748 100%);
+      border-radius: 30px 30px 20px 20px;
+      border: 2px solid #1A202C;
     }
     
-    .play-btn {
-      background: var(--glow1);
-      border: none;
+    .character-head {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(180deg, #F7FAFC 0%, #E2E8F0 100%);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      border: 2px solid #CBD5E0;
+    }
+    
+    .character-arms {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 20px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
+      justify-content: space-between;
+    }
+    
+    .character-arm {
+      width: 20px;
+      height: 60px;
+      background: linear-gradient(180deg, #F7FAFC 0%, #E2E8F0 100%);
+      border-radius: 10px;
+      border: 2px solid #CBD5E0;
       transition: all 0.3s ease;
     }
     
-    .play-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.5);
+    .character-legs {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 20px;
+      display: flex;
+      justify-content: space-between;
     }
     
-    .progress-bar {
-      flex: 1;
+    .character-leg {
+      width: 20px;
+      height: 60px;
+      background: linear-gradient(180deg, #4A5568 0%, #2D3748 100%);
+      border-radius: 10px;
+      border: 2px solid #1A202C;
+      transition: all 0.3s ease;
+    }
+    
+    .character-face {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 20px;
+    }
+    
+    .character-eyes {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    
+    .character-eye {
+      width: 6px;
+      height: 6px;
+      background: #2D3748;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .character-mouth {
+      width: 12px;
       height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
+      background: #2D3748;
+      border-radius: 0 0 12px 12px;
+      margin: 0 auto;
+      transition: all 0.3s ease;
     }
     
-    .progress-fill {
-      height: 100%;
-      background: var(--glow1);
-      width: 0%;
-      transition: width 0.3s ease;
+    /* Character states */
+    .character.nervous .character-arms .character-arm {
+      transform: rotate(-15deg);
+    }
+    
+    .character.nervous .character-legs .character-leg {
+      animation: shake 0.5s infinite;
+    }
+    
+    .character.nervous .character-eye {
+      width: 8px;
+      height: 4px;
+    }
+    
+    .character.nervous .character-mouth {
+      width: 8px;
+      height: 2px;
+    }
+    
+    .character.confident .character-arms .character-arm {
+      transform: rotate(10deg);
+    }
+    
+    .character.confident .character-head {
+      transform: translateX(-50%) rotate(5deg);
+    }
+    
+    .character.confident .character-mouth {
+      width: 16px;
+      height: 6px;
+      border-radius: 0 0 16px 16px;
+    }
+    
+    .character.defensive .character-arms .character-arm {
+      transform: rotate(-45deg);
+    }
+    
+    .character.defensive .character-head {
+      transform: translateX(-50%) rotate(-5deg);
+    }
+    
+    .character.defensive .character-mouth {
+      width: 6px;
+      height: 2px;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
     }
     
     .analysis-panel {
@@ -97,44 +193,67 @@
       margin: 20px 0;
     }
     
-    .analysis-grid {
+    .analysis-options {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
+      grid-template-columns: 1fr;
+      gap: 12px;
       margin: 20px 0;
     }
     
-    .analysis-item {
+    .analysis-option {
       background: var(--glass-strong);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 15px;
+      padding: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     
-    .analysis-item:hover {
+    .analysis-option:hover {
       border-color: var(--glow1);
       transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.1);
     }
     
-    .analysis-item.correct {
+    .analysis-option.correct {
       border-color: var(--success);
       background: rgba(74, 222, 128, 0.1);
-      color: var(--success);
     }
     
-    .analysis-item.incorrect {
+    .analysis-option.incorrect {
       border-color: var(--error);
       background: rgba(248, 113, 113, 0.1);
-      color: var(--error);
     }
     
-    .analysis-icon {
-      font-size: 24px;
-      margin-bottom: 8px;
-      display: block;
+    .option-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--glass);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .option-content {
+      flex: 1;
+    }
+    
+    .option-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    
+    .option-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
     
     .confidence-meter {
@@ -142,7 +261,7 @@
       align-items: center;
       gap: 10px;
       margin: 15px 0;
-      padding: 10px;
+      padding: 15px;
       background: var(--glass);
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
@@ -167,36 +286,7 @@
       font-size: 14px;
       color: var(--text-muted);
       min-width: 80px;
-    }
-    
-    .body-parts {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 20px 0;
-    }
-    
-    .body-part {
-      aspect-ratio: 1;
-      background: var(--glass);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 20px;
-    }
-    
-    .body-part:hover {
-      border-color: var(--glow1);
-      transform: scale(1.05);
-    }
-    
-    .body-part.active {
-      border-color: var(--glow1);
-      background: rgba(102, 247, 213, 0.1);
+      text-align: right;
     }
     
     .quest-phase {
@@ -263,6 +353,19 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
     }
+    
+    .character-state-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      backdrop-filter: blur(10px);
+    }
   </style>
 </head>
 <body>
@@ -270,7 +373,7 @@
     <div class="app">
       <header class="glass topbar">
         <div class="brand">
-          <button id="btnBack" class="btn ghost">← Назад</button>
+          <button id="btnBack" class="btn ghost">←</button>
           <h1>Язык тела</h1>
           <div class="badge">Фаза <span id="currentPhase">1</span>/3</div>
         </div>
@@ -295,50 +398,76 @@
               мимику и позу. Что они могут означать?
             </div>
             
-            <div class="video-container">
-              <div class="video-placeholder">
-                <div class="video-icon">🎥</div>
-                <div>Видео допроса</div>
-              </div>
-              <div class="video-controls">
-                <button class="play-btn" id="playBtn">▶️</button>
-                <div class="progress-bar">
-                  <div class="progress-fill" id="videoProgress"></div>
+            <div class="character-container">
+              <div class="character-state-indicator">Состояние: Нервозность</div>
+              <div class="character nervous" id="character">
+                <div class="character-head">
+                  <div class="character-face">
+                    <div class="character-eyes">
+                      <div class="character-eye"></div>
+                      <div class="character-eye"></div>
+                    </div>
+                    <div class="character-mouth"></div>
+                  </div>
+                </div>
+                <div class="character-body"></div>
+                <div class="character-arms">
+                  <div class="character-arm"></div>
+                  <div class="character-arm"></div>
+                </div>
+                <div class="character-legs">
+                  <div class="character-leg"></div>
+                  <div class="character-leg"></div>
                 </div>
               </div>
             </div>
             
             <div class="analysis-panel">
-              <h4>Что ты заметил?</h4>
-              <div class="analysis-grid" id="phase1Options">
+              <h4>Что ты заметил в поведении?</h4>
+              <div class="analysis-options" id="phase1Options">
                 <!-- Опции будут добавлены динамически -->
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Фаза 2: Анализ частей тела -->
+        <!-- Фаза 2: Анализ деталей -->
         <div id="phase2" class="quest-phase">
           <div class="clue-container">
-            <h3>🔍 Анализ частей тела</h3>
+            <h3>🔍 Детальный анализ</h3>
             <div class="clue-text">
-              Выбери часть тела, которую нужно проанализировать более детально. 
-              Каждая часть может дать важные подсказки о состоянии человека.
+              Выбери аспект поведения для более глубокого анализа. 
+              Каждый элемент может дать важные подсказки о состоянии человека.
             </div>
             
-            <div class="body-parts" id="bodyParts">
-              <div class="body-part" data-part="eyes">👁️</div>
-              <div class="body-part" data-part="hands">✋</div>
-              <div class="body-part" data-part="legs">🦵</div>
-              <div class="body-part" data-part="face">😐</div>
-              <div class="body-part" data-part="posture">🧍</div>
-              <div class="body-part" data-part="voice">🗣️</div>
+            <div class="character-container">
+              <div class="character-state-indicator">Состояние: <span id="currentState">Нервозность</span></div>
+              <div class="character nervous" id="character2">
+                <div class="character-head">
+                  <div class="character-face">
+                    <div class="character-eyes">
+                      <div class="character-eye"></div>
+                      <div class="character-eye"></div>
+                    </div>
+                    <div class="character-mouth"></div>
+                  </div>
+                </div>
+                <div class="character-body"></div>
+                <div class="character-arms">
+                  <div class="character-arm"></div>
+                  <div class="character-arm"></div>
+                </div>
+                <div class="character-legs">
+                  <div class="character-leg"></div>
+                  <div class="character-leg"></div>
+                </div>
+              </div>
             </div>
             
             <div class="analysis-panel" id="bodyAnalysis" style="display: none;">
               <h4 id="analysisTitle">Анализ</h4>
               <div class="clue-text" id="analysisText"></div>
-              <div class="clue-options" id="phase2Options">
+              <div class="analysis-options" id="phase2Options">
                 <!-- Опции будут добавлены динамически -->
               </div>
             </div>
@@ -364,7 +493,7 @@
             
             <div class="analysis-panel">
               <h4>Твой вывод:</h4>
-              <div class="clue-options" id="phase3Options">
+              <div class="analysis-options" id="phase3Options">
                 <!-- Опции будут добавлены динамически -->
               </div>
             </div>
@@ -388,7 +517,6 @@
   <script>
     // Конфигурация квеста
     const QUEST_CONFIG = {
-      videoDuration: 30,
       rewards: { fragments: 2, experience: 60 }
     };
 
@@ -397,72 +525,125 @@
       phase1: {
         question: "Что ты заметил в поведении?",
         options: [
-          { text: "Частое моргание", correct: true },
-          { text: "Спокойные движения", correct: false },
-          { text: "Открытая поза", correct: false },
-          { text: "Уверенный взгляд", correct: false }
+          {
+            icon: "😰",
+            title: "Нервозность и тревога",
+            description: "Частое моргание, дрожащие руки, неусидчивость",
+            correct: true
+          },
+          {
+            icon: "😌",
+            title: "Спокойствие и уверенность",
+            description: "Ровное дыхание, спокойные движения, открытая поза",
+            correct: false
+          },
+          {
+            icon: "😤",
+            title: "Агрессия и раздражение",
+            description: "Напряженные мышцы, сжатые кулаки, резкие движения",
+            correct: false
+          },
+          {
+            icon: "😐",
+            title: "Нейтральность и безразличие",
+            description: "Отсутствие эмоций, равнодушное выражение лица",
+            correct: false
+          }
         ]
       },
       phase2: {
-        parts: {
+        aspects: {
           eyes: {
             title: "Анализ глаз",
             description: "Подозреваемый часто отводит взгляд и моргает. Это может указывать на...",
+            state: "nervous",
             options: [
-              { text: "Нервозность и ложь", correct: true },
-              { text: "Усталость", correct: false },
-              { text: "Концентрацию", correct: false },
-              { text: "Уверенность", correct: false }
+              {
+                icon: "😨",
+                title: "Нервозность и ложь",
+                description: "Попытка скрыть правду и избежать прямого взгляда",
+                correct: true
+              },
+              {
+                icon: "😴",
+                title: "Усталость",
+                description: "Естественная реакция на недосыпание",
+                correct: false
+              },
+              {
+                icon: "🤔",
+                title: "Концентрацию",
+                description: "Глубокое размышление над вопросом",
+                correct: false
+              },
+              {
+                icon: "😎",
+                title: "Уверенность",
+                description: "Спокойствие и внутренняя сила",
+                correct: false
+              }
             ]
           },
           hands: {
             title: "Анализ рук",
             description: "Руки постоянно двигаются, человек теребит предметы. Это означает...",
+            state: "nervous",
             options: [
-              { text: "Стресс и тревогу", correct: true },
-              { text: "Энергичность", correct: false },
-              { text: "Уверенность", correct: false },
-              { text: "Расслабленность", correct: false }
-            ]
-          },
-          legs: {
-            title: "Анализ ног",
-            description: "Ноги подергиваются, человек стучит ногой. Это указывает на...",
-            options: [
-              { text: "Нервозность", correct: true },
-              { text: "Удобство", correct: false },
-              { text: "Уверенность", correct: false },
-              { text: "Расслабленность", correct: false }
-            ]
-          },
-          face: {
-            title: "Анализ лица",
-            description: "Лицевые мышцы напряжены, есть микровыражения. Это говорит о...",
-            options: [
-              { text: "Попытке скрыть эмоции", correct: true },
-              { text: "Естественности", correct: false },
-              { text: "Уверенности", correct: false },
-              { text: "Расслабленности", correct: false }
+              {
+                icon: "😰",
+                title: "Стресс и тревогу",
+                description: "Попытка снять нервное напряжение",
+                correct: true
+              },
+              {
+                icon: "🤗",
+                title: "Энергичность",
+                description: "Естественная активность и жизнерадостность",
+                correct: false
+              },
+              {
+                icon: "💪",
+                title: "Уверенность",
+                description: "Демонстрация силы и контроля",
+                correct: false
+              },
+              {
+                icon: "😌",
+                title: "Расслабленность",
+                description: "Полное спокойствие и комфорт",
+                correct: false
+              }
             ]
           },
           posture: {
             title: "Анализ позы",
             description: "Поза закрытая, руки скрещены. Это означает...",
+            state: "defensive",
             options: [
-              { text: "Защиту и закрытость", correct: true },
-              { text: "Уверенность", correct: false },
-              { text: "Расслабленность", correct: false },
-              { text: "Открытость", correct: false }
-            ]
-          },
-          voice: {
-            title: "Анализ голоса",
-            description: "Голос дрожит, есть паузы в речи. Это указывает на...",
-            options: [
-              { text: "Волнение и ложь", correct: true },
-              { text: "Уверенность", correct: false },
-              { text: "Естественность", correct: false },
-              { text: "Расслабленность", correct: false }
+              {
+                icon: "🛡️",
+                title: "Защиту и закрытость",
+                description: "Попытка создать барьер и защититься",
+                correct: true
+              },
+              {
+                icon: "😎",
+                title: "Уверенность",
+                description: "Демонстрация силы и превосходства",
+                correct: false
+              },
+              {
+                icon: "😌",
+                title: "Расслабленность",
+                description: "Естественное удобное положение",
+                correct: false
+              },
+              {
+                icon: "🤗",
+                title: "Открытость",
+                description: "Готовность к общению и взаимодействию",
+                correct: false
+              }
             ]
           }
         }
@@ -470,10 +651,30 @@
       phase3: {
         question: "Твой вывод о правдивости:",
         options: [
-          { text: "Человек говорит правду", correct: false },
-          { text: "Человек лжет", correct: true },
-          { text: "Не могу определить", correct: false },
-          { text: "Нужно больше данных", correct: false }
+          {
+            icon: "✅",
+            title: "Человек говорит правду",
+            description: "Все признаки указывают на честность",
+            correct: false
+          },
+          {
+            icon: "❌",
+            title: "Человек лжет",
+            description: "Множественные признаки обмана",
+            correct: true
+          },
+          {
+            icon: "❓",
+            title: "Не могу определить",
+            description: "Смешанные сигналы, нужны дополнительные данные",
+            correct: false
+          },
+          {
+            icon: "⏳",
+            title: "Нужно больше времени",
+            description: "Требуется более длительное наблюдение",
+            correct: false
+          }
         ]
       }
     };
@@ -482,20 +683,14 @@
     let gameState = {
       currentPhase: 1,
       confidence: 0,
-      selectedParts: [],
-      isVideoPlaying: false,
-      videoProgress: 0
+      selectedAspects: [],
+      currentCharacterState: 'nervous'
     };
 
     // Элементы
-    const playBtn = document.getElementById('playBtn');
-    const videoProgress = document.getElementById('videoProgress');
-    const bodyParts = document.getElementById('bodyParts');
-    const bodyAnalysis = document.getElementById('bodyAnalysis');
-    const analysisTitle = document.getElementById('analysisTitle');
-    const analysisText = document.getElementById('analysisText');
-    const confidenceFill = document.getElementById('confidenceFill');
-    const confidenceText = document.getElementById('confidenceText');
+    const character = document.getElementById('character');
+    const character2 = document.getElementById('character2');
+    const currentState = document.getElementById('currentState');
     const btnBack = document.getElementById('btnBack');
     const btnHelp = document.getElementById('btnHelp');
     const completeBtn = document.getElementById('completeBtn');
@@ -526,7 +721,6 @@
       });
       btnHelp.addEventListener('click', showHelp);
       completeBtn.addEventListener('click', completeQuest);
-      playBtn.addEventListener('click', toggleVideo);
     }
 
     function loadPhase(phase) {
@@ -569,23 +763,28 @@
       container.innerHTML = '';
       
       QUEST_DATA.phase1.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handlePhase1Answer(index));
-        container.appendChild(btn);
+        const optionEl = createOptionElement(option, index, handlePhase1Answer);
+        container.appendChild(optionEl);
       });
     }
 
     function loadPhase2() {
-      bodyAnalysis.style.display = 'none';
-      gameState.selectedParts = [];
+      gameState.selectedAspects = [];
       
-      // Добавляем обработчики для частей тела
-      document.querySelectorAll('.body-part').forEach(part => {
-        part.classList.remove('active');
-        part.addEventListener('click', () => handleBodyPartClick(part));
+      // Показываем кнопки для выбора аспектов
+      const container = document.getElementById('phase2Options');
+      container.innerHTML = '';
+      
+      Object.entries(QUEST_DATA.phase2.aspects).forEach(([key, aspect]) => {
+        const optionEl = createOptionElement({
+          icon: getAspectIcon(key),
+          title: aspect.title,
+          description: aspect.description
+        }, key, handleAspectSelect);
+        container.appendChild(optionEl);
       });
+      
+      document.getElementById('bodyAnalysis').style.display = 'none';
     }
 
     function loadPhase3() {
@@ -593,18 +792,38 @@
       container.innerHTML = '';
       
       QUEST_DATA.phase3.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handlePhase3Answer(index));
-        container.appendChild(btn);
+        const optionEl = createOptionElement(option, index, handlePhase3Answer);
+        container.appendChild(optionEl);
       });
       
       updateConfidence();
     }
 
+    function createOptionElement(option, index, handler) {
+      const optionEl = document.createElement('div');
+      optionEl.className = 'analysis-option';
+      optionEl.innerHTML = `
+        <div class="option-icon">${option.icon}</div>
+        <div class="option-content">
+          <div class="option-title">${option.title}</div>
+          <div class="option-description">${option.description}</div>
+        </div>
+      `;
+      optionEl.addEventListener('click', () => handler(index));
+      return optionEl;
+    }
+
+    function getAspectIcon(aspect) {
+      const icons = {
+        eyes: '👁️',
+        hands: '✋',
+        posture: '🧍'
+      };
+      return icons[aspect] || '🔍';
+    }
+
     function handlePhase1Answer(index) {
-      const options = document.querySelectorAll('#phase1Options .clue-option');
+      const options = document.querySelectorAll('#phase1Options .analysis-option');
       const correct = QUEST_DATA.phase1.options[index].correct;
       
       options.forEach((opt, i) => {
@@ -628,36 +847,34 @@
       }
     }
 
-    function handleBodyPartClick(part) {
-      const partType = part.dataset.part;
+    function handleAspectSelect(aspectKey) {
+      const aspect = QUEST_DATA.phase2.aspects[aspectKey];
       
-      // Убираем активность с других частей
-      document.querySelectorAll('.body-part').forEach(p => p.classList.remove('active'));
-      part.classList.add('active');
+      // Обновляем состояние персонажа
+      updateCharacterState(aspect.state);
       
       // Показываем анализ
-      const partData = QUEST_DATA.phase2.parts[partType];
-      analysisTitle.textContent = partData.title;
-      analysisText.textContent = partData.description;
+      const analysisPanel = document.getElementById('bodyAnalysis');
+      const analysisTitle = document.getElementById('analysisTitle');
+      const analysisText = document.getElementById('analysisText');
+      const analysisOptions = document.getElementById('phase2Options');
       
-      // Загружаем опции
-      const container = document.getElementById('phase2Options');
-      container.innerHTML = '';
+      analysisTitle.textContent = aspect.title;
+      analysisText.textContent = aspect.description;
       
-      partData.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handleBodyPartAnswer(index, partType));
-        container.appendChild(btn);
+      // Загружаем опции для выбранного аспекта
+      analysisOptions.innerHTML = '';
+      aspect.options.forEach((option, index) => {
+        const optionEl = createOptionElement(option, index, (i) => handleAspectAnswer(i, aspectKey));
+        analysisOptions.appendChild(optionEl);
       });
       
-      bodyAnalysis.style.display = 'block';
+      analysisPanel.style.display = 'block';
     }
 
-    function handleBodyPartAnswer(index, partType) {
-      const options = document.querySelectorAll('#phase2Options .clue-option');
-      const correct = QUEST_DATA.phase2.parts[partType].options[index].correct;
+    function handleAspectAnswer(index, aspectKey) {
+      const options = document.querySelectorAll('#phase2Options .analysis-option');
+      const correct = QUEST_DATA.phase2.aspects[aspectKey].options[index].correct;
       
       options.forEach((opt, i) => {
         if (i === index) {
@@ -667,16 +884,16 @@
       });
       
       if (correct) {
-        gameState.selectedParts.push(partType);
-        gameState.confidence += 20;
-        toast('Правильный анализ! +20% уверенности', 'success');
+        gameState.selectedAspects.push(aspectKey);
+        gameState.confidence += 25;
+        toast('Правильный анализ! +25% уверенности', 'success');
         
-        if (gameState.selectedParts.length >= 3) {
+        if (gameState.selectedAspects.length >= 2) {
           setTimeout(() => loadPhase(3), 1500);
         } else {
           setTimeout(() => {
-            bodyAnalysis.style.display = 'none';
-            document.querySelectorAll('.body-part').forEach(p => p.classList.remove('active'));
+            document.getElementById('bodyAnalysis').style.display = 'none';
+            loadPhase2(); // Перезагружаем фазу 2
           }, 2000);
         }
       } else {
@@ -694,7 +911,7 @@
     }
 
     function handlePhase3Answer(index) {
-      const options = document.querySelectorAll('#phase3Options .clue-option');
+      const options = document.querySelectorAll('#phase3Options .analysis-option');
       const correct = QUEST_DATA.phase3.options[index].correct;
       
       options.forEach((opt, i) => {
@@ -720,47 +937,33 @@
       }
     }
 
-    function toggleVideo() {
-      gameState.isVideoPlaying = !gameState.isVideoPlaying;
+    function updateCharacterState(state) {
+      gameState.currentCharacterState = state;
       
-      if (gameState.isVideoPlaying) {
-        playBtn.textContent = '⏸️';
-        startVideoProgress();
-      } else {
-        playBtn.textContent = '▶️';
-        stopVideoProgress();
-      }
-    }
-
-    function startVideoProgress() {
-      const interval = setInterval(() => {
-        if (!gameState.isVideoPlaying) {
-          clearInterval(interval);
-          return;
-        }
-        
-        gameState.videoProgress += 1;
-        videoProgress.style.width = `${(gameState.videoProgress / QUEST_CONFIG.videoDuration) * 100}%`;
-        
-        if (gameState.videoProgress >= QUEST_CONFIG.videoDuration) {
-          gameState.isVideoPlaying = false;
-          playBtn.textContent = '▶️';
-          clearInterval(interval);
-        }
-      }, 100);
-    }
-
-    function stopVideoProgress() {
-      // Останавливаем прогресс
+      // Обновляем класс персонажа
+      [character, character2].forEach(char => {
+        char.className = `character ${state}`;
+      });
+      
+      // Обновляем текст состояния
+      const stateTexts = {
+        nervous: 'Нервозность',
+        confident: 'Уверенность',
+        defensive: 'Защита'
+      };
+      currentState.textContent = stateTexts[state] || 'Неизвестно';
     }
 
     function updateConfidence() {
+      const confidenceFill = document.getElementById('confidenceFill');
+      const confidenceText = document.getElementById('confidenceText');
+      
       confidenceFill.style.width = `${gameState.confidence}%`;
       confidenceText.textContent = `${gameState.confidence}%`;
     }
 
     function showHelp() {
-      toast('Наблюдай за поведением, анализируй части тела и делай выводы!', 'info');
+      toast('Наблюдай за персонажем, анализируй поведение и делай выводы!', 'info');
     }
 
     function completeQuest() {

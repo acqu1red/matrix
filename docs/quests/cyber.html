@@ -268,6 +268,69 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
     }
+    
+    .analysis-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .analysis-option {
+      background: var(--glass-strong);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .analysis-option:hover {
+      border-color: var(--glow1);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.1);
+    }
+    
+    .analysis-option.correct {
+      border-color: var(--success);
+      background: rgba(74, 222, 128, 0.1);
+    }
+    
+    .analysis-option.incorrect {
+      border-color: var(--error);
+      background: rgba(248, 113, 113, 0.1);
+    }
+    
+    .option-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--glass);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .option-content {
+      flex: 1;
+    }
+    
+    .option-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    
+    .option-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -275,7 +338,7 @@
     <div class="app">
       <header class="glass topbar">
         <div class="brand">
-          <button id="btnBack" class="btn ghost">← Назад</button>
+          <button id="btnBack" class="btn ghost">←</button>
           <h1>Кибер-взлом</h1>
           <div class="badge">Фаза <span id="currentPhase">1</span>/3</div>
         </div>
@@ -315,7 +378,7 @@
               <div class="code-line">}</div>
             </div>
             
-            <div class="clue-options" id="phase1Options">
+            <div class="analysis-options" id="phase1Options">
               <!-- Опции будут добавлены динамически -->
             </div>
           </div>
@@ -324,7 +387,7 @@
         <!-- Фаза 2: Взлом пароля -->
         <div id="phase2" class="quest-phase">
           <div class="clue-container">
-            <h3>�� Взлом пароля</h3>
+            <h3>🔐 Взлом пароля</h3>
             <div class="clue-text">
               Нужно подобрать правильную комбинацию символов для обхода пароля.
               Каждый символ имеет свое значение. Выбери правильную последовательность.
@@ -365,7 +428,7 @@
               <div class="terminal-line">Available ports: 22, 80, 443, 8080</div>
             </div>
             
-            <div class="clue-options" id="phase3Options">
+            <div class="analysis-options" id="phase3Options">
               <!-- Опции будут добавлены динамически -->
             </div>
           </div>
@@ -398,10 +461,30 @@
       phase1: {
         question: "Какая уязвимость в коде?",
         options: [
-          { text: "Отсутствие проверки токена", correct: false },
-          { text: "Неправильная валидация роли", correct: true },
-          { text: "Устаревший алгоритм шифрования", correct: false },
-          { text: "Отсутствие логирования", correct: false }
+          {
+            icon: "🔑",
+            title: "Отсутствие проверки токена",
+            description: "Токен не валидируется перед использованием",
+            correct: false
+          },
+          {
+            icon: "👑",
+            title: "Неправильная валидация роли",
+            description: "Админ получает доступ без проверки токена",
+            correct: true
+          },
+          {
+            icon: "🔒",
+            title: "Устаревший алгоритм шифрования",
+            description: "Используется небезопасный метод шифрования",
+            correct: false
+          },
+          {
+            icon: "📝",
+            title: "Отсутствие логирования",
+            description: "Действия пользователей не записываются",
+            correct: false
+          }
         ]
       },
       phase2: {
@@ -412,10 +495,30 @@
       phase3: {
         question: "Какой протокол использовать для обхода?",
         options: [
-          { text: "SSH (порт 22)", correct: false },
-          { text: "HTTP (порт 80)", correct: false },
-          { text: "HTTPS (порт 443)", correct: true },
-          { text: "HTTP Proxy (порт 8080)", correct: false }
+          {
+            icon: "🔐",
+            title: "SSH (порт 22)",
+            description: "Безопасное соединение для удаленного доступа",
+            correct: false
+          },
+          {
+            icon: "🌐",
+            title: "HTTP (порт 80)",
+            description: "Обычный веб-протокол без шифрования",
+            correct: false
+          },
+          {
+            icon: "🔒",
+            title: "HTTPS (порт 443)",
+            description: "Защищенный протокол с SSL/TLS шифрованием",
+            correct: true
+          },
+          {
+            icon: "🔄",
+            title: "HTTP Proxy (порт 8080)",
+            description: "Прокси-сервер для обхода ограничений",
+            correct: false
+          }
         ]
       }
     };
@@ -517,11 +620,8 @@
       container.innerHTML = '';
       
       QUEST_DATA.phase1.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handlePhase1Answer(index));
-        container.appendChild(btn);
+        const optionEl = createOptionElement(option, index, handlePhase1Answer);
+        container.appendChild(optionEl);
       });
     }
 
@@ -549,16 +649,27 @@
       container.innerHTML = '';
       
       QUEST_DATA.phase3.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handlePhase3Answer(index));
-        container.appendChild(btn);
+        const optionEl = createOptionElement(option, index, handlePhase3Answer);
+        container.appendChild(optionEl);
       });
     }
 
+    function createOptionElement(option, index, handler) {
+      const optionEl = document.createElement('div');
+      optionEl.className = 'analysis-option';
+      optionEl.innerHTML = `
+        <div class="option-icon">${option.icon}</div>
+        <div class="option-content">
+          <div class="option-title">${option.title}</div>
+          <div class="option-description">${option.description}</div>
+        </div>
+      `;
+      optionEl.addEventListener('click', () => handler(index));
+      return optionEl;
+    }
+
     function handlePhase1Answer(index) {
-      const options = document.querySelectorAll('#phase1Options .clue-option');
+      const options = document.querySelectorAll('#phase1Options .analysis-option');
       const correct = QUEST_DATA.phase1.options[index].correct;
       
       options.forEach((opt, i) => {
@@ -616,7 +727,7 @@
     }
 
     function handlePhase3Answer(index) {
-      const options = document.querySelectorAll('#phase3Options .clue-option');
+      const options = document.querySelectorAll('#phase3Options .analysis-option');
       const correct = QUEST_DATA.phase3.options[index].correct;
       
       options.forEach((opt, i) => {

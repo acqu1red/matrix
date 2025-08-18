@@ -100,8 +100,8 @@ h3 { font-size: 1.25rem; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  margin: 16px;
+  padding: 12px 16px;
+  margin: 12px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -130,7 +130,7 @@ h3 { font-size: 1.25rem; }
 
 .brand h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   background: linear-gradient(135deg, var(--glow1), var(--glow2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -138,11 +138,11 @@ h3 { font-size: 1.25rem; }
 }
 
 .badge {
-  padding: 6px 12px;
+  padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -170,13 +170,19 @@ h3 { font-size: 1.25rem; }
 .btn {
   border: none;
   border-radius: var(--radius-sm);
-  padding: 12px 18px;
+  padding: 8px 12px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text);
   background: var(--glass);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
   position: relative;
   overflow: hidden;
 }

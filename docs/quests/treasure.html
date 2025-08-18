@@ -125,7 +125,7 @@
     
     .clue-options {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       gap: 12px;
       margin-top: 15px;
     }
@@ -134,30 +134,56 @@
       background: var(--glass-strong);
       border: 2px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      text-align: center;
+      padding: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
-      font-size: 14px;
-      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     
     .clue-option:hover {
       border-color: var(--glow1);
-      background: var(--glass);
       transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.1);
     }
     
     .clue-option.correct {
       border-color: var(--success);
       background: rgba(74, 222, 128, 0.1);
-      color: var(--success);
     }
     
     .clue-option.incorrect {
       border-color: var(--error);
       background: rgba(248, 113, 113, 0.1);
-      color: var(--error);
+    }
+    
+    .option-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--glass);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .option-content {
+      flex: 1;
+    }
+    
+    .option-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    
+    .option-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
     
     .progress-container {
@@ -264,7 +290,7 @@
     <div class="app">
       <header class="glass topbar">
         <div class="brand">
-          <button id="btnBack" class="btn ghost">← Назад</button>
+          <button id="btnBack" class="btn ghost">←</button>
           <h1>Поиск сокровищ</h1>
           <div class="badge">Фаза <span id="currentPhase">1</span>/3</div>
         </div>
@@ -283,7 +309,7 @@
         <!-- Фаза 1: Анализ карты -->
         <div id="phase1" class="quest-phase active">
           <div class="clue-container">
-            <h3>🔍 Анализ древней карты</h3>
+            <h3>🗺️ Анализ древней карты</h3>
             <div class="clue-text">
               Ты нашел древнюю карту сокровищ! На ней изображены загадочные символы и координаты. 
               Изучи карту внимательно и выбери правильную интерпретацию символов.
@@ -378,19 +404,59 @@
       phase1: {
         question: "Что означают символы на карте?",
         options: [
-          { text: "Координаты звезд", correct: false },
-          { text: "Подземные туннели", correct: true },
-          { text: "Морские течения", correct: false },
-          { text: "Воздушные потоки", correct: false }
+          {
+            icon: "⭐",
+            title: "Координаты звезд",
+            description: "Астрономические координаты для навигации",
+            correct: false
+          },
+          {
+            icon: "🕳️",
+            title: "Подземные туннели",
+            description: "Сеть подземных проходов и пещер",
+            correct: true
+          },
+          {
+            icon: "🌊",
+            title: "Морские течения",
+            description: "Направления морских потоков",
+            correct: false
+          },
+          {
+            icon: "💨",
+            title: "Воздушные потоки",
+            description: "Ветровые направления и воздушные пути",
+            correct: false
+          }
         ]
       },
       phase2: {
         question: "Выбери правильные координаты:",
         options: [
-          { text: "A3-B7", correct: false },
-          { text: "C5-D8", correct: false },
-          { text: "E2-F6", correct: true },
-          { text: "G1-H4", correct: false }
+          {
+            icon: "📍",
+            title: "A3-B7",
+            description: "Северо-западный сектор карты",
+            correct: false
+          },
+          {
+            icon: "📍",
+            title: "C5-D8",
+            description: "Центральный район",
+            correct: false
+          },
+          {
+            icon: "📍",
+            title: "E2-F6",
+            description: "Восточная область с пещерами",
+            correct: true
+          },
+          {
+            icon: "📍",
+            title: "G1-H4",
+            description: "Южная часть территории",
+            correct: false
+          }
         ]
       },
       phase3: {
@@ -498,11 +564,8 @@
       container.innerHTML = '';
       
       QUEST_DATA.phase1.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handlePhase1Answer(index));
-        container.appendChild(btn);
+        const optionEl = createOptionElement(option, index, handlePhase1Answer);
+        container.appendChild(optionEl);
       });
     }
 
@@ -511,16 +574,27 @@
       container.innerHTML = '';
       
       QUEST_DATA.phase2.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'clue-option';
-        btn.textContent = option.text;
-        btn.addEventListener('click', () => handlePhase2Answer(index));
-        container.appendChild(btn);
+        const optionEl = createOptionElement(option, index, handlePhase2Answer);
+        container.appendChild(optionEl);
       });
     }
 
     function loadPhase3() {
       // Фаза 3 уже загружена в HTML
+    }
+
+    function createOptionElement(option, index, handler) {
+      const optionEl = document.createElement('div');
+      optionEl.className = 'clue-option';
+      optionEl.innerHTML = `
+        <div class="option-icon">${option.icon}</div>
+        <div class="option-content">
+          <div class="option-title">${option.title}</div>
+          <div class="option-description">${option.description}</div>
+        </div>
+      `;
+      optionEl.addEventListener('click', () => handler(index));
+      return optionEl;
     }
 
     function handlePhase1Answer(index) {
@@ -697,7 +771,6 @@
     }
 
     function completeQuest() {
-      // Здесь можно добавить логику сохранения результатов
       toast('Квест завершен! Возвращаемся в хаб...', 'success');
       setTimeout(() => {
         if (window.history.length > 1) {
