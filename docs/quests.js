@@ -429,9 +429,9 @@ function spinRoulette(isFree = false) {
   // Добавляем класс для анимации нажатия
   spinBtn.classList.add("spinning");
   
-  // Генерируем случайное расстояние для равномерной прокрутки
-  const baseDistance = 3000 + Math.random() * 2000; // 3000-5000px базовое расстояние
-  const extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
+  // Генерируем случайное расстояние для равномерной прокрутки (увеличено для 15 секунд)
+  const baseDistance = 6000 + Math.random() * 4000; // 6000-10000px базовое расстояние для 15 секунд
+  const extraDistance = Math.random() * 2000; // Дополнительное случайное расстояние
   let spinDistance = baseDistance + extraDistance;
   
   // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
@@ -471,9 +471,9 @@ function spinRoulette(isFree = false) {
     setTimeout(() => {
       items.classList.remove('spinning');
       // Сохраняем текущую позицию для следующего спина
-      items.style.transition = 'transform 8s ease-out';
+      items.style.transition = 'transform 15s ease-out';
     }, 1000);
-  }, 8000);
+  }, 15000);
 }
 
 function selectPrizeByProbability() {
