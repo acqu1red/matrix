@@ -429,6 +429,10 @@ function spinRoulette(isFree = false) {
   
   saveUserData();
   
+  // Сохраняем оригинальный текст кнопок
+  spinBtn.setAttribute('data-original-text', spinBtn.textContent);
+  buyBtn.setAttribute('data-original-text', buyBtn.textContent);
+  
   // Добавляем эффект загрузки на кнопки
   spinBtn.classList.add("loading");
   buyBtn.classList.add("loading");

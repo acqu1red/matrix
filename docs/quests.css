@@ -1711,45 +1711,41 @@ h3 { font-size: 1.25rem; }
 .btn.loading {
   position: relative;
   pointer-events: none;
-  overflow: hidden;
-}
-
-.btn.loading::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  animation: loadingShine 1.5s infinite;
-}
-
-@keyframes loadingShine {
-  0% { left: -100%; }
-  100% { left: 100%; }
 }
 
 .btn.loading::after {
-  content: '⏳';
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 16px;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
   animation: loadingSpin 1s linear infinite;
   z-index: 2;
 }
 
 @keyframes loadingSpin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Скрываем текст кнопки во время загрузки */
-.btn.loading span,
 .btn.loading {
-  opacity: 0.3;
+  color: transparent !important;
+}
+
+.btn.loading::before {
+  content: attr(data-original-text);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: transparent;
+  z-index: 1;
 }
 
 /* Специальные стили для кнопок дизайна */
@@ -1758,37 +1754,24 @@ h3 { font-size: 1.25rem; }
   pointer-events: none;
 }
 
-.design-option.loading::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: inherit;
-  animation: designLoadingPulse 1s ease-in-out infinite alternate;
-}
-
-@keyframes designLoadingPulse {
-  0% { opacity: 0.3; }
-  100% { opacity: 0.8; }
-}
-
 .design-option.loading::after {
-  content: '🔄';
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 14px;
-  animation: designLoadingSpin 1.5s linear infinite;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: designLoadingSpin 1s linear infinite;
   z-index: 3;
 }
 
 @keyframes designLoadingSpin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .design-option.loading .design-icon {
@@ -1813,4 +1796,31 @@ h3 { font-size: 1.25rem; }
 @keyframes textFadeIn {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Специальные стили для кнопок рулетки в стиле поддержки */
+#spinRoulette.loading,
+#buySpin.loading {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%) !important;
+  border-color: #444 !important;
+  color: transparent !important;
+  transform: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+#spinRoulette.loading::after,
+#buySpin.loading::after {
+  border-top-color: #d6c7b8 !important;
+}
+
+/* Стили для кнопок дизайна в стиле поддержки */
+.design-option.loading {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.design-option.loading::after {
+  border-top-color: rgba(255, 255, 255, 0.8) !important;
 }
