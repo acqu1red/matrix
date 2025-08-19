@@ -5,7 +5,7 @@ const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5c
 const SUBSCRIPTIONS_TABLE = "subscriptions";
 const PROMOCODES_TABLE = "promocodes";
 const ADMIN_USERNAME = "@acqu1red";
-const ADMIN_IDS = ["acqu1red", "123456789"]; // Добавьте сюда ID администраторов
+const ADMIN_IDS = ["acqu1red", "123456789", "708907063"]; // Добавьте сюда ID администраторов
 
 const PAYMENT_URL = "https://acqu1red.github.io/formulaprivate/payment.html";
 const ISLAND_MINIAPP_URL = "./island.html";
@@ -1031,14 +1031,14 @@ async function loadState(){
   let isSubscribed = false;
   let isAdmin = false;
   
-  // Проверка на администратора
-  if (username && ADMIN_IDS.includes(username)) {
+  // Проверка на администратора (по username и telegramId)
+  if ((username && ADMIN_IDS.includes(username)) || (userId && ADMIN_IDS.includes(userId))) {
     isAdmin = true;
     isSubscribed = true; // Администраторы имеют доступ ко всем квестам
   }
   
   // Проверка подписки через Supabase
-  if(supabase && userId && !isAdmin){
+  if(supabase && userId){
     try{
       const { data, error } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
@@ -1048,20 +1048,30 @@ async function loadState(){
       
       if(!error && data){ 
         isSubscribed = true; 
+        console.log('Подписка найдена для пользователя:', userId);
+      } else {
+        console.log('Подписка не найдена для пользователя:', userId, 'Ошибка:', error);
       }
     } catch(e){ 
       console.warn("supabase check fail", e); 
     }
   }
   
+  console.log('Состояние пользователя:', { userId, username, isSubscribed, isAdmin });
   return { userId, username, isSubscribed, isAdmin };
 }
 
 /* ====== Rotation + gating ====== */
 function featuredQuests(state){
-  if(state.isSubscribed || state.isAdmin) return QUESTS;
+  console.log('featuredQuests вызвана с состоянием:', state);
+  if(state.isSubscribed || state.isAdmin) {
+    console.log('Пользователь имеет подписку или админ, возвращаем все квесты');
+    return QUESTS;
+  }
   // Для бесплатных пользователей показываем только доступные квесты
-  return QUESTS.filter(q => q.available);
+  const availableQuests = QUESTS.filter(q => q.available);
+  console.log('Бесплатный пользователь, доступных квестов:', availableQuests.length);
+  return availableQuests;
 }
 
 /* ====== Cards ====== */
@@ -1069,7 +1079,11 @@ function buildCards(state){
   const container = $("#quests");
   container.innerHTML = "";
   
+  console.log('Строим карточки для состояния:', state);
+  console.log('isSubscribed:', state.isSubscribed, 'isAdmin:', state.isAdmin);
+  
   const list = featuredQuests(state);
+  console.log('Доступные квесты:', list.length);
   
   list.forEach((q, index) => {
     const card = document.createElement("div");
@@ -1352,7 +1366,7 @@ async function savePromo(code, uid){
 
 // Функция для проверки, является ли пользователь админом
 function isAdmin() {
-  const adminIds = ['123456789', '708907063']; // Список ID администраторов
+  const adminIds = ['123456789', '708907063', 'acqu1red']; // Список ID администраторов
   return userData.telegramId && adminIds.includes(userData.telegramId.toString());
 }
 
