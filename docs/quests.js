@@ -248,9 +248,11 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
 // Система рулетки - стиль открытия кейса
 function createRouletteWheel() {
   console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
+  console.log('Текущий дизайн:', currentRouletteDesign);
   
   const items = $("#rouletteItems");
   const preview = $("#previewItems");
+  const container = $(".roulette-container");
   
   if (!items) {
     console.error('❌ Контейнер rouletteItems не найден');
@@ -262,7 +264,15 @@ function createRouletteWheel() {
     return;
   }
   
+  if (!container) {
+    console.error('❌ Контейнер roulette-container не найден');
+    return;
+  }
+  
   console.log('✅ Контейнеры рулетки найдены');
+  
+  // Обновляем класс дизайна контейнера
+  container.className = `roulette-container ${currentRouletteDesign}`;
   
   items.innerHTML = '';
   preview.innerHTML = '';
@@ -270,9 +280,12 @@ function createRouletteWheel() {
   // Сбрасываем позицию рулетки только при создании
   rouletteCurrentPosition = 0;
   
+  // Получаем призы для текущего дизайна
+  const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
+  
   // Создаем иконки на основе призов
   let allItems = [];
-  ROULETTE_PRIZES.forEach(prize => {
+  currentPrizes.forEach(prize => {
     for (let i = 0; i < prize.count; i++) {
       allItems.push(prize);
     }
@@ -312,7 +325,7 @@ function createRouletteWheel() {
   
   // Создаем превью призов
   console.log('Создаем превью призов...');
-  ROULETTE_PRIZES.forEach(prize => {
+  currentPrizes.forEach(prize => {
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     
@@ -346,6 +359,37 @@ function getSectorColor(prizeId) {
 
 // Глобальная переменная для хранения текущей позиции рулетки
 let rouletteCurrentPosition = 0;
+
+// Глобальная переменная для текущего дизайна рулетки
+let currentRouletteDesign = 'standard';
+
+// Иконки призов для разных дизайнов
+const ROULETTE_PRIZES_DESIGNS = {
+  standard: [
+    { id: 'subscription', name: 'Подписка', icon: '👑', count: 3, probability: 0.03 },
+    { id: 'discount500', name: '500₽', icon: '💎', count: 1, probability: 0.10 },
+    { id: 'discount100', name: '100₽', icon: '💵', count: 3, probability: 0.15 },
+    { id: 'discount50', name: '50₽', icon: '💰', count: 4, probability: 0.20 },
+    { id: 'quest24h', name: 'Квест 24ч', icon: '🎯', count: 5, probability: 0.75 },
+    { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
+  ],
+  futuristic: [
+    { id: 'subscription', name: 'НЕО-ПОДПИСКА', icon: '⚡', count: 3, probability: 0.03 },
+    { id: 'discount500', name: '500 CREDITS', icon: '🔮', count: 1, probability: 0.10 },
+    { id: 'discount100', name: '100 CREDITS', icon: '💠', count: 3, probability: 0.15 },
+    { id: 'discount50', name: '50 CREDITS', icon: '⚙️', count: 4, probability: 0.20 },
+    { id: 'quest24h', name: 'HACK 24H', icon: '🎮', count: 5, probability: 0.75 },
+    { id: 'frodCourse', name: 'MATRIX', icon: '🌐', count: 1, probability: 0.0005 }
+  ],
+  lebedev: [
+    { id: 'subscription', name: 'ПОДПИСКА', icon: '🌟', count: 3, probability: 0.03 },
+    { id: 'discount500', name: '500 РУБ', icon: '🌈', count: 1, probability: 0.10 },
+    { id: 'discount100', name: '100 РУБ', icon: '🎪', count: 3, probability: 0.15 },
+    { id: 'discount50', name: '50 РУБ', icon: '🎨', count: 4, probability: 0.20 },
+    { id: 'quest24h', name: 'КВЕСТИК', icon: '🎭', count: 5, probability: 0.75 },
+    { id: 'frodCourse', name: 'КУРСИК', icon: '📖', count: 1, probability: 0.0005 }
+  ]
+};
 
 function spinRoulette(isFree = false) {
   const items = $("#rouletteItems");
@@ -431,7 +475,10 @@ function selectPrizeByProbability() {
   const rand = Math.random();
   let cumulative = 0;
   
-  for (const prize of ROULETTE_PRIZES) {
+  // Получаем призы для текущего дизайна
+  const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
+  
+  for (const prize of currentPrizes) {
     cumulative += prize.probability;
     if (rand <= cumulative) {
       return prize;
@@ -439,16 +486,25 @@ function selectPrizeByProbability() {
   }
   
   // Если ничего не выбрано, возвращаем самый частый приз
-  return ROULETTE_PRIZES[4]; // quest24h
+  return currentPrizes[4]; // quest24h
 }
 
 // Функция для определения приза по позиции стрелки
 function determinePrizeByArrowPosition() {
+  console.log('Определение приза по позиции стрелки...');
+  console.log('Текущий дизайн:', currentRouletteDesign);
+  
   const items = $("#rouletteItems");
-  if (!items) return ROULETTE_PRIZES[0];
+  if (!items) {
+    const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
+    return currentPrizes[0];
+  }
   
   const allItems = items.querySelectorAll('.roulette-item');
-  if (allItems.length === 0) return ROULETTE_PRIZES[0];
+  if (allItems.length === 0) {
+    const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
+    return currentPrizes[0];
+  }
   
   // Вычисляем позицию стрелки (центр экрана)
   const containerWidth = items.offsetWidth || 600;
@@ -471,7 +527,8 @@ function determinePrizeByArrowPosition() {
   
   if (centerItem) {
     const prizeId = centerItem.dataset.prize;
-    const prize = ROULETTE_PRIZES.find(p => p.id === prizeId);
+    const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
+    const prize = currentPrizes.find(p => p.id === prizeId);
     if (prize) {
       console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
       return prize;
@@ -1668,6 +1725,32 @@ const originalSpinHandler = () => {
   }
 };
 
+// Функция переключения дизайна рулетки
+function switchRouletteDesign(design) {
+  console.log('Переключение дизайна рулетки на:', design);
+  
+  // Обновляем активную опцию
+  document.querySelectorAll('.design-option').forEach(option => {
+    option.classList.remove('active');
+  });
+  
+  const activeOption = document.querySelector(`[data-design="${design}"]`);
+  if (activeOption) {
+    activeOption.classList.add('active');
+  }
+  
+  // Обновляем текущий дизайн
+  currentRouletteDesign = design;
+  
+  // Пересоздаем рулетку с новым дизайном
+  createRouletteWheel();
+  
+  // Сохраняем выбор в localStorage
+  localStorage.setItem('rouletteDesign', design);
+  
+  toast(`Дизайн рулетки изменен на: ${design}`, 'success');
+}
+
 // Функция инициализации обработчиков рулетки
 function initializeRouletteHandlers() {
   console.log('Инициализация обработчиков рулетки...');
@@ -1727,6 +1810,15 @@ function initializeRouletteHandlers() {
     console.error('❌ Заголовок превью призов не найден');
   }
   
+  // Обработчики переключения дизайнов
+  document.querySelectorAll('.design-option').forEach(option => {
+    option.addEventListener('click', () => {
+      const design = option.dataset.design;
+      switchRouletteDesign(design);
+    });
+  });
+  
+  console.log('✅ Обработчики переключения дизайнов добавлены');
   console.log('Инициализация обработчиков рулетки завершена');
 }
 
@@ -1971,6 +2063,13 @@ loadState().then(async state=>{
   
   // Обновляем отображение валюты после загрузки данных
   updateCurrencyDisplay();
+  
+  // Загружаем сохраненный дизайн рулетки
+  const savedDesign = localStorage.getItem('rouletteDesign');
+  if (savedDesign && ROULETTE_PRIZES_DESIGNS[savedDesign]) {
+    currentRouletteDesign = savedDesign;
+    console.log('Загружен сохраненный дизайн рулетки:', savedDesign);
+  }
   
   // Создаем рулетку
   createRouletteWheel();
