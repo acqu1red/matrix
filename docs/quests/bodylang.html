@@ -471,7 +471,7 @@
         </video>
       </div>
       
-      <div class="video-controls">
+      <div class="video-controls" style="display: none;">
         <button class="play-btn" id="emotionPlayBtn">▶️</button>
         <div class="progress-bar">
           <div class="progress-fill" id="emotionProgressFill"></div>
@@ -584,19 +584,6 @@
       }
     }
 
-    // Инициализация
-    async function init() {
-      try {
-        const response = await fetch('../assets/bodylang/manifest.json');
-        faceManifest = await response.json();
-        loadVideoPhase();
-      } catch (error) {
-        console.error('Ошибка загрузки manifest:', error);
-        // Fallback на старые данные
-        loadVideoPhase();
-      }
-    }
-
     // Загрузка фазы видео допроса
     function loadVideoPhase() {
       isVideoPhase = true;
@@ -609,6 +596,9 @@
       const video = document.getElementById('videoPlayer');
       video.src = `../video/${currentVideo}`;
       video.load();
+      
+      // Автоматически запускаем видео
+      video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
       
       // Сбрасываем попытки
       videoAttempts = 0;
@@ -649,6 +639,9 @@
       const videoPlayer = document.getElementById('emotionVideoPlayer');
       videoPlayer.src = `../assets/${currentEmotionItem.file}`;
       videoPlayer.load();
+      
+      // Автоматически запускаем видео
+      videoPlayer.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
       
       // Генерируем варианты ответов
       generateEmotionOptions();
@@ -982,28 +975,13 @@
       playBtn.textContent = '▶️';
     });
 
-    // Управление видео для фазы 2
+    // Управление видео для фазы 2 (автоматическое воспроизведение)
     const emotionVideo = document.getElementById('emotionVideoPlayer');
-    const emotionPlayBtn = document.getElementById('emotionPlayBtn');
-    const emotionProgressFill = document.getElementById('emotionProgressFill');
-
-    emotionPlayBtn.addEventListener('click', () => {
-      if (emotionVideo.paused) {
-        emotionVideo.play();
-        emotionPlayBtn.textContent = '⏸️';
-      } else {
-        emotionVideo.pause();
-        emotionPlayBtn.textContent = '▶️';
-      }
-    });
-
-    emotionVideo.addEventListener('timeupdate', () => {
-      const progress = (emotionVideo.currentTime / emotionVideo.duration) * 100;
-      emotionProgressFill.style.width = progress + '%';
-    });
-
+    
     emotionVideo.addEventListener('ended', () => {
-      emotionPlayBtn.textContent = '▶️';
+      // Автоматически перезапускаем видео
+      emotionVideo.currentTime = 0;
+      emotionVideo.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
     });
 
     // Инициализация при загрузке страницы
