@@ -247,10 +247,22 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
 
 // Система рулетки - стиль открытия кейса
 function createRouletteWheel() {
+  console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
+  
   const items = $("#rouletteItems");
   const preview = $("#previewItems");
   
-  if (!items || !preview) return;
+  if (!items) {
+    console.error('❌ Контейнер rouletteItems не найден');
+    return;
+  }
+  
+  if (!preview) {
+    console.error('❌ Контейнер previewItems не найден');
+    return;
+  }
+  
+  console.log('✅ Контейнеры рулетки найдены');
   
   items.innerHTML = '';
   preview.innerHTML = '';
@@ -266,11 +278,15 @@ function createRouletteWheel() {
     }
   });
   
+  console.log('Создано элементов призов:', allItems.length);
+  
   // Перемешиваем иконки для разнообразия
   allItems.sort(() => Math.random() - 0.5);
   
   // Создаем длинную ленту иконок для плавной анимации
   const totalItems = allItems.length * 4; // Повторяем 4 раза для плавности
+  
+  console.log('Создаем', totalItems, 'элементов рулетки...');
   
   for (let i = 0; i < totalItems; i++) {
     const prize = allItems[i % allItems.length];
@@ -292,7 +308,10 @@ function createRouletteWheel() {
     items.appendChild(item);
   }
   
+  console.log('✅ Элементы рулетки созданы:', items.children.length);
+  
   // Создаем превью призов
+  console.log('Создаем превью призов...');
   ROULETTE_PRIZES.forEach(prize => {
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
@@ -308,6 +327,9 @@ function createRouletteWheel() {
     previewItem.appendChild(name);
     preview.appendChild(previewItem);
   });
+  
+  console.log('✅ Превью призов создано:', preview.children.length);
+  console.log('=== РУЛЕТКА СОЗДАНА УСПЕШНО ===');
 }
 
 function getSectorColor(prizeId) {
@@ -1646,35 +1668,67 @@ const originalSpinHandler = () => {
   }
 };
 
-// Обработчики рулетки
-$("#spinRoulette").addEventListener("click", originalSpinHandler);
-
-$("#buySpin").addEventListener("click", ()=>{
-  if (userData.mulacoin >= SPIN_COST) {
-    spinRoulette(false);
-  } else {
-    toast("Недостаточно mulacoin для покупки прокрута!", "error");
-  }
-});
-
-// Обработчик закрытия модала приза
-$("#closePrize").addEventListener("click", ()=>{
-  $("#prizeModal").classList.remove("show");
-});
-
-// Обработчик сворачивания/разворачивания превью призов
-$("#previewHeader").addEventListener("click", ()=>{
-  const content = $("#previewContent");
-  const toggle = $("#previewHeader .preview-toggle");
+// Функция инициализации обработчиков рулетки
+function initializeRouletteHandlers() {
+  console.log('Инициализация обработчиков рулетки...');
   
-  if (content.classList.contains("expanded")) {
-    content.classList.remove("expanded");
-    toggle.classList.remove("expanded");
+  // Обработчики рулетки
+  const spinBtn = $("#spinRoulette");
+  const buyBtn = $("#buySpin");
+  const closePrizeBtn = $("#closePrize");
+  const previewHeader = $("#previewHeader");
+  
+  if (spinBtn) {
+    spinBtn.addEventListener("click", originalSpinHandler);
+    console.log('✅ Обработчик кнопки "Крутить рулетку" добавлен');
   } else {
-    content.classList.add("expanded");
-    toggle.classList.add("expanded");
+    console.error('❌ Кнопка "Крутить рулетку" не найдена');
   }
-});
+  
+  if (buyBtn) {
+    buyBtn.addEventListener("click", ()=>{
+      if (userData.mulacoin >= SPIN_COST) {
+        spinRoulette(false);
+      } else {
+        toast("Недостаточно mulacoin для покупки прокрута!", "error");
+      }
+    });
+    console.log('✅ Обработчик кнопки "Купить прокрут" добавлен');
+  } else {
+    console.error('❌ Кнопка "Купить прокрут" не найдена');
+  }
+
+  // Обработчик закрытия модала приза
+  if (closePrizeBtn) {
+    closePrizeBtn.addEventListener("click", ()=>{
+      $("#prizeModal").classList.remove("show");
+    });
+    console.log('✅ Обработчик закрытия модала приза добавлен');
+  } else {
+    console.error('❌ Кнопка закрытия модала приза не найдена');
+  }
+
+  // Обработчик сворачивания/разворачивания превью призов
+  if (previewHeader) {
+    previewHeader.addEventListener("click", ()=>{
+      const content = $("#previewContent");
+      const toggle = $("#previewHeader .preview-toggle");
+      
+      if (content.classList.contains("expanded")) {
+        content.classList.remove("expanded");
+        toggle.classList.remove("expanded");
+      } else {
+        content.classList.add("expanded");
+        toggle.classList.add("expanded");
+      }
+    });
+    console.log('✅ Обработчик превью призов добавлен');
+  } else {
+    console.error('❌ Заголовок превью призов не найден');
+  }
+  
+  console.log('Инициализация обработчиков рулетки завершена');
+}
 
 // Обработчик клика по уровню
 $("#levelDisplay").addEventListener("click", ()=>{
@@ -1920,6 +1974,9 @@ loadState().then(async state=>{
   
   // Создаем рулетку
   createRouletteWheel();
+  
+  // Инициализируем обработчики событий после создания рулетки
+  initializeRouletteHandlers();
 });
 
 // Глобальные функции для доступа из других файлов
