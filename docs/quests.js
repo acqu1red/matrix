@@ -1097,112 +1097,96 @@ async function loadState(){
       
       // Проверяем таблицу admins
       console.log('📋 Проверяем таблицу admins...');
-      const { data: adminsData, error: adminsError } = await supabase
+      
+      // Сначала получаем структуру таблицы admins
+      const { data: adminsStructure, error: adminsStructureError } = await supabase
         .from('admins')
         .select("*")
-        .eq('telegram_id', userId)
-        .maybeSingle();
+        .limit(1);
       
-      if(!adminsError && adminsData) {
-        isAdmin = true;
-        isSubscribed = true;
-        console.log('✅ Пользователь найден в таблице admins:', adminsData);
-      } else {
-        console.log('❌ Пользователь не найден в таблице admins:', adminsError);
+      if (!adminsStructureError && adminsStructure && adminsStructure.length > 0) {
+        const adminsColumns = Object.keys(adminsStructure[0]);
+        console.log('📊 Структура таблицы admins:', adminsColumns);
         
-        // Пробуем другие поля для admins (если они существуют)
-        // Сначала проверим структуру таблицы
-        const { data: adminsStructure, error: structureError } = await supabase
-          .from('admins')
-          .select("*")
-          .limit(1);
+        // Ищем поле, которое может содержать ID пользователя
+        const possibleIdFields = ['telegram_id', 'user_id', 'tg_id', 'id', 'userid', 'telegramid'];
+        let foundAdminField = null;
         
-        if (!structureError && adminsStructure && adminsStructure.length > 0) {
-          const columns = Object.keys(adminsStructure[0]);
-          console.log('📊 Структура таблицы admins:', columns);
-          
-          // Пробуем поле user_id только если оно существует
-          if (columns.includes('user_id')) {
-            const { data: adminsData2, error: adminsError2 } = await supabase
-              .from('admins')
-              .select("*")
-              .eq('user_id', userId)
-              .maybeSingle();
-            
-            if(!adminsError2 && adminsData2) {
-              isAdmin = true;
-              isSubscribed = true;
-              console.log('✅ Пользователь найден в таблице admins по user_id:', adminsData2);
-            } else {
-              console.log('❌ Пользователь не найден в таблице admins по user_id:', adminsError2);
-            }
-          } else {
-            console.log('ℹ️ Поле user_id не существует в таблице admins');
+        for (const field of possibleIdFields) {
+          if (adminsColumns.includes(field)) {
+            foundAdminField = field;
+            break;
           }
+        }
+        
+        if (foundAdminField) {
+          console.log('🔍 Найдено поле для ID в admins:', foundAdminField);
+          
+          const { data: adminsData, error: adminsError } = await supabase
+            .from('admins')
+            .select("*")
+            .eq(foundAdminField, userId)
+            .maybeSingle();
+          
+          if(!adminsError && adminsData) {
+            isAdmin = true;
+            isSubscribed = true;
+            console.log('✅ Пользователь найден в таблице admins:', adminsData);
+          } else {
+            console.log('❌ Пользователь не найден в таблице admins:', adminsError);
+          }
+        } else {
+          console.log('❌ Не найдено подходящее поле для ID в таблице admins');
+        }
+              } else {
+          console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
         }
       }
       
       // Проверяем таблицу subscriptions
       console.log('📋 Проверяем таблицу subscriptions...');
-      const { data: subData, error: subError } = await supabase
+      
+      // Сначала получаем структуру таблицы subscriptions
+      const { data: subStructure, error: subStructureError } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
         .select("*")
-        .eq('telegram_id', userId)
-        .maybeSingle();
+        .limit(1);
       
-      if(!subError && subData) {
-        isSubscribed = true;
-        console.log('✅ Подписка найдена в таблице subscriptions:', subData);
-      } else {
-        console.log('❌ Подписка не найдена в таблице subscriptions:', subError);
+      if (!subStructureError && subStructure && subStructure.length > 0) {
+        const subColumns = Object.keys(subStructure[0]);
+        console.log('📊 Структура таблицы subscriptions:', subColumns);
         
-        // Пробуем другие поля (если они существуют)
-        // Сначала проверим структуру таблицы
-        const { data: subStructure, error: subStructureError } = await supabase
-          .from(SUBSCRIPTIONS_TABLE)
-          .select("*")
-          .limit(1);
+        // Ищем поле, которое может содержать ID пользователя
+        const possibleIdFields = ['telegram_id', 'user_id', 'tg_id', 'id', 'userid', 'telegramid'];
+        let foundSubField = null;
         
-        if (!subStructureError && subStructure && subStructure.length > 0) {
-          const columns = Object.keys(subStructure[0]);
-          console.log('📊 Структура таблицы subscriptions:', columns);
-          
-          // Пробуем поле user_id только если оно существует
-          if (columns.includes('user_id')) {
-            const { data: subData2, error: subError2 } = await supabase
-              .from(SUBSCRIPTIONS_TABLE)
-              .select("*")
-              .eq('user_id', userId)
-              .maybeSingle();
-            
-            if(!subError2 && subData2) {
-              isSubscribed = true;
-              console.log('✅ Подписка найдена по user_id:', subData2);
-            } else {
-              console.log('❌ Подписка не найдена по user_id:', subError2);
-            }
-          } else {
-            console.log('ℹ️ Поле user_id не существует в таблице subscriptions');
-          }
-          
-          // Пробуем поле tg_id только если оно существует
-          if (columns.includes('tg_id')) {
-            const { data: subData3, error: subError3 } = await supabase
-              .from(SUBSCRIPTIONS_TABLE)
-              .select("*")
-              .eq('tg_id', userId)
-              .maybeSingle();
-            
-            if(!subError3 && subData3) {
-              isSubscribed = true;
-              console.log('✅ Подписка найдена по tg_id:', subData3);
-            } else {
-              console.log('❌ Подписка не найдена по tg_id:', subError3);
-            }
-          } else {
-            console.log('ℹ️ Поле tg_id не существует в таблице subscriptions');
+        for (const field of possibleIdFields) {
+          if (subColumns.includes(field)) {
+            foundSubField = field;
+            break;
           }
         }
+        
+        if (foundSubField) {
+          console.log('🔍 Найдено поле для ID в subscriptions:', foundSubField);
+          
+          const { data: subData, error: subError } = await supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("*")
+            .eq(foundSubField, userId)
+            .maybeSingle();
+          
+          if(!subError && subData) {
+            isSubscribed = true;
+            console.log('✅ Подписка найдена в таблице subscriptions:', subData);
+          } else {
+            console.log('❌ Подписка не найдена в таблице subscriptions:', subError);
+          }
+        } else {
+          console.log('❌ Не найдено подходящее поле для ID в таблице subscriptions');
+        }
+      } else {
+        console.log('❌ Не удалось получить структуру таблицы subscriptions:', subStructureError);
       }
       
       // Показываем структуру таблиц для диагностики
