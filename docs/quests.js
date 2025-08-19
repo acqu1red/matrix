@@ -1047,52 +1047,57 @@ async function loadState(){
     try{
       console.log('Проверяем подписку для пользователя:', userId);
       
-      // Пробуем разные варианты полей
-      let { data, error } = await supabase
+      // Сначала получаем структуру таблицы
+      const { data: tableInfo, error: tableError } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
         .select("*")
-        .eq("tg_id", userId)
-        .maybeSingle();
+        .limit(1);
       
-      if(error || !data) {
-        console.log('Попытка 1 не удалась, пробуем с user_id:', error);
-        // Пробуем с user_id
-        const result2 = await supabase
-          .from(SUBSCRIPTIONS_TABLE)
-          .select("*")
-          .eq("user_id", userId)
-          .maybeSingle();
-        data = result2.data;
-        error = result2.error;
-      }
-      
-      if(error || !data) {
-        console.log('Попытка 2 не удалась, пробуем с telegram_id:', error);
-        // Пробуем с telegram_id
-        const result3 = await supabase
-          .from(SUBSCRIPTIONS_TABLE)
-          .select("*")
-          .eq("telegram_id", userId)
-          .maybeSingle();
-        data = result3.data;
-        error = result3.error;
-      }
-      
-      if(!error && data){ 
-        isSubscribed = true; 
-        console.log('Подписка найдена для пользователя:', userId, 'Данные:', data);
-      } else {
-        console.log('Подписка не найдена для пользователя:', userId, 'Ошибка:', error);
+      if(!tableError && tableInfo && tableInfo.length > 0) {
+        console.log('Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
         
-        // Показываем все записи в таблице для отладки
-        const { data: allData, error: allError } = await supabase
-          .from(SUBSCRIPTIONS_TABLE)
-          .select("*")
-          .limit(5);
+        // Ищем поле с ID пользователя
+        const possibleIdFields = ['user_id', 'telegram_id', 'tg_id', 'userid', 'telegramid'];
+        let foundField = null;
         
-        if(!allError && allData) {
-          console.log('Первые 5 записей в таблице subscriptions:', allData);
+        for(const field of possibleIdFields) {
+          if(tableInfo[0].hasOwnProperty(field)) {
+            foundField = field;
+            break;
+          }
         }
+        
+        if(foundField) {
+          console.log('Найдено поле для ID:', foundField);
+          
+          // Проверяем подписку по найденному полю
+          const { data, error } = await supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("*")
+            .eq(foundField, userId)
+            .maybeSingle();
+          
+          if(!error && data){ 
+            isSubscribed = true; 
+            console.log('Подписка найдена для пользователя:', userId, 'Данные:', data);
+          } else {
+            console.log('Подписка не найдена для пользователя:', userId, 'Ошибка:', error);
+          }
+        } else {
+          console.log('Не найдено поле для ID пользователя. Доступные поля:', Object.keys(tableInfo[0]));
+          
+          // Показываем все записи для анализа
+          const { data: allData, error: allError } = await supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("*")
+            .limit(5);
+          
+          if(!allError && allData) {
+            console.log('Первые 5 записей в таблице subscriptions:', allData);
+          }
+        }
+      } else {
+        console.log('Не удалось получить структуру таблицы:', tableError);
       }
     } catch(e){ 
       console.warn("supabase check fail", e); 
