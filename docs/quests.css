@@ -1452,11 +1452,11 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: 
-    url('/formulaprivate/assets/photovideo/djoker.png') no-repeat 10% 10% / 80px auto,
-    url('/formulaprivate/assets/photovideo/drakula.png') no-repeat 85% 15% / 60px auto,
-    url('/formulaprivate/assets/photovideo/eye.png') no-repeat 15% 85% / 70px auto,
-    url('/formulaprivate/assets/photovideo/drakon.png') no-repeat 80% 80% / 90px auto;
-  opacity: 0.4;
+    url('./assets/photovideo/djoker.png') no-repeat 10% 10% / 40px auto,
+    url('./assets/photovideo/drakula.png') no-repeat 85% 15% / 30px auto,
+    url('./assets/photovideo/eye.png') no-repeat 15% 85% / 35px auto,
+    url('./assets/photovideo/drakon.png') no-repeat 80% 80% / 45px auto;
+  opacity: 0.3;
   pointer-events: none;
   z-index: 0;
 }
@@ -1480,8 +1480,8 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: 
-    url('/formulaprivate/assets/photovideo/djoker2.png') no-repeat 5% 5% / 50px auto;
-  opacity: 0.3;
+    url('./assets/photovideo/djoker2.png') no-repeat 5% 5% / 25px auto;
+  opacity: 0.25;
   pointer-events: none;
   z-index: 1;
 }
@@ -1507,10 +1507,10 @@ h3 { font-size: 1.25rem; }
   right: 2px;
   bottom: 2px;
   background: 
-    url('/formulaprivate/assets/photovideo/djoker.png') no-repeat center / 30px auto;
+    url('./assets/photovideo/djoker.png') no-repeat center / 15px auto;
   border-radius: 17px;
   pointer-events: none;
-  opacity: 0.2;
+  opacity: 0.15;
 }
 
 .roulette-container.lebedev .roulette-item:nth-child(even) {
@@ -1621,8 +1621,8 @@ h3 { font-size: 1.25rem; }
   right: -10px;
   bottom: -10px;
   background: 
-    url('/formulaprivate/assets/photovideo/drakon.png') no-repeat 5% 5% / 40px auto,
-    url('/formulaprivate/assets/photovideo/djoker2.png') no-repeat 95% 95% / 35px auto;
+    url('./assets/photovideo/drakon.png') no-repeat 5% 5% / 20px auto,
+    url('./assets/photovideo/djoker2.png') no-repeat 95% 95% / 18px auto;
   opacity: 0.2;
   pointer-events: none;
   z-index: -1;
@@ -1637,9 +1637,9 @@ h3 { font-size: 1.25rem; }
   right: -5px;
   bottom: -5px;
   background: 
-    url('/formulaprivate/assets/photovideo/drakula.png') no-repeat 95% 5% / 30px auto,
-    url('/formulaprivate/assets/photovideo/eye.png') no-repeat 5% 95% / 25px auto;
-  opacity: 0.3;
+    url('./assets/photovideo/drakula.png') no-repeat 95% 5% / 15px auto,
+    url('./assets/photovideo/eye.png') no-repeat 5% 95% / 12px auto;
+  opacity: 0.25;
   pointer-events: none;
   z-index: -1;
 }
