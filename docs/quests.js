@@ -429,6 +429,9 @@ function spinRoulette(isFree = false) {
   
   saveUserData();
   
+  spinBtn.disabled = true;
+  buyBtn.disabled = true;
+  
   // Сохраняем оригинальный текст кнопок
   spinBtn.setAttribute('data-original-text', spinBtn.textContent);
   buyBtn.setAttribute('data-original-text', buyBtn.textContent);
