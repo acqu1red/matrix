@@ -433,7 +433,9 @@ h3 { font-size: 1.25rem; }
 }
 
 .preview-content.expanded {
-  max-height: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .preview-items {
@@ -442,6 +444,28 @@ h3 { font-size: 1.25rem; }
   gap: 8px;
   justify-content: center;
   padding: 16px;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Стили для скроллбара в списке призов */
+.preview-items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preview-items::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+}
+
+.preview-items::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+}
+
+.preview-items::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3);
 }
 
 .preview-item {
@@ -1197,53 +1221,15 @@ h3 { font-size: 1.25rem; }
 
 /* Улучшенные анимации для рулетки */
 .roulette-items.spinning {
-  animation: itemsSlide 8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation: itemsSlide 8s linear forwards;
 }
 
 @keyframes itemsSlide {
   0% { 
     transform: translateX(0); 
-    animation-timing-function: ease-out;
-  }
-  10% { 
-    transform: translateX(-200px); 
-    animation-timing-function: ease-in;
-  }
-  20% { 
-    transform: translateX(-600px); 
-    animation-timing-function: ease-out;
-  }
-  30% { 
-    transform: translateX(-1200px); 
-    animation-timing-function: ease-in;
-  }
-  40% { 
-    transform: translateX(-1800px); 
-    animation-timing-function: ease-out;
-  }
-  50% { 
-    transform: translateX(-2400px); 
-    animation-timing-function: ease-in;
-  }
-  60% { 
-    transform: translateX(-3000px); 
-    animation-timing-function: ease-out;
-  }
-  70% { 
-    transform: translateX(-3500px); 
-    animation-timing-function: ease-in;
-  }
-  80% { 
-    transform: translateX(-3800px); 
-    animation-timing-function: ease-out;
-  }
-  90% { 
-    transform: translateX(-3950px); 
-    animation-timing-function: ease-in;
   }
   100% { 
     transform: translateX(-4000px); 
-    animation-timing-function: ease-out;
   }
 }
 
