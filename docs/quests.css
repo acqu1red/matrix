@@ -1718,9 +1718,9 @@ h3 { font-size: 1.25rem; }
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
   border: 2px solid transparent;
   border-top: 2px solid currentColor;
   border-radius: 50%;
@@ -1759,9 +1759,9 @@ h3 { font-size: 1.25rem; }
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
   border: 2px solid transparent;
   border-top: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
@@ -1798,14 +1798,17 @@ h3 { font-size: 1.25rem; }
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* Специальные стили для кнопок рулетки в стиле поддержки */
+/* Специальные стили для кнопок рулетки - сохраняем оригинальный вид */
 #spinRoulette.loading,
 #buySpin.loading {
-  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%) !important;
-  border-color: #444 !important;
+  /* Сохраняем оригинальные стили кнопок */
+  background: inherit !important;
+  border-color: inherit !important;
   color: transparent !important;
   transform: none !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: inherit !important;
+  /* Только отключаем взаимодействие */
+  pointer-events: none !important;
 }
 
 #spinRoulette.loading::after,
@@ -1813,12 +1816,15 @@ h3 { font-size: 1.25rem; }
   border-top-color: #d6c7b8 !important;
 }
 
-/* Стили для кнопок дизайна в стиле поддержки */
+/* Стили для кнопок дизайна - сохраняем оригинальный вид */
 .design-option.loading {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  /* Сохраняем оригинальные стили */
+  background: inherit !important;
+  border-color: inherit !important;
   transform: none !important;
-  box-shadow: none !important;
+  box-shadow: inherit !important;
+  /* Только отключаем взаимодействие */
+  pointer-events: none !important;
 }
 
 .design-option.loading::after {
