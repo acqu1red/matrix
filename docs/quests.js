@@ -271,11 +271,31 @@ function createRouletteWheel() {
   
   console.log('✅ Контейнеры рулетки найдены');
   
-  // Обновляем класс дизайна контейнера
-  container.className = `roulette-container ${currentRouletteDesign}`;
+  // Обновляем класс дизайна контейнера (если не переключаем дизайн)
+  if (!container.classList.contains(currentRouletteDesign)) {
+    container.className = `roulette-container ${currentRouletteDesign}`;
+  }
   
-  items.innerHTML = '';
-  preview.innerHTML = '';
+  // Очищаем содержимое без мерцания
+  if (items.children.length > 0) {
+    items.style.opacity = '0.8';
+    setTimeout(() => {
+      items.innerHTML = '';
+      items.style.opacity = '1';
+    }, 50);
+  } else {
+    items.innerHTML = '';
+  }
+  
+  if (preview.children.length > 0) {
+    preview.style.opacity = '0.8';
+    setTimeout(() => {
+      preview.innerHTML = '';
+      preview.style.opacity = '1';
+    }, 50);
+  } else {
+    preview.innerHTML = '';
+  }
   
   // Сбрасываем позицию рулетки только при создании
   rouletteCurrentPosition = 0;
@@ -296,13 +316,16 @@ function createRouletteWheel() {
   // Перемешиваем иконки для разнообразия
   allItems.sort(() => Math.random() - 0.5);
   
-  // Создаем длинную ленту иконок для плавной анимации
-  const totalItems = allItems.length * 4; // Повторяем 4 раза для плавности
+  // Создаем бесконечную ленту иконок для плавной анимации
+  const totalItems = allItems.length * 8; // Увеличиваем количество для бесконечности
   
   console.log('Создаем', totalItems, 'элементов рулетки...');
   
   for (let i = 0; i < totalItems; i++) {
-    const prize = allItems[i % allItems.length];
+    // Случайно выбираем приз для разнообразия
+    const randomIndex = Math.floor(Math.random() * allItems.length);
+    const prize = allItems[randomIndex];
+    
     const item = document.createElement('div');
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
