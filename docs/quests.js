@@ -1242,9 +1242,8 @@ async function loadState(){
         } else {
           console.log('❌ Не найдено подходящее поле для ID в таблице admins');
         }
-              } else {
-          console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
-        }
+      } else {
+        console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
       }
       
       // Проверяем таблицу subscriptions
