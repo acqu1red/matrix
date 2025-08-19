@@ -5,7 +5,7 @@ const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5c
 const SUBSCRIPTIONS_TABLE = "subscriptions";
 const PROMOCODES_TABLE = "promocodes";
 const ADMIN_USERNAME = "@acqu1red";
-const ADMIN_IDS = ["acqu1red", "123456789", "708907063"]; // Добавьте сюда ID администраторов
+const ADMIN_IDS = ["acqu1red", "123456789", "708907063", "7365307696"]; // Добавьте сюда ID администраторов
 
 const PAYMENT_URL = "https://acqu1red.github.io/formulaprivate/payment.html";
 const ISLAND_MINIAPP_URL = "./island.html";
@@ -1109,6 +1109,21 @@ async function loadState(){
         console.log('✅ Пользователь найден в таблице admins:', adminsData);
       } else {
         console.log('❌ Пользователь не найден в таблице admins:', adminsError);
+        
+        // Пробуем другие поля для admins
+        const { data: adminsData2, error: adminsError2 } = await supabase
+          .from('admins')
+          .select("*")
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if(!adminsError2 && adminsData2) {
+          isAdmin = true;
+          isSubscribed = true;
+          console.log('✅ Пользователь найден в таблице admins по user_id:', adminsData2);
+        } else {
+          console.log('❌ Пользователь не найден в таблице admins по user_id:', adminsError2);
+        }
       }
       
       // Проверяем таблицу subscriptions
@@ -1137,6 +1152,20 @@ async function loadState(){
           console.log('✅ Подписка найдена по user_id:', subData2);
         } else {
           console.log('❌ Подписка не найдена по user_id:', subError2);
+          
+          // Пробуем tg_id
+          const { data: subData3, error: subError3 } = await supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("*")
+            .eq('tg_id', userId)
+            .maybeSingle();
+          
+          if(!subError3 && subData3) {
+            isSubscribed = true;
+            console.log('✅ Подписка найдена по tg_id:', subData3);
+          } else {
+            console.log('❌ Подписка не найдена по tg_id:', subError3);
+          }
         }
       }
       
@@ -1149,6 +1178,16 @@ async function loadState(){
       
       if(!tableError && tableInfo && tableInfo.length > 0) {
         console.log('📊 Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
+      }
+      
+      // Показываем все записи в таблице admins для диагностики
+      const { data: allAdmins, error: adminsTableError } = await supabase
+        .from('admins')
+        .select("*")
+        .limit(5);
+      
+      if(!adminsTableError && allAdmins) {
+        console.log('📊 Первые 5 записей в таблице admins:', allAdmins);
       }
       
     } catch(e){ 
@@ -1490,8 +1529,16 @@ async function savePromo(code, uid){
 
 // Функция для проверки, является ли пользователь админом
 function isAdmin() {
-  const adminIds = ['123456789', '708907063', 'acqu1red']; // Список ID администраторов
-  return userData.telegramId && adminIds.includes(userData.telegramId.toString());
+  if (!userData.telegramId) return false;
+  
+  const userId = userData.telegramId.toString();
+  const username = userData.username || '';
+  
+  const isAdminUser = ADMIN_IDS.includes(userId) || ADMIN_IDS.includes(username);
+  
+  console.log('🔍 Проверка админа:', { userId, username, isAdminUser, ADMIN_IDS });
+  
+  return isAdminUser;
 }
 
 function canSpinFree() {
