@@ -357,31 +357,16 @@ function spinRoulette(isFree = false) {
   // Добавляем класс для анимации нажатия
   spinBtn.classList.add("spinning");
   
-  // Выбираем приз на основе вероятностей
-  const prize = selectPrizeByProbability();
-  
-  // Вычисляем позицию для выбранного приза
-  const allItems = items.querySelectorAll('.roulette-item');
-  let targetItem = null;
-  let targetIndex = 0;
-  
-  allItems.forEach((item, index) => {
-    if (item.dataset.prize === prize.id) {
-      targetItem = item;
-      targetIndex = index;
-    }
-  });
-  
-  if (!targetItem) return;
-  
-  // Вычисляем расстояние для остановки на нужной иконке
-  const itemWidth = 100; // Ширина иконки + отступы
-  const centerOffset = 300; // Смещение к центру
-  const targetPosition = targetIndex * itemWidth + centerOffset;
-  const slideDistance = 3000 - targetPosition; // Общее расстояние минус позиция цели
+  // Генерируем случайное расстояние для равномерной прокрутки
+  const baseDistance = 3000 + Math.random() * 2000; // 3000-5000px базовое расстояние
+  const extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
+  const totalDistance = baseDistance + extraDistance;
   
   // Добавляем плавную анимацию скольжения
   items.classList.add('spinning');
+  
+  // Применяем CSS анимацию с вычисленным расстоянием
+  items.style.transform = `translateX(-${totalDistance}px)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
@@ -405,7 +390,7 @@ function spinRoulette(isFree = false) {
       items.style.transition = 'none';
       items.style.transform = 'translateX(0)';
       setTimeout(() => {
-        items.style.transition = 'transform 8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        items.style.transition = 'transform 8s ease-out';
       }, 50);
     }, 1000);
   }, 8000);
@@ -457,7 +442,7 @@ function determinePrizeByArrowPosition() {
     const prizeId = centerItem.dataset.prize;
     const prize = ROULETTE_PRIZES.find(p => p.id === prizeId);
     if (prize) {
-      console.log('Приз по позиции стрелки:', prize);
+      console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id);
       return prize;
     }
   }

@@ -1221,16 +1221,7 @@ h3 { font-size: 1.25rem; }
 
 /* Улучшенные анимации для рулетки */
 .roulette-items.spinning {
-  animation: itemsSlide 8s linear forwards;
-}
-
-@keyframes itemsSlide {
-  0% { 
-    transform: translateX(0); 
-  }
-  100% { 
-    transform: translateX(-4000px); 
-  }
+  transition: transform 8s ease-out;
 }
 
 /* Казино-стиль для иконок */
