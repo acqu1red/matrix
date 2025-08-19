@@ -271,31 +271,11 @@ function createRouletteWheel() {
   
   console.log('✅ Контейнеры рулетки найдены');
   
-  // Обновляем класс дизайна контейнера (если не переключаем дизайн)
-  if (!container.classList.contains(currentRouletteDesign)) {
-    container.className = `roulette-container ${currentRouletteDesign}`;
-  }
+  // Обновляем класс дизайна контейнера
+  container.className = `roulette-container ${currentRouletteDesign}`;
   
-  // Очищаем содержимое без мерцания
-  if (items.children.length > 0) {
-    items.style.opacity = '0.8';
-    setTimeout(() => {
-      items.innerHTML = '';
-      items.style.opacity = '1';
-    }, 50);
-  } else {
-    items.innerHTML = '';
-  }
-  
-  if (preview.children.length > 0) {
-    preview.style.opacity = '0.8';
-    setTimeout(() => {
-      preview.innerHTML = '';
-      preview.style.opacity = '1';
-    }, 50);
-  } else {
-    preview.innerHTML = '';
-  }
+  items.innerHTML = '';
+  preview.innerHTML = '';
   
   // Сбрасываем позицию рулетки только при создании
   rouletteCurrentPosition = 0;
@@ -317,12 +297,12 @@ function createRouletteWheel() {
   allItems.sort(() => Math.random() - 0.5);
   
   // Создаем бесконечную ленту иконок для плавной анимации
-  const totalItems = allItems.length * 8; // Увеличиваем количество для бесконечности
+  const totalItems = allItems.length * 20; // Увеличиваем количество для бесконечной прокрутки
   
   console.log('Создаем', totalItems, 'элементов рулетки...');
   
   for (let i = 0; i < totalItems; i++) {
-    // Случайно выбираем приз для разнообразия
+    // Случайно выбираем приз для каждого элемента
     const randomIndex = Math.floor(Math.random() * allItems.length);
     const prize = allItems[randomIndex];
     
@@ -1751,6 +1731,18 @@ const originalSpinHandler = () => {
 function switchRouletteDesign(design) {
   console.log('Переключение дизайна рулетки на:', design);
   
+  // Предотвращаем множественные вызовы
+  if (currentRouletteDesign === design) {
+    return;
+  }
+  
+  // Добавляем плавный переход
+  const container = $(".roulette-container");
+  if (container) {
+    container.style.transition = 'opacity 0.3s ease';
+    container.style.opacity = '0.5';
+  }
+  
   // Обновляем активную опцию
   document.querySelectorAll('.design-option').forEach(option => {
     option.classList.remove('active');
@@ -1765,7 +1757,17 @@ function switchRouletteDesign(design) {
   currentRouletteDesign = design;
   
   // Пересоздаем рулетку с новым дизайном
-  createRouletteWheel();
+  setTimeout(() => {
+    createRouletteWheel();
+    
+    // Восстанавливаем прозрачность
+    setTimeout(() => {
+      if (container) {
+        container.style.opacity = '1';
+        container.style.transition = '';
+      }
+    }, 100);
+  }, 150);
   
   // Сохраняем выбор в localStorage
   localStorage.setItem('rouletteDesign', design);
