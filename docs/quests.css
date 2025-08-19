@@ -322,6 +322,13 @@ h3 { font-size: 1.25rem; }
   display: flex;
   align-items: center;
   transition: transform 8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.roulette-items.changing {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
 }
 
 .roulette-item {
@@ -1439,13 +1446,17 @@ h3 { font-size: 1.25rem; }
   background: 
     radial-gradient(circle at 30% 30%, rgba(255, 107, 157, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 70% 70%, rgba(252, 203, 110, 0.3) 0%, transparent 50%),
-    url('./assets/photovideo/djoker.png') no-repeat 10% 10% / 40px auto,
-    url('./assets/photovideo/drakula.png') no-repeat 85% 15% / 30px auto,
-    url('./assets/photovideo/eye.png') no-repeat 15% 85% / 35px auto,
-    url('./assets/photovideo/drakon.png') no-repeat 80% 80% / 45px auto;
-  opacity: 0.3;
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="%23ff6b9d" opacity="0.3"/><rect x="70" y="30" width="8" height="8" fill="%23fdcb6e" opacity="0.3" rx="2"/><polygon points="40,60 45,50 50,60" fill="%23ff7675" opacity="0.3"/><circle cx="80" cy="70" r="4" fill="%23fab1a0" opacity="0.3"/><path d="M10,80 Q20,70 30,80" stroke="%23ff6b9d" stroke-width="2" fill="none" opacity="0.3"/></svg>');
   border-radius: inherit;
   z-index: -1;
+  background-size: 100px 100px;
+  background-repeat: repeat;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(1deg); }
 }
 
 .roulette-container.lebedev .roulette-display {
@@ -1467,13 +1478,16 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: 
-    url('./assets/photovideo/djoker2.png') no-repeat 5% 5% / 25px auto,
-    url('./assets/photovideo/eye.png') no-repeat 90% 10% / 20px auto,
-    url('./assets/photovideo/drakula.png') no-repeat 10% 85% / 22px auto,
-    url('./assets/photovideo/drakon.png') no-repeat 85% 85% / 28px auto;
-  opacity: 0.25;
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><circle cx="10" cy="10" r="2" fill="%23ff6b9d" opacity="0.2"/><rect x="35" y="15" width="4" height="4" fill="%23fdcb6e" opacity="0.2" rx="1"/><polygon points="20,30 22,25 25,30" fill="%23ff7675" opacity="0.2"/><circle cx="40" cy="35" r="2" fill="%23fab1a0" opacity="0.2"/></svg>');
+  background-size: 50px 50px;
+  background-repeat: repeat;
   pointer-events: none;
-  z-index: 1;
+  animation: slide 8s linear infinite;
+}
+
+@keyframes slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50px); }
 }
 
 .roulette-container.lebedev .roulette-item {
@@ -1497,14 +1511,23 @@ h3 { font-size: 1.25rem; }
   right: 2px;
   bottom: 2px;
   background: 
-    url('./assets/photovideo/djoker.png') no-repeat center / 15px auto;
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><circle cx="5" cy="5" r="1" fill="%23ff6b9d" opacity="0.3"/><rect x="12" y="8" width="2" height="2" fill="%23fdcb6e" opacity="0.3" rx="0.5"/><polygon points="8,12 9,10 10,12" fill="%23ff7675" opacity="0.3"/></svg>');
+  background-size: 20px 20px;
+  background-repeat: repeat;
   border-radius: 17px;
   pointer-events: none;
-  opacity: 0.15;
 }
 
 .roulette-container.lebedev .roulette-item:nth-child(even) {
   transform: rotate(-2deg);
+}
+
+.roulette-container.lebedev .roulette-item:nth-child(3n) {
+  transform: rotate(1deg);
+}
+
+.roulette-container.lebedev .roulette-item:nth-child(4n) {
+  transform: rotate(-1deg);
 }
 
 .roulette-container.lebedev .roulette-item:hover {
@@ -1524,6 +1547,47 @@ h3 { font-size: 1.25rem; }
     2px 2px 0px rgba(255,255,255,0.8),
     4px 4px 0px rgba(0,0,0,0.3);
   font-size: 28px;
+}
+
+/* Стили для кнопки "Возможные призы" в дизайне Лебедева */
+.roulette-container.lebedev .roulette-preview {
+  background: rgba(0, 0, 0, 0.7) !important;
+  border: 3px solid #2d3436 !important;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.3) !important;
+  transform: rotate(-1deg) !important;
+}
+
+.roulette-container.lebedev .preview-header {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border-bottom: 2px solid #2d3436 !important;
+}
+
+.roulette-container.lebedev .preview-title {
+  color: #ffeaa7 !important;
+  font-family: 'Comic Sans MS', cursive !important;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.5) !important;
+}
+
+.roulette-container.lebedev .preview-toggle {
+  color: #ffeaa7 !important;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.5) !important;
+}
+
+.roulette-container.lebedev .preview-content {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.roulette-container.lebedev .preview-item {
+  background: linear-gradient(135deg, #ffeaa7, #fab1a0) !important;
+  border: 2px solid #2d3436 !important;
+  border-radius: 15px !important;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.3) !important;
+  transform: rotate(1deg) !important;
+  font-family: 'Comic Sans MS', cursive !important;
+}
+
+.roulette-container.lebedev .preview-item:nth-child(even) {
+  transform: rotate(-1deg) !important;
 }
 
 /* Специальные стили для иконок в разных дизайнах */
@@ -1554,93 +1618,4 @@ h3 { font-size: 1.25rem; }
   text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
   font-family: 'Comic Sans MS', cursive;
   line-height: 1.2;
-}
-
-/* Специальные стили для кнопки "Возможные призы" в дизайне Лебедева */
-.roulette-container.lebedev .roulette-preview {
-  background: rgba(0, 0, 0, 0.7) !important;
-  border: 3px solid #2d3436 !important;
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.3) !important;
-  transform: rotate(1deg) !important;
-  position: relative;
-  overflow: hidden;
-}
-
-.roulette-container.lebedev .roulette-preview::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    url('./assets/photovideo/drakon.png') no-repeat 95% 5% / 35px auto,
-    url('./assets/photovideo/eye.png') no-repeat 5% 95% / 25px auto;
-  opacity: 0.2;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.roulette-container.lebedev .preview-header {
-  background: linear-gradient(135deg, #ffeaa7, #fab1a0) !important;
-  border-bottom: 2px solid #2d3436 !important;
-  font-family: 'Comic Sans MS', cursive !important;
-  font-weight: bold !important;
-}
-
-.roulette-container.lebedev .preview-content {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 2px solid #2d3436 !important;
-}
-
-.roulette-container.lebedev .preview-item {
-  background: linear-gradient(135deg, #ffeaa7, #fab1a0) !important;
-  border: 2px solid #2d3436 !important;
-  border-radius: 15px !important;
-  margin: 5px !important;
-  padding: 8px !important;
-  font-family: 'Comic Sans MS', cursive !important;
-  transform: rotate(-1deg) !important;
-  transition: transform 0.2s ease !important;
-}
-
-.roulette-container.lebedev .preview-item:nth-child(even) {
-  transform: rotate(1deg) !important;
-}
-
-.roulette-container.lebedev .preview-item:hover {
-  transform: rotate(0deg) scale(1.05) !important;
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.3) !important;
-}
-
-/* Видео элемент в дизайне Лебедева */
-.roulette-container.lebedev .lebedev-video {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 60px;
-  height: 60px;
-  opacity: 0.3;
-  border-radius: 10px;
-  pointer-events: none;
-  z-index: 2;
-  transform: rotate(5deg);
-  border: 2px solid #2d3436;
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
-}
-
-/* Дополнительные детские элементы в области превью */
-.roulette-container.lebedev .roulette-preview::after {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: -5px;
-  right: -5px;
-  bottom: -5px;
-  background: 
-    radial-gradient(circle at 95% 5%, rgba(255, 107, 157, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 5% 95%, rgba(252, 203, 110, 0.2) 0%, transparent 50%);
-  opacity: 0.25;
-  pointer-events: none;
-  z-index: -1;
 }

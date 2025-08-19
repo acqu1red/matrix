@@ -274,34 +274,6 @@ function createRouletteWheel() {
   // Обновляем класс дизайна контейнера
   container.className = `roulette-container ${currentRouletteDesign}`;
   
-  // Добавляем видео элемент для дизайна Лебедева
-  if (currentRouletteDesign === 'lebedev') {
-    // Удаляем существующие видео элементы
-    const existingVideos = container.querySelectorAll('.lebedev-video');
-    existingVideos.forEach(video => video.remove());
-    
-    // Создаем новый видео элемент
-    const videoElement = document.createElement('video');
-    videoElement.className = 'lebedev-video';
-    videoElement.src = './assets/photovideo/flowers.mov';
-    videoElement.autoplay = true;
-    videoElement.loop = true;
-    videoElement.muted = true;
-    videoElement.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 60px;
-      height: 60px;
-      opacity: 0.3;
-      border-radius: 10px;
-      pointer-events: none;
-      z-index: 2;
-      transform: rotate(5deg);
-    `;
-    container.appendChild(videoElement);
-  }
-  
   items.innerHTML = '';
   preview.innerHTML = '';
   
@@ -324,16 +296,13 @@ function createRouletteWheel() {
   // Перемешиваем иконки для разнообразия
   allItems.sort(() => Math.random() - 0.5);
   
-  // Создаем бесконечную ленту иконок для плавной анимации
-  const totalItems = allItems.length * 20; // Увеличиваем количество для бесконечной прокрутки
+  // Создаем БЕСКОНЕЧНУЮ ленту иконок для зацикливания
+  const totalItems = allItems.length * 20; // Повторяем 20 раз для бесконечной прокрутки
   
-  console.log('Создаем', totalItems, 'элементов рулетки...');
+  console.log('Создаем', totalItems, 'элементов рулетки для зацикливания...');
   
   for (let i = 0; i < totalItems; i++) {
-    // Случайно выбираем приз для каждого элемента
-    const randomIndex = Math.floor(Math.random() * allItems.length);
-    const prize = allItems[randomIndex];
-    
+    const prize = allItems[i % allItems.length];
     const item = document.createElement('div');
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
@@ -463,7 +432,12 @@ function spinRoulette(isFree = false) {
   // Генерируем случайное расстояние для равномерной прокрутки
   const baseDistance = 3000 + Math.random() * 2000; // 3000-5000px базовое расстояние
   const extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
-  const spinDistance = baseDistance + extraDistance;
+  let spinDistance = baseDistance + extraDistance;
+  
+  // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
+  if (currentRouletteDesign === 'lebedev') {
+    spinDistance = -spinDistance;
+  }
   
   // Вычисляем новую позицию (продолжаем с текущей позиции)
   const newPosition = rouletteCurrentPosition + spinDistance;
@@ -1759,18 +1733,6 @@ const originalSpinHandler = () => {
 function switchRouletteDesign(design) {
   console.log('Переключение дизайна рулетки на:', design);
   
-  // Предотвращаем множественные вызовы
-  if (currentRouletteDesign === design) {
-    return;
-  }
-  
-  // Добавляем плавный переход
-  const container = $(".roulette-container");
-  if (container) {
-    container.style.transition = 'opacity 0.3s ease';
-    container.style.opacity = '0.5';
-  }
-  
   // Обновляем активную опцию
   document.querySelectorAll('.design-option').forEach(option => {
     option.classList.remove('active');
@@ -1781,24 +1743,29 @@ function switchRouletteDesign(design) {
     activeOption.classList.add('active');
   }
   
+  // Плавный переход - добавляем класс для анимации
+  const items = $("#rouletteItems");
+  if (items) {
+    items.classList.add('changing');
+  }
+  
   // Обновляем текущий дизайн
   currentRouletteDesign = design;
   
-  // Пересоздаем рулетку с новым дизайном
+  // Пересоздаем рулетку с новым дизайном с небольшой задержкой
   setTimeout(() => {
     createRouletteWheel();
     
-    // Восстанавливаем прозрачность
-    setTimeout(() => {
-      if (container) {
-        container.style.opacity = '1';
-        container.style.transition = '';
-      }
-    }, 100);
+    // Убираем класс анимации
+    if (items) {
+      setTimeout(() => {
+        items.classList.remove('changing');
+      }, 100);
+    }
   }, 150);
   
-  // Сохраняем выбор в localStorage
-  localStorage.setItem('rouletteDesign', design);
+  // НЕ сохраняем выбор - всегда начинаем со стандартного дизайна
+  // localStorage.setItem('rouletteDesign', design);
   
   toast(`Дизайн рулетки изменен на: ${design}`, 'success');
 }
@@ -2116,12 +2083,9 @@ loadState().then(async state=>{
   // Обновляем отображение валюты после загрузки данных
   updateCurrencyDisplay();
   
-  // Загружаем сохраненный дизайн рулетки
-  const savedDesign = localStorage.getItem('rouletteDesign');
-  if (savedDesign && ROULETTE_PRIZES_DESIGNS[savedDesign]) {
-    currentRouletteDesign = savedDesign;
-    console.log('Загружен сохраненный дизайн рулетки:', savedDesign);
-  }
+  // Всегда начинаем со стандартного дизайна рулетки
+  currentRouletteDesign = 'standard';
+  console.log('Установлен стандартный дизайн рулетки');
   
   // Создаем рулетку
   createRouletteWheel();
