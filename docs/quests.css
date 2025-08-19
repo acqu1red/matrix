@@ -1433,7 +1433,7 @@ h3 { font-size: 1.25rem; }
     8px 8px 0px rgba(0,0,0,0.3),
     inset 0 0 20px rgba(255,255,255,0.2);
   position: relative;
-  transform: rotate(-1deg);
+  /* Убираем transform с контейнера чтобы избежать конфликтов с анимацией */
 }
 
 .roulette-container.lebedev::before {
@@ -1451,7 +1451,7 @@ h3 { font-size: 1.25rem; }
   z-index: -1;
   background-size: 100px 100px;
   background-repeat: repeat;
-  animation: float 6s ease-in-out infinite;
+  /* Убираем анимацию чтобы избежать конфликтов с прокруткой */
 }
 
 @keyframes float {
@@ -1465,7 +1465,7 @@ h3 { font-size: 1.25rem; }
   box-shadow: 
     4px 4px 0px rgba(0,0,0,0.3),
     inset 0 0 20px rgba(255,255,255,0.3);
-  transform: rotate(1deg);
+  /* Убираем transform чтобы избежать конфликтов с анимацией прокрутки */
   position: relative;
   overflow: hidden;
 }
@@ -1482,7 +1482,7 @@ h3 { font-size: 1.25rem; }
   background-size: 50px 50px;
   background-repeat: repeat;
   pointer-events: none;
-  animation: slide 8s linear infinite;
+  /* Убираем анимацию чтобы избежать конфликтов с прокруткой */
 }
 
 @keyframes slide {
@@ -1497,7 +1497,7 @@ h3 { font-size: 1.25rem; }
   box-shadow: 
     4px 4px 0px rgba(0,0,0,0.3),
     inset 0 0 10px rgba(255,255,255,0.3);
-  transform: rotate(2deg);
+  /* Убираем transform чтобы избежать конфликтов с анимацией прокрутки */
   font-family: 'Comic Sans MS', cursive;
   position: relative;
   overflow: hidden;
@@ -1519,19 +1519,19 @@ h3 { font-size: 1.25rem; }
 }
 
 .roulette-container.lebedev .roulette-item:nth-child(even) {
-  transform: rotate(-2deg);
+  /* Убираем transform чтобы избежать конфликтов */
 }
 
 .roulette-container.lebedev .roulette-item:nth-child(3n) {
-  transform: rotate(1deg);
+  /* Убираем transform чтобы избежать конфликтов */
 }
 
 .roulette-container.lebedev .roulette-item:nth-child(4n) {
-  transform: rotate(-1deg);
+  /* Убираем transform чтобы избежать конфликтов */
 }
 
 .roulette-container.lebedev .roulette-item:hover {
-  transform: rotate(0deg) scale(1.1);
+  transform: scale(1.1);
   box-shadow: 
     6px 6px 0px rgba(0,0,0,0.4),
     inset 0 0 15px rgba(255,255,255,0.4);
@@ -1554,7 +1554,7 @@ h3 { font-size: 1.25rem; }
   background: rgba(0, 0, 0, 0.7) !important;
   border: 3px solid #2d3436 !important;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.3) !important;
-  transform: rotate(-1deg) !important;
+  /* Убираем transform чтобы избежать конфликтов */
 }
 
 .roulette-container.lebedev .preview-header {
@@ -1582,12 +1582,12 @@ h3 { font-size: 1.25rem; }
   border: 2px solid #2d3436 !important;
   border-radius: 15px !important;
   box-shadow: 3px 3px 0px rgba(0,0,0,0.3) !important;
-  transform: rotate(1deg) !important;
+  /* Убираем transform чтобы избежать конфликтов */
   font-family: 'Comic Sans MS', cursive !important;
 }
 
 .roulette-container.lebedev .preview-item:nth-child(even) {
-  transform: rotate(-1deg) !important;
+  /* Убираем transform чтобы избежать конфликтов */
 }
 
 /* Специальные стили для иконок в разных дизайнах */
