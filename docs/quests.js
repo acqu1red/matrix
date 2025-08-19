@@ -307,6 +307,12 @@ function createRouletteWheel() {
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
     
+    // Для авторского дизайна добавляем случайный поворот
+    if (currentRouletteDesign === 'author') {
+      const randomRotation = (Math.random() - 0.5) * 20; // от -10 до +10 градусов
+      item.style.setProperty('--random-rotation', `${randomRotation}deg`);
+    }
+    
     // Создаем содержимое иконки
     const symbol = document.createElement('div');
     symbol.className = 'icon-symbol';
@@ -373,7 +379,7 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'quest24h', name: 'Квест 24ч', icon: '🎯', count: 5, probability: 0.75 },
     { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
   ],
-  futuristic: [
+  casino: [
     { id: 'subscription', name: 'НЕО-ПОДПИСКА', icon: '⚡', count: 3, probability: 0.03 },
     { id: 'discount500', name: '500 CREDITS', icon: '🔮', count: 1, probability: 0.10 },
     { id: 'discount100', name: '100 CREDITS', icon: '💠', count: 3, probability: 0.15 },
@@ -381,7 +387,7 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'quest24h', name: 'HACK 24H', icon: '🎮', count: 5, probability: 0.75 },
     { id: 'frodCourse', name: 'MATRIX', icon: '🌐', count: 1, probability: 0.0005 }
   ],
-  lebedev: [
+  author: [
     { id: 'subscription', name: 'ПОДПИСКА', icon: '🌟', count: 3, probability: 0.03 },
     { id: 'discount500', name: '500 РУБ', icon: '🌈', count: 1, probability: 0.10 },
     { id: 'discount100', name: '100 РУБ', icon: '🎪', count: 3, probability: 0.15 },
@@ -435,7 +441,7 @@ function spinRoulette(isFree = false) {
   let spinDistance = baseDistance + extraDistance;
   
   // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
-  if (currentRouletteDesign === 'lebedev') {
+  if (currentRouletteDesign === 'author') {
     spinDistance = -spinDistance;
   }
   
@@ -471,9 +477,9 @@ function spinRoulette(isFree = false) {
     setTimeout(() => {
       items.classList.remove('spinning');
       // Сохраняем текущую позицию для следующего спина
-      items.style.transition = 'transform 15s ease-out';
+      items.style.transition = 'transform 8s ease-out';
     }, 1000);
-  }, 15000);
+  }, 8000);
 }
 
 function selectPrizeByProbability() {
@@ -1236,8 +1242,9 @@ async function loadState(){
         } else {
           console.log('❌ Не найдено подходящее поле для ID в таблице admins');
         }
-      } else {
-        console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
+              } else {
+          console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
+        }
       }
       
       // Проверяем таблицу subscriptions
@@ -1729,47 +1736,6 @@ const originalSpinHandler = () => {
   }
 };
 
-// Функция переключения дизайна рулетки
-function switchRouletteDesign(design) {
-  console.log('Переключение дизайна рулетки на:', design);
-  
-  // Обновляем активную опцию
-  document.querySelectorAll('.design-option').forEach(option => {
-    option.classList.remove('active');
-  });
-  
-  const activeOption = document.querySelector(`[data-design="${design}"]`);
-  if (activeOption) {
-    activeOption.classList.add('active');
-  }
-  
-  // Плавный переход - добавляем класс для анимации
-  const items = $("#rouletteItems");
-  if (items) {
-    items.classList.add('changing');
-  }
-  
-  // Обновляем текущий дизайн
-  currentRouletteDesign = design;
-  
-  // Пересоздаем рулетку с новым дизайном с небольшой задержкой
-  setTimeout(() => {
-    createRouletteWheel();
-    
-    // Убираем класс анимации
-    if (items) {
-      setTimeout(() => {
-        items.classList.remove('changing');
-      }, 100);
-    }
-  }, 150);
-  
-  // НЕ сохраняем выбор - всегда начинаем со стандартного дизайна
-  // localStorage.setItem('rouletteDesign', design);
-  
-  toast(`Дизайн рулетки изменен на: ${design}`, 'success');
-}
-
 // Функция инициализации обработчиков рулетки
 function initializeRouletteHandlers() {
   console.log('Инициализация обработчиков рулетки...');
@@ -1839,6 +1805,47 @@ function initializeRouletteHandlers() {
   
   console.log('✅ Обработчики переключения дизайнов добавлены');
   console.log('Инициализация обработчиков рулетки завершена');
+}
+
+// Функция переключения дизайна рулетки
+function switchRouletteDesign(design) {
+  console.log('Переключение дизайна рулетки на:', design);
+  
+  // Обновляем активную опцию
+  document.querySelectorAll('.design-option').forEach(option => {
+    option.classList.remove('active');
+  });
+  
+  const activeOption = document.querySelector(`[data-design="${design}"]`);
+  if (activeOption) {
+    activeOption.classList.add('active');
+  }
+  
+  // Плавный переход - добавляем класс для анимации
+  const items = $("#rouletteItems");
+  if (items) {
+    items.classList.add('changing');
+  }
+  
+  // Обновляем текущий дизайн
+  currentRouletteDesign = design;
+  
+  // Пересоздаем рулетку с новым дизайном с небольшой задержкой
+  setTimeout(() => {
+    createRouletteWheel();
+    
+    // Убираем класс анимации
+    if (items) {
+      setTimeout(() => {
+        items.classList.remove('changing');
+      }, 100);
+    }
+  }, 150);
+  
+  // НЕ сохраняем выбор - всегда начинаем со стандартного дизайна
+  // localStorage.setItem('rouletteDesign', design);
+  
+  toast(`Дизайн рулетки изменен на: ${design}`, 'success');
 }
 
 // Обработчик клика по уровню
