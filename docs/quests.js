@@ -64,10 +64,15 @@ function initTG(){
 // Инициализация после загрузки страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM загружен, инициализация...');
-initTG();
+  initTG();
   
-  // Проверяем инициализацию Supabase
+  // Инициализируем Supabase и загружаем данные
   setTimeout(async () => {
+    // Убеждаемся, что Supabase инициализирован
+    if (!supabase && window.supabase) {
+      await initSupabase();
+    }
+    
     if (supabase) {
       console.log('Supabase готов к использованию');
       
@@ -87,7 +92,10 @@ initTG();
       
       // Загружаем данные пользователя если есть Telegram ID
       if (userData.telegramId) {
-        loadUserData(userData.telegramId);
+        console.log('Загружаем данные для Telegram ID:', userData.telegramId);
+        await loadUserData(userData.telegramId);
+      } else {
+        console.log('Telegram ID не получен, данные не загружены');
       }
     } else {
       console.error('Supabase не инициализирован');
@@ -203,8 +211,11 @@ function updateCurrencyDisplay() {
 }
 
 async function addRewards(mulacoin, exp, questId = null, questName = null, difficulty = null) {
+  console.log('=== СТАРТ ADDREWARDS ===');
   console.log('addRewards вызвана с параметрами:', { mulacoin, exp, questId, questName, difficulty });
   console.log('Текущие данные пользователя:', userData);
+  console.log('Supabase доступен:', !!supabase);
+  console.log('Telegram ID:', userData.telegramId);
   
   const oldLevel = userData.level;
   
@@ -558,9 +569,13 @@ function activateQuest24h() {
 }
 
 async function saveUserData() {
+  console.log('=== СТАРТ СОХРАНЕНИЯ ДАННЫХ ===');
   console.log('Сохранение данных пользователя:', userData);
   console.log('Supabase доступен:', !!supabase);
   console.log('Telegram ID:', userData.telegramId);
+  console.log('Mulacoin для сохранения:', userData.mulacoin);
+  console.log('Experience для сохранения:', userData.exp);
+  console.log('Level для сохранения:', userData.level);
   
   // Сохраняем в localStorage как fallback
   if (userData.userId) {
@@ -1579,11 +1594,20 @@ async function testSupabaseConnection() {
 
 // Функция для принудительного сохранения данных
 async function forceSaveData() {
-  console.log('Принудительное сохранение данных...');
+  console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ===');
   console.log('Текущие данные:', userData);
+  console.log('Supabase доступен:', !!supabase);
+  console.log('Telegram ID:', userData.telegramId);
   
   if (!userData.telegramId) {
     toast('Telegram ID не получен', 'error');
+    console.error('Telegram ID не получен');
+    return;
+  }
+  
+  if (!supabase) {
+    toast('Supabase не инициализирован', 'error');
+    console.error('Supabase не инициализирован');
     return;
   }
   
@@ -1605,6 +1629,7 @@ async function forceSaveData() {
     await saveRouletteHistory('test', 'Тестовый приз', true, 0);
     
     toast('Тестовые данные сохранены', 'success');
+    console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ЗАВЕРШЕНО ===');
   } catch (error) {
     console.error('Ошибка принудительного сохранения:', error);
     toast('Ошибка сохранения тестовых данных', 'error');
@@ -1630,3 +1655,6 @@ window.questSystem = {
   startQuest,
   loadState
 };
+
+// Делаем addRewards доступной глобально для квестов
+window.addRewards = addRewards;
