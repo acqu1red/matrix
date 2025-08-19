@@ -56,10 +56,12 @@ WHERE tablename IN ('admins', 'subscriptions');
 SELECT COUNT(*) as admins_count FROM admins;
 SELECT COUNT(*) as subscriptions_count FROM subscriptions;
 
--- 14. Проверяем конкретных админов
+-- 14. Проверяем конкретных админов (используем только существующие поля)
+-- Сначала посмотрите на структуру таблицы admins из запроса 1, 
+-- затем используйте правильные названия полей
 SELECT * FROM admins WHERE telegram_id IN ('708907063', '7365307696');
-SELECT * FROM admins WHERE user_id IN ('708907063', '7365307696');
 
--- 15. Проверяем подписки
+-- 15. Проверяем подписки (используем только существующие поля)
+-- Сначала посмотрите на структуру таблицы subscriptions из запроса 3,
+-- затем используйте правильные названия полей
 SELECT * FROM subscriptions WHERE telegram_id IN ('708907063', '7365307696');
-SELECT * FROM subscriptions WHERE user_id IN ('708907063', '7365307696');
