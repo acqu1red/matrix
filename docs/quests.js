@@ -387,8 +387,11 @@ function spinRoulette(isFree = false) {
   setTimeout(() => {
     spinBtn.classList.remove("spinning");
     
-    // Сразу показываем модальное окно с призом
-    showPrizeModal(prize, isFree);
+    // Определяем приз по позиции стрелки (центральный элемент)
+    const centerPrize = determinePrizeByArrowPosition();
+    
+    // Показываем модальное окно с призом, который указывает стрелка
+    showPrizeModal(centerPrize, isFree);
     
     // Восстанавливаем кнопку без анимации
     spinBtn.textContent = "🎰 Крутить рулетку";
@@ -421,6 +424,47 @@ function selectPrizeByProbability() {
   
   // Если ничего не выбрано, возвращаем самый частый приз
   return ROULETTE_PRIZES[4]; // quest24h
+}
+
+// Функция для определения приза по позиции стрелки
+function determinePrizeByArrowPosition() {
+  const items = $("#rouletteItems");
+  if (!items) return ROULETTE_PRIZES[0];
+  
+  const allItems = items.querySelectorAll('.roulette-item');
+  if (allItems.length === 0) return ROULETTE_PRIZES[0];
+  
+  // Вычисляем позицию стрелки (центр экрана)
+  const containerWidth = items.offsetWidth || 600;
+  const centerX = containerWidth / 2;
+  
+  // Находим элемент, который находится в центре
+  let centerItem = null;
+  let minDistance = Infinity;
+  
+  allItems.forEach((item, index) => {
+    const itemRect = item.getBoundingClientRect();
+    const itemCenterX = itemRect.left + itemRect.width / 2;
+    const distance = Math.abs(itemCenterX - centerX);
+    
+    if (distance < minDistance) {
+      minDistance = distance;
+      centerItem = item;
+    }
+  });
+  
+  if (centerItem) {
+    const prizeId = centerItem.dataset.prize;
+    const prize = ROULETTE_PRIZES.find(p => p.id === prizeId);
+    if (prize) {
+      console.log('Приз по позиции стрелки:', prize);
+      return prize;
+    }
+  }
+  
+  // Fallback на случайный приз
+  console.log('Fallback на случайный приз');
+  return selectPrizeByProbability();
 }
 
 async function showPrizeModal(prize, isFree = false) {
