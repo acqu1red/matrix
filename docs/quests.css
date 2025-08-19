@@ -1572,3 +1572,111 @@ h3 { font-size: 1.25rem; }
   0% { opacity: 0.5; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
 }
+
+/* Эффекты загрузки для кнопок */
+.btn.loading {
+  position: relative;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.btn.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: loadingShine 1.5s infinite;
+}
+
+@keyframes loadingShine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.btn.loading::after {
+  content: '⏳';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  animation: loadingSpin 1s linear infinite;
+  z-index: 2;
+}
+
+@keyframes loadingSpin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Скрываем текст кнопки во время загрузки */
+.btn.loading span,
+.btn.loading {
+  opacity: 0.3;
+}
+
+/* Специальные стили для кнопок дизайна */
+.design-option.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.design-option.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: inherit;
+  animation: designLoadingPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes designLoadingPulse {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.8; }
+}
+
+.design-option.loading::after {
+  content: '🔄';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  animation: designLoadingSpin 1.5s linear infinite;
+  z-index: 3;
+}
+
+@keyframes designLoadingSpin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.design-option.loading .design-icon {
+  opacity: 0.3;
+}
+
+/* Плавная анимация смены текста кнопки */
+.btn.transitioning {
+  transition: all 0.5s ease-in-out;
+}
+
+.btn.transitioning .btn-text {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Анимация появления нового текста */
+.btn-text-new {
+  opacity: 0;
+  animation: textFadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes textFadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

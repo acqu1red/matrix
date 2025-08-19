@@ -429,11 +429,14 @@ function spinRoulette(isFree = false) {
   
   saveUserData();
   
-  spinBtn.disabled = true;
-  buyBtn.disabled = true;
+  // Добавляем эффект загрузки на кнопки
+  spinBtn.classList.add("loading");
+  buyBtn.classList.add("loading");
   
-  // Добавляем класс для анимации нажатия
-  spinBtn.classList.add("spinning");
+  // Добавляем эффект загрузки на кнопки дизайна
+  document.querySelectorAll('.design-option').forEach(option => {
+    option.classList.add("loading");
+  });
   
   // Генерируем случайное расстояние для равномерной прокрутки (увеличено для 15 секунд)
   const baseDistance = 6000 + Math.random() * 4000; // 6000-10000px базовое расстояние для 15 секунд
@@ -461,7 +464,14 @@ function spinRoulette(isFree = false) {
   
   // Показываем анимацию ожидания
   setTimeout(() => {
-    spinBtn.classList.remove("spinning");
+    // Убираем эффекты загрузки
+    spinBtn.classList.remove("loading");
+    buyBtn.classList.remove("loading");
+    
+    // Убираем эффекты загрузки с кнопок дизайна
+    document.querySelectorAll('.design-option').forEach(option => {
+      option.classList.remove("loading");
+    });
     
     // Обновляем текущую позицию рулетки
     rouletteCurrentPosition = newPosition;
@@ -472,11 +482,8 @@ function spinRoulette(isFree = false) {
     // Показываем модальное окно с призом, который указывает стрелка
     showPrizeModal(centerPrize, isFree);
     
-    // Восстанавливаем кнопку без анимации
-    spinBtn.textContent = "🎰 Крутить рулетку";
-    spinBtn.disabled = false;
-    buyBtn.disabled = false;
-    updateRouletteButton();
+    // Плавно обновляем кнопку с анимацией
+    updateRouletteButtonWithAnimation();
     
     // Убираем класс spinning, но НЕ сбрасываем позицию
     setTimeout(() => {
@@ -1722,6 +1729,53 @@ function updateRouletteButton() {
   buyBtn.textContent = `Крутить за ${SPIN_COST} MULACOIN`;
 }
 
+// Функция для плавного обновления кнопки с анимацией
+function updateRouletteButtonWithAnimation() {
+  const spinBtn = $("#spinRoulette");
+  const buyBtn = $("#buySpin");
+  
+  if (!spinBtn || !buyBtn) return;
+  
+  // Добавляем класс для плавного перехода
+  spinBtn.classList.add("transitioning");
+  
+  // Определяем новый текст
+  let newText = "";
+  let isDisabled = false;
+  
+  if (isAdmin()) {
+    newText = "🎰 Крутить рулетку (∞)";
+    isDisabled = false;
+    spinBtn.title = "Администратор: бесконечные попытки";
+  } else if (canSpinFree()) {
+    newText = "🎰 Крутить рулетку";
+    isDisabled = false;
+  } else {
+    newText = "⏰ Лимит исчерпан";
+    isDisabled = true;
+  }
+  
+  // Плавно меняем текст
+  setTimeout(() => {
+    spinBtn.textContent = newText;
+    spinBtn.disabled = isDisabled;
+    
+    if (isDisabled) {
+      spinBtn.classList.add("disabled");
+    } else {
+      spinBtn.classList.remove("disabled");
+    }
+    
+    // Убираем класс перехода
+    setTimeout(() => {
+      spinBtn.classList.remove("transitioning");
+    }, 300);
+  }, 200);
+  
+  // Обновляем текст кнопки покупки
+  buyBtn.textContent = `Крутить за ${SPIN_COST} MULACOIN`;
+}
+
 /* ====== Header buttons ====== */
 $("#btnSubscribe").addEventListener("click", ()=>{
   openSubscription();
@@ -1817,6 +1871,11 @@ function initializeRouletteHandlers() {
 function switchRouletteDesign(design) {
   console.log('Переключение дизайна рулетки на:', design);
   
+  // Добавляем эффект загрузки на все кнопки дизайна
+  document.querySelectorAll('.design-option').forEach(option => {
+    option.classList.add('loading');
+  });
+  
   // Обновляем активную опцию
   document.querySelectorAll('.design-option').forEach(option => {
     option.classList.remove('active');
@@ -1840,10 +1899,15 @@ function switchRouletteDesign(design) {
   setTimeout(() => {
     createRouletteWheel();
     
-    // Убираем класс анимации
+    // Убираем класс анимации и эффекты загрузки
     if (items) {
       setTimeout(() => {
         items.classList.remove('changing');
+        
+        // Убираем эффекты загрузки с кнопок дизайна
+        document.querySelectorAll('.design-option').forEach(option => {
+          option.classList.remove('loading');
+        });
       }, 100);
     }
   }, 150);
