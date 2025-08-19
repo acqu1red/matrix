@@ -388,12 +388,12 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'frodCourse', name: 'MATRIX', icon: '🌐', count: 1, probability: 0.0005 }
   ],
   author: [
-    { id: 'subscription', name: 'ПОДПИСКА', icon: '🌟', count: 3, probability: 0.03 },
-    { id: 'discount500', name: '500 РУБ', icon: '🌈', count: 1, probability: 0.10 },
-    { id: 'discount100', name: '100 РУБ', icon: '🎪', count: 3, probability: 0.15 },
-    { id: 'discount50', name: '50 РУБ', icon: '🎨', count: 4, probability: 0.20 },
-    { id: 'quest24h', name: 'КВЕСТИК', icon: '🎭', count: 5, probability: 0.75 },
-    { id: 'frodCourse', name: 'КУРСИК', icon: '📖', count: 1, probability: 0.0005 }
+    { id: 'subscription', name: 'КОСМИЧЕСКАЯ ПОДПИСКА', icon: '🚀', count: 3, probability: 0.03 },
+    { id: 'discount500', name: '500 ГАЛАКТИК', icon: '⭐', count: 1, probability: 0.10 },
+    { id: 'discount100', name: '100 ЗВЕЗД', icon: '🌌', count: 3, probability: 0.15 },
+    { id: 'discount50', name: '50 ПЛАНЕТ', icon: '🪐', count: 4, probability: 0.20 },
+    { id: 'quest24h', name: 'КОСМИЧЕСКИЙ КВЕСТ', icon: '🌠', count: 5, probability: 0.75 },
+    { id: 'frodCourse', name: 'ГАЛАКТИЧЕСКИЙ КУРС', icon: '🌍', count: 1, probability: 0.0005 }
   ]
 };
 
@@ -1893,6 +1893,16 @@ function switchRouletteDesign(design) {
     activeOption.classList.add('active');
   }
   
+  // Применяем космическую тему для авторского дизайна
+  const rouletteSection = document.querySelector('.roulette-section');
+  if (rouletteSection) {
+    if (design === 'author') {
+      rouletteSection.classList.add('author-theme');
+    } else {
+      rouletteSection.classList.remove('author-theme');
+    }
+  }
+  
   // Плавный переход - добавляем класс для анимации
   const items = $("#rouletteItems");
   if (items) {
@@ -2173,6 +2183,12 @@ loadState().then(async state=>{
   
   // Создаем рулетку
   createRouletteWheel();
+  
+  // Убираем космическую тему при инициализации (стандартный дизайн)
+  const rouletteSection = document.querySelector('.roulette-section');
+  if (rouletteSection) {
+    rouletteSection.classList.remove('author-theme');
+  }
   
   // Инициализируем обработчики событий после создания рулетки
   initializeRouletteHandlers();
