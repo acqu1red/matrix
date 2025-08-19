@@ -255,6 +255,9 @@ function createRouletteWheel() {
   items.innerHTML = '';
   preview.innerHTML = '';
   
+  // Сбрасываем позицию рулетки только при создании
+  rouletteCurrentPosition = 0;
+  
   // Создаем иконки на основе призов
   let allItems = [];
   ROULETTE_PRIZES.forEach(prize => {
@@ -319,6 +322,9 @@ function getSectorColor(prizeId) {
   return colors[prizeId] || 'linear-gradient(45deg, #74B9FF, #0984E3)';
 }
 
+// Глобальная переменная для хранения текущей позиции рулетки
+let rouletteCurrentPosition = 0;
+
 function spinRoulette(isFree = false) {
   const items = $("#rouletteItems");
   const spinBtn = $("#spinRoulette");
@@ -360,17 +366,23 @@ function spinRoulette(isFree = false) {
   // Генерируем случайное расстояние для равномерной прокрутки
   const baseDistance = 3000 + Math.random() * 2000; // 3000-5000px базовое расстояние
   const extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
-  const totalDistance = baseDistance + extraDistance;
+  const spinDistance = baseDistance + extraDistance;
+  
+  // Вычисляем новую позицию (продолжаем с текущей позиции)
+  const newPosition = rouletteCurrentPosition + spinDistance;
   
   // Добавляем плавную анимацию скольжения
   items.classList.add('spinning');
   
-  // Применяем CSS анимацию с вычисленным расстоянием
-  items.style.transform = `translateX(-${totalDistance}px)`;
+  // Применяем CSS анимацию с новой позицией
+  items.style.transform = `translateX(-${newPosition}px)`;
   
   // Показываем анимацию ожидания
   setTimeout(() => {
     spinBtn.classList.remove("spinning");
+    
+    // Обновляем текущую позицию рулетки
+    rouletteCurrentPosition = newPosition;
     
     // Определяем приз по позиции стрелки (центральный элемент)
     const centerPrize = determinePrizeByArrowPosition();
@@ -384,14 +396,11 @@ function spinRoulette(isFree = false) {
     buyBtn.disabled = false;
     updateRouletteButton();
     
-    // Сбрасываем позицию поля для следующего спина
+    // Убираем класс spinning, но НЕ сбрасываем позицию
     setTimeout(() => {
       items.classList.remove('spinning');
-      items.style.transition = 'none';
-      items.style.transform = 'translateX(0)';
-      setTimeout(() => {
-        items.style.transition = 'transform 8s ease-out';
-      }, 50);
+      // Сохраняем текущую позицию для следующего спина
+      items.style.transition = 'transform 8s ease-out';
     }, 1000);
   }, 8000);
 }
@@ -442,7 +451,7 @@ function determinePrizeByArrowPosition() {
     const prizeId = centerItem.dataset.prize;
     const prize = ROULETTE_PRIZES.find(p => p.id === prizeId);
     if (prize) {
-      console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id);
+      console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
       return prize;
     }
   }
