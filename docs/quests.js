@@ -274,6 +274,35 @@ function createRouletteWheel() {
   // Обновляем класс дизайна контейнера
   container.className = `roulette-container ${currentRouletteDesign}`;
   
+  // Добавляем видео элемент для дизайна Лебедева
+  if (currentRouletteDesign === 'lebedev') {
+    // Удаляем существующие видео элементы
+    const existingVideos = container.querySelectorAll('.lebedev-video');
+    existingVideos.forEach(video => video.remove());
+    
+    // Создаем новый видео элемент
+    const videoElement = document.createElement('video');
+    videoElement.className = 'lebedev-video';
+    videoElement.src = '../assets/photovideo/0_Flower_Abstract_1080x1080.mov';
+    videoElement.autoplay = true;
+    videoElement.loop = true;
+    videoElement.muted = true;
+    videoElement.style.cssText = `
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 2;
+      border-radius: 10px;
+      transform: rotate(5deg);
+    `;
+    
+    container.appendChild(videoElement);
+  }
+  
   items.innerHTML = '';
   preview.innerHTML = '';
   
