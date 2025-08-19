@@ -274,11 +274,32 @@ function createRouletteWheel() {
   // Обновляем класс дизайна контейнера
   container.className = `roulette-container ${currentRouletteDesign}`;
   
-  // Убираем видео элемент - он вызывает проблемы
+  // Добавляем видео элемент для дизайна Лебедева
   if (currentRouletteDesign === 'lebedev') {
     // Удаляем существующие видео элементы
     const existingVideos = container.querySelectorAll('.lebedev-video');
     existingVideos.forEach(video => video.remove());
+    
+    // Создаем новый видео элемент
+    const videoElement = document.createElement('video');
+    videoElement.className = 'lebedev-video';
+    videoElement.src = './assets/photovideo/flowers.mov';
+    videoElement.autoplay = true;
+    videoElement.loop = true;
+    videoElement.muted = true;
+    videoElement.style.cssText = `
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      opacity: 0.3;
+      border-radius: 10px;
+      pointer-events: none;
+      z-index: 2;
+      transform: rotate(5deg);
+    `;
+    container.appendChild(videoElement);
   }
   
   items.innerHTML = '';
@@ -289,8 +310,6 @@ function createRouletteWheel() {
   
   // Получаем призы для текущего дизайна
   const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
-  
-  console.log('Текущие призы для дизайна', currentRouletteDesign, ':', currentPrizes);
   
   // Создаем иконки на основе призов
   let allItems = [];
@@ -315,11 +334,6 @@ function createRouletteWheel() {
     const randomIndex = Math.floor(Math.random() * allItems.length);
     const prize = allItems[randomIndex];
     
-    if (!prize) {
-      console.error('Приз не найден для индекса:', randomIndex);
-      continue;
-    }
-    
     const item = document.createElement('div');
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
@@ -327,11 +341,11 @@ function createRouletteWheel() {
     // Создаем содержимое иконки
     const symbol = document.createElement('div');
     symbol.className = 'icon-symbol';
-    symbol.textContent = prize.icon || '🎁';
+    symbol.textContent = prize.icon;
     
     const label = document.createElement('div');
     label.className = 'icon-label';
-    label.textContent = prize.name || 'Приз';
+    label.textContent = prize.name;
     
     item.appendChild(symbol);
     item.appendChild(label);
@@ -343,20 +357,15 @@ function createRouletteWheel() {
   // Создаем превью призов
   console.log('Создаем превью призов...');
   currentPrizes.forEach(prize => {
-    if (!prize) {
-      console.error('Приз для превью не найден');
-      return;
-    }
-    
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     
     const icon = document.createElement('span');
     icon.className = 'preview-icon';
-    icon.textContent = prize.icon || '🎁';
+    icon.textContent = prize.icon;
     
     const name = document.createElement('span');
-    name.textContent = prize.name || 'Приз';
+    name.textContent = prize.name;
     
     previewItem.appendChild(icon);
     previewItem.appendChild(name);
@@ -1755,11 +1764,12 @@ function switchRouletteDesign(design) {
     return;
   }
   
-  // Блокируем повторные вызовы
-  if (window.isSwitchingDesign) {
-    return;
+  // Добавляем плавный переход
+  const container = $(".roulette-container");
+  if (container) {
+    container.style.transition = 'opacity 0.3s ease';
+    container.style.opacity = '0.5';
   }
-  window.isSwitchingDesign = true;
   
   // Обновляем активную опцию
   document.querySelectorAll('.design-option').forEach(option => {
@@ -1775,19 +1785,20 @@ function switchRouletteDesign(design) {
   currentRouletteDesign = design;
   
   // Пересоздаем рулетку с новым дизайном
-  try {
+  setTimeout(() => {
     createRouletteWheel();
-  } catch (error) {
-    console.error('Ошибка при создании рулетки:', error);
-  }
+    
+    // Восстанавливаем прозрачность
+    setTimeout(() => {
+      if (container) {
+        container.style.opacity = '1';
+        container.style.transition = '';
+      }
+    }, 100);
+  }, 150);
   
   // Сохраняем выбор в localStorage
   localStorage.setItem('rouletteDesign', design);
-  
-  // Разблокируем переключение через небольшую задержку
-  setTimeout(() => {
-    window.isSwitchingDesign = false;
-  }, 500);
   
   toast(`Дизайн рулетки изменен на: ${design}`, 'success');
 }

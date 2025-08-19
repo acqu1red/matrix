@@ -1438,27 +1438,14 @@ h3 { font-size: 1.25rem; }
   bottom: -10px;
   background: 
     radial-gradient(circle at 30% 30%, rgba(255, 107, 157, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(252, 203, 110, 0.3) 0%, transparent 50%);
-  border-radius: inherit;
-  z-index: -1;
-}
-
-/* Детские рисунки на фоне контейнера */
-.roulette-container.lebedev::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
+    radial-gradient(circle at 70% 70%, rgba(252, 203, 110, 0.3) 0%, transparent 50%),
     url('./assets/photovideo/djoker.png') no-repeat 10% 10% / 40px auto,
     url('./assets/photovideo/drakula.png') no-repeat 85% 15% / 30px auto,
     url('./assets/photovideo/eye.png') no-repeat 15% 85% / 35px auto,
     url('./assets/photovideo/drakon.png') no-repeat 80% 80% / 45px auto;
   opacity: 0.3;
-  pointer-events: none;
-  z-index: 0;
+  border-radius: inherit;
+  z-index: -1;
 }
 
 .roulette-container.lebedev .roulette-display {
@@ -1480,7 +1467,10 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: 
-    url('./assets/photovideo/djoker2.png') no-repeat 5% 5% / 25px auto;
+    url('./assets/photovideo/djoker2.png') no-repeat 5% 5% / 25px auto,
+    url('./assets/photovideo/eye.png') no-repeat 90% 10% / 20px auto,
+    url('./assets/photovideo/drakula.png') no-repeat 10% 85% / 22px auto,
+    url('./assets/photovideo/drakon.png') no-repeat 85% 85% / 28px auto;
   opacity: 0.25;
   pointer-events: none;
   z-index: 1;
@@ -1572,6 +1562,23 @@ h3 { font-size: 1.25rem; }
   border: 3px solid #2d3436 !important;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.3) !important;
   transform: rotate(1deg) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.roulette-container.lebedev .roulette-preview::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    url('./assets/photovideo/drakon.png') no-repeat 95% 5% / 35px auto,
+    url('./assets/photovideo/eye.png') no-repeat 5% 95% / 25px auto;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .roulette-container.lebedev .preview-header {
@@ -1606,30 +1613,24 @@ h3 { font-size: 1.25rem; }
   box-shadow: 3px 3px 0px rgba(0,0,0,0.3) !important;
 }
 
-/* Убираем видео элемент - он вызывает проблемы */
-
-/* Детские элементы в кнопках управления */
-.roulette-container.lebedev .roulette-controls {
-  position: relative;
-}
-
-.roulette-container.lebedev .roulette-controls::before {
-  content: '';
+/* Видео элемент в дизайне Лебедева */
+.roulette-container.lebedev .lebedev-video {
   position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  background: 
-    radial-gradient(circle at 5% 5%, rgba(255, 107, 157, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 95% 95%, rgba(252, 203, 110, 0.15) 0%, transparent 50%);
-  opacity: 0.2;
+  top: 10px;
+  right: 10px;
+  width: 60px;
+  height: 60px;
+  opacity: 0.3;
+  border-radius: 10px;
   pointer-events: none;
-  z-index: -1;
+  z-index: 2;
+  transform: rotate(5deg);
+  border: 2px solid #2d3436;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
 }
 
 /* Дополнительные детские элементы в области превью */
-.roulette-container.lebedev .roulette-preview::before {
+.roulette-container.lebedev .roulette-preview::after {
   content: '';
   position: absolute;
   top: -5px;
@@ -1637,8 +1638,8 @@ h3 { font-size: 1.25rem; }
   right: -5px;
   bottom: -5px;
   background: 
-    url('./assets/photovideo/drakula.png') no-repeat 95% 5% / 15px auto,
-    url('./assets/photovideo/eye.png') no-repeat 5% 95% / 12px auto;
+    radial-gradient(circle at 95% 5%, rgba(255, 107, 157, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 5% 95%, rgba(252, 203, 110, 0.2) 0%, transparent 50%);
   opacity: 0.25;
   pointer-events: none;
   z-index: -1;
