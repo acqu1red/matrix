@@ -1068,98 +1068,111 @@ async function loadState(){
   let isSubscribed = false;
   let isAdmin = false;
   
-  // Проверка на администратора (по username и telegramId)
-  console.log('Проверяем админа:', { username, userId, ADMIN_IDS });
+  console.log('=== НАЧАЛО ПРОВЕРКИ ДОСТУПА ===');
+  console.log('Данные пользователя:', { userId, username });
+  console.log('Список админов:', ADMIN_IDS);
   
+  // Проверка на администратора (по username и telegramId)
   if ((username && ADMIN_IDS.includes(username)) || (userId && ADMIN_IDS.includes(userId))) {
     isAdmin = true;
     isSubscribed = true; // Администраторы имеют доступ ко всем квестам
-    console.log('Пользователь является админом!');
+    console.log('✅ Пользователь является админом!');
   } else {
-    console.log('Пользователь не является админом');
+    console.log('❌ Пользователь не является админом');
   }
   
   // Проверка подписки через Supabase
   if(supabase && userId){
     try{
-      console.log('Проверяем подписку для пользователя:', userId);
+      console.log('🔍 Проверяем подписку для пользователя:', userId);
       
-      // Сначала получаем структуру таблицы
+      // Проверяем таблицу admins
+      console.log('📋 Проверяем таблицу admins...');
+      const { data: adminsData, error: adminsError } = await supabase
+        .from('admins')
+        .select("*")
+        .eq('telegram_id', userId)
+        .maybeSingle();
+      
+      if(!adminsError && adminsData) {
+        isAdmin = true;
+        isSubscribed = true;
+        console.log('✅ Пользователь найден в таблице admins:', adminsData);
+      } else {
+        console.log('❌ Пользователь не найден в таблице admins:', adminsError);
+      }
+      
+      // Проверяем таблицу subscriptions
+      console.log('📋 Проверяем таблицу subscriptions...');
+      const { data: subData, error: subError } = await supabase
+        .from(SUBSCRIPTIONS_TABLE)
+        .select("*")
+        .eq('telegram_id', userId)
+        .maybeSingle();
+      
+      if(!subError && subData) {
+        isSubscribed = true;
+        console.log('✅ Подписка найдена в таблице subscriptions:', subData);
+      } else {
+        console.log('❌ Подписка не найдена в таблице subscriptions:', subError);
+        
+        // Пробуем другие поля
+        const { data: subData2, error: subError2 } = await supabase
+          .from(SUBSCRIPTIONS_TABLE)
+          .select("*")
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if(!subError2 && subData2) {
+          isSubscribed = true;
+          console.log('✅ Подписка найдена по user_id:', subData2);
+        } else {
+          console.log('❌ Подписка не найдена по user_id:', subError2);
+        }
+      }
+      
+      // Показываем структуру таблиц для диагностики
+      console.log('🔍 Диагностика таблиц...');
       const { data: tableInfo, error: tableError } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
         .select("*")
         .limit(1);
       
       if(!tableError && tableInfo && tableInfo.length > 0) {
-        console.log('Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
-        
-        // Ищем поле с ID пользователя
-        const possibleIdFields = ['user_id', 'telegram_id', 'tg_id', 'userid', 'telegramid'];
-        let foundField = null;
-        
-        for(const field of possibleIdFields) {
-          if(tableInfo[0].hasOwnProperty(field)) {
-            foundField = field;
-            break;
-          }
-        }
-        
-        if(foundField) {
-          console.log('Найдено поле для ID:', foundField);
-          
-          // Проверяем подписку по найденному полю
-          const { data, error } = await supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .select("*")
-            .eq(foundField, userId)
-            .maybeSingle();
-          
-          if(!error && data){ 
-            isSubscribed = true; 
-            console.log('Подписка найдена для пользователя:', userId, 'Данные:', data);
-          } else {
-            console.log('Подписка не найдена для пользователя:', userId, 'Ошибка:', error);
-          }
-        } else {
-          console.log('Не найдено поле для ID пользователя. Доступные поля:', Object.keys(tableInfo[0]));
-          
-          // Показываем все записи для анализа
-          const { data: allData, error: allError } = await supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .select("*")
-            .limit(5);
-          
-          if(!allError && allData) {
-            console.log('Первые 5 записей в таблице subscriptions:', allData);
-          }
-        }
-      } else {
-        console.log('Не удалось получить структуру таблицы:', tableError);
+        console.log('📊 Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
       }
+      
     } catch(e){ 
-      console.warn("supabase check fail", e); 
+      console.error("❌ Ошибка проверки Supabase:", e); 
     }
+  } else {
+    console.log('❌ Supabase недоступен или userId отсутствует');
   }
   
-  console.log('Состояние пользователя:', { userId, username, isSubscribed, isAdmin });
+  console.log('📊 ИТОГОВОЕ СОСТОЯНИЕ:', { userId, username, isSubscribed, isAdmin });
+  console.log('=== КОНЕЦ ПРОВЕРКИ ДОСТУПА ===');
+  
   return { userId, username, isSubscribed, isAdmin };
 }
 
 /* ====== Rotation + gating ====== */
 function featuredQuests(state){
-  console.log('featuredQuests вызвана с состоянием:', state);
-  console.log('Всего квестов:', QUESTS.length);
+  console.log('=== FEATURED QUESTS ===');
+  console.log('Состояние пользователя:', state);
+  console.log('Всего квестов в системе:', QUESTS.length);
+  console.log('Квесты:', QUESTS.map(q => ({ id: q.id, name: q.name, available: q.available })));
   
   if(state.isSubscribed || state.isAdmin) {
-    console.log('Пользователь имеет подписку или админ, возвращаем все квесты');
-    console.log('isSubscribed:', state.isSubscribed, 'isAdmin:', state.isAdmin);
+    console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
+    console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
     return QUESTS;
   }
   
   // Для бесплатных пользователей показываем только доступные квесты
   const availableQuests = QUESTS.filter(q => q.available);
-  console.log('Бесплатный пользователь, доступных квестов:', availableQuests.length);
-  console.log('Доступные квесты:', availableQuests.map(q => q.name));
+  console.log('❌ Бесплатный пользователь, доступных квестов:', availableQuests.length);
+  console.log('📋 Доступные квесты:', availableQuests.map(q => q.name));
+  console.log('🔒 Заблокированные квесты:', QUESTS.filter(q => !q.available).map(q => q.name));
   return availableQuests;
 }
 
@@ -1168,11 +1181,13 @@ function buildCards(state){
   const container = $("#quests");
   container.innerHTML = "";
   
-  console.log('Строим карточки для состояния:', state);
-  console.log('isSubscribed:', state.isSubscribed, 'isAdmin:', state.isAdmin);
+  console.log('=== BUILD CARDS ===');
+  console.log('Состояние пользователя:', state);
+  console.log('Статус доступа:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
   
   const list = featuredQuests(state);
-  console.log('Доступные квесты:', list.length);
+  console.log('📊 Квестов для отображения:', list.length);
+  console.log('📋 Список квестов:', list.map(q => q.name));
   
   list.forEach((q, index) => {
     const card = document.createElement("div");
