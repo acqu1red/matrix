@@ -1170,17 +1170,32 @@ async function loadState(){
         if (foundSubField) {
           console.log('🔍 Найдено поле для ID в subscriptions:', foundSubField);
           
+          // Проверяем активную подписку
           const { data: subData, error: subError } = await supabase
             .from(SUBSCRIPTIONS_TABLE)
             .select("*")
             .eq(foundSubField, userId)
+            .eq('status', 'active')
             .maybeSingle();
           
           if(!subError && subData) {
             isSubscribed = true;
-            console.log('✅ Подписка найдена в таблице subscriptions:', subData);
+            console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
           } else {
-            console.log('❌ Подписка не найдена в таблице subscriptions:', subError);
+            console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
+            
+            // Проверяем любую подписку (не только активную)
+            const { data: anySubData, error: anySubError } = await supabase
+              .from(SUBSCRIPTIONS_TABLE)
+              .select("*")
+              .eq(foundSubField, userId)
+              .maybeSingle();
+            
+            if(!anySubError && anySubData) {
+              console.log('ℹ️ Найдена неактивная подписка:', anySubData);
+            } else {
+              console.log('❌ Подписка не найдена в таблице subscriptions:', anySubError);
+            }
           }
         } else {
           console.log('❌ Не найдено подходящее поле для ID в таблице subscriptions');
