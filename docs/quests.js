@@ -452,7 +452,12 @@ function spinRoulette(isFree = false) {
   items.classList.add('spinning');
   
   // Применяем CSS анимацию с новой позицией
-  items.style.transform = `translateX(-${newPosition}px)`;
+  // Для авторского дизайна используем положительное значение для прокрутки влево
+  if (currentRouletteDesign === 'author') {
+    items.style.transform = `translateX(${newPosition}px)`;
+  } else {
+    items.style.transform = `translateX(-${newPosition}px)`;
+  }
   
   // Показываем анимацию ожидания
   setTimeout(() => {
