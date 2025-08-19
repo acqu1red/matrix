@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Язык тела - Формула Quests</title>
+  <link rel="stylesheet" href="../quests.css">
+  <style>
+    /* Специфичные стили для квеста "Язык тела" */
+    .quest-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .phase-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .phase-badge {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .phase-badge.active {
+      background: var(--glow1);
+      color: var(--bg0);
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
+    }
+
+    /* Видео контейнер с анимированной рамкой */
+    .video-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      background: linear-gradient(45deg, var(--glow1), var(--glow2), var(--glow1)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      animation: borderGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes borderGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .video-frame {
+      position: relative;
+      display: inline-block;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transform: perspective(1000px) rotateY(0deg);
+      transition: transform 0.3s ease;
+    }
+
+    .video-frame:hover {
+      transform: perspective(1000px) rotateY(5deg);
+    }
+
+    .video-player {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      display: block;
+      border-radius: var(--radius-sm);
+    }
+
+    .video-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .play-btn {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 247, 213, 0.3);
+    }
+
+    .play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(102, 247, 213, 0.6);
+    }
+
+    .play-btn.playing {
+      background: var(--glow2);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .progress-bar {
+      flex: 1;
+      max-width: 300px;
+      height: 6px;
+      background: var(--glass-strong);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--glow1), var(--glow2));
+      width: 0%;
+      transition: width 0.1s ease;
+      border-radius: 3px;
+    }
+
+    .video-annotation {
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
+      border: 1px solid rgba(102, 247, 213, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    /* Контейнер для анимированных лиц */
+    .face-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 30px;
+      text-align: center;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .face-sprite {
+      width: 256px;
+      height: 256px;
+      background-size: calc(var(--cols) * 100%) calc(var(--rows) * 100%);
+      image-rendering: auto;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .face-instruction {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    /* Варианты ответов */
+    .answer-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .answer-option {
+      background: var(--glass);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .answer-option:hover {
+      border-color: var(--glow1);
+      background: var(--glass-strong);
+      transform: translateY(-2px);
+    }
+
+    .answer-option.triad {
+      font-size: 14px;
+      padding: 12px 16px;
+      line-height: 1.4;
+    }
+
+    .triad-option {
+      margin-bottom: 8px;
+    }
+
+    .answer-option.correct {
+      background: linear-gradient(135deg, var(--success), #22C55E);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .answer-option.incorrect {
+      background: linear-gradient(135deg, var(--warning), #F59E0B);
+      color: white;
+      border-color: var(--warning);
+    }
+
+    /* Счетчик попыток */
+    .attempts-counter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .attempts-text {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .attempts-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .attempt-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .attempt-dot.used {
+      background: var(--warning);
+    }
+
+    /* Кнопки навигации */
+    .quest-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .btn-back {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back:hover {
+      background: var(--glass-strong);
+      border-color: var(--border-strong);
+    }
+
+    /* Модал завершения */
+    .quest-complete {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .quest-complete.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .quest-complete-content {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .quest-complete-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .quest-complete-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 16px;
+    }
+
+    .quest-complete-description {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .quest-rewards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .reward-item {
+      background: var(--glass);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .reward-amount {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+
+    .reward-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-close {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.3);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .quest-container {
+        padding: 16px;
+      }
+      
+      .face-sprite {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .answer-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quest-container">
+    <!-- Индикатор прогресса -->
+    <div class="phase-indicator">
+      <div class="phase-badge active">Элемент 1 из 20</div>
+    </div>
+
+    <!-- Контейнер для видео анализа -->
+    <div id="videoContainer" class="video-container">
+      <h3>Анализ языка тела в видео</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите эмоцию или поведение
+      </p>
+      
+      <div class="video-frame">
+        <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+          <source src="" type="video/mp4">
+          Ваш браузер не поддерживает видео.
+        </video>
+      </div>
+      
+      <div class="video-controls">
+        <button class="play-btn" id="playBtn">▶️</button>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+      
+      <div class="video-annotation">
+        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше 
+        (это работает и как это замечать, как использовать и тд) - научишься определять язык тела 
+        так, что за секунду начнешь понимать.
+      </div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="videoAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
+      </div>
+      
+      <div class="answer-options" id="videoOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
+
+
+
+    <!-- Кнопки навигации -->
+    <div class="quest-controls">
+      <a href="../quests.html" class="btn-back">← Назад к квестам</a>
+    </div>
+  </div>
+
+  <!-- Модал завершения квеста -->
+  <div class="quest-complete" id="questComplete">
+    <div class="quest-complete-content">
+      <div class="quest-complete-icon">🎉</div>
+      <h2 class="quest-complete-title">Квест завершен!</h2>
+      <p class="quest-complete-description">
+        Отлично! Вы успешно проанализировали язык тела и выражения лица. 
+        Результаты сохранены в главном меню по кнопке "История".
+      </p>
+      
+      <div class="quest-rewards">
+        <div class="reward-item">
+          <div class="reward-amount">+3</div>
+          <div class="reward-label">Mulacoin</div>
+        </div>
+        <div class="reward-item">
+          <div class="reward-amount">+500</div>
+          <div class="reward-label">Опыта</div>
+        </div>
+      </div>
+      
+      <button class="btn-close" onclick="closeQuestComplete()">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    // Данные из нового манифеста
+    let quizData = [];
+    let currentItem = null;
+    let currentAttempts = 0;
+    let currentPhase = 'video';
+    let usedItems = new Set();
+
+    // Инициализация
+    async function init() {
+      try {
+        const response = await fetch('../assets/manifest_single_mode_en_20.json');
+        quizData = await response.json();
+        console.log('Манифест загружен:', quizData.length, 'элементов');
+        loadNextItem();
+      } catch (error) {
+        console.error('Ошибка загрузки манифеста:', error);
+        showError('Ошибка загрузки данных квеста');
+      }
+    }
+
+    // Инициализация
+    async function init() {
+      try {
+        const response = await fetch('../assets/bodylang/manifest.json');
+        faceManifest = await response.json();
+        loadVideoPhase();
+      } catch (error) {
+        console.error('Ошибка загрузки manifest:', error);
+        // Fallback на старые данные
+        loadVideoPhase();
+      }
+    }
+
+    // Загрузка следующего элемента
+    function loadNextItem() {
+      // Выбираем случайный неиспользованный элемент
+      const availableItems = quizData.filter(item => !usedItems.has(item.id));
+      
+      if (availableItems.length === 0) {
+        // Все элементы использованы, завершаем квест
+        completeQuest();
+        return;
+      }
+      
+      currentItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+      usedItems.add(currentItem.id);
+      
+      console.log('Загружен элемент:', currentItem);
+      
+      // Сбрасываем попытки
+      currentAttempts = 0;
+      updateAttemptsDisplay();
+      
+      // Загружаем видео
+      const videoPlayer = document.getElementById('videoPlayer');
+      videoPlayer.src = `../assets/${currentItem.file}`;
+      videoPlayer.load();
+      
+      // Генерируем варианты ответов
+      generateOptions();
+      
+      // Показываем контейнер
+      document.getElementById('videoContainer').style.display = 'block';
+      
+      // Обновляем индикатор фазы
+      updatePhaseIndicator();
+    }
+
+    // Загрузка фазы лица
+    function loadFacePhase() {
+      isVideoPhase = false;
+      updatePhaseIndicator();
+      
+      // Выбираем случайное лицо
+      currentFace = faceManifest[Math.floor(Math.random() * faceManifest.length)];
+      
+      // Настраиваем спрайт
+      const sprite = document.getElementById('faceSprite');
+      sprite.style.setProperty('--cols', currentFace.grid_cols);
+      sprite.style.setProperty('--rows', currentFace.grid_rows);
+      sprite.style.backgroundImage = `url(../assets/bodylang/${currentFace.file})`;
+      
+      // Запускаем анимацию
+      startFaceAnimation(sprite, currentFace);
+      
+      // Сбрасываем попытки
+      faceAttempts = 0;
+      updateAttemptsDisplay('face');
+      
+      // Создаем варианты ответов
+      createFaceOptions();
+      
+      // Показываем фазу лица
+      document.getElementById('videoPhase').style.display = 'none';
+      document.getElementById('facePhase').style.display = 'flex';
+    }
+
+    // Анимация лица
+    function startFaceAnimation(sprite, faceData) {
+      let frame = 0;
+      const fps = faceData.fps || 8;
+      
+      function animate() {
+        const cols = faceData.grid_cols;
+        const rows = faceData.grid_rows;
+        const totalFrames = faceData.frames;
+        
+        frame = (frame + 1) % totalFrames;
+        const col = frame % cols;
+        const row = Math.floor(frame / cols);
+        
+        const x = (col / (cols - 1)) * 100;
+        const y = (row / (rows - 1)) * 100;
+        
+        sprite.style.backgroundPosition = `${x}% ${y}%`;
+        
+        setTimeout(animate, 1000 / fps);
+      }
+      
+      animate();
+    }
+
+    // Генерация вариантов ответов
+    function generateOptions() {
+      const container = document.getElementById('videoOptions');
+      container.innerHTML = '';
+      
+      if (currentItem.mode === 'single') {
+        // Одиночный режим - 3 кнопки с эмоциями
+        const options = [...currentItem.choices_en];
+        
+        // Перемешиваем варианты
+        options.sort(() => Math.random() - 0.5);
+        
+        options.forEach((option, index) => {
+          const button = document.createElement('button');
+          button.className = 'answer-option';
+          button.textContent = option;
+          button.onclick = () => checkAnswer(index, option);
+          container.appendChild(button);
+        });
+      } else if (currentItem.mode === 'triad') {
+        // Триадный режим - 3 варианта по 3 эмоции
+        currentItem.triad_options_en.forEach((triad, triadIndex) => {
+          const triadContainer = document.createElement('div');
+          triadContainer.className = 'triad-option';
+          
+          const triadButton = document.createElement('button');
+          triadButton.className = 'answer-option triad';
+          triadButton.innerHTML = triad.join(' + ');
+          triadButton.onclick = () => checkTriadAnswer(triadIndex, triad);
+          triadContainer.appendChild(triadButton);
+          container.appendChild(triadContainer);
+        });
+      }
+    }
+
+    // Проверка ответа для одиночного режима
+    function checkAnswer(index, answer) {
+      const correctAnswer = currentItem.label_en;
+      const buttons = document.querySelectorAll('#videoOptions .answer-option');
+      
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === answer && answer !== correctAnswer) {
+          btn.classList.add('incorrect');
+        }
+      });
+      
+      if (answer === correctAnswer) {
+        setTimeout(() => {
+          loadNextItem();
+        }, 2000);
+      } else {
+        currentAttempts++;
+        updateAttemptsDisplay();
+        
+        if (currentAttempts >= 3) {
+          setTimeout(() => {
+            loadNextItem(); // Загружаем следующий элемент
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            generateOptions(); // Меняем варианты ответов
+            buttons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+          }, 2000);
+        }
+      }
+    }
+
+    // Проверка ответа для триадного режима
+    function checkTriadAnswer(triadIndex, selectedTriad) {
+      const correctTriad = currentItem.triad_en_correct;
+      const buttons = document.querySelectorAll('#videoOptions .answer-option');
+      
+      // Проверяем полное совпадение массивов
+      const isCorrect = selectedTriad.length === correctTriad.length &&
+        selectedTriad.every((emotion, index) => emotion === correctTriad[index]);
+      
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.innerHTML === correctTriad.join(' + ')) {
+          btn.classList.add('correct');
+        } else if (btn.innerHTML === selectedTriad.join(' + ') && !isCorrect) {
+          btn.classList.add('incorrect');
+        }
+      });
+      
+      if (isCorrect) {
+        setTimeout(() => {
+          loadNextItem();
+        }, 2000);
+      } else {
+        currentAttempts++;
+        updateAttemptsDisplay();
+        
+        if (currentAttempts >= 3) {
+          setTimeout(() => {
+            loadNextItem(); // Загружаем следующий элемент
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            generateOptions(); // Меняем варианты ответов
+            buttons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+          }, 2000);
+        }
+      }
+    }
+
+    // Обновление индикатора попыток
+    function updateAttemptsDisplay() {
+      const dots = document.querySelectorAll('#videoAttemptsDots .attempt-dot');
+      dots.forEach((dot, index) => {
+        if (index < currentAttempts) {
+          dot.classList.add('used');
+        } else {
+          dot.classList.remove('used');
+        }
+      });
+    }
+
+    // Обновление индикатора фазы
+    function updatePhaseIndicator() {
+      const badges = document.querySelectorAll('.phase-badge');
+      badges.forEach(badge => {
+        badge.classList.remove('active');
+      });
+      
+      const currentBadge = document.querySelector('.phase-badge');
+      if (currentBadge) {
+        currentBadge.classList.add('active');
+        currentBadge.textContent = `Элемент ${usedItems.size} из ${quizData.length}`;
+      }
+    }
+
+    // Обновление индикатора фазы
+    function updatePhaseIndicator() {
+      const badge = document.querySelector('.phase-badge');
+      if (badge) {
+        badge.textContent = `Элемент ${usedItems.size} из ${quizData.length}`;
+      }
+    }
+
+    // Обновление отображения попыток
+    function updateAttemptsDisplay() {
+      const dots = document.querySelectorAll('#videoAttemptsDots .attempt-dot');
+      
+      dots.forEach((dot, index) => {
+        if (index < currentAttempts) {
+          dot.classList.add('used');
+        } else {
+          dot.classList.remove('used');
+        }
+      });
+    }
+
+    // Завершение квеста
+    function completeQuest() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.add('show');
+      
+      // Сохраняем награды через новую систему
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(3, 500, 'bodylang', 'Язык тела', 'medium');
+      } else {
+        // Fallback на localStorage
+        const userId = localStorage.getItem('currentUserId') || 'default';
+        const userDataKey = `userData_${userId}`;
+        const savedData = localStorage.getItem(userDataKey);
+        
+        if (savedData) {
+          const userData = JSON.parse(savedData);
+          userData.mulacoin = (userData.mulacoin || 0) + 3;
+          userData.exp = (userData.exp || 0) + 500;
+          localStorage.setItem(userDataKey, JSON.stringify(userData));
+        }
+      }
+    }
+
+    // Функция для показа ошибок
+    function showError(message) {
+      console.error(message);
+      // Можно добавить уведомление пользователю
+    }
+
+    // Закрытие модала завершения
+    function closeQuestComplete() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.remove('show');
+      window.location.href = '../quests.html';
+    }
+
+    // Управление видео
+    const video = document.getElementById('videoPlayer');
+    const playBtn = document.getElementById('playBtn');
+    const progressFill = document.getElementById('progressFill');
+
+    playBtn.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+        playBtn.textContent = '⏸️';
+      } else {
+        video.pause();
+        playBtn.textContent = '▶️';
+      }
+    });
+
+    video.addEventListener('timeupdate', () => {
+      const progress = (video.currentTime / video.duration) * 100;
+      progressFill.style.width = progress + '%';
+    });
+
+    video.addEventListener('ended', () => {
+      playBtn.textContent = '▶️';
+    });
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
