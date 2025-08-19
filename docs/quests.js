@@ -818,66 +818,80 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
 
 // Функция для сохранения промокодов в базу данных
 async function savePromocode(prize, promoCode) {
-  console.log('Попытка сохранения промокода:', { prize, promoCode, telegramId: userData.telegramId });
+  console.log('=== СОХРАНЕНИЕ ПРОМОКОДА ===');
+  console.log('Данные промокода:', { prize, promoCode, telegramId: userData.telegramId });
   
-  if (supabase && userData.telegramId) {
-    try {
-      // Определяем тип промокода
-      let promoType = 'discount';
-      let promoValue = 0;
-      
-      if (prize.id === 'subscription') {
-        promoType = 'subscription';
-        promoValue = 30; // 30 дней
-      } else if (prize.id === 'frodCourse') {
-        promoType = 'frod_course';
-        promoValue = 60; // 60 дней
-      } else if (prize.id === 'discount500') {
-        promoValue = 500;
-      } else if (prize.id === 'discount100') {
-        promoValue = 100;
-      } else if (prize.id === 'discount50') {
-        promoValue = 50;
-      }
-      
-      // Вычисляем дату истечения
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + (prize.id === 'subscription' ? 30 : 7));
-      
-      const promoData = {
-        code: promoCode,
-        type: promoType,
-        value: promoValue,
-        issued_to: userData.telegramId,
-        expires_at: expiresAt.toISOString()
-        // status автоматически устанавливается в 'issued' по умолчанию
-        // issued_at автоматически устанавливается в now() по умолчанию
-      };
-      
-      console.log('Данные промокода для сохранения:', promoData);
-      console.log('Telegram ID для привязки:', userData.telegramId);
-      
-      const { data, error } = await supabase
-        .from('promocodes')
-        .insert(promoData)
-        .select();
-      
-      if (error) {
-        console.error('Ошибка сохранения промокода:', error);
-        toast('Ошибка сохранения промокода в базу данных', 'error');
-      } else {
-        console.log('Промокод успешно сохранен в базу данных:', data);
-        toast('Промокод сохранен в истории!', 'success');
-      }
-    } catch (error) {
-      console.error('Ошибка подключения к Supabase для промокода:', error);
-      toast('Ошибка подключения к базе данных', 'error');
+  if (!supabase) {
+    console.error('Supabase не инициализирован');
+    toast('Ошибка: Supabase не инициализирован', 'error');
+    return;
+  }
+  
+  if (!userData.telegramId) {
+    console.error('Telegram ID отсутствует');
+    toast('Ошибка: Telegram ID не получен', 'error');
+    return;
+  }
+  
+  try {
+    // Определяем тип промокода
+    let promoType = 'discount';
+    let promoValue = 0;
+    
+    if (prize.id === 'subscription') {
+      promoType = 'subscription';
+      promoValue = 30; // 30 дней
+    } else if (prize.id === 'frodCourse') {
+      promoType = 'frod_course';
+      promoValue = 60; // 60 дней
+    } else if (prize.id === 'discount500') {
+      promoValue = 500;
+    } else if (prize.id === 'discount100') {
+      promoValue = 100;
+    } else if (prize.id === 'discount50') {
+      promoValue = 50;
     }
-  } else {
-    console.error('Supabase не доступен или отсутствует Telegram ID:', { 
-      supabase: !!supabase, 
-      telegramId: userData.telegramId 
-    });
+    
+    // Вычисляем дату истечения
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + (prize.id === 'subscription' ? 30 : 7));
+    
+    const promoData = {
+      code: promoCode,
+      type: promoType,
+      value: promoValue,
+      issued_to: userData.telegramId,
+      expires_at: expiresAt.toISOString()
+      // status автоматически устанавливается в 'issued' по умолчанию
+      // issued_at автоматически устанавливается в now() по умолчанию
+    };
+    
+    console.log('Данные промокода для сохранения:', promoData);
+    console.log('Telegram ID для привязки:', userData.telegramId);
+    
+    // Сохраняем промокод в таблицу promocodes
+    const { data, error } = await supabase
+      .from('promocodes')
+      .insert(promoData)
+      .select();
+    
+    if (error) {
+      console.error('Ошибка сохранения промокода в promocodes:', error);
+      toast('Ошибка сохранения промокода в базу данных', 'error');
+      return;
+    }
+    
+    console.log('✅ Промокод успешно сохранен в promocodes:', data);
+    
+    // Автоматически сохраняем в историю рулетки
+    await saveRouletteHistory(prize.id, prize.name, false, SPIN_COST, promoCode);
+    
+    toast('✅ Промокод сохранен в истории!', 'success');
+    console.log('=== ПРОМОКОД УСПЕШНО СОХРАНЕН ===');
+    
+  } catch (error) {
+    console.error('Ошибка сохранения промокода:', error);
+    toast('Ошибка подключения к базе данных', 'error');
   }
 }
 
@@ -1783,31 +1797,65 @@ function showLevelInfo() {
 
 // Функция для тестирования подключения к Supabase
 async function testSupabaseConnection() {
+  console.log('=== ТЕСТ ПОДКЛЮЧЕНИЯ К SUPABASE ===');
+  console.log('Supabase доступен:', !!supabase);
+  console.log('Telegram ID:', userData.telegramId);
+  
   if (!supabase) {
     toast('Supabase не инициализирован', 'error');
+    console.error('Supabase не инициализирован');
     return;
   }
   
   try {
     toast('Тестирование подключения...', 'info');
     
-    // Тестируем подключение - используем простой запрос
-    const { data, error } = await supabase.from('bot_user').select('*').limit(1);
+    // Тестируем подключение к таблице subscriptions (которая точно существует)
+    console.log('Тестируем подключение к таблице subscriptions...');
+    const { data: subData, error: subError } = await supabase.from('subscriptions').select('*').limit(1);
     
-    if (error) {
-      console.error('Ошибка тестирования:', error);
+    if (subError) {
+      console.error('Ошибка подключения к subscriptions:', subError);
       toast('Ошибка подключения к базе данных', 'error');
+      return;
+    }
+    
+    console.log('✅ Подключение к subscriptions успешно:', subData);
+    
+    // Тестируем подключение к таблице promocodes
+    console.log('Тестируем подключение к таблице promocodes...');
+    const { data: promoData, error: promoError } = await supabase.from('promocodes').select('*').limit(1);
+    
+    if (promoError) {
+      console.error('Ошибка подключения к promocodes:', promoError);
+      toast('Ошибка подключения к promocodes', 'error');
+      return;
+    }
+    
+    console.log('✅ Подключение к promocodes успешно:', promoData);
+    
+    // Тестируем подключение к таблице bot_user
+    console.log('Тестируем подключение к таблице bot_user...');
+    const { data: userData, error: userError } = await supabase.from('bot_user').select('*').limit(1);
+    
+    if (userError) {
+      console.error('Ошибка подключения к bot_user:', userError);
+      toast('Ошибка подключения к bot_user', 'error');
+      return;
+    }
+    
+    console.log('✅ Подключение к bot_user успешно:', userData);
+    
+    // Все тесты прошли успешно
+    toast('✅ Подключение к базе данных работает', 'success');
+    console.log('=== ВСЕ ТЕСТЫ ПОДКЛЮЧЕНИЯ ПРОШЛИ УСПЕШНО ===');
+    
+    // Пробуем сохранить тестовые данные
+    if (userData.telegramId) {
+      console.log('Пробуем сохранить тестовые данные...');
+      await saveUserData();
     } else {
-      console.log('Тест успешен:', data);
-      toast('Подключение к базе данных работает', 'success');
-      
-      // Пробуем сохранить тестовые данные
-      if (userData.telegramId) {
-        console.log('Пробуем сохранить тестовые данные...');
-        await saveUserData();
-      } else {
-        console.log('Telegram ID не получен, пропускаем сохранение');
-      }
+      console.log('Telegram ID не получен, пропускаем сохранение');
     }
   } catch (error) {
     console.error('Ошибка тестирования:', error);
