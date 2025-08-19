@@ -26,69 +26,28 @@
       padding: 8px 16px;
       font-size: 14px;
       color: var(--text-muted);
-      transition: all 0.3s ease;
     }
 
     .phase-badge.active {
       background: var(--glow1);
       color: var(--bg0);
       font-weight: 600;
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
     }
 
-    /* Видео контейнер с анимированной рамкой */
+    /* Видео контейнер */
     .video-container {
       background: var(--glass);
       border-radius: var(--radius);
       padding: 20px;
       margin-bottom: 30px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .video-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border: 2px solid transparent;
-      border-radius: var(--radius);
-      background: linear-gradient(45deg, var(--glow1), var(--glow2), var(--glow1)) border-box;
-      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: destination-out;
-      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-      animation: borderGlow 3s ease-in-out infinite;
-    }
-
-    @keyframes borderGlow {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-
-    .video-frame {
-      position: relative;
-      display: inline-block;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      transform: perspective(1000px) rotateY(0deg);
-      transition: transform 0.3s ease;
-    }
-
-    .video-frame:hover {
-      transform: perspective(1000px) rotateY(5deg);
     }
 
     .video-player {
       width: 100%;
       max-width: 400px;
-      height: auto;
-      display: block;
       border-radius: var(--radius-sm);
+      margin-bottom: 16px;
     }
 
     .video-controls {
@@ -96,7 +55,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin: 16px 0;
+      margin-bottom: 16px;
     }
 
     .play-btn {
@@ -112,22 +71,11 @@
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 247, 213, 0.3);
     }
 
     .play-btn:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 25px rgba(102, 247, 213, 0.6);
-    }
-
-    .play-btn.playing {
-      background: var(--glow2);
-      animation: pulse 1s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.4);
     }
 
     .progress-bar {
@@ -137,15 +85,13 @@
       background: var(--glass-strong);
       border-radius: 3px;
       overflow: hidden;
-      position: relative;
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--glow1), var(--glow2));
+      background: var(--glow1);
       width: 0%;
       transition: width 0.1s ease;
-      border-radius: 3px;
     }
 
     .video-annotation {
@@ -214,16 +160,6 @@
       border-color: var(--glow1);
       background: var(--glass-strong);
       transform: translateY(-2px);
-    }
-
-    .answer-option.triad {
-      font-size: 14px;
-      padding: 12px 16px;
-      line-height: 1.4;
-    }
-
-    .triad-option {
-      margin-bottom: 8px;
     }
 
     .answer-option.correct {
@@ -410,10 +346,10 @@
 </head>
 <body>
   <div class="quest-container">
-    <!-- Индикатор фаз -->
+    <!-- Индикатор фазы -->
     <div class="phase-indicator">
-      <div class="phase-badge active" id="phase1Badge">Фаза 1: Видео допрос</div>
-      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ эмоций</div>
+      <div class="phase-badge" id="phase1Badge">Фаза 1: Видео допрос</div>
+      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ лица</div>
     </div>
 
     <!-- Фаза 1: Видео допрос -->
@@ -423,12 +359,10 @@
         Посмотрите видео и определите, какое невербальное поведение демонстрирует человек
       </p>
       
-      <div class="video-frame">
-        <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline loop>
-          <source src="" type="video/mp4">
-          Ваш браузер не поддерживает видео.
-        </video>
-      </div>
+      <video id="videoPlayer" class="video-player" preload="metadata">
+        <source src="../video/dopros1.mp4" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+      </video>
       
       <div class="video-controls">
         <button class="play-btn" id="playBtn">▶️</button>
@@ -457,46 +391,28 @@
       </div>
     </div>
 
-    <!-- Фаза 2: Анализ эмоций -->
-    <div id="emotionPhase" class="video-container" style="display: none;">
-      <h3>Анализ эмоций в видео</h3>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите эмоцию или поведение
+    <!-- Фаза 2: Анализ лица -->
+    <div id="facePhase" class="face-container" style="display: none;">
+      <h3>Анализ выражения лица</h3>
+      <p class="face-instruction">
+        Определите эмоцию по выражению лица персонажа
       </p>
       
-      <div class="video-frame">
-        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
-          <source src="" type="video/mp4">
-          Ваш браузер не поддерживает видео.
-        </video>
-      </div>
-      
-      <div class="video-controls" style="display: none;">
-        <button class="play-btn" id="emotionPlayBtn">▶️</button>
-        <div class="progress-bar">
-          <div class="progress-fill" id="emotionProgressFill"></div>
-        </div>
-      </div>
-      
-      <div class="video-annotation">
-        <strong>💡 Подсказка:</strong> Обратите внимание на мимику, жесты и общее поведение человека.
-      </div>
+      <div class="face-sprite" id="faceSprite"></div>
       
       <div class="attempts-counter">
         <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="emotionAttemptsDots">
+        <div class="attempts-dots" id="faceAttemptsDots">
           <div class="attempt-dot"></div>
           <div class="attempt-dot"></div>
           <div class="attempt-dot"></div>
         </div>
       </div>
       
-      <div class="answer-options" id="emotionOptions">
+      <div class="answer-options" id="faceOptions">
         <!-- Варианты ответов будут добавлены динамически -->
       </div>
     </div>
-
-
 
     <!-- Кнопки навигации -->
     <div class="quest-controls">
@@ -530,7 +446,7 @@
   </div>
 
   <script>
-    // Данные для видео допроса (фаза 1)
+    // Данные для видео допроса
     const VIDEO_DATA = {
       'dopros1.mp4': 'сепарирование (уход) от вопроса',
       'dopros2.mp4': 'легкое нахмуривание',
@@ -558,33 +474,28 @@
       'Напряжение челюсти'
     ];
 
-    // Данные для анализа эмоций (фаза 2)
-    let emotionData = [];
-    let currentEmotionItem = null;
+    // Загружаем manifest для лиц
+    let faceManifest = [];
+    let currentFace = null;
     let currentVideo = null;
     let videoAttempts = 0;
-    let emotionAttempts = 0;
+    let faceAttempts = 0;
     let isVideoPhase = true;
-    let usedEmotionItems = new Set();
 
     // Инициализация
     async function init() {
       try {
-        // Загружаем манифест для фазы 2
-        const response = await fetch('../assets/manifest_single_mode_en_20.json');
-        emotionData = await response.json();
-        console.log('Манифест эмоций загружен:', emotionData.length, 'элементов');
-        
-        // Начинаем с фазы 1
+        const response = await fetch('../assets/bodylang/manifest.json');
+        faceManifest = await response.json();
         loadVideoPhase();
       } catch (error) {
-        console.error('Ошибка загрузки манифеста:', error);
+        console.error('Ошибка загрузки manifest:', error);
         // Fallback на старые данные
         loadVideoPhase();
       }
     }
 
-    // Загрузка фазы видео допроса
+    // Загрузка фазы видео
     function loadVideoPhase() {
       isVideoPhase = true;
       updatePhaseIndicator();
@@ -597,9 +508,6 @@
       video.src = `../video/${currentVideo}`;
       video.load();
       
-      // Автоматически запускаем видео
-      video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
-      
       // Сбрасываем попытки
       videoAttempts = 0;
       updateAttemptsDisplay('video');
@@ -609,46 +517,7 @@
       
       // Показываем фазу видео
       document.getElementById('videoPhase').style.display = 'block';
-      document.getElementById('emotionPhase').style.display = 'none';
-    }
-
-    // Загрузка фазы анализа эмоций
-    function loadEmotionPhase() {
-      isVideoPhase = false;
-      updatePhaseIndicator();
-      
-      // Выбираем случайный неиспользованный элемент эмоций
-      const availableItems = emotionData.filter(item => !usedEmotionItems.has(item.id));
-      
-      if (availableItems.length === 0) {
-        // Все элементы использованы, завершаем квест
-        completeQuest();
-        return;
-      }
-      
-      currentEmotionItem = availableItems[Math.floor(Math.random() * availableItems.length)];
-      usedEmotionItems.add(currentEmotionItem.id);
-      
-      console.log('Загружен элемент эмоций:', currentEmotionItem);
-      
-      // Сбрасываем попытки
-      emotionAttempts = 0;
-      updateAttemptsDisplay('emotion');
-      
-      // Загружаем видео
-      const videoPlayer = document.getElementById('emotionVideoPlayer');
-      videoPlayer.src = `../assets/${currentEmotionItem.file}`;
-      videoPlayer.load();
-      
-      // Автоматически запускаем видео
-      videoPlayer.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
-      
-      // Генерируем варианты ответов
-      generateEmotionOptions();
-      
-      // Показываем фазу эмоций
-      document.getElementById('videoPhase').style.display = 'none';
-      document.getElementById('emotionPhase').style.display = 'block';
+      document.getElementById('facePhase').style.display = 'none';
     }
 
     // Загрузка фазы лица
@@ -705,7 +574,7 @@
       animate();
     }
 
-    // Создание вариантов ответов для видео допроса
+    // Создание вариантов ответов для видео
     function createVideoOptions() {
       const correctAnswer = VIDEO_DATA[currentVideo];
       const options = [correctAnswer];
@@ -734,42 +603,39 @@
       });
     }
 
-    // Генерация вариантов ответов для эмоций
-    function generateEmotionOptions() {
-      const container = document.getElementById('emotionOptions');
+    // Создание вариантов ответов для лица
+    function createFaceOptions() {
+      const correctAnswer = currentFace.expression_ru;
+      const options = [correctAnswer];
+      
+      // Добавляем случайные варианты
+      const availableOptions = faceManifest
+        .filter(face => face.expression_ru !== correctAnswer)
+        .map(face => face.expression_ru);
+      
+      for (let i = 0; i < 2; i++) {
+        if (availableOptions.length > 0) {
+          const randomIndex = Math.floor(Math.random() * availableOptions.length);
+          options.push(availableOptions.splice(randomIndex, 1)[0]);
+        }
+      }
+      
+      // Перемешиваем
+      options.sort(() => Math.random() - 0.5);
+      
+      const container = document.getElementById('faceOptions');
       container.innerHTML = '';
       
-      if (currentEmotionItem.mode === 'single') {
-        // Одиночный режим - 3 кнопки с эмоциями
-        const options = [...currentEmotionItem.choices_en];
-        
-        // Перемешиваем варианты
-        options.sort(() => Math.random() - 0.5);
-        
-        options.forEach((option, index) => {
-          const button = document.createElement('button');
-          button.className = 'answer-option';
-          button.textContent = option;
-          button.onclick = () => checkEmotionAnswer(index, option);
-          container.appendChild(button);
-        });
-      } else if (currentEmotionItem.mode === 'triad') {
-        // Триадный режим - 3 варианта по 3 эмоции
-        currentEmotionItem.triad_options_en.forEach((triad, triadIndex) => {
-          const triadContainer = document.createElement('div');
-          triadContainer.className = 'triad-option';
-          
-          const triadButton = document.createElement('button');
-          triadButton.className = 'answer-option triad';
-          triadButton.innerHTML = triad.join(' + ');
-          triadButton.onclick = () => checkEmotionTriadAnswer(triadIndex, triad);
-          triadContainer.appendChild(triadButton);
-          container.appendChild(triadContainer);
-        });
-      }
+      options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = option;
+        button.onclick = () => handleFaceAnswer(option);
+        container.appendChild(button);
+      });
     }
 
-    // Обработка ответа на видео допрос
+    // Обработка ответа на видео
     function handleVideoAnswer(answer) {
       const correctAnswer = VIDEO_DATA[currentVideo];
       const buttons = document.querySelectorAll('#videoOptions .answer-option');
@@ -785,7 +651,7 @@
       
       if (answer === correctAnswer) {
         setTimeout(() => {
-          loadEmotionPhase(); // Переходим к фазе эмоций
+          loadFacePhase();
         }, 2000);
       } else {
         videoAttempts++;
@@ -807,10 +673,10 @@
       }
     }
 
-    // Проверка ответа для эмоций (одиночный режим)
-    function checkEmotionAnswer(index, answer) {
-      const correctAnswer = currentEmotionItem.label_en;
-      const buttons = document.querySelectorAll('#emotionOptions .answer-option');
+    // Обработка ответа на лицо
+    function handleFaceAnswer(answer) {
+      const correctAnswer = currentFace.expression_ru;
+      const buttons = document.querySelectorAll('#faceOptions .answer-option');
       
       buttons.forEach(btn => {
         btn.disabled = true;
@@ -826,16 +692,16 @@
           completeQuest();
         }, 2000);
       } else {
-        emotionAttempts++;
-        updateAttemptsDisplay('emotion');
+        faceAttempts++;
+        updateAttemptsDisplay('face');
         
-        if (emotionAttempts >= 3) {
+        if (faceAttempts >= 3) {
           setTimeout(() => {
-            loadEmotionPhase(); // Загружаем новый элемент эмоций
+            loadFacePhase(); // Загружаем новое лицо
           }, 2000);
         } else {
           setTimeout(() => {
-            generateEmotionOptions(); // Меняем варианты ответов
+            createFaceOptions(); // Меняем варианты ответов
             buttons.forEach(btn => {
               btn.disabled = false;
               btn.classList.remove('correct', 'incorrect');
@@ -843,62 +709,6 @@
           }, 2000);
         }
       }
-    }
-
-    // Проверка ответа для эмоций (триадный режим)
-    function checkEmotionTriadAnswer(triadIndex, selectedTriad) {
-      const correctTriad = currentEmotionItem.triad_en_correct;
-      const buttons = document.querySelectorAll('#emotionOptions .answer-option');
-      
-      // Проверяем полное совпадение массивов
-      const isCorrect = selectedTriad.length === correctTriad.length &&
-        selectedTriad.every((emotion, index) => emotion === correctTriad[index]);
-      
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.innerHTML === correctTriad.join(' + ')) {
-          btn.classList.add('correct');
-        } else if (btn.innerHTML === selectedTriad.join(' + ') && !isCorrect) {
-          btn.classList.add('incorrect');
-        }
-      });
-      
-      if (isCorrect) {
-        setTimeout(() => {
-          completeQuest();
-        }, 2000);
-      } else {
-        emotionAttempts++;
-        updateAttemptsDisplay('emotion');
-        
-        if (emotionAttempts >= 3) {
-          setTimeout(() => {
-            loadEmotionPhase(); // Загружаем новый элемент эмоций
-          }, 2000);
-        } else {
-          setTimeout(() => {
-            generateEmotionOptions(); // Меняем варианты ответов
-            buttons.forEach(btn => {
-              btn.disabled = false;
-              btn.classList.remove('correct', 'incorrect');
-            });
-          }, 2000);
-        }
-      }
-    }
-
-    // Обновление индикатора попыток
-    function updateAttemptsDisplay(phase) {
-      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
-      const attempts = phase === 'video' ? videoAttempts : emotionAttempts;
-      
-      dots.forEach((dot, index) => {
-        if (index < attempts) {
-          dot.classList.add('used');
-        } else {
-          dot.classList.remove('used');
-        }
-      });
     }
 
     // Обновление индикатора фазы
@@ -913,6 +723,20 @@
         phase1Badge.classList.remove('active');
         phase2Badge.classList.add('active');
       }
+    }
+
+    // Обновление отображения попыток
+    function updateAttemptsDisplay(phase) {
+      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
+      const attempts = phase === 'video' ? videoAttempts : faceAttempts;
+      
+      dots.forEach((dot, index) => {
+        if (index < attempts) {
+          dot.classList.add('used');
+        } else {
+          dot.classList.remove('used');
+        }
+      });
     }
 
     // Завершение квеста
@@ -938,12 +762,6 @@
       }
     }
 
-    // Функция для показа ошибок
-    function showError(message) {
-      console.error(message);
-      // Можно добавить уведомление пользователю
-    }
-
     // Закрытие модала завершения
     function closeQuestComplete() {
       const modal = document.getElementById('questComplete');
@@ -951,7 +769,7 @@
       window.location.href = '../quests.html';
     }
 
-    // Управление видео для фазы 1
+    // Управление видео
     const video = document.getElementById('videoPlayer');
     const playBtn = document.getElementById('playBtn');
     const progressFill = document.getElementById('progressFill');
@@ -973,15 +791,6 @@
 
     video.addEventListener('ended', () => {
       playBtn.textContent = '▶️';
-    });
-
-    // Управление видео для фазы 2 (автоматическое воспроизведение)
-    const emotionVideo = document.getElementById('emotionVideoPlayer');
-    
-    emotionVideo.addEventListener('ended', () => {
-      // Автоматически перезапускаем видео
-      emotionVideo.currentTime = 0;
-      emotionVideo.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
     });
 
     // Инициализация при загрузке страницы
