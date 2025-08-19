@@ -283,7 +283,7 @@ function createRouletteWheel() {
     // Создаем новый видео элемент
     const videoElement = document.createElement('video');
     videoElement.className = 'lebedev-video';
-    videoElement.src = '../assets/photovideo/0_Flower_Abstract_1080x1080.mov';
+    videoElement.src = './assets/photovideo/0_Flower_Abstract_1080x1080.mov';
     videoElement.autoplay = true;
     videoElement.loop = true;
     videoElement.muted = true;
@@ -312,6 +312,8 @@ function createRouletteWheel() {
   // Получаем призы для текущего дизайна
   const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
   
+  console.log('Текущие призы для дизайна', currentRouletteDesign, ':', currentPrizes);
+  
   // Создаем иконки на основе призов
   let allItems = [];
   currentPrizes.forEach(prize => {
@@ -335,6 +337,11 @@ function createRouletteWheel() {
     const randomIndex = Math.floor(Math.random() * allItems.length);
     const prize = allItems[randomIndex];
     
+    if (!prize) {
+      console.error('Приз не найден для индекса:', randomIndex);
+      continue;
+    }
+    
     const item = document.createElement('div');
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
@@ -342,11 +349,11 @@ function createRouletteWheel() {
     // Создаем содержимое иконки
     const symbol = document.createElement('div');
     symbol.className = 'icon-symbol';
-    symbol.textContent = prize.icon;
+    symbol.textContent = prize.icon || '🎁';
     
     const label = document.createElement('div');
     label.className = 'icon-label';
-    label.textContent = prize.name;
+    label.textContent = prize.name || 'Приз';
     
     item.appendChild(symbol);
     item.appendChild(label);
@@ -358,15 +365,20 @@ function createRouletteWheel() {
   // Создаем превью призов
   console.log('Создаем превью призов...');
   currentPrizes.forEach(prize => {
+    if (!prize) {
+      console.error('Приз для превью не найден');
+      return;
+    }
+    
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     
     const icon = document.createElement('span');
     icon.className = 'preview-icon';
-    icon.textContent = prize.icon;
+    icon.textContent = prize.icon || '🎁';
     
     const name = document.createElement('span');
-    name.textContent = prize.name;
+    name.textContent = prize.name || 'Приз';
     
     previewItem.appendChild(icon);
     previewItem.appendChild(name);
@@ -1765,13 +1777,6 @@ function switchRouletteDesign(design) {
     return;
   }
   
-  // Добавляем плавный переход
-  const container = $(".roulette-container");
-  if (container) {
-    container.style.transition = 'opacity 0.3s ease';
-    container.style.opacity = '0.5';
-  }
-  
   // Обновляем активную опцию
   document.querySelectorAll('.design-option').forEach(option => {
     option.classList.remove('active');
@@ -1785,18 +1790,8 @@ function switchRouletteDesign(design) {
   // Обновляем текущий дизайн
   currentRouletteDesign = design;
   
-  // Пересоздаем рулетку с новым дизайном
-  setTimeout(() => {
-    createRouletteWheel();
-    
-    // Восстанавливаем прозрачность
-    setTimeout(() => {
-      if (container) {
-        container.style.opacity = '1';
-        container.style.transition = '';
-      }
-    }, 100);
-  }, 150);
+  // Пересоздаем рулетку с новым дизайном без задержек
+  createRouletteWheel();
   
   // Сохраняем выбор в localStorage
   localStorage.setItem('rouletteDesign', design);
