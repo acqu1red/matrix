@@ -1176,7 +1176,9 @@ async function loadState(){
       userId = String(tg.initDataUnsafe.user.id);
       username = tg.initDataUnsafe.user.username;
     }
-  } catch(e) { console.warn("TG user data fail", e); }
+  } catch(e) { 
+    console.warn("TG user data fail", e); 
+  }
   
   let isSubscribed = false;
   let isAdmin = false;
