@@ -1452,10 +1452,10 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: 
-    url('./assets/photovideo/djoker.png') no-repeat 10% 10% / 80px auto,
-    url('./assets/photovideo/drakula.png') no-repeat 85% 15% / 60px auto,
-    url('./assets/photovideo/eye.png') no-repeat 15% 85% / 70px auto,
-    url('./assets/photovideo/drakon.png') no-repeat 80% 80% / 90px auto;
+    url('/formulaprivate/assets/photovideo/djoker.png') no-repeat 10% 10% / 80px auto,
+    url('/formulaprivate/assets/photovideo/drakula.png') no-repeat 85% 15% / 60px auto,
+    url('/formulaprivate/assets/photovideo/eye.png') no-repeat 15% 85% / 70px auto,
+    url('/formulaprivate/assets/photovideo/drakon.png') no-repeat 80% 80% / 90px auto;
   opacity: 0.4;
   pointer-events: none;
   z-index: 0;
@@ -1480,7 +1480,7 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: 
-    url('./assets/photovideo/djoker2.png') no-repeat 5% 5% / 50px auto;
+    url('/formulaprivate/assets/photovideo/djoker2.png') no-repeat 5% 5% / 50px auto;
   opacity: 0.3;
   pointer-events: none;
   z-index: 1;
@@ -1507,7 +1507,7 @@ h3 { font-size: 1.25rem; }
   right: 2px;
   bottom: 2px;
   background: 
-    url('./assets/photovideo/djoker.png') no-repeat center / 30px auto;
+    url('/formulaprivate/assets/photovideo/djoker.png') no-repeat center / 30px auto;
   border-radius: 17px;
   pointer-events: none;
   opacity: 0.2;
@@ -1606,21 +1606,7 @@ h3 { font-size: 1.25rem; }
   box-shadow: 3px 3px 0px rgba(0,0,0,0.3) !important;
 }
 
-/* Видео элемент для дизайна Лебедева */
-.lebedev-video {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 60px;
-  height: 60px;
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 2;
-  border-radius: 10px;
-  transform: rotate(5deg);
-  border: 2px solid #2d3436;
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
-}
+/* Убираем видео элемент - он вызывает проблемы */
 
 /* Детские элементы в кнопках управления */
 .roulette-container.lebedev .roulette-controls {
@@ -1635,8 +1621,8 @@ h3 { font-size: 1.25rem; }
   right: -10px;
   bottom: -10px;
   background: 
-    url('./assets/photovideo/drakon.png') no-repeat 5% 5% / 40px auto,
-    url('./assets/photovideo/djoker2.png') no-repeat 95% 95% / 35px auto;
+    url('/formulaprivate/assets/photovideo/drakon.png') no-repeat 5% 5% / 40px auto,
+    url('/formulaprivate/assets/photovideo/djoker2.png') no-repeat 95% 95% / 35px auto;
   opacity: 0.2;
   pointer-events: none;
   z-index: -1;
@@ -1651,8 +1637,8 @@ h3 { font-size: 1.25rem; }
   right: -5px;
   bottom: -5px;
   background: 
-    url('./assets/photovideo/drakula.png') no-repeat 95% 5% / 30px auto,
-    url('./assets/photovideo/eye.png') no-repeat 5% 95% / 25px auto;
+    url('/formulaprivate/assets/photovideo/drakula.png') no-repeat 95% 5% / 30px auto,
+    url('/formulaprivate/assets/photovideo/eye.png') no-repeat 5% 95% / 25px auto;
   opacity: 0.3;
   pointer-events: none;
   z-index: -1;

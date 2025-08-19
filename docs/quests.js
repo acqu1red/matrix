@@ -274,33 +274,11 @@ function createRouletteWheel() {
   // Обновляем класс дизайна контейнера
   container.className = `roulette-container ${currentRouletteDesign}`;
   
-  // Добавляем видео элемент для дизайна Лебедева
+  // Убираем видео элемент - он вызывает проблемы
   if (currentRouletteDesign === 'lebedev') {
     // Удаляем существующие видео элементы
     const existingVideos = container.querySelectorAll('.lebedev-video');
     existingVideos.forEach(video => video.remove());
-    
-    // Создаем новый видео элемент
-    const videoElement = document.createElement('video');
-    videoElement.className = 'lebedev-video';
-    videoElement.src = './assets/photovideo/0_Flower_Abstract_1080x1080.mov';
-    videoElement.autoplay = true;
-    videoElement.loop = true;
-    videoElement.muted = true;
-    videoElement.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 60px;
-      height: 60px;
-      opacity: 0.3;
-      pointer-events: none;
-      z-index: 2;
-      border-radius: 10px;
-      transform: rotate(5deg);
-    `;
-    
-    container.appendChild(videoElement);
   }
   
   items.innerHTML = '';
@@ -1777,6 +1755,12 @@ function switchRouletteDesign(design) {
     return;
   }
   
+  // Блокируем повторные вызовы
+  if (window.isSwitchingDesign) {
+    return;
+  }
+  window.isSwitchingDesign = true;
+  
   // Обновляем активную опцию
   document.querySelectorAll('.design-option').forEach(option => {
     option.classList.remove('active');
@@ -1790,11 +1774,20 @@ function switchRouletteDesign(design) {
   // Обновляем текущий дизайн
   currentRouletteDesign = design;
   
-  // Пересоздаем рулетку с новым дизайном без задержек
-  createRouletteWheel();
+  // Пересоздаем рулетку с новым дизайном
+  try {
+    createRouletteWheel();
+  } catch (error) {
+    console.error('Ошибка при создании рулетки:', error);
+  }
   
   // Сохраняем выбор в localStorage
   localStorage.setItem('rouletteDesign', design);
+  
+  // Разблокируем переключение через небольшую задержку
+  setTimeout(() => {
+    window.isSwitchingDesign = false;
+  }, 500);
   
   toast(`Дизайн рулетки изменен на: ${design}`, 'success');
 }
