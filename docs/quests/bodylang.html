@@ -13,6 +13,15 @@
       padding: 20px;
     }
 
+    /* Скрываем элементы управления видео в фазе эмоций */
+    #facePhase .video-controls {
+      display: none !important;
+    }
+
+    #facePhase .video-player {
+      pointer-events: none;
+    }
+
     .phase-indicator {
       display: flex;
       justify-content: center;
@@ -391,14 +400,19 @@
       </div>
     </div>
 
-    <!-- Фаза 2: Анализ лица -->
-    <div id="facePhase" class="face-container" style="display: none;">
-      <h3>Анализ выражения лица</h3>
-      <p class="face-instruction">
-        Определите эмоцию по выражению лица персонажа
+    <!-- Фаза 2: Анализ эмоций -->
+    <div id="facePhase" class="video-container" style="display: none;">
+      <h3>Анализ эмоций</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите эмоцию персонажа
       </p>
       
-      <div class="face-sprite" id="faceSprite"></div>
+      <div class="video-frame">
+        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+          <source src="" type="video/mp4">
+          Ваш браузер не поддерживает видео.
+        </video>
+      </div>
       
       <div class="attempts-counter">
         <span class="attempts-text">Попытки:</span>
@@ -474,25 +488,56 @@
       'Напряжение челюсти'
     ];
 
-    // Загружаем manifest для лиц
-    let faceManifest = [];
-    let currentFace = null;
+    // Данные для видео эмоций
+    const EMOTION_VIDEO_DATA = {
+      'rf_01_skepticism.mp4': 'Скептицизм',
+      'rf_02_anger.mp4': 'Гнев',
+      'rf_03_anxiety.mp4': 'Тревога',
+      'rf_04_determination.mp4': 'Решительность',
+      'rf_04_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
+      'rf_05_dominance.mp4': 'Доминирование',
+      'rf_06_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
+      'rf_07_high-self-esteem.mp4': 'Высокая самооценка',
+      'rf_08_submission.mp4': 'Подчинение',
+      'rf_09_surprise.mp4': 'Удивление',
+      'rf_10_contempt.mp4': 'Презрение',
+      'rf_11_thoughtfulness.mp4': 'Задумчивость',
+      'rf_12_skepticism.mp4': 'Скептицизм',
+      'rf_13_anger.mp4': 'Гнев',
+      'rf_14_anxiety.mp4': 'Тревога',
+      'rf_15_determination.mp4': 'Решительность',
+      'rf_16_dominance.mp4': 'Доминирование',
+      'rf_17_fear.mp4': 'Страх',
+      'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
+      'rf_19_contempt.mp4': 'Презрение',
+      'rf_19_submission.mp4': 'Подчинение',
+      'rf_20_surprise.mp4': 'Удивление'
+    };
+
+    const EMOTION_OPTIONS = [
+      'Скептицизм',
+      'Гнев',
+      'Тревога',
+      'Решительность',
+      'Страх-Удивление-Отрицание',
+      'Доминирование',
+      'Высокая самооценка',
+      'Подчинение',
+      'Удивление',
+      'Презрение',
+      'Задумчивость',
+      'Страх'
+    ];
+
+    let currentEmotionVideo = null;
     let currentVideo = null;
     let videoAttempts = 0;
-    let faceAttempts = 0;
+    let emotionAttempts = 0;
     let isVideoPhase = true;
 
     // Инициализация
-    async function init() {
-      try {
-        const response = await fetch('../assets/bodylang/manifest.json');
-        faceManifest = await response.json();
-        loadVideoPhase();
-      } catch (error) {
-        console.error('Ошибка загрузки manifest:', error);
-        // Fallback на старые данные
-        loadVideoPhase();
-      }
+    function init() {
+      loadVideoPhase();
     }
 
     // Загрузка фазы видео
@@ -520,59 +565,36 @@
       document.getElementById('facePhase').style.display = 'none';
     }
 
-    // Загрузка фазы лица
+    // Загрузка фазы эмоций
     function loadFacePhase() {
       isVideoPhase = false;
       updatePhaseIndicator();
       
-      // Выбираем случайное лицо
-      currentFace = faceManifest[Math.floor(Math.random() * faceManifest.length)];
+      // Выбираем случайное видео эмоции
+      const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
+      currentEmotionVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
       
-      // Настраиваем спрайт
-      const sprite = document.getElementById('faceSprite');
-      sprite.style.setProperty('--cols', currentFace.grid_cols);
-      sprite.style.setProperty('--rows', currentFace.grid_rows);
-      sprite.style.backgroundImage = `url(../assets/bodylang/${currentFace.file})`;
+      // Настраиваем видео
+      const video = document.getElementById('emotionVideoPlayer');
+      video.src = `../assets/videos/${currentEmotionVideo}`;
+      video.load();
       
-      // Запускаем анимацию
-      startFaceAnimation(sprite, currentFace);
+      // Автовоспроизведение
+      video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
       
       // Сбрасываем попытки
-      faceAttempts = 0;
+      emotionAttempts = 0;
       updateAttemptsDisplay('face');
       
       // Создаем варианты ответов
-      createFaceOptions();
+      createEmotionOptions();
       
-      // Показываем фазу лица
+      // Показываем фазу эмоций
       document.getElementById('videoPhase').style.display = 'none';
-      document.getElementById('facePhase').style.display = 'flex';
+      document.getElementById('facePhase').style.display = 'block';
     }
 
-    // Анимация лица
-    function startFaceAnimation(sprite, faceData) {
-      let frame = 0;
-      const fps = faceData.fps || 8;
-      
-      function animate() {
-        const cols = faceData.grid_cols;
-        const rows = faceData.grid_rows;
-        const totalFrames = faceData.frames;
-        
-        frame = (frame + 1) % totalFrames;
-        const col = frame % cols;
-        const row = Math.floor(frame / cols);
-        
-        const x = (col / (cols - 1)) * 100;
-        const y = (row / (rows - 1)) * 100;
-        
-        sprite.style.backgroundPosition = `${x}% ${y}%`;
-        
-        setTimeout(animate, 1000 / fps);
-      }
-      
-      animate();
-    }
+
 
     // Создание вариантов ответов для видео
     function createVideoOptions() {
@@ -603,17 +625,14 @@
       });
     }
 
-    // Создание вариантов ответов для лица
-    function createFaceOptions() {
-      const correctAnswer = currentFace.expression_ru;
+    // Создание вариантов ответов для эмоций
+    function createEmotionOptions() {
+      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
       const options = [correctAnswer];
       
       // Добавляем случайные варианты
-      const availableOptions = faceManifest
-        .filter(face => face.expression_ru !== correctAnswer)
-        .map(face => face.expression_ru);
-      
-      for (let i = 0; i < 2; i++) {
+      const availableOptions = EMOTION_OPTIONS.filter(opt => opt !== correctAnswer);
+      for (let i = 0; i < 3; i++) {
         if (availableOptions.length > 0) {
           const randomIndex = Math.floor(Math.random() * availableOptions.length);
           options.push(availableOptions.splice(randomIndex, 1)[0]);
@@ -630,7 +649,7 @@
         const button = document.createElement('button');
         button.className = 'answer-option';
         button.textContent = option;
-        button.onclick = () => handleFaceAnswer(option);
+        button.onclick = () => handleEmotionAnswer(option);
         container.appendChild(button);
       });
     }
@@ -673,9 +692,9 @@
       }
     }
 
-    // Обработка ответа на лицо
-    function handleFaceAnswer(answer) {
-      const correctAnswer = currentFace.expression_ru;
+    // Обработка ответа на эмоции
+    function handleEmotionAnswer(answer) {
+      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
       const buttons = document.querySelectorAll('#faceOptions .answer-option');
       
       buttons.forEach(btn => {
@@ -692,16 +711,16 @@
           completeQuest();
         }, 2000);
       } else {
-        faceAttempts++;
+        emotionAttempts++;
         updateAttemptsDisplay('face');
         
-        if (faceAttempts >= 3) {
+        if (emotionAttempts >= 3) {
           setTimeout(() => {
-            loadFacePhase(); // Загружаем новое лицо
+            loadFacePhase(); // Загружаем новое видео эмоции
           }, 2000);
         } else {
           setTimeout(() => {
-            createFaceOptions(); // Меняем варианты ответов
+            createEmotionOptions(); // Меняем варианты ответов
             buttons.forEach(btn => {
               btn.disabled = false;
               btn.classList.remove('correct', 'incorrect');
@@ -728,7 +747,7 @@
     // Обновление отображения попыток
     function updateAttemptsDisplay(phase) {
       const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
-      const attempts = phase === 'video' ? videoAttempts : faceAttempts;
+      const attempts = phase === 'video' ? videoAttempts : emotionAttempts;
       
       dots.forEach((dot, index) => {
         if (index < attempts) {
