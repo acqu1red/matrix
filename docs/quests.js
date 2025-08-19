@@ -64,7 +64,7 @@ function initTG(){
 // Инициализация после загрузки страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM загружен, инициализация...');
-  initTG();
+initTG();
   
   // Инициализируем Supabase и загружаем данные
   setTimeout(async () => {
@@ -1032,25 +1032,67 @@ async function loadState(){
   let isAdmin = false;
   
   // Проверка на администратора (по username и telegramId)
+  console.log('Проверяем админа:', { username, userId, ADMIN_IDS });
+  
   if ((username && ADMIN_IDS.includes(username)) || (userId && ADMIN_IDS.includes(userId))) {
     isAdmin = true;
     isSubscribed = true; // Администраторы имеют доступ ко всем квестам
+    console.log('Пользователь является админом!');
+  } else {
+    console.log('Пользователь не является админом');
   }
   
   // Проверка подписки через Supabase
   if(supabase && userId){
     try{
-      const { data, error } = await supabase
+      console.log('Проверяем подписку для пользователя:', userId);
+      
+      // Пробуем разные варианты полей
+      let { data, error } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
         .select("*")
         .eq("tg_id", userId)
         .maybeSingle();
       
+      if(error || !data) {
+        console.log('Попытка 1 не удалась, пробуем с user_id:', error);
+        // Пробуем с user_id
+        const result2 = await supabase
+          .from(SUBSCRIPTIONS_TABLE)
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+        data = result2.data;
+        error = result2.error;
+      }
+      
+      if(error || !data) {
+        console.log('Попытка 2 не удалась, пробуем с telegram_id:', error);
+        // Пробуем с telegram_id
+        const result3 = await supabase
+          .from(SUBSCRIPTIONS_TABLE)
+          .select("*")
+          .eq("telegram_id", userId)
+          .maybeSingle();
+        data = result3.data;
+        error = result3.error;
+      }
+      
       if(!error && data){ 
         isSubscribed = true; 
-        console.log('Подписка найдена для пользователя:', userId);
+        console.log('Подписка найдена для пользователя:', userId, 'Данные:', data);
       } else {
         console.log('Подписка не найдена для пользователя:', userId, 'Ошибка:', error);
+        
+        // Показываем все записи в таблице для отладки
+        const { data: allData, error: allError } = await supabase
+          .from(SUBSCRIPTIONS_TABLE)
+          .select("*")
+          .limit(5);
+        
+        if(!allError && allData) {
+          console.log('Первые 5 записей в таблице subscriptions:', allData);
+        }
       }
     } catch(e){ 
       console.warn("supabase check fail", e); 
@@ -1064,13 +1106,18 @@ async function loadState(){
 /* ====== Rotation + gating ====== */
 function featuredQuests(state){
   console.log('featuredQuests вызвана с состоянием:', state);
+  console.log('Всего квестов:', QUESTS.length);
+  
   if(state.isSubscribed || state.isAdmin) {
     console.log('Пользователь имеет подписку или админ, возвращаем все квесты');
+    console.log('isSubscribed:', state.isSubscribed, 'isAdmin:', state.isAdmin);
     return QUESTS;
   }
+  
   // Для бесплатных пользователей показываем только доступные квесты
   const availableQuests = QUESTS.filter(q => q.available);
   console.log('Бесплатный пользователь, доступных квестов:', availableQuests.length);
+  console.log('Доступные квесты:', availableQuests.map(q => q.name));
   return availableQuests;
 }
 
@@ -1257,16 +1304,27 @@ function startQuest(q, state) {
   const questId = typeof q === 'string' ? q : q.id;
   const quest = QUESTS.find(q => q.id === questId);
   
+  console.log('startQuest вызвана:', { questId, quest, state });
+  
   if (!quest) {
     toast("Квест не найден", "error");
     return;
   }
   
   // Проверяем доступ к квесту
+  console.log('Проверка доступа:', { 
+    isSubscribed: state.isSubscribed, 
+    isAdmin: state.isAdmin, 
+    questAvailable: quest.available 
+  });
+  
   if (!state.isSubscribed && !state.isAdmin && !quest.available) {
+    console.log('Доступ запрещен, показываем промпт подписки');
     showSubscriptionPrompt();
     return;
   }
+  
+  console.log('Доступ разрешен, открываем квест');
   
   // Открываем квест внутри Mini App
   const questUrl = `./quests/${questId}.html`;
