@@ -383,8 +383,9 @@
       rewards: { fragments: 4, experience: 100 }
     };
 
-    // Генерация профилей
+    // Генерация профилей (50 уникальных пользователей)
     const PROFILE_TEMPLATES = [
+      // Мужчины (40 профилей - 80%)
       {
         name: 'Алексей Петров',
         username: 'alex_petrov',
@@ -392,16 +393,8 @@
         online: true,
         followers: 1247,
         stories: ['вебинар', 'доход', 'путешествие', 'кейсы'],
-        correctTraits: ['self_presentation', 'rationality', 'dominance']
-      },
-      {
-        name: 'Мария Сидорова',
-        username: 'maria_sidorova',
-        status: 'редко в сети',
-        online: false,
-        followers: 89,
-        stories: ['спорт', 'кофе', 'код', 'NFT'],
-        correctTraits: ['introversion', 'perfectionism', 'rationality']
+        correctTraits: ['self_presentation', 'rationality', 'dominance'],
+        avatar: 'ava1.png'
       },
       {
         name: 'Дмитрий Козлов',
@@ -410,16 +403,8 @@
         online: true,
         followers: 2156,
         stories: ['бот', 'таргет', 'вебинар', 'доход'],
-        correctTraits: ['dominance', 'self_presentation', 'collectivism']
-      },
-      {
-        name: 'Анна Волкова',
-        username: 'anna_volkova',
-        status: 'работаю над запуском',
-        online: true,
-        followers: 567,
-        stories: ['кейсы', 'путешествие', 'спорт', 'кофе'],
-        correctTraits: ['perfectionism', 'rationality', 'emotionality']
+        correctTraits: ['dominance', 'self_presentation', 'collectivism'],
+        avatar: 'ava2.png'
       },
       {
         name: 'Сергей Морозов',
@@ -428,7 +413,480 @@
         online: false,
         followers: 342,
         stories: ['код', 'NFT', 'бот', 'таргет'],
-        correctTraits: ['collectivism', 'rationality', 'self_presentation']
+        correctTraits: ['collectivism', 'rationality', 'self_presentation'],
+        avatar: 'ava3.png'
+      },
+      {
+        name: 'Андрей Соколов',
+        username: 'andrey_sokolov',
+        status: 'создаю стартап',
+        online: true,
+        followers: 892,
+        stories: ['инвестиции', 'технологии', 'стартап', 'питч'],
+        correctTraits: ['dominance', 'rationality', 'self_presentation'],
+        avatar: 'ava4.png'
+      },
+      {
+        name: 'Игорь Новиков',
+        username: 'igor_novikov',
+        status: 'фрилансер',
+        online: false,
+        followers: 156,
+        stories: ['проекты', 'клиенты', 'deadline', 'оплата'],
+        correctTraits: ['introversion', 'perfectionism', 'rationality'],
+        avatar: 'ava5.png'
+      },
+      {
+        name: 'Павел Воронов',
+        username: 'pavel_voronov',
+        status: 'менеджер проектов',
+        online: true,
+        followers: 743,
+        stories: ['команда', 'планирование', 'результаты', 'лидерство'],
+        correctTraits: ['dominance', 'collectivism', 'self_presentation'],
+        avatar: 'ava6.png'
+      },
+      {
+        name: 'Артём Лебедев',
+        username: 'artem_lebedev',
+        status: 'дизайнер',
+        online: true,
+        followers: 2341,
+        stories: ['креатив', 'портфолио', 'вдохновение', 'тренды'],
+        correctTraits: ['emotionality', 'perfectionism', 'self_presentation'],
+        avatar: 'ava7.png'
+      },
+      {
+        name: 'Максим Смирнов',
+        username: 'maxim_smirnov',
+        status: 'аналитик данных',
+        online: false,
+        followers: 567,
+        stories: ['данные', 'аналитика', 'отчёты', 'инсайты'],
+        correctTraits: ['rationality', 'perfectionism', 'introversion'],
+        avatar: 'ava8.png'
+      },
+      {
+        name: 'Владимир Попов',
+        username: 'vladimir_popov',
+        status: 'консультант',
+        online: true,
+        followers: 1892,
+        stories: ['консультации', 'решения', 'опыт', 'результаты'],
+        correctTraits: ['dominance', 'self_presentation', 'rationality'],
+        avatar: 'ava9.png'
+      },
+      {
+        name: 'Николай Соколов',
+        username: 'nikolay_sokolov',
+        status: 'разработчик',
+        online: true,
+        followers: 678,
+        stories: ['код', 'технологии', 'продукт', 'релиз'],
+        correctTraits: ['rationality', 'perfectionism', 'introversion'],
+        avatar: 'ava10.png'
+      },
+      {
+        name: 'Александр Медведев',
+        username: 'alexander_medvedev',
+        status: 'предприниматель',
+        online: true,
+        followers: 3456,
+        stories: ['бизнес', 'масштабирование', 'инвестиции', 'успех'],
+        correctTraits: ['dominance', 'self_presentation', 'collectivism'],
+        avatar: 'ava11.png'
+      },
+      {
+        name: 'Роман Козлов',
+        username: 'roman_kozlov',
+        status: 'маркетолог',
+        online: false,
+        followers: 1234,
+        stories: ['кампании', 'конверсия', 'аналитика', 'результаты'],
+        correctTraits: ['self_presentation', 'rationality', 'emotionality'],
+        avatar: 'ava12.png'
+      },
+      {
+        name: 'Евгений Морозов',
+        username: 'evgeny_morozov',
+        status: 'продакт-менеджер',
+        online: true,
+        followers: 987,
+        stories: ['продукт', 'пользователи', 'метрики', 'развитие'],
+        correctTraits: ['collectivism', 'rationality', 'self_presentation'],
+        avatar: 'ava13.png'
+      },
+      {
+        name: 'Денис Волков',
+        username: 'denis_volkov',
+        status: 'инвестор',
+        online: true,
+        followers: 5678,
+        stories: ['портфель', 'анализ', 'риски', 'доходность'],
+        correctTraits: ['rationality', 'dominance', 'self_presentation'],
+        avatar: 'ava14.png'
+      },
+      {
+        name: 'Константин Семёнов',
+        username: 'konstantin_semenov',
+        status: 'юрист',
+        online: false,
+        followers: 456,
+        stories: ['законы', 'консультации', 'документы', 'защита'],
+        correctTraits: ['rationality', 'perfectionism', 'introversion'],
+        avatar: 'ava15.png'
+      },
+      {
+        name: 'Михаил Иванов',
+        username: 'mikhail_ivanov',
+        status: 'тренер',
+        online: true,
+        followers: 2345,
+        stories: ['тренировки', 'результаты', 'мотивация', 'здоровье'],
+        correctTraits: ['dominance', 'emotionality', 'self_presentation'],
+        avatar: 'ava16.png'
+      },
+      {
+        name: 'Виктор Петров',
+        username: 'viktor_petrov',
+        status: 'архитектор',
+        online: true,
+        followers: 789,
+        stories: ['проекты', 'креатив', 'планирование', 'реализация'],
+        correctTraits: ['perfectionism', 'emotionality', 'self_presentation'],
+        avatar: 'ava17.png'
+      },
+      {
+        name: 'Георгий Сидоров',
+        username: 'georgy_sidorov',
+        status: 'врач',
+        online: false,
+        followers: 1234,
+        stories: ['пациенты', 'диагностика', 'лечение', 'здоровье'],
+        correctTraits: ['rationality', 'perfectionism', 'collectivism'],
+        avatar: 'ava18.png'
+      },
+      {
+        name: 'Тимур Алексеев',
+        username: 'timur_alekseev',
+        status: 'блогер',
+        online: true,
+        followers: 4567,
+        stories: ['контент', 'аудитория', 'тренды', 'монетизация'],
+        correctTraits: ['self_presentation', 'emotionality', 'dominance'],
+        avatar: 'ava19.png'
+      },
+      {
+        name: 'Даниил Николаев',
+        username: 'daniel_nikolaev',
+        status: 'учёный',
+        online: false,
+        followers: 234,
+        stories: ['исследования', 'публикации', 'эксперименты', 'открытия'],
+        correctTraits: ['rationality', 'introversion', 'perfectionism'],
+        avatar: 'ava20.png'
+      },
+      {
+        name: 'Степан Кузнецов',
+        username: 'stepan_kuznetsov',
+        status: 'повар',
+        online: true,
+        followers: 3456,
+        stories: ['рецепты', 'кухня', 'вкус', 'творчество'],
+        correctTraits: ['emotionality', 'perfectionism', 'self_presentation'],
+        avatar: 'ava21.png'
+      },
+      {
+        name: 'Фёдор Соловьёв',
+        username: 'fedor_solovyov',
+        status: 'писатель',
+        online: false,
+        followers: 567,
+        stories: ['книги', 'творчество', 'вдохновение', 'публикации'],
+        correctTraits: ['introversion', 'emotionality', 'perfectionism'],
+        avatar: 'ava22.png'
+      },
+      {
+        name: 'Ярослав Виноградов',
+        username: 'yaroslav_vinogradov',
+        status: 'музыкант',
+        online: true,
+        followers: 2345,
+        stories: ['музыка', 'концерты', 'альбомы', 'творчество'],
+        correctTraits: ['emotionality', 'self_presentation', 'perfectionism'],
+        avatar: 'ava23.png'
+      },
+      {
+        name: 'Арсений Борисов',
+        username: 'arseny_borisov',
+        status: 'фотограф',
+        online: true,
+        followers: 1890,
+        stories: ['фото', 'сессии', 'творчество', 'портфолио'],
+        correctTraits: ['emotionality', 'perfectionism', 'self_presentation'],
+        avatar: 'ava24.png'
+      },
+      {
+        name: 'Матвей Григорьев',
+        username: 'matvey_grigoryev',
+        status: 'спортсмен',
+        online: true,
+        followers: 3456,
+        stories: ['тренировки', 'соревнования', 'результаты', 'цели'],
+        correctTraits: ['dominance', 'perfectionism', 'self_presentation'],
+        avatar: 'ava25.png'
+      },
+      {
+        name: 'Кирилл Романов',
+        username: 'kirill_romanov',
+        status: 'политик',
+        online: true,
+        followers: 7890,
+        stories: ['политика', 'общество', 'реформы', 'будущее'],
+        correctTraits: ['dominance', 'collectivism', 'self_presentation'],
+        avatar: 'ava26.png'
+      },
+      {
+        name: 'Лев Орлов',
+        username: 'lev_orlov',
+        status: 'журналист',
+        online: false,
+        followers: 1234,
+        stories: ['новости', 'расследования', 'интервью', 'правда'],
+        correctTraits: ['rationality', 'self_presentation', 'collectivism'],
+        avatar: 'ava27.png'
+      },
+      {
+        name: 'Марк Соколов',
+        username: 'mark_sokolov',
+        status: 'актёр',
+        online: true,
+        followers: 4567,
+        stories: ['роли', 'театр', 'кино', 'творчество'],
+        correctTraits: ['emotionality', 'self_presentation', 'perfectionism'],
+        avatar: 'ava28.png'
+      },
+      {
+        name: 'Глеб Морозов',
+        username: 'gleb_morozov',
+        status: 'художник',
+        online: false,
+        followers: 890,
+        stories: ['картины', 'выставки', 'вдохновение', 'творчество'],
+        correctTraits: ['introversion', 'emotionality', 'perfectionism'],
+        avatar: 'ava29.png'
+      },
+      {
+        name: 'Родион Лебедев',
+        username: 'rodion_lebedev',
+        status: 'режиссёр',
+        online: true,
+        followers: 2345,
+        stories: ['фильмы', 'проекты', 'творчество', 'искусство'],
+        correctTraits: ['emotionality', 'dominance', 'self_presentation'],
+        avatar: 'ava30.png'
+      },
+      {
+        name: 'Валентин Козлов',
+        username: 'valentin_kozlov',
+        status: 'психолог',
+        online: true,
+        followers: 1234,
+        stories: ['консультации', 'помощь', 'психика', 'развитие'],
+        correctTraits: ['collectivism', 'emotionality', 'rationality'],
+        avatar: 'ava31.png'
+      },
+      {
+        name: 'Семён Новиков',
+        username: 'semen_novikov',
+        status: 'учитель',
+        online: false,
+        followers: 567,
+        stories: ['ученики', 'знания', 'образование', 'развитие'],
+        correctTraits: ['collectivism', 'perfectionism', 'rationality'],
+        avatar: 'ava32.png'
+      },
+      {
+        name: 'Григорий Петров',
+        username: 'grigory_petrov',
+        status: 'инженер',
+        online: true,
+        followers: 890,
+        stories: ['проекты', 'технологии', 'инновации', 'решения'],
+        correctTraits: ['rationality', 'perfectionism', 'introversion'],
+        avatar: 'ava33.png'
+      },
+      {
+        name: 'Аркадий Сидоров',
+        username: 'arkady_sidorov',
+        status: 'экономист',
+        online: true,
+        followers: 1456,
+        stories: ['экономика', 'анализ', 'прогнозы', 'финансы'],
+        correctTraits: ['rationality', 'perfectionism', 'self_presentation'],
+        avatar: 'ava34.png'
+      },
+      {
+        name: 'Вячеслав Волков',
+        username: 'vyacheslav_volkov',
+        status: 'юрист',
+        online: false,
+        followers: 678,
+        stories: ['законы', 'право', 'защита', 'консультации'],
+        correctTraits: ['rationality', 'perfectionism', 'introversion'],
+        avatar: 'ava35.png'
+      },
+      {
+        name: 'Захар Медведев',
+        username: 'zakhar_medvedev',
+        status: 'программист',
+        online: true,
+        followers: 2345,
+        stories: ['код', 'алгоритмы', 'продукты', 'технологии'],
+        correctTraits: ['rationality', 'perfectionism', 'introversion'],
+        avatar: 'ava36.png'
+      },
+      {
+        name: 'Егор Смирнов',
+        username: 'egor_smirnov',
+        status: 'дизайнер',
+        online: true,
+        followers: 1890,
+        stories: ['дизайн', 'креатив', 'портфолио', 'проекты'],
+        correctTraits: ['emotionality', 'perfectionism', 'self_presentation'],
+        avatar: 'ava37.png'
+      },
+      {
+        name: 'Тихон Попов',
+        username: 'tikhon_popov',
+        status: 'менеджер',
+        online: true,
+        followers: 1234,
+        stories: ['команда', 'проекты', 'результаты', 'лидерство'],
+        correctTraits: ['dominance', 'collectivism', 'self_presentation'],
+        avatar: 'ava38.png'
+      },
+      {
+        name: 'Мирон Соколов',
+        username: 'miron_sokolov',
+        status: 'консультант',
+        online: false,
+        followers: 890,
+        stories: ['консультации', 'решения', 'опыт', 'помощь'],
+        correctTraits: ['rationality', 'collectivism', 'self_presentation'],
+        avatar: 'ava39.png'
+      },
+      {
+        name: 'Давид Козлов',
+        username: 'david_kozlov',
+        status: 'предприниматель',
+        online: true,
+        followers: 3456,
+        stories: ['бизнес', 'стартап', 'инвестиции', 'развитие'],
+        correctTraits: ['dominance', 'self_presentation', 'collectivism'],
+        avatar: 'ava40.png'
+      },
+      
+      // Женщины (10 профилей - 20%)
+      {
+        name: 'Мария Сидорова',
+        username: 'maria_sidorova',
+        status: 'редко в сети',
+        online: false,
+        followers: 89,
+        stories: ['спорт', 'кофе', 'код', 'NFT'],
+        correctTraits: ['introversion', 'perfectionism', 'rationality'],
+        avatar: 'ava41.png'
+      },
+      {
+        name: 'Анна Волкова',
+        username: 'anna_volkova',
+        status: 'работаю над запуском',
+        online: true,
+        followers: 567,
+        stories: ['кейсы', 'путешествие', 'спорт', 'кофе'],
+        correctTraits: ['perfectionism', 'rationality', 'emotionality'],
+        avatar: 'ava42.png'
+      },
+      {
+        name: 'Елена Смирнова',
+        username: 'elena_smirnova',
+        status: 'маркетолог',
+        online: true,
+        followers: 2345,
+        stories: ['кампании', 'брендинг', 'аналитика', 'результаты'],
+        correctTraits: ['self_presentation', 'rationality', 'emotionality'],
+        avatar: 'ava43.png'
+      },
+      {
+        name: 'Ольга Петрова',
+        username: 'olga_petrova',
+        status: 'дизайнер',
+        online: true,
+        followers: 1890,
+        stories: ['дизайн', 'креатив', 'портфолио', 'проекты'],
+        correctTraits: ['emotionality', 'perfectionism', 'self_presentation'],
+        avatar: 'ava44.png'
+      },
+      {
+        name: 'Татьяна Козлова',
+        username: 'tatyana_kozlova',
+        status: 'психолог',
+        online: true,
+        followers: 1234,
+        stories: ['консультации', 'помощь', 'психика', 'развитие'],
+        correctTraits: ['collectivism', 'emotionality', 'rationality'],
+        avatar: 'ava45.png'
+      },
+      {
+        name: 'Наталья Морозова',
+        username: 'natalya_morozova',
+        status: 'блогер',
+        online: true,
+        followers: 4567,
+        stories: ['контент', 'аудитория', 'тренды', 'монетизация'],
+        correctTraits: ['self_presentation', 'emotionality', 'dominance'],
+        avatar: 'ava46.png'
+      },
+      {
+        name: 'Ирина Соколова',
+        username: 'irina_sokolova',
+        status: 'врач',
+        online: false,
+        followers: 890,
+        stories: ['пациенты', 'диагностика', 'лечение', 'здоровье'],
+        correctTraits: ['rationality', 'perfectionism', 'collectivism'],
+        avatar: 'ava47.png'
+      },
+      {
+        name: 'Светлана Иванова',
+        username: 'svetlana_ivanova',
+        status: 'учитель',
+        online: true,
+        followers: 567,
+        stories: ['ученики', 'знания', 'образование', 'развитие'],
+        correctTraits: ['collectivism', 'perfectionism', 'rationality'],
+        avatar: 'ava48.png'
+      },
+      {
+        name: 'Юлия Волкова',
+        username: 'yulia_volkova',
+        status: 'актриса',
+        online: true,
+        followers: 3456,
+        stories: ['роли', 'театр', 'кино', 'творчество'],
+        correctTraits: ['emotionality', 'self_presentation', 'perfectionism'],
+        avatar: 'ava49.png'
+      },
+      {
+        name: 'Ангелина Сидорова',
+        username: 'angelina_sidorova',
+        status: 'художник',
+        online: false,
+        followers: 1234,
+        stories: ['картины', 'выставки', 'вдохновение', 'творчество'],
+        correctTraits: ['introversion', 'emotionality', 'perfectionism'],
+        avatar: 'ava50.png'
       }
     ];
 
@@ -474,6 +932,9 @@
 
     // Инициализация
     function init() {
+      // Загружаем начальную аватарку
+      profileAvatar.src = '../assets/profiling_avatars/ava0.png';
+      
       createTraitsGrid();
       setupEventListeners();
       updateStats();
@@ -569,7 +1030,8 @@
     function updateProfile() {
       const profile = gameState.currentProfile;
       
-      profileAvatar.src = `https://picsum.photos/seed/${profile.username}/160/160`;
+      // Загружаем аватарку из папки assets/profiling_avatars
+      profileAvatar.src = `../assets/profiling_avatars/${profile.avatar}`;
       profileName.textContent = profile.name;
       profileUsername.textContent = `@${profile.username}`;
       profileStatus.textContent = profile.status;
