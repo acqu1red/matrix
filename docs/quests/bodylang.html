@@ -26,28 +26,69 @@
       padding: 8px 16px;
       font-size: 14px;
       color: var(--text-muted);
+      transition: all 0.3s ease;
     }
 
     .phase-badge.active {
       background: var(--glow1);
       color: var(--bg0);
       font-weight: 600;
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
     }
 
-    /* Видео контейнер */
+    /* Видео контейнер с анимированной рамкой */
     .video-container {
       background: var(--glass);
       border-radius: var(--radius);
       padding: 20px;
       margin-bottom: 30px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      background: linear-gradient(45deg, var(--glow1), var(--glow2), var(--glow1)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      animation: borderGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes borderGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .video-frame {
+      position: relative;
+      display: inline-block;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transform: perspective(1000px) rotateY(0deg);
+      transition: transform 0.3s ease;
+    }
+
+    .video-frame:hover {
+      transform: perspective(1000px) rotateY(5deg);
     }
 
     .video-player {
       width: 100%;
       max-width: 400px;
+      height: auto;
+      display: block;
       border-radius: var(--radius-sm);
-      margin-bottom: 16px;
     }
 
     .video-controls {
@@ -55,7 +96,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 16px;
+      margin: 16px 0;
     }
 
     .play-btn {
@@ -71,11 +112,22 @@
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 247, 213, 0.3);
     }
 
     .play-btn:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.4);
+      box-shadow: 0 0 25px rgba(102, 247, 213, 0.6);
+    }
+
+    .play-btn.playing {
+      background: var(--glow2);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
     .progress-bar {
@@ -85,13 +137,15 @@
       background: var(--glass-strong);
       border-radius: 3px;
       overflow: hidden;
+      position: relative;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--glow1);
+      background: linear-gradient(90deg, var(--glow1), var(--glow2));
       width: 0%;
       transition: width 0.1s ease;
+      border-radius: 3px;
     }
 
     .video-annotation {
@@ -160,6 +214,16 @@
       border-color: var(--glow1);
       background: var(--glass-strong);
       transform: translateY(-2px);
+    }
+
+    .answer-option.triad {
+      font-size: 14px;
+      padding: 12px 16px;
+      line-height: 1.4;
+    }
+
+    .triad-option {
+      margin-bottom: 8px;
     }
 
     .answer-option.correct {
@@ -346,23 +410,24 @@
 </head>
 <body>
   <div class="quest-container">
-    <!-- Индикатор фазы -->
+    <!-- Индикатор прогресса -->
     <div class="phase-indicator">
-      <div class="phase-badge" id="phase1Badge">Фаза 1: Видео допрос</div>
-      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ лица</div>
+      <div class="phase-badge active">Элемент 1 из 20</div>
     </div>
 
-    <!-- Фаза 1: Видео допрос -->
-    <div id="videoPhase" class="video-container">
+    <!-- Контейнер для видео анализа -->
+    <div id="videoContainer" class="video-container">
       <h3>Анализ языка тела в видео</h3>
       <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек
+        Посмотрите видео и определите эмоцию или поведение
       </p>
       
-      <video id="videoPlayer" class="video-player" preload="metadata">
-        <source src="../video/dopros1.mp4" type="video/mp4">
-        Ваш браузер не поддерживает видео.
-      </video>
+      <div class="video-frame">
+        <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+          <source src="" type="video/mp4">
+          Ваш браузер не поддерживает видео.
+        </video>
+      </div>
       
       <div class="video-controls">
         <button class="play-btn" id="playBtn">▶️</button>
@@ -391,28 +456,7 @@
       </div>
     </div>
 
-    <!-- Фаза 2: Анализ лица -->
-    <div id="facePhase" class="face-container" style="display: none;">
-      <h3>Анализ выражения лица</h3>
-      <p class="face-instruction">
-        Определите эмоцию по выражению лица персонажа
-      </p>
-      
-      <div class="face-sprite" id="faceSprite"></div>
-      
-      <div class="attempts-counter">
-        <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="faceAttemptsDots">
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-        </div>
-      </div>
-      
-      <div class="answer-options" id="faceOptions">
-        <!-- Варианты ответов будут добавлены динамически -->
-      </div>
-    </div>
+
 
     <!-- Кнопки навигации -->
     <div class="quest-controls">
@@ -446,41 +490,25 @@
   </div>
 
   <script>
-    // Данные для видео допроса
-    const VIDEO_DATA = {
-      'dopros1.mp4': 'сепарирование (уход) от вопроса',
-      'dopros2.mp4': 'легкое нахмуривание',
-      'dopros3.mp4': 'поджатие губ',
-      'dopros4.mp4': 'учищенное моргание',
-      'dopros5.mp4': 'поджатие губ',
-      'dopros6.mp4': 'сепарирование (уход) от вопроса',
-      'dopros7.mp4': 'легкое нахмуривание',
-      'dopros8.mp4': 'поджатие губ'
-    };
+    // Данные из нового манифеста
+    let quizData = [];
+    let currentItem = null;
+    let currentAttempts = 0;
+    let currentPhase = 'video';
+    let usedItems = new Set();
 
-    const VIDEO_OPTIONS = [
-      'Поджатие губ',
-      'Учищенное моргание',
-      'Легкое нахмуривание',
-      'Легкое прикосновение лица (подбородка, носа, вески)',
-      'Покачивание головы в строну',
-      'Сепарирование (уход) от вопроса',
-      'Отбрасывание головы назад',
-      'Движение суставами (дергание ногой или кистью)',
-      'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
-      'Вскидывание взгляда вверх',
-      'Быстрое облизывание губ',
-      'Сглатывание',
-      'Напряжение челюсти'
-    ];
-
-    // Загружаем manifest для лиц
-    let faceManifest = [];
-    let currentFace = null;
-    let currentVideo = null;
-    let videoAttempts = 0;
-    let faceAttempts = 0;
-    let isVideoPhase = true;
+    // Инициализация
+    async function init() {
+      try {
+        const response = await fetch('../assets/manifest_single_mode_en_20.json');
+        quizData = await response.json();
+        console.log('Манифест загружен:', quizData.length, 'элементов');
+        loadNextItem();
+      } catch (error) {
+        console.error('Ошибка загрузки манифеста:', error);
+        showError('Ошибка загрузки данных квеста');
+      }
+    }
 
     // Инициализация
     async function init() {
@@ -495,29 +523,39 @@
       }
     }
 
-    // Загрузка фазы видео
-    function loadVideoPhase() {
-      isVideoPhase = true;
-      updatePhaseIndicator();
+    // Загрузка следующего элемента
+    function loadNextItem() {
+      // Выбираем случайный неиспользованный элемент
+      const availableItems = quizData.filter(item => !usedItems.has(item.id));
       
-      // Выбираем случайное видео
-      const videoFiles = Object.keys(VIDEO_DATA);
-      currentVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+      if (availableItems.length === 0) {
+        // Все элементы использованы, завершаем квест
+        completeQuest();
+        return;
+      }
       
-      const video = document.getElementById('videoPlayer');
-      video.src = `../video/${currentVideo}`;
-      video.load();
+      currentItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+      usedItems.add(currentItem.id);
+      
+      console.log('Загружен элемент:', currentItem);
       
       // Сбрасываем попытки
-      videoAttempts = 0;
-      updateAttemptsDisplay('video');
+      currentAttempts = 0;
+      updateAttemptsDisplay();
       
-      // Создаем варианты ответов
-      createVideoOptions();
+      // Загружаем видео
+      const videoPlayer = document.getElementById('videoPlayer');
+      videoPlayer.src = `../assets/${currentItem.file}`;
+      videoPlayer.load();
       
-      // Показываем фазу видео
-      document.getElementById('videoPhase').style.display = 'block';
-      document.getElementById('facePhase').style.display = 'none';
+      // Генерируем варианты ответов
+      generateOptions();
+      
+      // Показываем контейнер
+      document.getElementById('videoContainer').style.display = 'block';
+      
+      // Обновляем индикатор фазы
+      updatePhaseIndicator();
     }
 
     // Загрузка фазы лица
@@ -574,70 +612,44 @@
       animate();
     }
 
-    // Создание вариантов ответов для видео
-    function createVideoOptions() {
-      const correctAnswer = VIDEO_DATA[currentVideo];
-      const options = [correctAnswer];
-      
-      // Добавляем случайные варианты
-      const availableOptions = VIDEO_OPTIONS.filter(opt => opt !== correctAnswer);
-      for (let i = 0; i < 4; i++) {
-        if (availableOptions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableOptions.length);
-          options.push(availableOptions.splice(randomIndex, 1)[0]);
-        }
-      }
-      
-      // Перемешиваем
-      options.sort(() => Math.random() - 0.5);
-      
+    // Генерация вариантов ответов
+    function generateOptions() {
       const container = document.getElementById('videoOptions');
       container.innerHTML = '';
       
-      options.forEach(option => {
-        const button = document.createElement('button');
-        button.className = 'answer-option';
-        button.textContent = option;
-        button.onclick = () => handleVideoAnswer(option);
-        container.appendChild(button);
-      });
-    }
-
-    // Создание вариантов ответов для лица
-    function createFaceOptions() {
-      const correctAnswer = currentFace.expression_ru;
-      const options = [correctAnswer];
-      
-      // Добавляем случайные варианты
-      const availableOptions = faceManifest
-        .filter(face => face.expression_ru !== correctAnswer)
-        .map(face => face.expression_ru);
-      
-      for (let i = 0; i < 2; i++) {
-        if (availableOptions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableOptions.length);
-          options.push(availableOptions.splice(randomIndex, 1)[0]);
-        }
+      if (currentItem.mode === 'single') {
+        // Одиночный режим - 3 кнопки с эмоциями
+        const options = [...currentItem.choices_en];
+        
+        // Перемешиваем варианты
+        options.sort(() => Math.random() - 0.5);
+        
+        options.forEach((option, index) => {
+          const button = document.createElement('button');
+          button.className = 'answer-option';
+          button.textContent = option;
+          button.onclick = () => checkAnswer(index, option);
+          container.appendChild(button);
+        });
+      } else if (currentItem.mode === 'triad') {
+        // Триадный режим - 3 варианта по 3 эмоции
+        currentItem.triad_options_en.forEach((triad, triadIndex) => {
+          const triadContainer = document.createElement('div');
+          triadContainer.className = 'triad-option';
+          
+          const triadButton = document.createElement('button');
+          triadButton.className = 'answer-option triad';
+          triadButton.innerHTML = triad.join(' + ');
+          triadButton.onclick = () => checkTriadAnswer(triadIndex, triad);
+          triadContainer.appendChild(triadButton);
+          container.appendChild(triadContainer);
+        });
       }
-      
-      // Перемешиваем
-      options.sort(() => Math.random() - 0.5);
-      
-      const container = document.getElementById('faceOptions');
-      container.innerHTML = '';
-      
-      options.forEach(option => {
-        const button = document.createElement('button');
-        button.className = 'answer-option';
-        button.textContent = option;
-        button.onclick = () => handleFaceAnswer(option);
-        container.appendChild(button);
-      });
     }
 
-    // Обработка ответа на видео
-    function handleVideoAnswer(answer) {
-      const correctAnswer = VIDEO_DATA[currentVideo];
+    // Проверка ответа для одиночного режима
+    function checkAnswer(index, answer) {
+      const correctAnswer = currentItem.label_en;
       const buttons = document.querySelectorAll('#videoOptions .answer-option');
       
       buttons.forEach(btn => {
@@ -651,19 +663,19 @@
       
       if (answer === correctAnswer) {
         setTimeout(() => {
-          loadFacePhase();
+          loadNextItem();
         }, 2000);
       } else {
-        videoAttempts++;
-        updateAttemptsDisplay('video');
+        currentAttempts++;
+        updateAttemptsDisplay();
         
-        if (videoAttempts >= 3) {
+        if (currentAttempts >= 3) {
           setTimeout(() => {
-            loadVideoPhase(); // Загружаем новое видео
+            loadNextItem(); // Загружаем следующий элемент
           }, 2000);
         } else {
           setTimeout(() => {
-            createVideoOptions(); // Меняем варианты ответов
+            generateOptions(); // Меняем варианты ответов
             buttons.forEach(btn => {
               btn.disabled = false;
               btn.classList.remove('correct', 'incorrect');
@@ -673,65 +685,88 @@
       }
     }
 
-    // Обработка ответа на лицо
-    function handleFaceAnswer(answer) {
-      const correctAnswer = currentFace.expression_ru;
-      const buttons = document.querySelectorAll('#faceOptions .answer-option');
+    // Проверка ответа для триадного режима
+    function checkTriadAnswer(triadIndex, selectedTriad) {
+      const correctTriad = currentItem.triad_en_correct;
+      const buttons = document.querySelectorAll('#videoOptions .answer-option');
+      
+      // Проверяем полное совпадение массивов
+      const isCorrect = selectedTriad.length === correctTriad.length &&
+        selectedTriad.every((emotion, index) => emotion === correctTriad[index]);
       
       buttons.forEach(btn => {
         btn.disabled = true;
-        if (btn.textContent === correctAnswer) {
+        if (btn.innerHTML === correctTriad.join(' + ')) {
           btn.classList.add('correct');
-        } else if (btn.textContent === answer && answer !== correctAnswer) {
+        } else if (btn.innerHTML === selectedTriad.join(' + ') && !isCorrect) {
           btn.classList.add('incorrect');
         }
       });
       
-      if (answer === correctAnswer) {
+      if (isCorrect) {
         setTimeout(() => {
-          completeQuest();
+          loadNextItem();
         }, 2000);
       } else {
-        faceAttempts++;
-        updateAttemptsDisplay('face');
+        currentAttempts++;
+        updateAttemptsDisplay();
         
-        if (faceAttempts >= 3) {
+        if (currentAttempts >= 3) {
           setTimeout(() => {
-            loadFacePhase(); // Загружаем новое лицо
+            loadNextItem(); // Загружаем следующий элемент
           }, 2000);
         } else {
           setTimeout(() => {
-            createFaceOptions(); // Меняем варианты ответов
+            generateOptions(); // Меняем варианты ответов
             buttons.forEach(btn => {
               btn.disabled = false;
               btn.classList.remove('correct', 'incorrect');
             });
           }, 2000);
         }
+      }
+    }
+
+    // Обновление индикатора попыток
+    function updateAttemptsDisplay() {
+      const dots = document.querySelectorAll('#videoAttemptsDots .attempt-dot');
+      dots.forEach((dot, index) => {
+        if (index < currentAttempts) {
+          dot.classList.add('used');
+        } else {
+          dot.classList.remove('used');
+        }
+      });
+    }
+
+    // Обновление индикатора фазы
+    function updatePhaseIndicator() {
+      const badges = document.querySelectorAll('.phase-badge');
+      badges.forEach(badge => {
+        badge.classList.remove('active');
+      });
+      
+      const currentBadge = document.querySelector('.phase-badge');
+      if (currentBadge) {
+        currentBadge.classList.add('active');
+        currentBadge.textContent = `Элемент ${usedItems.size} из ${quizData.length}`;
       }
     }
 
     // Обновление индикатора фазы
     function updatePhaseIndicator() {
-      const phase1Badge = document.getElementById('phase1Badge');
-      const phase2Badge = document.getElementById('phase2Badge');
-      
-      if (isVideoPhase) {
-        phase1Badge.classList.add('active');
-        phase2Badge.classList.remove('active');
-      } else {
-        phase1Badge.classList.remove('active');
-        phase2Badge.classList.add('active');
+      const badge = document.querySelector('.phase-badge');
+      if (badge) {
+        badge.textContent = `Элемент ${usedItems.size} из ${quizData.length}`;
       }
     }
 
     // Обновление отображения попыток
-    function updateAttemptsDisplay(phase) {
-      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
-      const attempts = phase === 'video' ? videoAttempts : faceAttempts;
+    function updateAttemptsDisplay() {
+      const dots = document.querySelectorAll('#videoAttemptsDots .attempt-dot');
       
       dots.forEach((dot, index) => {
-        if (index < attempts) {
+        if (index < currentAttempts) {
           dot.classList.add('used');
         } else {
           dot.classList.remove('used');
@@ -760,6 +795,12 @@
           localStorage.setItem(userDataKey, JSON.stringify(userData));
         }
       }
+    }
+
+    // Функция для показа ошибок
+    function showError(message) {
+      console.error(message);
+      // Можно добавить уведомление пользователю
     }
 
     // Закрытие модала завершения

@@ -1,0 +1,277 @@
+[
+  {
+    "id": "01",
+    "mode": "single",
+    "file": "videos/rf_01_skepticism.mp4",
+    "source_name": "aggressive skepticism.mp4",
+    "label_en": "skepticism",
+    "choices_en": [
+      "contempt",
+      "skepticism",
+      "uncertainty"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": "02",
+    "mode": "single",
+    "file": "videos/rf_02_anger.mp4",
+    "source_name": "anger, disgust.mp4",
+    "label_en": "anger",
+    "choices_en": [
+      "contempt",
+      "anger",
+      "disgust"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": "03",
+    "mode": "single",
+    "file": "videos/rf_03_anxiety.mp4",
+    "source_name": "anxiety.mp4",
+    "label_en": "anxiety",
+    "choices_en": [
+      "fear",
+      "uncertainty",
+      "anxiety"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "04",
+    "mode": "single",
+    "file": "videos/rf_04_determination.mp4",
+    "source_name": "control:determination.mp4",
+    "label_en": "determination",
+    "choices_en": [
+      "anger",
+      "determination",
+      "dominance"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": "05",
+    "mode": "single",
+    "file": "videos/rf_05_dominance.mp4",
+    "source_name": "dominance.mp4",
+    "label_en": "dominance",
+    "choices_en": [
+      "determination",
+      "dominance",
+      "anger"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": "06",
+    "mode": "triad",
+    "file": "videos/rf_06_fear-surprise-denial.mp4",
+    "source_name": "fear - surprise - denial.mp4",
+    "triad_en_correct": [
+      "fear",
+      "surprise",
+      "denial"
+    ],
+    "triad_options_en": [
+      [
+        "fear",
+        "surprise",
+        "denial"
+      ],
+      [
+        "fear",
+        "skepticism",
+        "surprise"
+      ],
+      [
+        "fear",
+        "surprise",
+        "uncertainty"
+      ]
+    ]
+  },
+  {
+    "id": "07",
+    "mode": "single",
+    "file": "videos/rf_07_high-self-esteem.mp4",
+    "source_name": "high self-esteem.mp4",
+    "label_en": "high-self-esteem",
+    "choices_en": [
+      "dominance",
+      "confidence",
+      "high-self-esteem"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "08",
+    "mode": "single",
+    "file": "videos/rf_08_submission.mp4",
+    "source_name": "infantile, submission.mp4",
+    "label_en": "submission",
+    "choices_en": [
+      "submission",
+      "uncertainty",
+      "sadness"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": "09",
+    "mode": "single",
+    "file": "videos/rf_09_surprise.mp4",
+    "source_name": "misunderstanding, surprise.mp4",
+    "label_en": "surprise",
+    "choices_en": [
+      "misunderstanding",
+      "skepticism",
+      "surprise"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "10",
+    "mode": "single",
+    "file": "videos/rf_10_contempt.mp4",
+    "source_name": "suspicion:contempt.mp4",
+    "label_en": "contempt",
+    "choices_en": [
+      "skepticism",
+      "disgust",
+      "contempt"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "11",
+    "mode": "single",
+    "file": "videos/rf_11_thoughtfulness.mp4",
+    "source_name": "thoughtfulness.mp4",
+    "label_en": "thoughtfulness",
+    "choices_en": [
+      "neutral",
+      "interest",
+      "thoughtfulness"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "12",
+    "mode": "single",
+    "file": "videos/rf_12_skepticism.mp4",
+    "source_name": "aggressive skepticism.mp4",
+    "label_en": "skepticism",
+    "choices_en": [
+      "uncertainty",
+      "contempt",
+      "skepticism"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "13",
+    "mode": "single",
+    "file": "videos/rf_13_anger.mp4",
+    "source_name": "anger, disgust.mp4",
+    "label_en": "anger",
+    "choices_en": [
+      "anger",
+      "disgust",
+      "contempt"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": "14",
+    "mode": "single",
+    "file": "videos/rf_14_anxiety.mp4",
+    "source_name": "anxiety.mp4",
+    "label_en": "anxiety",
+    "choices_en": [
+      "fear",
+      "uncertainty",
+      "anxiety"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "15",
+    "mode": "single",
+    "file": "videos/rf_15_determination.mp4",
+    "source_name": "control:determination.mp4",
+    "label_en": "determination",
+    "choices_en": [
+      "dominance",
+      "anger",
+      "determination"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "16",
+    "mode": "single",
+    "file": "videos/rf_16_dominance.mp4",
+    "source_name": "dominance.mp4",
+    "label_en": "dominance",
+    "choices_en": [
+      "dominance",
+      "anger",
+      "determination"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": "17",
+    "mode": "single",
+    "file": "videos/rf_17_fear.mp4",
+    "source_name": "fear - surprise - denial.mp4",
+    "label_en": "fear",
+    "choices_en": [
+      "anxiety",
+      "surprise",
+      "fear"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": "18",
+    "mode": "single",
+    "file": "videos/rf_18_high-self-esteem.mp4",
+    "source_name": "high self-esteem.mp4",
+    "label_en": "high-self-esteem",
+    "choices_en": [
+      "high-self-esteem",
+      "dominance",
+      "confidence"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": "19",
+    "mode": "single",
+    "file": "videos/rf_19_submission.mp4",
+    "source_name": "infantile, submission.mp4",
+    "label_en": "submission",
+    "choices_en": [
+      "sadness",
+      "submission",
+      "uncertainty"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": "20",
+    "mode": "single",
+    "file": "videos/rf_20_surprise.mp4",
+    "source_name": "misunderstanding, surprise.mp4",
+    "label_en": "surprise",
+    "choices_en": [
+      "misunderstanding",
+      "skepticism",
+      "surprise"
+    ],
+    "correct_index": 2
+  }
+]
