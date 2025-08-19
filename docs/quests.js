@@ -232,7 +232,7 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
     toast(`🎉 Поздравляем! Вы достигли ${userData.level} уровня!`, 'success');
   }
   
-  // Сохраняем данные
+  // Сохраняем данные немедленно
   console.log('Начинаем сохранение данных...');
   await saveUserData();
   
@@ -577,20 +577,26 @@ async function saveUserData() {
   console.log('Experience для сохранения:', userData.exp);
   console.log('Level для сохранения:', userData.level);
   
-  // Сохраняем в localStorage как fallback
-  if (userData.userId) {
-    localStorage.setItem(`userData_${userData.userId}`, JSON.stringify(userData));
-    console.log('Данные сохранены в localStorage');
-  }
+  // Всегда сохраняем в localStorage как fallback
+  const dataToSave = {
+    mulacoin: userData.mulacoin || 0,
+    exp: userData.exp || 0,
+    level: userData.level || 1,
+    lastFreeSpin: userData.lastFreeSpin,
+    telegramId: userData.telegramId
+  };
+  
+  localStorage.setItem('userData', JSON.stringify(dataToSave));
+  console.log('Данные сохранены в localStorage:', dataToSave);
   
   // Сохраняем в Supabase если доступен
   if (supabase && userData.telegramId) {
     try {
       const userDataToSave = {
         telegram_id: userData.telegramId,
-        mulacoin: userData.mulacoin,
-        experience: userData.exp,
-        level: userData.level,
+        mulacoin: userData.mulacoin || 0,
+        experience: userData.exp || 0,
+        level: userData.level || 1,
         last_free_spin: userData.lastFreeSpin,
         updated_at: new Date().toISOString()
       };
@@ -627,6 +633,21 @@ async function loadUserData(userId) {
   
   userData.userId = userId;
   
+  // Сначала загружаем из localStorage как fallback
+  const saved = localStorage.getItem('userData');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      userData.mulacoin = parsed.mulacoin || 0;
+      userData.exp = parsed.exp || 0;
+      userData.level = parsed.level || 1;
+      userData.lastFreeSpin = parsed.lastFreeSpin;
+      console.log('Данные загружены из localStorage:', parsed);
+    } catch (error) {
+      console.error('Ошибка парсинга localStorage:', error);
+    }
+  }
+  
   // Пытаемся загрузить из Supabase
   if (supabase && userData.telegramId) {
     try {
@@ -640,31 +661,18 @@ async function loadUserData(userId) {
       
       if (data && !error) {
         console.log('Данные загружены из Supabase:', data);
-        userData.mulacoin = data.mulacoin || 0;
-        userData.exp = data.experience || 0;
-        userData.level = data.level || 1;
-        userData.lastFreeSpin = data.last_free_spin;
+        // Обновляем данные из Supabase (они имеют приоритет)
+        userData.mulacoin = data.mulacoin || userData.mulacoin || 0;
+        userData.exp = data.experience || userData.exp || 0;
+        userData.level = data.level || userData.level || 1;
+        userData.lastFreeSpin = data.last_free_spin || userData.lastFreeSpin;
         toast('Данные загружены из базы данных', 'success');
       } else {
-        console.log('Пользователь не найден в Supabase, загружаем из localStorage');
-        // Если пользователя нет в Supabase, загружаем из localStorage
-        const saved = localStorage.getItem(`userData_${userId}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          userData = { ...userData, ...parsed };
-          console.log('Данные загружены из localStorage:', parsed);
-        }
+        console.log('Пользователь не найден в Supabase, используем данные из localStorage');
       }
     } catch (error) {
       console.error('Ошибка загрузки из Supabase:', error);
       toast('Ошибка загрузки из базы данных', 'error');
-      // Fallback на localStorage
-      const saved = localStorage.getItem(`userData_${userId}`);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        userData = { ...userData, ...parsed };
-        console.log('Данные загружены из localStorage (fallback):', parsed);
-      }
     }
   } else {
     console.log('Supabase недоступен, загружаем из localStorage');
@@ -1648,8 +1656,8 @@ async function testSupabaseConnection() {
   try {
     toast('Тестирование подключения...', 'info');
     
-    // Тестируем подключение
-    const { data, error } = await supabase.from('bot_user').select('count').limit(1);
+    // Тестируем подключение - используем простой запрос
+    const { data, error } = await supabase.from('bot_user').select('*').limit(1);
     
     if (error) {
       console.error('Ошибка тестирования:', error);
@@ -1660,7 +1668,10 @@ async function testSupabaseConnection() {
       
       // Пробуем сохранить тестовые данные
       if (userData.telegramId) {
+        console.log('Пробуем сохранить тестовые данные...');
         await saveUserData();
+      } else {
+        console.log('Telegram ID не получен, пропускаем сохранение');
       }
     }
   } catch (error) {
@@ -1714,12 +1725,15 @@ async function forceSaveData() {
 }
 
 /* ====== Init ====== */
-loadState().then(state=>{
+loadState().then(async state=>{
   buildCards(state);
   maybeOfferPromo(state);
   
   // Загружаем данные пользователя
-  loadUserData(state.userId);
+  await loadUserData(state.userId);
+  
+  // Обновляем отображение валюты после загрузки данных
+  updateCurrencyDisplay();
   
   // Создаем рулетку
   createRouletteWheel();
