@@ -1,1163 +1,801 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Психология заработка</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Психология заработка - Формула Quests</title>
+  <link rel="stylesheet" href="../quests.css">
+  <style>
+    /* Специфичные стили для квеста "Психология заработка" */
+    .quest-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
+    .progress-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-        }
+    .progress-badge {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+    .progress-badge.active {
+      background: var(--glow1);
+      color: var(--bg0);
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
+    }
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    /* Карточка клиента */
+    .client-card {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 25px;
+      margin-bottom: 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
+    .client-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      background: linear-gradient(45deg, var(--glow1), var(--glow2), var(--glow1)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      animation: borderGlow 3s ease-in-out infinite;
+    }
 
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
+    @keyframes borderGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
 
-        .back-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateX(-3px);
-        }
+    .client-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--glow1), var(--glow2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: var(--bg0);
+      box-shadow: 0 8px 25px rgba(102, 247, 213, 0.3);
+    }
 
-        .history-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
+    .client-name {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
 
-        .history-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-        }
+    .client-description {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
 
-        .client-card {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-        }
+    /* Характеристики клиента */
+    .client-traits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 25px;
+    }
 
-        .client-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+    .trait-item {
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
 
-        .client-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
+    .trait-item.active {
+      border-color: var(--glow1);
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
+    }
 
-        .client-details h3 {
-            font-size: 22px;
-            margin-bottom: 5px;
-            color: #FFD700;
-        }
+    .trait-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-        .client-details p {
-            opacity: 0.8;
-            font-size: 14px;
-            line-height: 1.4;
-        }
+    .trait-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
 
-        .characteristics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+    .trait-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--glass-strong);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
 
-        .characteristic {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+    .trait-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--glow1), var(--glow2));
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
 
-        .characteristic-name {
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #FFD700;
-        }
+    /* Диалог */
+    .dialogue-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 25px;
+    }
 
-        .characteristic-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 5px;
-        }
+    .dialogue-text {
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-        .characteristic-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #e74c3c, #f39c12, #f1c40f, #2ecc71);
-            transition: width 0.5s ease;
-        }
+    /* Варианты ответов */
+    .answer-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
 
-        .characteristic-value {
-            font-size: 12px;
-            opacity: 0.8;
-        }
+    .answer-option {
+      background: var(--glass);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
 
-        .dialogue-area {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+    .answer-option:hover {
+      border-color: var(--glow1);
+      background: var(--glass-strong);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 247, 213, 0.2);
+    }
 
-        .dialogue-text {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            padding: 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            border-left: 4px solid #FFD700;
-        }
+    .answer-option.selected {
+      border-color: var(--glow1);
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
+      transform: scale(1.02);
+    }
 
-        .dialogue-options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    /* Кнопки навигации */
+    .quest-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
 
-        .dialogue-option {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            line-height: 1.4;
-        }
+    .btn-back {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .dialogue-option:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.4);
-            transform: translateX(5px);
-        }
+    .btn-back:hover {
+      background: var(--glass-strong);
+      border-color: var(--border-strong);
+    }
 
-        .dialogue-option.selected {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            border-color: #FFD700;
-            color: #000;
-        }
+    /* Модал завершения */
+    .quest-complete {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
 
-        .result-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
+    .quest-complete.show {
+      display: flex;
+    }
 
-        .result-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
+    .quest-complete-content {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
 
-        .result-content {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 2px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
+    .quest-complete-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
 
-        .result-title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #FFD700;
-        }
+    .quest-complete-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
 
-        .result-summary {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
+    .quest-complete-description {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
 
-        .result-triggers {
-            margin-bottom: 20px;
-        }
+    .success-rate {
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
+      border: 1px solid rgba(102, 247, 213, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 25px;
+    }
 
-        .trigger-item {
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border-left: 3px solid #e74c3c;
-        }
+    .success-rate-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
 
-        .btn {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #000;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            margin: 5px;
-        }
+    .success-rate-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--glow1);
+    }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-        }
+    .quest-rewards {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
+    .reward-item {
+      text-align: center;
+    }
 
-        .history-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
+    .reward-amount {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
 
-        .history-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
+    .reward-label {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
 
-        .history-content {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 700px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 2px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
+    .btn-close {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
 
-        .history-title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #FFD700;
-        }
-
-        .success-rate {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-
-        .success-rate h3 {
-            color: #4CAF50;
-            margin-bottom: 10px;
-        }
-
-        .history-item {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #FFD700;
-        }
-
-        .history-client {
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 5px;
-        }
-
-        .history-result {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .hidden {
-            display: none;
-        }
-    </style>
+    .btn-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 247, 213, 0.3);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <button class="back-btn" onclick="goBack()">← Назад</button>
-        <button class="history-btn" onclick="showHistory()">📊 Моя история</button>
-
-        <div class="header">
-            <h1>🧠 Психология заработка</h1>
-            <p>Используй психологические техники для успешных переговоров и заработка</p>
-        </div>
-
-        <div id="gameArea">
-            <!-- Контент будет загружаться динамически -->
-        </div>
+  <div class="quest-container">
+    <!-- Индикатор прогресса -->
+    <div class="progress-indicator">
+      <div class="progress-badge active">Этап 1 из 10</div>
     </div>
 
-    <!-- Модальное окно результатов -->
-    <div class="result-modal" id="resultModal">
-        <div class="result-content">
-            <div class="result-title" id="resultTitle">Результат переговоров</div>
-            <div class="result-summary" id="resultSummary"></div>
-            <div class="result-triggers" id="resultTriggers"></div>
-            <div style="text-align: center;">
-                <button class="btn" onclick="nextClient()">Следующий клиент</button>
-                <button class="btn" onclick="closeResult()">Закрыть</button>
+    <!-- Карточка клиента -->
+    <div class="client-card" id="clientCard">
+      <div class="client-avatar" id="clientAvatar">👤</div>
+      <div class="client-name" id="clientName">Загрузка...</div>
+      <div class="client-description" id="clientDescription">Загрузка...</div>
+      
+      <div class="client-traits" id="clientTraits">
+        <!-- Характеристики будут добавлены динамически -->
+      </div>
+    </div>
+
+    <!-- Диалог -->
+    <div class="dialogue-container" id="dialogueContainer">
+      <div class="dialogue-text" id="dialogueText">
+        Загрузка диалога...
+      </div>
+      
+      <div class="answer-options" id="answerOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
+
+    <!-- Кнопки навигации -->
+    <div class="quest-controls">
+      <a href="../quests.html" class="btn-back">← Назад к квестам</a>
+    </div>
+  </div>
+
+  <!-- Модал завершения квеста -->
+  <div class="quest-complete" id="questComplete">
+    <div class="quest-complete-content">
+      <div class="quest-complete-icon">🎉</div>
+      <h2 class="quest-complete-title">Переговоры завершены!</h2>
+      <p class="quest-complete-description">
+        Вы успешно завершили переговоры с клиентом. 
+        Результаты сохранены в главном меню по кнопке "История".
+      </p>
+      
+      <div class="success-rate">
+        <div class="success-rate-label">Уровень успеха</div>
+        <div class="success-rate-value" id="successRate">0%</div>
+      </div>
+      
+      <div class="quest-rewards">
+        <div class="reward-item">
+          <div class="reward-amount" id="mulacoinReward">+0</div>
+          <div class="reward-label">Mulacoin</div>
+        </div>
+        <div class="reward-item">
+          <div class="reward-amount" id="expReward">+0</div>
+          <div class="reward-label">Опыта</div>
+        </div>
+      </div>
+      
+      <button class="btn-close" onclick="closeQuestComplete()">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    // Данные клиентов
+    const CLIENTS = [
+      {
+        id: 1,
+        name: "Алексей Петров",
+        description: "Менеджер среднего звена, ищет дополнительные источники дохода",
+        avatar: "👨‍💼",
+        baseTrait: "skepticism",
+        baseTraitValue: 70,
+        personality: "Аналитичный и осторожный, принимает решения на основе фактов"
+      },
+      {
+        id: 2,
+        name: "Мария Сидорова",
+        description: "Предприниматель, владеет небольшим бизнесом",
+        avatar: "👩‍💼",
+        baseTrait: "interest",
+        baseTraitValue: 60,
+        personality: "Амбициозная и целеустремленная, всегда ищет новые возможности"
+      },
+      {
+        id: 3,
+        name: "Дмитрий Козлов",
+        description: "Студент, хочет начать зарабатывать",
+        avatar: "👨‍🎓",
+        baseTrait: "trust",
+        baseTraitValue: 80,
+        personality: "Доверчивый и открытый к новому, легко поддается влиянию"
+      },
+      {
+        id: 4,
+        name: "Елена Воробьева",
+        description: "Домохозяйка, ищет работу на дому",
+        avatar: "👩‍🏠",
+        baseTrait: "collectivity",
+        baseTraitValue: 75,
+        personality: "Общительная и дружелюбная, ценит коллективную работу"
+      },
+      {
+        id: 5,
+        name: "Сергей Морозов",
+        description: "Пенсионер, хочет подработать",
+        avatar: "👴",
+        baseTrait: "mood",
+        baseTraitValue: 50,
+        personality: "Опытный и мудрый, но может быть консервативным"
+      }
+    ];
+
+    // Диалоги для каждого этапа
+    const DIALOGUES = [
+      {
+        text: "Здравствуйте! Я представляю интересную возможность для дополнительного заработка. Могу я рассказать вам подробнее?",
+        options: [
+          "Конечно, расскажите подробнее",
+          "Сколько времени это займет?",
+          "А что именно нужно делать?",
+          "Не уверен, что мне это подходит"
+        ]
+      },
+      {
+        text: "Отлично! Наша программа позволяет зарабатывать от 50,000 до 200,000 рублей в месяц. Нужно только привлекать клиентов.",
+        options: [
+          "Звучит интересно! Как это работает?",
+          "А есть ли гарантии дохода?",
+          "Сколько нужно вложить?",
+          "Слишком хорошо, чтобы быть правдой"
+        ]
+      },
+      {
+        text: "Работа простая: вы находите людей, которые хотят заработать, и получаете процент с их дохода. Никаких вложений не требуется.",
+        options: [
+          "Понятно! А как начать?",
+          "А если у меня не получится?",
+          "Сколько времени нужно уделять?",
+          "Не хочу никого привлекать"
+        ]
+      },
+      {
+        text: "Для начала нужно пройти обучение - это займет 2-3 дня. После этого вы сможете привлекать людей и зарабатывать.",
+        options: [
+          "Обучение бесплатное?",
+          "А что если обучение не поможет?",
+          "Можно ли начать без обучения?",
+          "Слишком долго учиться"
+        ]
+      },
+      {
+        text: "Обучение полностью бесплатное! Мы предоставляем все материалы и поддержку. Вы просто изучаете и применяете.",
+        options: [
+          "Отлично! Где записаться?",
+          "А есть ли примеры успешных людей?",
+          "Что если у меня возникнут вопросы?",
+          "Не верю в бесплатное обучение"
+        ]
+      },
+      {
+        text: "У нас есть много успешных партнеров! Вот несколько примеров: Иван зарабатывает 150,000 в месяц, Анна - 180,000.",
+        options: [
+          "Впечатляет! Хочу так же!",
+          "А можно с ними поговорить?",
+          "Почему именно такие суммы?",
+          "Сомневаюсь в этих цифрах"
+        ]
+      },
+      {
+        text: "Конечно! Мы можем организовать звонок с успешными партнерами. Они расскажут о своем опыте и дадут советы.",
+        options: [
+          "Отлично! Когда можно созвониться?",
+          "А они действительно существуют?",
+          "Что если они не ответят?",
+          "Не хочу ни с кем разговаривать"
+        ]
+      },
+      {
+        text: "Звонок можно организовать уже завтра! Они с удовольствием поделятся опытом и помогут вам начать.",
+        options: [
+          "Превосходно! Записывайте меня!",
+          "А если завтра не получится?",
+          "Что нужно подготовить к звонку?",
+          "Не хочу ждать до завтра"
+        ]
+      },
+      {
+        text: "Отлично! Тогда давайте оформим заявку. Вам нужно будет заполнить простую форму и мы свяжемся с вами.",
+        options: [
+          "Конечно! Где заполнить форму?",
+          "А что в этой форме?",
+          "Сколько времени займет заполнение?",
+          "Не хочу заполнять никакие формы"
+        ]
+      },
+      {
+        text: "Форма очень простая: имя, телефон, опыт работы. Заполняется за 2 минуты. После этого мы сразу свяжемся!",
+        options: [
+          "Отлично! Показывайте форму!",
+          "А если я передумаю?",
+          "Что если вы не перезвоните?",
+          "Не хочу давать свои данные"
+        ]
+      }
+    ];
+
+    // Влияние ответов на характеристики
+    const ANSWER_EFFECTS = {
+      positive: {
+        mood: 10,
+        trust: 8,
+        interest: 12,
+        skepticism: -5,
+        collectivity: 6
+      },
+      neutral: {
+        mood: 2,
+        trust: 3,
+        interest: 5,
+        skepticism: -2,
+        collectivity: 2
+      },
+      negative: {
+        mood: -8,
+        trust: -10,
+        interest: -12,
+        skepticism: 15,
+        collectivity: -5
+      }
+    };
+
+    // Текущее состояние
+    let currentClient = null;
+    let currentStage = 0;
+    let clientTraits = {
+      mood: 50,
+      skepticism: 50,
+      interest: 50,
+      trust: 50,
+      collectivity: 50
+    };
+    let unlockedTraits = new Set();
+    let selectedAnswers = [];
+
+    // Инициализация
+    function init() {
+      // Выбираем случайного клиента
+      currentClient = CLIENTS[Math.floor(Math.random() * CLIENTS.length)];
+      
+      // Устанавливаем базовую характеристику
+      clientTraits[currentClient.baseTrait] = currentClient.baseTraitValue;
+      unlockedTraits.add(currentClient.baseTrait);
+      
+      // Показываем клиента
+      showClient();
+      
+      // Загружаем первый этап
+      loadStage(0);
+    }
+
+    // Показать информацию о клиенте
+    function showClient() {
+      document.getElementById('clientAvatar').textContent = currentClient.avatar;
+      document.getElementById('clientName').textContent = currentClient.name;
+      document.getElementById('clientDescription').textContent = currentClient.personality;
+      
+      updateTraitsDisplay();
+    }
+
+    // Обновить отображение характеристик
+    function updateTraitsDisplay() {
+      const traitsContainer = document.getElementById('clientTraits');
+      traitsContainer.innerHTML = '';
+      
+      const traitNames = {
+        mood: 'Настроение',
+        skepticism: 'Скептицизм',
+        interest: 'Заинтересованность',
+        trust: 'Доверчивость',
+        collectivity: 'Коллективность'
+      };
+      
+      Object.entries(clientTraits).forEach(([trait, value]) => {
+        if (unlockedTraits.has(trait)) {
+          const traitItem = document.createElement('div');
+          traitItem.className = `trait-item ${unlockedTraits.has(trait) ? 'active' : ''}`;
+          
+          traitItem.innerHTML = `
+            <div class="trait-label">${traitNames[trait]}</div>
+            <div class="trait-value">${value}%</div>
+            <div class="trait-bar">
+              <div class="trait-fill" style="width: ${value}%"></div>
             </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно истории -->
-    <div class="history-modal" id="historyModal">
-        <div class="history-content">
-            <div class="history-title">История переговоров</div>
-            <div class="success-rate" id="successRate"></div>
-            <div id="historyList"></div>
-            <div style="text-align: center;">
-                <button class="btn" onclick="closeHistory()">Закрыть</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let currentClient = null;
-        let gameHistory = JSON.parse(localStorage.getItem('psychologyHistory') || '[]');
-
-        // 20 различных клиентов с уникальными характеристиками
-        const clients = [
-            {
-                id: 1,
-                name: "Алексей Петров",
-                type: "Скептик",
-                avatar: "👨‍💼",
-                description: "Бизнесмен, который сомневается в эффективности",
-                characteristics: {
-                    mood: 30,
-                    skepticism: 80,
-                    interest: 40,
-                    trust: 20,
-                    collectivism: 60
-                },
-                goal: "Покупка товара",
-                budget: 50000
-            },
-            {
-                id: 2,
-                name: "Мария Сидорова",
-                type: "Эмоциональная",
-                avatar: "👩‍💼",
-                description: "Предпринимательница, принимает решения на эмоциях",
-                characteristics: {
-                    mood: 60,
-                    skepticism: 30,
-                    interest: 70,
-                    trust: 60,
-                    collectivism: 80
-                },
-                goal: "Вербовка в команду",
-                budget: 75000
-            },
-            {
-                id: 3,
-                name: "Дмитрий Козлов",
-                type: "Аналитик",
-                avatar: "👨‍💻",
-                description: "IT-директор, требует факты и цифры",
-                characteristics: {
-                    mood: 40,
-                    skepticism: 70,
-                    interest: 50,
-                    trust: 40,
-                    collectivism: 30
-                },
-                goal: "Покупка товара",
-                budget: 100000
-            },
-            {
-                id: 4,
-                name: "Елена Воробьева",
-                type: "Консерватор",
-                avatar: "👩‍🏫",
-                description: "Преподаватель, ценит стабильность и традиции",
-                characteristics: {
-                    mood: 50,
-                    skepticism: 60,
-                    interest: 30,
-                    trust: 70,
-                    collectivism: 90
-                },
-                goal: "Вербовка в команду",
-                budget: 40000
-            },
-            {
-                id: 5,
-                name: "Сергей Морозов",
-                type: "Инноватор",
-                avatar: "🚀",
-                description: "Стартапер, ищет новые возможности",
-                characteristics: {
-                    mood: 80,
-                    skepticism: 20,
-                    interest: 90,
-                    trust: 50,
-                    collectivism: 40
-                },
-                goal: "Партнерство",
-                budget: 150000
-            },
-            {
-                id: 6,
-                name: "Анна Климова",
-                type: "Перфекционист",
-                avatar: "👩‍🎨",
-                description: "Дизайнер, ценит качество и детали",
-                characteristics: {
-                    mood: 45,
-                    skepticism: 50,
-                    interest: 60,
-                    trust: 30,
-                    collectivism: 20
-                },
-                goal: "Покупка товара",
-                budget: 80000
-            },
-            {
-                id: 7,
-                name: "Игорь Соколов",
-                type: "Прагматик",
-                avatar: "👨‍🔧",
-                description: "Инженер, думает о практичности",
-                characteristics: {
-                    mood: 55,
-                    skepticism: 40,
-                    interest: 45,
-                    trust: 60,
-                    collectivism: 70
-                },
-                goal: "Партнерство",
-                budget: 120000
-            },
-            {
-                id: 8,
-                name: "Ольга Новикова",
-                type: "Социал",
-                avatar: "👩‍⚕️",
-                description: "Врач, заботится о людях",
-                characteristics: {
-                    mood: 70,
-                    skepticism: 25,
-                    interest: 75,
-                    trust: 80,
-                    collectivism: 95
-                },
-                goal: "Вербовка в команду",
-                budget: 60000
-            },
-            {
-                id: 9,
-                name: "Павел Волков",
-                type: "Конкурент",
-                avatar: "👨‍💼",
-                description: "Бизнесмен, любит соревнование",
-                characteristics: {
-                    mood: 65,
-                    skepticism: 45,
-                    interest: 85,
-                    trust: 35,
-                    collectivism: 25
-                },
-                goal: "Партнерство",
-                budget: 200000
-            },
-            {
-                id: 10,
-                name: "Татьяна Лебедева",
-                type: "Мечтатель",
-                avatar: "👩‍🎭",
-                description: "Артистка, живет эмоциями",
-                characteristics: {
-                    mood: 85,
-                    skepticism: 15,
-                    interest: 95,
-                    trust: 75,
-                    collectivism: 85
-                },
-                goal: "Вербовка в команду",
-                budget: 45000
-            },
-            {
-                id: 11,
-                name: "Михаил Орлов",
-                type: "Стратег",
-                avatar: "👨‍🎓",
-                description: "Консультант, думает на перспективу",
-                characteristics: {
-                    mood: 50,
-                    skepticism: 65,
-                    interest: 55,
-                    trust: 45,
-                    collectivism: 50
-                },
-                goal: "Партнерство",
-                budget: 180000
-            },
-            {
-                id: 12,
-                name: "Юлия Смирнова",
-                type: "Оптимист",
-                avatar: "👩‍🌾",
-                description: "Фермер, верит в лучшее",
-                characteristics: {
-                    mood: 90,
-                    skepticism: 10,
-                    interest: 80,
-                    trust: 90,
-                    collectivism: 75
-                },
-                goal: "Покупка товара",
-                budget: 35000
-            },
-            {
-                id: 13,
-                name: "Артем Козлов",
-                type: "Технократ",
-                avatar: "👨‍🔬",
-                description: "Ученый, верит в технологии",
-                characteristics: {
-                    mood: 40,
-                    skepticism: 75,
-                    interest: 70,
-                    trust: 25,
-                    collectivism: 35
-                },
-                goal: "Партнерство",
-                budget: 250000
-            },
-            {
-                id: 14,
-                name: "Наталья Петрова",
-                type: "Традиционалист",
-                avatar: "👩‍🏛️",
-                description: "Чиновник, следует правилам",
-                characteristics: {
-                    mood: 35,
-                    skepticism: 85,
-                    interest: 25,
-                    trust: 85,
-                    collectivism: 100
-                },
-                goal: "Покупка товара",
-                budget: 90000
-            },
-            {
-                id: 15,
-                name: "Денис Соколов",
-                type: "Авантюрист",
-                avatar: "🏄‍♂️",
-                description: "Путешественник, любит риск",
-                characteristics: {
-                    mood: 95,
-                    skepticism: 5,
-                    interest: 100,
-                    trust: 40,
-                    collectivism: 15
-                },
-                goal: "Вербовка в команду",
-                budget: 30000
-            },
-            {
-                id: 16,
-                name: "Екатерина Морозова",
-                type: "Дипломат",
-                avatar: "👩‍💼",
-                description: "Переговорщик, ищет компромисс",
-                characteristics: {
-                    mood: 60,
-                    skepticism: 35,
-                    interest: 65,
-                    trust: 70,
-                    collectivism: 80
-                },
-                goal: "Партнерство",
-                budget: 160000
-            },
-            {
-                id: 17,
-                name: "Андрей Лебедев",
-                type: "Минималист",
-                avatar: "🧘‍♂️",
-                description: "Философ, ценит простоту",
-                characteristics: {
-                    mood: 75,
-                    skepticism: 55,
-                    interest: 40,
-                    trust: 65,
-                    collectivism: 45
-                },
-                goal: "Покупка товара",
-                budget: 55000
-            },
-            {
-                id: 18,
-                name: "Виктория Орлова",
-                type: "Карьеристка",
-                avatar: "👩‍💼",
-                description: "Менеджер, стремится к успеху",
-                characteristics: {
-                    mood: 70,
-                    skepticism: 30,
-                    interest: 85,
-                    trust: 50,
-                    collectivism: 60
-                },
-                goal: "Вербовка в команду",
-                budget: 95000
-            },
-            {
-                id: 19,
-                name: "Роман Смирнов",
-                type: "Семьянин",
-                avatar: "👨‍👩‍👧‍👦",
-                description: "Отец семейства, думает о будущем",
-                characteristics: {
-                    mood: 65,
-                    skepticism: 40,
-                    interest: 50,
-                    trust: 75,
-                    collectivism: 90
-                },
-                goal: "Покупка товара",
-                budget: 70000
-            },
-            {
-                id: 20,
-                name: "Алина Козлова",
-                type: "Творческая",
-                avatar: "👩‍🎨",
-                description: "Художница, ценит красоту",
-                characteristics: {
-                    mood: 80,
-                    skepticism: 20,
-                    interest: 90,
-                    trust: 60,
-                    collectivism: 70
-                },
-                goal: "Партнерство",
-                budget: 110000
-            }
-        ];
-
-        // Варианты ответов с последствиями
-        const responseOptions = {
-            aggressive: {
-                text: "Давить и настаивать",
-                effects: {
-                    mood: -20,
-                    skepticism: +15,
-                    interest: -10,
-                    trust: -25,
-                    collectivism: -15
-                },
-                triggers: ["Агрессивный подход оттолкнул клиента", "Излишнее давление вызвало сопротивление"]
-            },
-            logical: {
-                text: "Приводить факты и логику",
-                effects: {
-                    mood: +5,
-                    skepticism: -10,
-                    interest: +15,
-                    trust: +10,
-                    collectivism: +5
-                },
-                triggers: ["Логические аргументы убедили клиента", "Факты снизили скептицизм"]
-            },
-            emotional: {
-                text: "Апеллировать к эмоциям",
-                effects: {
-                    mood: +25,
-                    skepticism: -5,
-                    interest: +20,
-                    trust: +15,
-                    collectivism: +10
-                },
-                triggers: ["Эмоциональный подход затронул чувства", "Истории вдохновили клиента"]
-            },
-            collaborative: {
-                text: "Искать компромисс",
-                effects: {
-                    mood: +15,
-                    skepticism: -15,
-                    interest: +10,
-                    trust: +25,
-                    collectivism: +20
-                },
-                triggers: ["Компромиссный подход понравился", "Совместное решение укрепило доверие"]
-            },
-            authoritative: {
-                text: "Показывать авторитет",
-                effects: {
-                    mood: -5,
-                    skepticism: -20,
-                    interest: +5,
-                    trust: +20,
-                    collectivism: -10
-                },
-                triggers: ["Авторитет снизил скептицизм", "Экспертиза внушила доверие"]
-            },
-            friendly: {
-                text: "Быть дружелюбным",
-                effects: {
-                    mood: +30,
-                    skepticism: -10,
-                    interest: +10,
-                    trust: +20,
-                    collectivism: +15
-                },
-                triggers: ["Дружелюбие улучшило настроение", "Личный подход укрепил отношения"]
-            }
-        };
-
-        function initGame() {
-            loadRandomClient();
+          `;
+          
+          traitsContainer.appendChild(traitItem);
         }
+      });
+    }
 
-        function loadRandomClient() {
-            // Выбираем случайного клиента, которого еще не было
-            const usedClients = gameHistory.map(h => h.clientId);
-            const availableClients = clients.filter(c => !usedClients.includes(c.id));
-            
-            if (availableClients.length === 0) {
-                // Если все клиенты пройдены, начинаем заново
-                gameHistory = [];
-                localStorage.setItem('psychologyHistory', JSON.stringify(gameHistory));
-                currentClient = clients[Math.floor(Math.random() * clients.length)];
-            } else {
-                currentClient = availableClients[Math.floor(Math.random() * availableClients.length)];
-            }
-            
-            loadClientDialogue();
+    // Загрузить этап
+    function loadStage(stage) {
+      currentStage = stage;
+      
+      // Обновить индикатор прогресса
+      const progressBadge = document.querySelector('.progress-badge');
+      progressBadge.textContent = `Этап ${stage + 1} из 10`;
+      
+      // Показать диалог
+      const dialogue = DIALOGUES[stage];
+      document.getElementById('dialogueText').textContent = dialogue.text;
+      
+      // Создать варианты ответов
+      createAnswerOptions(dialogue.options);
+    }
+
+    // Создать варианты ответов
+    function createAnswerOptions(options) {
+      const container = document.getElementById('answerOptions');
+      container.innerHTML = '';
+      
+      options.forEach((option, index) => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = option;
+        button.onclick = () => selectAnswer(index, option);
+        container.appendChild(button);
+      });
+    }
+
+    // Выбрать ответ
+    function selectAnswer(index, answer) {
+      // Убрать выделение со всех кнопок
+      document.querySelectorAll('.answer-option').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      // Выделить выбранную кнопку
+      event.target.classList.add('selected');
+      
+      // Определить тип ответа и применить эффекты
+      const answerType = determineAnswerType(index, answer);
+      applyAnswerEffects(answerType);
+      
+      // Сохранить ответ
+      selectedAnswers.push({
+        stage: currentStage,
+        answer: answer,
+        type: answerType
+      });
+      
+      // Перейти к следующему этапу через 2 секунды
+      setTimeout(() => {
+        if (currentStage < 9) {
+          loadStage(currentStage + 1);
+        } else {
+          completeQuest();
         }
+      }, 2000);
+    }
 
-        function loadClientDialogue() {
-            const gameArea = document.getElementById('gameArea');
-            
-            gameArea.innerHTML = `
-                <div class="client-card fade-in">
-                    <div class="client-info">
-                        <div class="client-avatar">${currentClient.avatar}</div>
-                        <div class="client-details">
-                            <h3>${currentClient.name}</h3>
-                            <p>${currentClient.type} - ${currentClient.description}</p>
-                            <p><strong>Цель:</strong> ${currentClient.goal}</p>
-                            <p><strong>Бюджет:</strong> ${currentClient.budget.toLocaleString()}₽</p>
-                        </div>
-                    </div>
-                    
-                    <div class="characteristics">
-                        <div class="characteristic">
-                            <div class="characteristic-name">Настроение</div>
-                            <div class="characteristic-bar">
-                                <div class="characteristic-fill" style="width: ${currentClient.characteristics.mood}%"></div>
-                            </div>
-                            <div class="characteristic-value">${currentClient.characteristics.mood}%</div>
-                        </div>
-                        <div class="characteristic">
-                            <div class="characteristic-name">Скептицизм</div>
-                            <div class="characteristic-bar">
-                                <div class="characteristic-fill" style="width: ${currentClient.characteristics.skepticism}%"></div>
-                            </div>
-                            <div class="characteristic-value">${currentClient.characteristics.skepticism}%</div>
-                        </div>
-                        <div class="characteristic">
-                            <div class="characteristic-name">Заинтересованность</div>
-                            <div class="characteristic-bar">
-                                <div class="characteristic-fill" style="width: ${currentClient.characteristics.interest}%"></div>
-                            </div>
-                            <div class="characteristic-value">${currentClient.characteristics.interest}%</div>
-                        </div>
-                        <div class="characteristic">
-                            <div class="characteristic-name">Доверчивость</div>
-                            <div class="characteristic-bar">
-                                <div class="characteristic-fill" style="width: ${currentClient.characteristics.trust}%"></div>
-                            </div>
-                            <div class="characteristic-value">${currentClient.characteristics.trust}%</div>
-                        </div>
-                        <div class="characteristic">
-                            <div class="characteristic-name">Коллективность</div>
-                            <div class="characteristic-bar">
-                                <div class="characteristic-fill" style="width: ${currentClient.characteristics.collectivism}%"></div>
-                            </div>
-                            <div class="characteristic-value">${currentClient.characteristics.collectivism}%</div>
-                        </div>
-                    </div>
-                    
-                    <div class="dialogue-area">
-                        <div class="dialogue-text">
-                            ${getClientDialogue()}
-                        </div>
-                        <div class="dialogue-options">
-                            ${Object.values(responseOptions).map(option => `
-                                <div class="dialogue-option" onclick="selectResponse('${option.text}')">
-                                    ${option.text}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
+    // Определить тип ответа
+    function determineAnswerType(index, answer) {
+      // Простая логика определения типа ответа
+      if (index === 0) return 'positive';
+      if (index === 1) return 'neutral';
+      if (index === 2) return 'neutral';
+      if (index === 3) return 'negative';
+      return 'neutral';
+    }
+
+    // Применить эффекты ответа
+    function applyAnswerEffects(answerType) {
+      const effects = ANSWER_EFFECTS[answerType];
+      
+      Object.entries(effects).forEach(([trait, change]) => {
+        if (unlockedTraits.has(trait)) {
+          clientTraits[trait] = Math.max(0, Math.min(100, clientTraits[trait] + change));
         }
+      });
+      
+      // Разблокировать новые характеристики на определенных этапах
+      if (currentStage === 2 && !unlockedTraits.has('interest')) {
+        unlockedTraits.add('interest');
+      }
+      if (currentStage === 4 && !unlockedTraits.has('trust')) {
+        unlockedTraits.add('trust');
+      }
+      if (currentStage === 6 && !unlockedTraits.has('collectivity')) {
+        unlockedTraits.add('collectivity');
+      }
+      if (currentStage === 8 && !unlockedTraits.has('mood')) {
+        unlockedTraits.add('mood');
+      }
+      
+      updateTraitsDisplay();
+    }
 
-        function getClientDialogue() {
-            const goal = currentClient.goal;
-            const type = currentClient.type.toLowerCase();
-            
-            let dialogueType = 'purchase';
-            if (goal.includes('Вербовка')) dialogueType = 'recruitment';
-            else if (goal.includes('Партнерство')) dialogueType = 'partnership';
-            
-            let personalityType = 'skeptic';
-            if (type.includes('эмоциональ') || type.includes('мечтатель') || type.includes('оптимист')) personalityType = 'emotional';
-            else if (type.includes('аналитик') || type.includes('технократ') || type.includes('стратег')) personalityType = 'analyst';
-            
-            const dialogues = {
-                purchase: {
-                    skeptic: [
-                        "Докажите мне эффективность вашего продукта",
-                        "Какие гарантии вы можете предоставить?",
-                        "Покажите конкретные результаты"
-                    ],
-                    emotional: [
-                        "Расскажите, как это изменит мою жизнь",
-                        "Какие эмоции я буду испытывать?",
-                        "Поделитесь историями успеха"
-                    ],
-                    analyst: [
-                        "Предоставьте аналитику и статистику",
-                        "Какие метрики вы используете?",
-                        "Покажите ROI и окупаемость"
-                    ]
-                },
-                recruitment: {
-                    skeptic: [
-                        "Почему я должен присоединиться к вам?",
-                        "Какие перспективы роста?",
-                        "Докажите стабильность компании"
-                    ],
-                    emotional: [
-                        "Расскажите о миссии и ценностях",
-                        "Какая атмосфера в команде?",
-                        "Поделитесь вдохновляющими историями"
-                    ],
-                    analyst: [
-                        "Покажите структуру и иерархию",
-                        "Какие KPI и метрики?",
-                        "Предоставьте план развития"
-                    ]
-                },
-                partnership: {
-                    skeptic: [
-                        "Какие выгоды от партнерства?",
-                        "Докажите надежность партнера",
-                        "Покажите риски и их минимизацию"
-                    ],
-                    emotional: [
-                        "Расскажите о видении будущего",
-                        "Какие эмоции вызывает сотрудничество?",
-                        "Поделитесь мечтами и целями"
-                    ],
-                    analyst: [
-                        "Предоставьте бизнес-план",
-                        "Какие финансовые прогнозы?",
-                        "Покажите стратегию развития"
-                    ]
-                }
-            };
-            
-            const clientDialogues = dialogues[dialogueType]?.[personalityType] || dialogues.purchase.skeptic;
-            return clientDialogues[Math.floor(Math.random() * clientDialogues.length)];
+    // Завершить квест
+    function completeQuest() {
+      // Рассчитать уровень успеха
+      const successRate = calculateSuccessRate();
+      
+      // Рассчитать награды
+      const mulacoinReward = Math.round(successRate / 10) + 1; // 1-11 mulacoin
+      const expReward = Math.round(successRate * 2) + 50; // 50-250 опыта
+      
+      // Показать результаты
+      document.getElementById('successRate').textContent = `${successRate}%`;
+      document.getElementById('mulacoinReward').textContent = `+${mulacoinReward}`;
+      document.getElementById('expReward').textContent = `+${expReward}`;
+      
+      // Начислить награды
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(mulacoinReward, expReward, 'psychology', 'Психология заработка', 'medium');
+      }
+      
+      // Показать модал завершения
+      document.getElementById('questComplete').classList.add('show');
+    }
+
+    // Рассчитать уровень успеха
+    function calculateSuccessRate() {
+      let totalScore = 0;
+      
+      // Базовый балл за каждый этап
+      totalScore += selectedAnswers.length * 10;
+      
+      // Бонусы за характеристики
+      Object.entries(clientTraits).forEach(([trait, value]) => {
+        if (trait === 'interest' || trait === 'trust') {
+          totalScore += value * 0.3; // Положительные характеристики
+        } else if (trait === 'skepticism') {
+          totalScore += (100 - value) * 0.2; // Отрицательная характеристика
+        } else {
+          totalScore += value * 0.1; // Нейтральные характеристики
         }
+      });
+      
+      // Бонусы за типы ответов
+      selectedAnswers.forEach(answer => {
+        if (answer.type === 'positive') totalScore += 5;
+        if (answer.type === 'neutral') totalScore += 2;
+        if (answer.type === 'negative') totalScore -= 3;
+      });
+      
+      return Math.max(0, Math.min(100, Math.round(totalScore)));
+    }
 
-        function selectResponse(responseText) {
-            const option = Object.values(responseOptions).find(opt => opt.text === responseText);
-            if (!option) return;
-            
-            // Убираем выделение со всех опций
-            document.querySelectorAll('.dialogue-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            
-            // Выделяем выбранную опцию
-            event.target.classList.add('selected');
-            
-            // Применяем эффекты
-            applyResponseEffects(option);
-            
-            // Показываем результат через 1 секунду
-            setTimeout(() => {
-                showResult(option);
-            }, 1000);
-        }
+    // Закрыть модал завершения
+    function closeQuestComplete() {
+      document.getElementById('questComplete').classList.remove('show');
+      window.location.href = '../quests.html';
+    }
 
-        function applyResponseEffects(option) {
-            const effects = option.effects;
-            
-            // Применяем эффекты к характеристикам клиента
-            Object.keys(effects).forEach(char => {
-                if (currentClient.characteristics[char] !== undefined) {
-                    currentClient.characteristics[char] = Math.max(0, Math.min(100, 
-                        currentClient.characteristics[char] + effects[char]
-                    ));
-                }
-            });
-        }
-
-        function showResult(option) {
-            // Определяем успешность на основе характеристик
-            const successFactors = {
-                mood: currentClient.characteristics.mood > 60 ? 1 : 0,
-                skepticism: currentClient.characteristics.skepticism < 40 ? 1 : 0,
-                interest: currentClient.characteristics.interest > 70 ? 1 : 0,
-                trust: currentClient.characteristics.trust > 60 ? 1 : 0,
-                collectivism: currentClient.characteristics.collectivism > 50 ? 1 : 0
-            };
-            
-            const successScore = Object.values(successFactors).reduce((sum, val) => sum + val, 0);
-            const isSuccess = successScore >= 3;
-            
-            // Определяем результат
-            let result, money;
-            if (isSuccess) {
-                if (currentClient.goal.includes('Покупка')) {
-                    result = `Успешная продажа! Клиент купил товар за ${currentClient.budget.toLocaleString()}₽`;
-                    money = currentClient.budget;
-                } else if (currentClient.goal.includes('Вербовка')) {
-                    result = `Успешная вербовка! Клиент присоединился к команде`;
-                    money = Math.round(currentClient.budget * 0.8);
-                } else {
-                    result = `Успешное партнерство! Создан совместный проект`;
-                    money = Math.round(currentClient.budget * 0.6);
-                }
-            } else {
-                if (currentClient.goal.includes('Покупка')) {
-                    result = `Клиент отказался от покупки`;
-                    money = 0;
-                } else if (currentClient.goal.includes('Вербовка')) {
-                    result = `Клиент отказался от предложения о работе`;
-                    money = 0;
-                } else {
-                    result = `Партнерство не состоялось`;
-                    money = 0;
-                }
-            }
-            
-            // Сохраняем в историю
-            const historyEntry = {
-                clientId: currentClient.id,
-                clientName: currentClient.name,
-                clientType: currentClient.type,
-                goal: currentClient.goal,
-                result: result,
-                success: isSuccess,
-                money: money,
-                triggers: option.triggers,
-                characteristics: {...currentClient.characteristics},
-                timestamp: new Date().toISOString()
-            };
-            
-            gameHistory.push(historyEntry);
-            localStorage.setItem('psychologyHistory', JSON.stringify(gameHistory));
-            
-            // Начисляем награды за успешное взаимодействие
-            if (isSuccess && window.parent && window.parent.addRewards) {
-                const mulacoinReward = Math.round(money / 1000); // 1 mulacoin за каждые 1000 рублей
-                const expReward = Math.round(money / 100); // 1 опыт за каждые 100 рублей
-                window.parent.addRewards(mulacoinReward, expReward, 'psychology', `Клиент: ${currentClient.name}`, 'medium');
-            }
-            
-            // Показываем модальное окно с результатом
-            showResultModal(result, option.triggers, money);
-        }
-
-        function showResultModal(result, triggers, money) {
-            const modal = document.getElementById('resultModal');
-            const title = document.getElementById('resultTitle');
-            const summary = document.getElementById('resultSummary');
-            const triggersDiv = document.getElementById('resultTriggers');
-            
-            title.textContent = money > 0 ? '🎉 Успех!' : '😔 Неудача';
-            summary.innerHTML = `
-                <h3>${result}</h3>
-                ${money > 0 ? `<p><strong>Заработано:</strong> ${money.toLocaleString()}₽</p>` : ''}
-                <p><strong>Клиент:</strong> ${currentClient.name} (${currentClient.type})</p>
-                <p><strong>Цель:</strong> ${currentClient.goal}</p>
-            `;
-            
-            triggersDiv.innerHTML = `
-                <h4>Что повлияло на результат:</h4>
-                ${triggers.map(trigger => `<div class="trigger-item">• ${trigger}</div>`).join('')}
-            `;
-            
-            modal.classList.add('show');
-        }
-
-        function nextClient() {
-            document.getElementById('resultModal').classList.remove('show');
-            setTimeout(() => {
-                loadRandomClient();
-            }, 300);
-        }
-
-        function closeResult() {
-            document.getElementById('resultModal').classList.remove('show');
-        }
-
-        function showHistory() {
-            const modal = document.getElementById('historyModal');
-            const successRate = document.getElementById('successRate');
-            const historyList = document.getElementById('historyList');
-            
-            const totalClients = gameHistory.length;
-            const successfulClients = gameHistory.filter(h => h.success).length;
-            const successPercentage = totalClients > 0 ? Math.round((successfulClients / totalClients) * 100) : 0;
-            const totalMoney = gameHistory.reduce((sum, h) => sum + h.money, 0);
-            
-            successRate.innerHTML = `
-                <h3>Процент успешности: ${successPercentage}%</h3>
-                <p>Успешных переговоров: ${successfulClients} из ${totalClients}</p>
-                <p>Общий заработок: ${totalMoney.toLocaleString()}₽</p>
-            `;
-            
-            historyList.innerHTML = gameHistory.map(entry => `
-                <div class="history-item">
-                    <div class="history-client">${entry.clientName} (${entry.clientType})</div>
-                    <div class="history-result">
-                        <strong>Цель:</strong> ${entry.goal}<br>
-                        <strong>Результат:</strong> ${entry.result}<br>
-                        <strong>Заработано:</strong> ${entry.money.toLocaleString()}₽
-                    </div>
-                </div>
-            `).join('');
-            
-            modal.classList.add('show');
-        }
-
-        function closeHistory() {
-            document.getElementById('historyModal').classList.remove('show');
-        }
-
-        function goBack() {
-            // Просто возвращаемся в хаб, награды уже начислены за каждое взаимодействие
-            window.location.href = '../quests.html';
-        }
-
-        // Инициализация игры
-        initGame();
-    </script>
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
