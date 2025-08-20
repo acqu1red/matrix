@@ -88,7 +88,7 @@ class WorldGovernmentQuest {
     const characterCard = document.getElementById('current-character');
     const sectors = document.querySelectorAll('.sector');
 
-    // Drag events для персонажа
+    // Drag events для персонажа (PC)
     characterCard.addEventListener('dragstart', (e) => {
       this.draggedElement = characterCard;
       characterCard.classList.add('dragging');
@@ -100,7 +100,96 @@ class WorldGovernmentQuest {
       this.draggedElement = null;
     });
 
-    // Drop events для секторов
+    // Touch events для персонажа (Mobile)
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isDragging = false;
+    let draggedElement = null;
+
+    characterCard.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      isDragging = false;
+      draggedElement = characterCard;
+      
+      // Добавляем небольшую задержку для определения длительного нажатия
+      setTimeout(() => {
+        if (draggedElement === characterCard) {
+          isDragging = true;
+          characterCard.classList.add('dragging');
+          characterCard.style.position = 'fixed';
+          characterCard.style.zIndex = '1000';
+          characterCard.style.pointerEvents = 'none';
+        }
+      }, 200);
+    });
+
+    characterCard.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      
+      // Проверяем, что движение достаточно большое для начала перетаскивания
+      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        isDragging = true;
+        characterCard.classList.add('dragging');
+        characterCard.style.position = 'fixed';
+        characterCard.style.zIndex = '1000';
+        characterCard.style.pointerEvents = 'none';
+      }
+      
+      if (isDragging) {
+        characterCard.style.left = (touch.clientX - characterCard.offsetWidth / 2) + 'px';
+        characterCard.style.top = (touch.clientY - characterCard.offsetHeight / 2) + 'px';
+        
+        // Проверяем, над каким сектором находится палец
+        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+        const sectorBelow = elementBelow?.closest('.sector');
+        
+        // Убираем подсветку со всех секторов
+        sectors.forEach(s => s.classList.remove('drag-over'));
+        
+        // Подсвечиваем сектор под пальцем
+        if (sectorBelow) {
+          sectorBelow.classList.add('drag-over');
+        }
+      }
+    });
+
+    characterCard.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!isDragging) return;
+      
+      const touch = e.changedTouches[0];
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const sectorBelow = elementBelow?.closest('.sector');
+      
+      // Убираем подсветку со всех секторов
+      sectors.forEach(s => s.classList.remove('drag-over'));
+      
+      // Сбрасываем стили персонажа
+      characterCard.classList.remove('dragging');
+      characterCard.style.position = '';
+      characterCard.style.zIndex = '';
+      characterCard.style.left = '';
+      characterCard.style.top = '';
+      characterCard.style.pointerEvents = '';
+      
+      // Если персонаж был отпущен над сектором, назначаем его туда
+      if (sectorBelow) {
+        this.assignCharacterToSector(sectorBelow.dataset.sector);
+      }
+      
+      isDragging = false;
+      draggedElement = null;
+    });
+
+    // Drop events для секторов (PC)
     sectors.forEach(sector => {
       sector.addEventListener('dragover', (e) => {
         e.preventDefault();
