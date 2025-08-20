@@ -335,14 +335,9 @@ function createRouletteWheel() {
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     
-    const icon = document.createElement('span');
-    icon.className = 'preview-icon';
-    icon.textContent = prize.icon;
-    
     const name = document.createElement('span');
     name.textContent = prize.name;
     
-    previewItem.appendChild(icon);
     previewItem.appendChild(name);
     preview.appendChild(previewItem);
   });
