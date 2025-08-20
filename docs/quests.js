@@ -1898,9 +1898,13 @@ function switchRouletteDesign(design) {
   if (rouletteSection) {
     if (design === 'author') {
       rouletteSection.classList.add('author-theme');
+      console.log('✅ Космическая тема применена к секции рулетки');
     } else {
       rouletteSection.classList.remove('author-theme');
+      console.log('✅ Космическая тема убрана с секции рулетки');
     }
+  } else {
+    console.error('❌ Секция рулетки не найдена');
   }
   
   // Плавный переход - добавляем класс для анимации

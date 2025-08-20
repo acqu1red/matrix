@@ -236,12 +236,13 @@ h3 { font-size: 1.25rem; }
     rgba(25, 25, 60, 0.8) 25%, 
     rgba(40, 20, 80, 0.9) 50%, 
     rgba(60, 30, 100, 0.8) 75%, 
-    rgba(80, 40, 120, 0.9) 100%);
-  border: 2px solid rgba(138, 43, 226, 0.6);
+    rgba(80, 40, 120, 0.9) 100%) !important;
+  border: 2px solid rgba(138, 43, 226, 0.6) !important;
   box-shadow: 
     0 0 30px rgba(138, 43, 226, 0.4),
-    inset 0 0 50px rgba(0, 0, 0, 0.3);
+    inset 0 0 50px rgba(0, 0, 0, 0.3) !important;
   position: relative;
+  backdrop-filter: none !important;
 }
 
 .roulette-section.author-theme::before {
