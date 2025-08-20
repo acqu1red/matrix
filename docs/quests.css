@@ -316,28 +316,31 @@ h3 { font-size: 1.25rem; }
   font-size: 28px !important;
   font-weight: 700 !important;
   color: #000000 !important;
-  text-shadow: 3px 3px 0px #ffffff, -3px -3px 0px #ffffff, 3px -3px 0px #ffffff, -3px 3px 0px #ffffff !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
 .roulette-section.casino-theme .roulette-description {
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
   font-size: 16px !important;
   color: #000000 !important;
-  text-shadow: 1px 1px 0px #ffffff, -1px -1px 0px #ffffff, 1px -1px 0px #ffffff, -1px 1px 0px #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 600 !important;
 }
 
 .roulette-section.casino-theme .design-option {
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
   border: 3px solid #000000 !important;
   background: #ffffff !important;
-  color: #ffffff !important;
-  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
+  color: #000000 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 700 !important;
 }
 
 .roulette-section.casino-theme .design-option.active {
   background: #000000 !important;
   color: #ffffff !important;
-  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 700 !important;
 }
 
 .roulette-section.casino-theme .design-name {
@@ -345,18 +348,19 @@ h3 { font-size: 1.25rem; }
   font-size: 14px !important;
   font-weight: 700 !important;
   color: inherit !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 .roulette-section.casino-theme .icon-label {
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
   font-size: 12px !important;
   font-weight: 700 !important;
-  color: #ffffff !important;
+  color: #000000 !important;
   background: #ffffff !important;
   border: 2px solid #000000 !important;
   border-radius: 10px !important;
   padding: 4px 8px !important;
-  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Кнопка "Возможные призы" в дизайне Лебедева */
@@ -364,28 +368,29 @@ h3 { font-size: 1.25rem; }
   background: #ffffff !important;
   border: 3px solid #000000 !important;
   border-radius: 15px !important;
-  color: #ffffff !important;
+  color: #000000 !important;
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 700 !important;
 }
 
 .roulette-section.casino-theme .preview-content {
   background: #ffffff !important;
   border: 3px solid #000000 !important;
   border-radius: 15px !important;
-  color: #ffffff !important;
+  color: #000000 !important;
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
 }
 
 .roulette-section.casino-theme .preview-content.expanded {
   background: #ffffff !important;
   border: 3px solid #000000 !important;
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .roulette-section.casino-theme .preview-items {
   background: #ffffff !important;
-  color: #ffffff !important;
+  color: #000000 !important;
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
 }
 
@@ -393,9 +398,10 @@ h3 { font-size: 1.25rem; }
   background: #ffffff !important;
   border: 2px solid #000000 !important;
   border-radius: 10px !important;
-  color: #ffffff !important;
+  color: #000000 !important;
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  text-shadow: 1px 1px 0px #000000, -1px -1px 0px #000000, 1px -1px 0px #000000, -1px 1px 0px #000000 !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 600 !important;
 }
 
 .roulette-description {
@@ -1613,12 +1619,12 @@ h3 { font-size: 1.25rem; }
 
 .roulette-container.casino .icon-symbol {
   font-size: 28px;
-  color: #ffffff;
+  color: #000000;
   filter: none;
   animation: none;
   z-index: 2;
   position: relative;
-  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000;
+  text-shadow: none;
 }
 
 /* Авторский дизайн - космический детский */
