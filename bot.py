@@ -462,9 +462,9 @@ def build_start_content():
     )
     keyboard = [
         [InlineKeyboardButton("💳 Оплатить доступ", web_app=WebAppInfo(url=PAYMENT_MINIAPP_URL))],
-        [InlineKeyboardButton("📋 Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
-        [InlineKeyboardButton("🏝️ Квесты [ПОЛУЧИ СКИДКУ]", web_app=WebAppInfo(url=QUESTS_MINIAPP_URL))],
-        [InlineKeyboardButton("ℹ️ Подробнее о канале", callback_data='more_info')],
+        [InlineKeyboardButton("Меню подписки", web_app=WebAppInfo(url=SUBSCRIPTION_MINIAPP_URL))],
+        [InlineKeyboardButton("🪙 Тренинги / Кейсы / Призы", web_app=WebAppInfo(url=QUESTS_MINIAPP_URL))],
+        [InlineKeyboardButton("Подробнее о канале", callback_data='more_info')],
         [InlineKeyboardButton("💻 Поддержка", web_app=WebAppInfo(url=MINIAPP_URL))],
     ]
     return text, InlineKeyboardMarkup(keyboard)

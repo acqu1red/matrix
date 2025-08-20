@@ -161,6 +161,7 @@ function calculateLevel(exp) {
       break;
     }
   }
+  console.log(`calculateLevel: exp=${exp}, calculated level=${level}`);
   return level;
 }
 
@@ -174,40 +175,60 @@ function getExpForNextLevel(level) {
 function updateCurrencyDisplay() {
   console.log('Обновление отображения валюты:', userData);
   
-  const mulacoinEl = $("#mulacoinAmount");
-  const userMulacoinEl = $("#userMulacoin");
+  // Обновляем mulacoin во всех возможных местах
+  const mulacoinElements = [
+    $("#mulacoinAmount"),
+    $("#userMulacoin"),
+    $("#currentMulacoin"),
+    document.querySelector('[data-mulacoin]')
+  ];
+  
   const levelEl = $("#currentLevel");
   const progressEl = $("#levelProgress");
   
-  console.log('Найденные элементы:', {
-    mulacoinEl: !!mulacoinEl,
-    userMulacoinEl: !!userMulacoinEl,
-    levelEl: !!levelEl,
-    progressEl: !!progressEl
+  console.log('Найденные элементы mulacoin:', mulacoinElements.map(el => !!el));
+  console.log('Level элемент:', !!levelEl);
+  console.log('Progress элемент:', !!progressEl);
+  
+  // Обновляем все элементы с mulacoin
+  mulacoinElements.forEach(el => {
+    if (el) {
+      el.textContent = userData.mulacoin || 0;
+      console.log('Обновлен элемент mulacoin:', el.textContent);
+    }
   });
   
-  if (mulacoinEl) {
-    mulacoinEl.textContent = userData.mulacoin;
-    console.log('Обновлен mulacoinAmount:', userData.mulacoin);
-  }
-  if (userMulacoinEl) {
-    userMulacoinEl.textContent = userData.mulacoin;
-    console.log('Обновлен userMulacoin:', userData.mulacoin);
-  }
   if (levelEl) {
-    levelEl.textContent = userData.level;
+    levelEl.textContent = userData.level || 1;
     console.log('Обновлен currentLevel:', userData.level);
   }
   
+  // Исправляем расчет прогресса уровня
   const expForNext = getExpForNextLevel(userData.level);
   const currentLevelExp = userData.level > 1 ? LEVEL_EXP[userData.level - 2] : 0;
-  const progress = userData.exp - currentLevelExp;
+  const progress = Math.max(0, userData.exp - currentLevelExp);
   const total = expForNext - currentLevelExp;
   
   if (progressEl) {
     progressEl.textContent = `${progress}/${total}`;
     console.log('Обновлен levelProgress:', `${progress}/${total}`);
   }
+  
+  // Принудительно обновляем отображение один раз
+  setTimeout(() => {
+    const mulacoinElements = [
+      $("#mulacoinAmount"),
+      $("#userMulacoin"),
+      $("#currentMulacoin"),
+      document.querySelector('[data-mulacoin]')
+    ];
+    
+    mulacoinElements.forEach(el => {
+      if (el) {
+        el.textContent = userData.mulacoin || 0;
+      }
+    });
+  }, 100);
 }
 
 async function addRewards(mulacoin, exp, questId = null, questName = null, difficulty = null) {
@@ -217,14 +238,25 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   console.log('Supabase доступен:', !!supabase);
   console.log('Telegram ID:', userData.telegramId);
   
-  const oldLevel = userData.level;
+  const oldLevel = userData.level || 1;
+  const oldExp = userData.exp || 0;
+  const oldMulacoin = userData.mulacoin || 0;
   
-  userData.mulacoin += mulacoin;
-  userData.exp += exp;
+  // Обновляем данные
+  userData.mulacoin = oldMulacoin + mulacoin;
+  userData.exp = oldExp + exp;
   userData.level = calculateLevel(userData.exp);
   
-  console.log('Данные после обновления:', userData);
+  console.log('Данные после обновления:', {
+    oldLevel,
+    newLevel: userData.level,
+    oldExp,
+    newExp: userData.exp,
+    oldMulacoin,
+    newMulacoin: userData.mulacoin
+  });
   
+  // Обновляем отображение
   updateCurrencyDisplay();
   
   // Проверяем повышение уровня
@@ -822,9 +854,11 @@ async function loadUserData(userId) {
       const parsed = JSON.parse(saved);
       userData.mulacoin = parsed.mulacoin || 0;
       userData.exp = parsed.exp || 0;
-      userData.level = parsed.level || 1;
+      // Пересчитываем уровень на основе опыта
+      userData.level = calculateLevel(userData.exp);
       userData.lastFreeSpin = parsed.lastFreeSpin;
       console.log('Данные загружены из localStorage:', parsed);
+      console.log('Уровень пересчитан на основе опыта:', userData.level);
     } catch (error) {
       console.error('Ошибка парсинга localStorage:', error);
     }
@@ -846,8 +880,10 @@ async function loadUserData(userId) {
         // Обновляем данные из Supabase (они имеют приоритет)
         userData.mulacoin = data.mulacoin || userData.mulacoin || 0;
         userData.exp = data.experience || userData.exp || 0;
-        userData.level = data.level || userData.level || 1;
+        // Пересчитываем уровень на основе опыта
+        userData.level = calculateLevel(userData.exp);
         userData.lastFreeSpin = data.last_free_spin || userData.lastFreeSpin;
+        console.log('Уровень пересчитан на основе опыта:', userData.level);
         toast('Данные загружены из базы данных', 'success');
       } else {
         console.log('Пользователь не найден в Supabase, используем данные из localStorage');
@@ -866,12 +902,20 @@ async function loadUserData(userId) {
     if (saved) {
       const parsed = JSON.parse(saved);
       userData = { ...userData, ...parsed };
+      // Пересчитываем уровень на основе опыта
+      userData.level = calculateLevel(userData.exp || 0);
       console.log('Данные загружены из localStorage:', parsed);
+      console.log('Уровень пересчитан на основе опыта:', userData.level);
     }
   }
   
   console.log('Итоговые данные пользователя:', userData);
+  
+  // Принудительно обновляем отображение несколько раз для надежности
   updateCurrencyDisplay();
+  setTimeout(() => updateCurrencyDisplay(), 100);
+  setTimeout(() => updateCurrencyDisplay(), 500);
+  
   updateRouletteButton();
 }
 
@@ -1043,48 +1087,7 @@ function dayIndex(){ return Math.floor(Date.now() / (24*60*60*1000)); }
 function variationIndex(){ return dayIndex() % VARIATIONS_PER_QUEST; }
 function groupIndex(){ return dayIndex() % 2; } // 2 группы по 5 квестов
 
-/* ====== Parallax particles ====== */
-function fireflies(){
-  const canvas = $("#fireflies");
-  if(!canvas) return;
-  const ctx = canvas.getContext("2d");
-  let W,H; 
-  function resize(){ 
-    W=canvas.width=canvas.clientWidth; 
-    H=canvas.height=canvas.clientHeight; 
-  } 
-  resize();
-  window.addEventListener("resize", resize);
-  
-  const N = 32;
-  const parts = Array.from({length:N},()=>({
-    x:Math.random()*W,
-    y:Math.random()*H, 
-    vx:(Math.random()-.5)*.4, 
-    vy:(Math.random()-.5)*.4, 
-    r:1.5+Math.random()*3, 
-    a:.6+Math.random()*.4 
-  }));
-  
-  function step(){
-    ctx.clearRect(0,0,W,H);
-    parts.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy;
-      if(p.x<0||p.x>W) p.vx*=-1;
-      if(p.y<0||p.y>H) p.vy*=-1;
-      ctx.beginPath();
-      const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*10);
-      g.addColorStop(0, `rgba(102,247,213,${0.9*p.a})`);
-      g.addColorStop(1, `rgba(102,247,213,0)`);
-      ctx.fillStyle=g;
-      ctx.arc(p.x,p.y,p.r*4,0,Math.PI*2);
-      ctx.fill();
-    });
-    requestAnimationFrame(step);
-  }
-  step();
-}
-fireflies();
+
 
 /* ====== Quests model (10 квестов) ====== */
 const QUESTS = [
