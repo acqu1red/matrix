@@ -432,13 +432,13 @@ function spinRoulette(isFree = false) {
   spinBtn.disabled = true;
   buyBtn.disabled = true;
   
-  // Добавляем эффект загрузки на кнопки
-  spinBtn.classList.add("loading");
-  buyBtn.classList.add("loading");
+  // Делаем кнопки недоступными
+  spinBtn.disabled = true;
+  buyBtn.disabled = true;
   
-  // Добавляем эффект загрузки на кнопки дизайна
+  // Делаем кнопки дизайна недоступными
   document.querySelectorAll('.design-option').forEach(option => {
-    option.classList.add("loading");
+    option.disabled = true;
   });
   
   // Генерируем случайное расстояние для равномерной прокрутки (увеличено для 15 секунд)
@@ -467,13 +467,13 @@ function spinRoulette(isFree = false) {
   
   // Показываем анимацию ожидания
   setTimeout(() => {
-    // Убираем эффекты загрузки
-    spinBtn.classList.remove("loading");
-    buyBtn.classList.remove("loading");
+    // Делаем кнопки доступными
+    spinBtn.disabled = false;
+    buyBtn.disabled = false;
     
-    // Убираем эффекты загрузки с кнопок дизайна
+    // Делаем кнопки дизайна доступными
     document.querySelectorAll('.design-option').forEach(option => {
-      option.classList.remove("loading");
+      option.disabled = false;
     });
     
     // Обновляем текущую позицию рулетки
@@ -1874,9 +1874,9 @@ function initializeRouletteHandlers() {
 function switchRouletteDesign(design) {
   console.log('Переключение дизайна рулетки на:', design);
   
-  // Добавляем эффект загрузки на все кнопки дизайна
+  // Делаем кнопки дизайна недоступными
   document.querySelectorAll('.design-option').forEach(option => {
-    option.classList.add('loading');
+    option.disabled = true;
   });
   
   // Обновляем активную опцию
@@ -1926,9 +1926,9 @@ function switchRouletteDesign(design) {
       setTimeout(() => {
         items.classList.remove('changing');
         
-        // Убираем эффекты загрузки с кнопок дизайна
+        // Делаем кнопки дизайна доступными
         document.querySelectorAll('.design-option').forEach(option => {
-          option.classList.remove('loading');
+          option.disabled = false;
         });
       }, 100);
     }

@@ -1768,53 +1768,17 @@ h3 { font-size: 1.25rem; }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Минималистичные эффекты загрузки для кнопок */
-.btn.loading {
-  position: relative;
+/* Стили для недоступных кнопок */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
   pointer-events: none;
-  overflow: hidden;
 }
 
-/* Анимированный фон для кнопок рулетки */
-#spinRoulette.loading,
-#buySpin.loading {
-  background: linear-gradient(90deg, 
-    var(--glow1) 0%, 
-    var(--glow2) 25%, 
-    var(--accent) 50%, 
-    var(--glow2) 75%, 
-    var(--glow1) 100%) !important;
-  background-size: 200% 100% !important;
-  animation: shimmer 2s ease-in-out infinite !important;
-  border-color: var(--glow1) !important;
-  box-shadow: 0 0 20px rgba(102, 247, 213, 0.4) !important;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Анимированный фон для кнопок дизайна */
-.design-option.loading {
-  position: relative;
+.design-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
   pointer-events: none;
-  overflow: hidden;
-  background: linear-gradient(90deg, 
-    rgba(102, 247, 213, 0.3) 0%, 
-    rgba(166, 180, 255, 0.3) 25%, 
-    rgba(255, 226, 122, 0.3) 50%, 
-    rgba(166, 180, 255, 0.3) 75%, 
-    rgba(102, 247, 213, 0.3) 100%) !important;
-  background-size: 200% 100% !important;
-  animation: designShimmer 2s ease-in-out infinite !important;
-  border-color: var(--glow1) !important;
-  box-shadow: 0 0 15px rgba(102, 247, 213, 0.3) !important;
-}
-
-@keyframes designShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }
 
 /* Казино дизайн - кнопка рулетки */
@@ -1843,22 +1807,9 @@ h3 { font-size: 1.25rem; }
   z-index: 1;
 }
 
-.roulette-section.casino-theme #spinRoulette.loading {
-  background: linear-gradient(90deg, 
-    #ffffff 0%, 
-    #f0f0f0 25%, 
-    #e0e0e0 50%, 
-    #f0f0f0 75%, 
-    #ffffff 100%) !important;
-  background-size: 200% 100% !important;
-  animation: casinoShimmer 2s ease-in-out infinite !important;
-  border-color: #000000 !important;
-  box-shadow: none !important;
-}
-
-@keyframes casinoShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.roulette-section.casino-theme #spinRoulette:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
 }
 
 /* Плавная анимация смены текста кнопки */
