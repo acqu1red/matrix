@@ -420,9 +420,9 @@ function spinRoulette(isFree = false) {
     option.disabled = true;
   });
   
-  // Генерируем случайное расстояние для равномерной прокрутки (8 секунд)
-  const baseDistance = 4000 + Math.random() * 2000; // 4000-6000px базовое расстояние
-  const extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
+  // Генерируем случайное расстояние для равномерной прокрутки (15 секунд)
+  const baseDistance = 7500 + Math.random() * 3000; // 7500-10500px базовое расстояние для 15 секунд
+  const extraDistance = Math.random() * 1500; // Дополнительное случайное расстояние
   const spinDistance = baseDistance + extraDistance;
   
   // Вычисляем новую позицию (продолжаем с текущей позиции)
@@ -443,14 +443,23 @@ function spinRoulette(isFree = false) {
     icon.classList.add('spinning');
   });
   
-  // Применяем CSS анимацию с новой позицией (8 секунд)
-  const animationDuration = '8s';
+  // Применяем CSS анимацию с новой позицией (15 секунд)
+  const animationDuration = '15s';
   
   items.style.transform = `translateX(-${newPosition}px)`;
   items.style.transition = `transform ${animationDuration} ease-out`;
   
-  // Показываем анимацию ожидания (8 секунд)
-  const waitTime = 8000;
+  // Запускаем аудио в начале прокрутки
+  const music = document.getElementById('rouletteMusic');
+  if (music) {
+    music.currentTime = 0; // Сбрасываем время воспроизведения
+    music.play().catch(error => {
+      console.log('Не удалось воспроизвести музыку:', error);
+    });
+  }
+  
+  // Показываем анимацию ожидания (15 секунд)
+  const waitTime = 15000;
   
   setTimeout(() => {
     // Делаем кнопки доступными
@@ -468,7 +477,12 @@ function spinRoulette(isFree = false) {
     // Определяем приз по позиции стрелки (центральный элемент)
     const centerPrize = determinePrizeByArrowPosition();
     
-    // Убираем ссылки на музыку Лебедева
+    // Останавливаем аудио после завершения прокрутки
+    const music = document.getElementById('rouletteMusic');
+    if (music) {
+      music.pause();
+      music.currentTime = 0;
+    }
     
     // Показываем модальное окно с призом, который указывает стрелка
     showPrizeModal(centerPrize, isFree);
