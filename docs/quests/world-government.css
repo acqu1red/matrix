@@ -154,8 +154,8 @@
   background: rgba(0, 0, 0, 0.7);
   border: 2px solid var(--glow1);
   border-radius: var(--radius);
-  padding: 15px;
-  min-width: 120px;
+  padding: 10px;
+  min-width: 84px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -178,13 +178,13 @@
   font-weight: 600;
   color: var(--text);
   margin-bottom: 5px;
-  font-size: 14px;
+  font-size: 10px;
 }
 
 .sector-count {
-  font-size: 12px;
+  font-size: 9px;
   color: var(--glow2);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sector-members {
@@ -197,9 +197,9 @@
 .member-tag {
   background: var(--glow1);
   color: var(--bg0);
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-size: 8px;
   font-weight: 500;
 }
 
@@ -392,12 +392,12 @@
   }
   
   .sector {
-    min-width: 100px;
-    padding: 10px;
+    min-width: 70px;
+    padding: 8px;
   }
   
   .sector-label {
-    font-size: 12px;
+    font-size: 9px;
   }
   
   .bottom-panel {
