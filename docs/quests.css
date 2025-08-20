@@ -300,119 +300,7 @@ h3 { font-size: 1.25rem; }
   font-size: 14px;
 }
 
-/* Селектор дизайнов рулетки */
-.roulette-design-selector {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.design-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  min-width: 80px;
-}
-
-/* Скрываем текст в кнопках дизайна */
-.design-option .design-name {
-  display: none !important;
-}
-
-/* Улучшенный Стандартный дизайн - кнопка */
-.design-option[data-design="standard"] {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) !important;
-  border: 2px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
-  position: relative;
-  overflow: hidden;
-}
-
-.design-option[data-design="standard"]::before {
-  content: '';
-  position: absolute;
-  top: -20px;
-  left: -20px;
-  right: -20px;
-  bottom: -20px;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
-  background-size: 60px 60px, 80px 80px, 50px 50px;
-  animation: floatingStars 12s linear infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes floatingStars {
-  0% { 
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.6;
-  }
-  50% { 
-    transform: translateY(-15px) rotate(180deg);
-    opacity: 1;
-  }
-  100% { 
-    transform: translateY(0) rotate(360deg);
-    opacity: 0.6;
-  }
-}
-
-.design-option[data-design="standard"]:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2)) !important;
-  border-color: rgba(255, 255, 255, 0.6) !important;
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-2px);
-}
-
-.design-option[data-design="standard"].active {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.3)) !important;
-  border-color: rgba(255, 255, 255, 0.8) !important;
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4) !important;
-}
-
-/* Убираем стили для Лебедева и Авторского дизайна */
-
-.design-option:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(102, 247, 213, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 247, 213, 0.2);
-}
-
-.design-option.active {
-  background: linear-gradient(135deg, rgba(102, 247, 213, 0.2), rgba(102, 247, 213, 0.1));
-  border-color: rgba(102, 247, 213, 0.8);
-  box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
-}
-
-.design-icon {
-  font-size: 24px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.design-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: white;
-  text-align: center;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
+/* Убираем стили для селектора дизайна - он больше не нужен */
 
 .roulette-container {
   position: relative;
@@ -900,6 +788,22 @@ h3 { font-size: 1.25rem; }
   height: 45vh;
   margin: 16px;
   overflow: hidden;
+}
+
+/* Картинка wtf2.png по центру */
+.wtf2-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  padding: 20px;
+}
+
+.wtf2-image {
+  max-width: 300px;
+  height: auto;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 /* Убираем старые элементы с зелеными шариками */
@@ -1499,6 +1403,35 @@ h3 { font-size: 1.25rem; }
 }
 
 /* Убираем все стили для Лебедева и Авторского дизайна */
+
+/* Стили для картинок в кнопках */
+.button-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.preview-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Стили для кнопки "Крутить за mulacoin" */
+#buySpin {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+}
+
+#buySpin:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
+}
 
 /* Стили для недоступных кнопок */
 .btn:disabled {

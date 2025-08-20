@@ -1737,24 +1737,46 @@ function updateRouletteButton() {
   
   if (!spinBtn || !buyBtn) return;
   
+  // Очищаем содержимое кнопок
+  spinBtn.innerHTML = '';
+  buyBtn.innerHTML = '';
+  
   if (isAdmin()) {
-    // Специальный текст для администраторов
-    spinBtn.textContent = "🎰 Крутить рулетку (∞)";
+    // Специальная картинка для администраторов
+    const adminImg = document.createElement('img');
+    adminImg.src = './assets/photovideo/ruletka.png';
+    adminImg.alt = 'Крутить рулетку (∞)';
+    adminImg.className = 'button-image';
+    spinBtn.appendChild(adminImg);
     spinBtn.disabled = false;
     spinBtn.classList.remove("disabled");
     spinBtn.title = "Администратор: бесконечные попытки";
   } else if (canSpinFree()) {
-    spinBtn.textContent = "🎰 Крутить рулетку";
+    // Обычная картинка для кручения
+    const spinImg = document.createElement('img');
+    spinImg.src = './assets/photovideo/ruletka.png';
+    spinImg.alt = 'Крутить рулетку';
+    spinImg.className = 'button-image';
+    spinBtn.appendChild(spinImg);
     spinBtn.disabled = false;
     spinBtn.classList.remove("disabled");
   } else {
-    spinBtn.textContent = "⏰ Лимит исчерпан";
+    // Картинка для лимита
+    const limitImg = document.createElement('img');
+    limitImg.src = './assets/photovideo/ruletka2.png';
+    limitImg.alt = 'Лимит исчерпан';
+    limitImg.className = 'button-image';
+    spinBtn.appendChild(limitImg);
     spinBtn.disabled = true;
     spinBtn.classList.add("disabled");
   }
   
-  // Обновляем текст кнопки покупки
-  buyBtn.textContent = `Крутить за ${SPIN_COST} MULACOIN`;
+  // Обновляем картинку кнопки покупки
+  const buyImg = document.createElement('img');
+  buyImg.src = './assets/photovideo/mulacoin.png';
+  buyImg.alt = `Крутить за ${SPIN_COST} MULACOIN`;
+  buyImg.className = 'button-image';
+  buyBtn.appendChild(buyImg);
 }
 
 // Функция для плавного обновления кнопки с анимацией
@@ -1767,25 +1789,30 @@ function updateRouletteButtonWithAnimation() {
   // Добавляем класс для плавного перехода
   spinBtn.classList.add("transitioning");
   
-  // Определяем новый текст
-  let newText = "";
+  // Определяем новую картинку
+  let newImageSrc = "";
   let isDisabled = false;
   
   if (isAdmin()) {
-    newText = "🎰 Крутить рулетку (∞)";
+    newImageSrc = './assets/photovideo/ruletka.png';
     isDisabled = false;
     spinBtn.title = "Администратор: бесконечные попытки";
   } else if (canSpinFree()) {
-    newText = "🎰 Крутить рулетку";
+    newImageSrc = './assets/photovideo/ruletka.png';
     isDisabled = false;
   } else {
-    newText = "⏰ Лимит исчерпан";
+    newImageSrc = './assets/photovideo/ruletka2.png';
     isDisabled = true;
   }
   
-  // Плавно меняем текст
+  // Плавно меняем картинку
   setTimeout(() => {
-    spinBtn.textContent = newText;
+    spinBtn.innerHTML = '';
+    const newImg = document.createElement('img');
+    newImg.src = newImageSrc;
+    newImg.alt = isDisabled ? 'Лимит исчерпан' : 'Крутить рулетку';
+    newImg.className = 'button-image';
+    spinBtn.appendChild(newImg);
     spinBtn.disabled = isDisabled;
     
     if (isDisabled) {
@@ -1800,8 +1827,13 @@ function updateRouletteButtonWithAnimation() {
     }, 300);
   }, 200);
   
-  // Обновляем текст кнопки покупки
-  buyBtn.textContent = `Крутить за ${SPIN_COST} MULACOIN`;
+  // Обновляем картинку кнопки покупки
+  buyBtn.innerHTML = '';
+  const buyImg = document.createElement('img');
+  buyImg.src = './assets/photovideo/mulacoin.png';
+  buyImg.alt = `Крутить за ${SPIN_COST} MULACOIN`;
+  buyImg.className = 'button-image';
+  buyBtn.appendChild(buyImg);
 }
 
 /* ====== Header buttons ====== */
