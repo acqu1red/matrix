@@ -1889,15 +1889,20 @@ function switchRouletteDesign(design) {
     activeOption.classList.add('active');
   }
   
-  // Применяем космическую тему для авторского дизайна
+  // Применяем темы для разных дизайнов
   const rouletteSection = document.querySelector('.roulette-section');
   if (rouletteSection) {
+    // Убираем все темы
+    rouletteSection.classList.remove('author-theme', 'casino-theme');
+    
     if (design === 'author') {
       rouletteSection.classList.add('author-theme');
       console.log('✅ Космическая тема применена к секции рулетки');
+    } else if (design === 'casino') {
+      rouletteSection.classList.add('casino-theme');
+      console.log('✅ Казино тема применена к секции рулетки');
     } else {
-      rouletteSection.classList.remove('author-theme');
-      console.log('✅ Космическая тема убрана с секции рулетки');
+      console.log('✅ Стандартная тема применена к секции рулетки');
     }
   } else {
     console.error('❌ Секция рулетки не найдена');
@@ -2184,10 +2189,10 @@ loadState().then(async state=>{
   // Создаем рулетку
   createRouletteWheel();
   
-  // Убираем космическую тему при инициализации (стандартный дизайн)
+  // Убираем все темы при инициализации (стандартный дизайн)
   const rouletteSection = document.querySelector('.roulette-section');
   if (rouletteSection) {
-    rouletteSection.classList.remove('author-theme');
+    rouletteSection.classList.remove('author-theme', 'casino-theme');
   }
   
   // Инициализируем обработчики событий после создания рулетки

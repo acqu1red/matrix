@@ -283,6 +283,32 @@ h3 { font-size: 1.25rem; }
   z-index: 1;
 }
 
+/* Казино дизайн - фон секции */
+.roulette-section.casino-theme {
+  background: #ffffff !important;
+  border: 3px solid #000000 !important;
+  box-shadow: none !important;
+  position: relative;
+}
+
+.roulette-section.casino-theme::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../assets/photovideo/wtf.png') center center;
+  background-size: cover;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.roulette-section.casino-theme > * {
+  position: relative;
+  z-index: 1;
+}
+
 .roulette-description {
   color: var(--text-muted);
   margin-bottom: 20px;
@@ -1449,21 +1475,12 @@ h3 { font-size: 1.25rem; }
   box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
-/* Казино дизайн - футуристичный киберпанк */
+/* Казино дизайн - детский мульяшный */
 .roulette-container.casino {
-  background: linear-gradient(135deg, 
-    rgba(255, 0, 150, 0.2) 0%, 
-    rgba(0, 255, 255, 0.1) 25%, 
-    rgba(255, 255, 0, 0.1) 50%, 
-    rgba(255, 0, 255, 0.1) 75%, 
-    rgba(0, 150, 255, 0.2) 100%);
-  border: 3px solid;
-  border-image: linear-gradient(45deg, #ff0080, #00ffff, #ffff00, #ff00ff, #0096ff) 1;
-  box-shadow: 
-    0 0 60px rgba(255, 0, 150, 0.6),
-    0 0 40px rgba(0, 255, 255, 0.4),
-    0 0 20px rgba(255, 255, 0, 0.3),
-    inset 0 0 50px rgba(0,0,0,0.5);
+  background: #ffffff;
+  border: 4px solid #000000;
+  border-radius: 20px;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
@@ -1472,28 +1489,23 @@ h3 { font-size: 1.25rem; }
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: casinoShine 3s infinite;
-}
-
-@keyframes casinoShine {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../assets/photovideo/wtf.png') center center;
+  background-size: cover;
+  opacity: 0.8;
+  z-index: 0;
 }
 
 .roulette-container.casino .roulette-item {
-  background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(50,50,50,0.6));
-  border: 2px solid;
-  border-image: linear-gradient(45deg, #ff0080, #00ffff) 1;
-  border-radius: 8px;
-  box-shadow: 
-    0 0 20px rgba(255, 0, 150, 0.4),
-    inset 0 0 10px rgba(0, 255, 255, 0.2);
+  background: #ffffff;
+  border: 3px solid #000000;
+  border-radius: 15px;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .roulette-container.casino .roulette-item::before {
@@ -1503,24 +1515,17 @@ h3 { font-size: 1.25rem; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-  animation: casinoGlow 2s ease-in-out infinite alternate;
-}
-
-@keyframes casinoGlow {
-  0% { opacity: 0.3; }
-  100% { opacity: 0.8; }
+  background: #ffffff;
+  z-index: 1;
 }
 
 .roulette-container.casino .icon-symbol {
   font-size: 24px;
-  filter: drop-shadow(0 0 10px currentColor);
-  animation: casinoPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes casinoPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  color: #000000;
+  filter: none;
+  animation: none;
+  z-index: 2;
+  position: relative;
 }
 
 /* Авторский дизайн - космический детский */
@@ -1808,6 +1813,50 @@ h3 { font-size: 1.25rem; }
 }
 
 @keyframes designShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Казино дизайн - кнопка рулетки */
+.roulette-section.casino-theme #spinRoulette {
+  background: url('../assets/photovideo/ruletka.png') center center !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  border: 3px solid #000000 !important;
+  border-radius: 15px !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  padding: 20px 40px !important;
+  min-height: 60px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.roulette-section.casino-theme #spinRoulette::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: inherit;
+  z-index: 1;
+}
+
+.roulette-section.casino-theme #spinRoulette.loading {
+  background: linear-gradient(90deg, 
+    #ffffff 0%, 
+    #f0f0f0 25%, 
+    #e0e0e0 50%, 
+    #f0f0f0 75%, 
+    #ffffff 100%) !important;
+  background-size: 200% 100% !important;
+  animation: casinoShimmer 2s ease-in-out infinite !important;
+  border-color: #000000 !important;
+  box-shadow: none !important;
+}
+
+@keyframes casinoShimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
