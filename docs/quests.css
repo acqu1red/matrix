@@ -365,7 +365,7 @@ h3 { font-size: 1.25rem; }
 
 /* Кнопка "Возможные призы" в дизайне Лебедева */
 .roulette-section.casino-theme .preview-header {
-  background: url('./assets/photovideo/prise.png') center center !important;
+  background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), url('./assets/photovideo/prise.png') center center !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
   border: 3px solid #000000 !important;
@@ -381,27 +381,73 @@ h3 { font-size: 1.25rem; }
 }
 
 .roulette-section.casino-theme .preview-content {
-  background: #ffffff !important;
+  background: rgba(0, 0, 0, 0.9) !important;
   border: 3px solid #000000 !important;
   border-radius: 15px !important;
-  color: #000000 !important;
+  color: #ffffff !important;
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.roulette-section.casino-theme .preview-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8) 2px, transparent 2px),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.6) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+    radial-gradient(circle at 90% 20%, rgba(255, 255, 255, 0.5) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
+  background-size: 50px 50px, 70px 70px, 40px 40px, 60px 60px, 45px 45px;
+  animation: flyingStars 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes flyingStars {
+  0% { 
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% { 
+    transform: translateY(-10px) rotate(90deg);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(-5px) rotate(180deg);
+    opacity: 0.9;
+  }
+  75% { 
+    transform: translateY(-15px) rotate(270deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(0) rotate(360deg);
+    opacity: 0.8;
+  }
 }
 
 .roulette-section.casino-theme .preview-content.expanded {
-  background: #ffffff !important;
+  background: rgba(0, 0, 0, 0.9) !important;
   border: 3px solid #000000 !important;
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 .roulette-section.casino-theme .preview-items {
-  background: #ffffff !important;
-  color: #000000 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: #ffffff !important;
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  position: relative;
+  z-index: 1;
 }
 
 .roulette-section.casino-theme .preview-item {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.9) !important;
   border: 2px solid #000000 !important;
   border-radius: 10px !important;
   color: #000000 !important;
@@ -409,6 +455,8 @@ h3 { font-size: 1.25rem; }
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
   font-weight: 600 !important;
   animation: previewItemFloat 3s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes previewItemFloat {
@@ -511,6 +559,12 @@ h3 { font-size: 1.25rem; }
   margin-bottom: 20px;
 }
 
+/* Лебедев дизайн - фон рулетки */
+.roulette-section.casino-theme .roulette-display {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 2px solid #000000 !important;
+}
+
 .roulette-items {
   position: relative;
   width: 100%;
@@ -540,6 +594,11 @@ h3 { font-size: 1.25rem; }
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   flex-shrink: 0;
+}
+
+/* Лебедев дизайн - элементы рулетки */
+.roulette-section.casino-theme .roulette-item {
+  border: 2px solid #000000 !important;
 }
 
 .icon-content {
@@ -1961,7 +2020,7 @@ h3 { font-size: 1.25rem; }
 
 /* Лебедев дизайн - кнопка рулетки */
 .roulette-section.casino-theme #spinRoulette {
-  background: url('./assets/photovideo/ruletka.png') center center !important;
+  background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), url('./assets/photovideo/ruletka.png') center center !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
   border: 5px solid #000000 !important;
@@ -1987,7 +2046,7 @@ h3 { font-size: 1.25rem; }
 }
 
 .roulette-section.casino-theme #spinRoulette:disabled {
-  background: url('./assets/photovideo/ruletka2.png') center center !important;
+  background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), url('./assets/photovideo/ruletka2.png') center center !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
   opacity: 0.7 !important;
