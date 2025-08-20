@@ -442,24 +442,43 @@ function spinRoulette(isFree = false) {
     option.disabled = true;
   });
   
-  // Генерируем случайное расстояние для равномерной прокрутки (увеличено для 15 секунд)
-  const baseDistance = 6000 + Math.random() * 4000; // 6000-10000px базовое расстояние для 15 секунд
-  const extraDistance = Math.random() * 2000; // Дополнительное случайное расстояние
-  let spinDistance = baseDistance + extraDistance;
+  // Генерируем случайное расстояние для равномерной прокрутки
+  let baseDistance, extraDistance, spinDistance;
+  
+  if (currentRouletteDesign === 'casino') {
+    // Для дизайна Лебедева - 16 секунд
+    baseDistance = 8000 + Math.random() * 4000; // 8000-12000px базовое расстояние для 16 секунд
+    extraDistance = Math.random() * 2000; // Дополнительное случайное расстояние
+    spinDistance = baseDistance + extraDistance;
+  } else {
+    // Для остальных дизайнов - 8 секунд
+    baseDistance = 4000 + Math.random() * 2000; // 4000-6000px базовое расстояние для 8 секунд
+    extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
+    spinDistance = baseDistance + extraDistance;
+  }
   
       // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
     if (currentRouletteDesign === 'author') {
       spinDistance = -spinDistance;
     }
     
-    // Для дизайна Лебедева применяем случайный поворот элементов
-    if (currentRouletteDesign === 'casino') {
-      const items = document.querySelectorAll('.roulette-item');
-      items.forEach(item => {
-        const randomRotation = (Math.random() - 0.5) * 20; // От -10 до +10 градусов
-        item.style.setProperty('--random-rotation', `${randomRotation}deg`);
+      // Для дизайна Лебедева применяем случайный поворот элементов и запускаем музыку
+  if (currentRouletteDesign === 'casino') {
+    const items = document.querySelectorAll('.roulette-item');
+    items.forEach(item => {
+      const randomRotation = (Math.random() - 0.5) * 20; // От -10 до +10 градусов
+      item.style.setProperty('--random-rotation', `${randomRotation}deg`);
+    });
+    
+    // Запускаем музыку для дизайна Лебедева
+    const music = document.getElementById('lebedevMusic');
+    if (music) {
+      music.currentTime = 0; // Сбрасываем время воспроизведения
+      music.play().catch(error => {
+        console.log('Не удалось воспроизвести музыку:', error);
       });
     }
+  }
   
   // Вычисляем новую позицию (продолжаем с текущей позиции)
   const newPosition = rouletteCurrentPosition + spinDistance;
@@ -480,14 +499,20 @@ function spinRoulette(isFree = false) {
   });
   
   // Применяем CSS анимацию с новой позицией
-  // Для авторского дизайна используем положительное значение для прокрутки влево
+  // Для дизайна Лебедева используем 16 секунд, для остальных - 8 секунд
+  const animationDuration = currentRouletteDesign === 'casino' ? '16s' : '8s';
+  
   if (currentRouletteDesign === 'author') {
     items.style.transform = `translateX(${newPosition}px)`;
+    items.style.transition = `transform ${animationDuration} ease-out`;
   } else {
     items.style.transform = `translateX(-${newPosition}px)`;
+    items.style.transition = `transform ${animationDuration} ease-out`;
   }
   
   // Показываем анимацию ожидания
+  const waitTime = currentRouletteDesign === 'casino' ? 16000 : 8000; // 16 секунд для Лебедева, 8 для остальных
+  
   setTimeout(() => {
     // Делаем кнопки доступными
     spinBtn.disabled = false;
@@ -503,6 +528,15 @@ function spinRoulette(isFree = false) {
     
     // Определяем приз по позиции стрелки (центральный элемент)
     const centerPrize = determinePrizeByArrowPosition();
+    
+    // Останавливаем музыку для дизайна Лебедева
+    if (currentRouletteDesign === 'casino') {
+      const music = document.getElementById('lebedevMusic');
+      if (music) {
+        music.pause();
+        music.currentTime = 0;
+      }
+    }
     
     // Показываем модальное окно с призом, который указывает стрелка
     showPrizeModal(centerPrize, isFree);
@@ -529,7 +563,7 @@ function spinRoulette(isFree = false) {
       // Сохраняем текущую позицию для следующего спина
       items.style.transition = 'transform 8s ease-out';
     }, 1000);
-  }, 8000);
+  }, waitTime);
 }
 
 function selectPrizeByProbability() {

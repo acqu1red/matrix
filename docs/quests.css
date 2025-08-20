@@ -300,7 +300,8 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: url('./assets/photovideo/wtf.png') center center;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   opacity: 0.1;
   z-index: 0;
 }
@@ -1599,7 +1600,8 @@ h3 { font-size: 1.25rem; }
   right: 0;
   bottom: 0;
   background: url('./assets/photovideo/wtf.png') center center;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   opacity: 0.8;
   z-index: 0;
 }
