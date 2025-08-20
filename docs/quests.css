@@ -69,6 +69,52 @@ html {
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
+}
+
+/* Летающие звездочки по всему дизайну */
+.app::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.6) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
+    radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.5) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.4) 1.2px, transparent 1.2px),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.5) 1.3px, transparent 1.3px);
+  background-size: 120px 120px, 150px 150px, 100px 100px, 130px 130px, 110px 110px, 140px 140px, 125px 125px;
+  animation: globalStars 20s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes globalStars {
+  0% { 
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  25% { 
+    transform: translateY(-20px) rotate(90deg);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(-10px) rotate(180deg);
+    opacity: 0.8;
+  }
+  75% { 
+    transform: translateY(-30px) rotate(270deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(0) rotate(360deg);
+    opacity: 0.7;
+  }
 }
 
 /* Typography */
@@ -233,232 +279,11 @@ h3 { font-size: 1.25rem; }
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
-/* Космический фон для авторского дизайна */
-.roulette-section.author-theme {
-  background: linear-gradient(135deg, 
-    rgba(10, 10, 30, 0.9) 0%, 
-    rgba(25, 25, 60, 0.8) 25%, 
-    rgba(40, 20, 80, 0.9) 50%, 
-    rgba(60, 30, 100, 0.8) 75%, 
-    rgba(80, 40, 120, 0.9) 100%) !important;
-  border: 2px solid rgba(138, 43, 226, 0.6) !important;
-  box-shadow: 
-    0 0 30px rgba(138, 43, 226, 0.4),
-    inset 0 0 50px rgba(0, 0, 0, 0.3) !important;
-  position: relative;
-  backdrop-filter: none !important;
-}
+/* Убираем стили для авторского дизайна */
 
-.roulette-section.author-theme::before {
-  content: '';
-  position: absolute;
-  top: -100px;
-  left: -100px;
-  right: -100px;
-  bottom: -100px;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.2) 2px, transparent 2px),
-    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 90% 20%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 100px 100px, 150px 150px, 80px 80px, 120px 120px, 90px 90px;
-  animation: cosmicBackground 25s linear infinite;
-  z-index: 0;
-}
+/* Убираем стили для дизайна Лебедева */
 
-@keyframes cosmicBackground {
-  0% { 
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.6;
-  }
-  50% { 
-    transform: translateY(-20px) rotate(180deg);
-    opacity: 1;
-  }
-  100% { 
-    transform: translateY(0) rotate(360deg);
-    opacity: 0.6;
-  }
-}
-
-.roulette-section.author-theme > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Лебедев дизайн - фон секции */
-.roulette-section.casino-theme {
-  background: #ffffff !important;
-  border: 5px solid #000000 !important;
-  box-shadow: none !important;
-  position: relative;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-}
-
-.roulette-section.casino-theme::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('./assets/photovideo/wtf.png') center center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  opacity: 0.1;
-  z-index: 0;
-}
-
-.roulette-section.casino-theme > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Детский стиль для заголовков и текста в дизайне Лебедева */
-.roulette-section.casino-theme h2 {
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  font-size: 28px !important;
-  font-weight: 700 !important;
-  color: #000000 !important;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4) !important;
-}
-
-.roulette-section.casino-theme .roulette-description {
-  display: none !important;
-}
-
-.roulette-section.casino-theme .roulette-description::before {
-  content: '';
-  display: block;
-  width: 200px;
-  height: 60px;
-  background: url('./assets/photovideo/wtf2.png') center center;
-  background-size: contain;
-  background-repeat: no-repeat;
-  margin: 0 auto 20px auto;
-}
-
-/* Картинка wtf2.png между заголовком и кнопками дизайна */
-.roulette-section.casino-theme::after {
-  content: '';
-  display: block;
-  width: 250px;
-  height: 80px;
-  background: url('./assets/photovideo/wtf2.png') center center;
-  background-size: contain;
-  background-repeat: no-repeat;
-  margin: 20px auto 20px auto;
-  position: relative;
-  z-index: 1;
-}
-
-/* Убираем старые стили для кнопок дизайна Лебедева - теперь они применяются глобально */
-
-.roulette-section.casino-theme .icon-label {
-  display: none !important;
-}
-
-/* Кнопка "Возможные призы" в дизайне Лебедева */
-.roulette-section.casino-theme .preview-header {
-  background: linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url('./assets/photovideo/prise.png') center center !important;
-  background-size: contain !important;
-  background-repeat: no-repeat !important;
-  border: 3px solid #000000 !important;
-  border-radius: 15px !important;
-  color: transparent !important;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  text-shadow: none !important;
-  font-weight: 700 !important;
-  min-height: 60px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Скрываем текст "Возможные призы" в дизайне Лебедева */
-.roulette-section.casino-theme .preview-title {
-  display: none !important;
-}
-
-.roulette-section.casino-theme .preview-content {
-  background: rgba(0, 0, 0, 0.9) !important;
-  border: 3px solid #000000 !important;
-  border-radius: 15px !important;
-  color: #ffffff !important;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-.roulette-section.casino-theme .preview-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8) 2px, transparent 2px),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.6) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.7) 1px, transparent 1px),
-    radial-gradient(circle at 90% 20%, rgba(255, 255, 255, 0.5) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
-  background-size: 50px 50px, 70px 70px, 40px 40px, 60px 60px, 45px 45px;
-  animation: flyingStars 8s linear infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes flyingStars {
-  0% { 
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.8;
-  }
-  25% { 
-    transform: translateY(-10px) rotate(90deg);
-    opacity: 1;
-  }
-  50% { 
-    transform: translateY(-5px) rotate(180deg);
-    opacity: 0.9;
-  }
-  75% { 
-    transform: translateY(-15px) rotate(270deg);
-    opacity: 1;
-  }
-  100% { 
-    transform: translateY(0) rotate(360deg);
-    opacity: 0.8;
-  }
-}
-
-.roulette-section.casino-theme .preview-content.expanded {
-  background: rgba(0, 0, 0, 0.9) !important;
-  border: 3px solid #000000 !important;
-  color: #ffffff !important;
-}
-
-.roulette-section.casino-theme .preview-items {
-  background: rgba(0, 0, 0, 0.9) !important;
-  color: #ffffff !important;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  position: relative;
-  z-index: 1;
-}
-
-.roulette-section.casino-theme .preview-item {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 2px solid #000000 !important;
-  border-radius: 10px !important;
-  color: #000000 !important;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
-  font-weight: 600 !important;
-  animation: previewItemFloat 3s ease-in-out infinite;
-  position: relative;
-  z-index: 2;
-}
+/* Убираем все стили для дизайна Лебедева */
 
 @keyframes previewItemFloat {
   0%, 100% { 
@@ -507,63 +332,16 @@ h3 { font-size: 1.25rem; }
   display: none !important;
 }
 
-/* Стандартный дизайн - кнопка */
+/* Улучшенный Стандартный дизайн - кнопка */
 .design-option[data-design="standard"] {
-  background: linear-gradient(135deg, rgba(102, 247, 213, 0.2), rgba(166, 180, 255, 0.2)) !important;
-  border: 2px solid rgba(102, 247, 213, 0.4) !important;
-  box-shadow: 0 4px 12px rgba(102, 247, 213, 0.2) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+  position: relative;
+  overflow: hidden;
 }
 
-.design-option[data-design="standard"]:hover {
-  background: linear-gradient(135deg, rgba(102, 247, 213, 0.3), rgba(166, 180, 255, 0.3)) !important;
-  border-color: rgba(102, 247, 213, 0.6) !important;
-  box-shadow: 0 6px 20px rgba(102, 247, 213, 0.3) !important;
-}
-
-.design-option[data-design="standard"].active {
-  background: linear-gradient(135deg, rgba(102, 247, 213, 0.4), rgba(166, 180, 255, 0.4)) !important;
-  border-color: rgba(102, 247, 213, 0.8) !important;
-  box-shadow: 0 8px 25px rgba(102, 247, 213, 0.4) !important;
-}
-
-/* Казино дизайн - кнопка */
-.design-option[data-design="casino"] {
-  background: #ffffff !important;
-  border: 3px solid #000000 !important;
-  box-shadow: none !important;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-}
-
-.design-option[data-design="casino"]:hover {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: #000000 !important;
-  transform: translateY(-2px) !important;
-}
-
-.design-option[data-design="casino"].active {
-  background: #000000 !important;
-  border-color: #000000 !important;
-  color: #ffffff !important;
-}
-
-/* Авторский дизайн - кнопка */
-.design-option[data-design="author"] {
-  background: linear-gradient(135deg, 
-    rgba(25, 25, 112, 0.8) 0%, 
-    rgba(72, 61, 139, 0.6) 25%, 
-    rgba(106, 90, 205, 0.7) 50%, 
-    rgba(138, 43, 226, 0.6) 75%, 
-    rgba(75, 0, 130, 0.8) 100%) !important;
-  border: 3px dashed rgba(255, 255, 255, 0.9) !important;
-  box-shadow: 
-    0 0 20px rgba(138, 43, 226, 0.6),
-    0 0 15px rgba(106, 90, 205, 0.5),
-    0 0 10px rgba(72, 61, 139, 0.4) !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-.design-option[data-design="author"]::before {
+.design-option[data-design="standard"]::before {
   content: '';
   position: absolute;
   top: -20px;
@@ -571,58 +349,44 @@ h3 { font-size: 1.25rem; }
   right: -20px;
   bottom: -20px;
   background: 
-    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
-    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.6) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.7) 1px, transparent 1px);
-  background-size: 40px 40px, 60px 60px, 50px 50px;
-  animation: cosmicStars 15s linear infinite;
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 60px 60px, 80px 80px, 50px 50px;
+  animation: floatingStars 12s linear infinite;
   pointer-events: none;
   z-index: 0;
 }
 
-@keyframes cosmicStars {
+@keyframes floatingStars {
   0% { 
     transform: translateY(0) rotate(0deg);
-    opacity: 0.8;
+    opacity: 0.6;
   }
   50% { 
-    transform: translateY(-10px) rotate(180deg);
+    transform: translateY(-15px) rotate(180deg);
     opacity: 1;
   }
   100% { 
     transform: translateY(0) rotate(360deg);
-    opacity: 0.8;
+    opacity: 0.6;
   }
 }
 
-.design-option[data-design="author"]:hover {
-  background: linear-gradient(135deg, 
-    rgba(25, 25, 112, 1) 0%, 
-    rgba(72, 61, 139, 0.8) 25%, 
-    rgba(106, 90, 205, 0.9) 50%, 
-    rgba(138, 43, 226, 0.8) 75%, 
-    rgba(75, 0, 130, 1) 100%) !important;
-  border-color: rgba(255, 255, 255, 1) !important;
-  box-shadow: 
-    0 0 30px rgba(138, 43, 226, 0.8),
-    0 0 20px rgba(106, 90, 205, 0.7),
-    0 0 15px rgba(72, 61, 139, 0.6) !important;
-  transform: translateY(-3px) !important;
+.design-option[data-design="standard"]:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2)) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px);
 }
 
-.design-option[data-design="author"].active {
-  background: linear-gradient(135deg, 
-    rgba(25, 25, 112, 1) 0%, 
-    rgba(72, 61, 139, 0.9) 25%, 
-    rgba(106, 90, 205, 1) 50%, 
-    rgba(138, 43, 226, 0.9) 75%, 
-    rgba(75, 0, 130, 1) 100%) !important;
-  border-color: rgba(255, 255, 255, 1) !important;
-  box-shadow: 
-    0 0 40px rgba(138, 43, 226, 1),
-    0 0 25px rgba(106, 90, 205, 0.9),
-    0 0 20px rgba(72, 61, 139, 0.8) !important;
+.design-option[data-design="standard"].active {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.3)) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4) !important;
 }
+
+/* Убираем стили для Лебедева и Авторского дизайна */
 
 .design-option:hover {
   background: rgba(255, 255, 255, 0.15);
@@ -679,11 +443,7 @@ h3 { font-size: 1.25rem; }
   backdrop-filter: blur(10px);
 }
 
-/* Лебедев дизайн - фон рулетки */
-.roulette-section.casino-theme .roulette-display {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 2px solid #000000 !important;
-}
+/* Убираем стили для Лебедева */
 
 .roulette-items {
   position: relative;
@@ -716,10 +476,7 @@ h3 { font-size: 1.25rem; }
   flex-shrink: 0;
 }
 
-/* Лебедев дизайн - элементы рулетки */
-.roulette-section.casino-theme .roulette-item {
-  border: 2px solid #000000 !important;
-}
+/* Убираем стили для Лебедева */
 
 .icon-content {
   display: flex;
@@ -770,19 +527,7 @@ h3 { font-size: 1.25rem; }
   position: relative;
 }
 
-/* Лебедев дизайн - стрелка */
-.roulette-section.casino-theme .pointer-arrow {
-  font-size: 0 !important;
-  color: transparent !important;
-  text-shadow: none !important;
-  background: url('./assets/photovideo/strelka.png') center center !important;
-  background-size: contain !important;
-  background-repeat: no-repeat !important;
-  width: 40px !important;
-  height: 40px !important;
-  display: block !important;
-  animation: pointerPulse 1.5s ease-in-out infinite !important;
-}
+/* Убираем стили для Лебедева */
 
 .pointer-glow {
   position: absolute;
@@ -1157,74 +902,36 @@ h3 { font-size: 1.25rem; }
   overflow: hidden;
 }
 
-.layers {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: var(--radius);
-}
-
-.layer {
-  position: absolute;
-  width: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0.9;
-  will-change: transform;
-  transition: transform 0.3s ease;
-}
-
-.bg { top: -10px; }
-.mid { bottom: -6px; }
-.fg { bottom: -14px; }
-
-.fog {
-  position: absolute;
-  inset: -20% -10%;
-  background:
-    radial-gradient(60% 60% at 50% 30%, rgba(255,255,255,.06), transparent 60%),
-    radial-gradient(80% 60% at 20% 70%, rgba(255,255,255,.05), transparent 60%);
-  opacity: 0.25;
-  filter: blur(14px);
-  animation: fog 10s ease-in-out infinite alternate;
-}
-
-@keyframes fog {
-  from { transform: translate3d(-2%,0,0); }
-  to { transform: translate3d(2%,1%,0); }
-}
-
-.fireflies {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
+/* Убираем старые элементы с зелеными шариками */
 
 .heroCopy {
   position: relative;
   z-index: 2;
   margin: 16px;
   padding: 24px;
-  background: linear-gradient(180deg, var(--glass-strong), var(--glass));
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #ffffff;
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .heroCopy h2 {
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--text), var(--glow1));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .heroCopy p {
   margin-bottom: 8px;
-  color: var(--text-muted);
+  color: #aaaaaa;
   font-size: 14px;
 }
 
 .heroCopy .note {
-  color: var(--accent);
+  color: #ffffff;
   font-weight: 500;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 /* Quests grid */
@@ -1791,105 +1498,9 @@ h3 { font-size: 1.25rem; }
   box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
-/* Лебедев дизайн - максимально детский бело-черный */
-.roulette-container.casino {
-  background: rgba(0, 0, 0, 0.5);
-  border: 6px solid #000000;
-  border-radius: 25px;
-  box-shadow: none;
-  position: relative;
-  overflow: hidden;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-}
+/* Убираем стили для Лебедева */
 
-.roulette-container.casino::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('./assets/photovideo/wtf.png') center center;
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.8;
-  z-index: 0;
-}
-
-.roulette-container.casino .roulette-item {
-  background: rgba(255, 255, 255, 0.9);
-  border: 4px solid #000000;
-  border-radius: 20px;
-  box-shadow: none;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  transform: rotate(var(--random-rotation, 0deg));
-  animation: itemFloat 3s ease-in-out infinite;
-}
-
-@keyframes itemFloat {
-  0%, 100% { 
-    transform: rotate(var(--random-rotation, 0deg)) translateY(0px) scale(1);
-  }
-  25% { 
-    transform: rotate(calc(var(--random-rotation, 0deg) + 2deg)) translateY(-3px) scale(1.02);
-  }
-  50% { 
-    transform: rotate(calc(var(--random-rotation, 0deg) - 1deg)) translateY(-5px) scale(1.05);
-  }
-  75% { 
-    transform: rotate(calc(var(--random-rotation, 0deg) + 1deg)) translateY(-2px) scale(1.03);
-  }
-}
-
-.roulette-container.casino .roulette-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #ffffff;
-  z-index: 1;
-}
-
-.roulette-container.casino .icon-symbol {
-  font-size: 32px;
-  color: #000000;
-  filter: none;
-  z-index: 2;
-  position: relative;
-  text-shadow: none;
-  animation: iconGentle 2s ease-in-out infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-@keyframes iconGentle {
-  0%, 100% { 
-    transform: scale(1) translateY(0px);
-  }
-  50% { 
-    transform: scale(1.1) translateY(-2px);
-  }
-}
-
-/* Авторский дизайн - космический детский */
-.roulette-container.author {
-  background: linear-gradient(135deg, 
-    rgba(25, 25, 112, 0.8) 0%, 
-    rgba(72, 61, 139, 0.6) 25%, 
-    rgba(106, 90, 205, 0.7) 50%, 
-    rgba(138, 43, 226, 0.6) 75%, 
-    rgba(75, 0, 130, 0.8) 100%);
-  border: 4px dashed rgba(255, 255, 255, 0.9);
-  border-radius: 25px;
-  box-shadow: 
-    0 0 40px rgba(138, 43, 226, 0.6),
+/* Убираем стили для Авторского дизайна */
     0 0 30px rgba(106, 90, 205, 0.5),
     0 0 20px rgba(72, 61, 139, 0.4),
     inset 0 0 50px rgba(0, 0, 0, 0.3);
@@ -2164,40 +1775,7 @@ h3 { font-size: 1.25rem; }
   pointer-events: none;
 }
 
-/* Лебедев дизайн - кнопка рулетки */
-.roulette-section.casino-theme #spinRoulette {
-  background: linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url('./assets/photovideo/ruletka.png') center center !important;
-  background-size: contain !important;
-  background-repeat: no-repeat !important;
-  border: 5px solid #000000 !important;
-  border-radius: 20px !important;
-  color: transparent !important;
-  font-size: 0 !important;
-  padding: 25px 50px !important;
-  min-height: 70px !important;
-  position: relative !important;
-  overflow: hidden !important;
-  font-family: 'Comic Sans MS', cursive, sans-serif !important;
-}
-
-.roulette-section.casino-theme #spinRoulette::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: inherit;
-  z-index: 1;
-}
-
-.roulette-section.casino-theme #spinRoulette:disabled {
-  background: linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url('./assets/photovideo/ruletka2.png') center center !important;
-  background-size: contain !important;
-  background-repeat: no-repeat !important;
-  opacity: 0.7 !important;
-  cursor: not-allowed !important;
-}
+/* Убираем стили для Лебедева */
 
 /* Плавная анимация смены текста кнопки */
 .btn.transitioning {
