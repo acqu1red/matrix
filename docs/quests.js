@@ -364,7 +364,7 @@ let rouletteCurrentPosition = 0;
 // Глобальная переменная для текущего дизайна рулетки
 let currentRouletteDesign = 'standard';
 
-// Иконки призов для разных дизайнов
+// Иконки призов для стандартного дизайна
 const ROULETTE_PRIZES_DESIGNS = {
   standard: [
     { id: 'subscription', name: 'Подписка', icon: '👑', count: 3, probability: 0.03 },
@@ -373,23 +373,6 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'discount50', name: '50₽', icon: '💰', count: 4, probability: 0.20 },
     { id: 'quest24h', name: 'Квест 24ч', icon: '🎯', count: 5, probability: 0.75 },
     { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
-  ],
-  casino: [
-    { id: 'infiniteSubscription', name: '🪙 БЕСКОНЕЧНАЯ ПОДПИСКА', icon: '🪙', count: 1, probability: 0.01 },
-    { id: 'subscription', name: '⚰️ ПОДПИСКА', icon: '⚰️', count: 3, probability: 0.03 },
-    { id: 'discount500', name: '💀 500 РУБ', icon: '💀', count: 1, probability: 0.10 },
-    { id: 'discount100', name: '💉 100 РУБ', icon: '💉', count: 3, probability: 0.15 },
-    { id: 'discount50', name: '💸 50 РУБ', icon: '💸', count: 4, probability: 0.20 },
-    { id: 'quest24h', name: '🔪 КВЕСТ 24Ч', icon: '🔪', count: 5, probability: 0.75 },
-    { id: 'frodCourse', name: '🩻 КУРС', icon: '🩻', count: 1, probability: 0.0005 }
-  ],
-  author: [
-    { id: 'subscription', name: 'КОСМИЧЕСКАЯ ПОДПИСКА', icon: '🚀', count: 3, probability: 0.03 },
-    { id: 'discount500', name: '500 ГАЛАКТИК', icon: '⭐', count: 1, probability: 0.10 },
-    { id: 'discount100', name: '100 ЗВЕЗД', icon: '🌌', count: 3, probability: 0.15 },
-    { id: 'discount50', name: '50 ПЛАНЕТ', icon: '🪐', count: 4, probability: 0.20 },
-    { id: 'quest24h', name: 'КОСМИЧЕСКИЙ КВЕСТ', icon: '🌠', count: 5, probability: 0.75 },
-    { id: 'frodCourse', name: 'ГАЛАКТИЧЕСКИЙ КУРС', icon: '🌍', count: 1, probability: 0.0005 }
   ]
 };
 
@@ -437,43 +420,10 @@ function spinRoulette(isFree = false) {
     option.disabled = true;
   });
   
-  // Генерируем случайное расстояние для равномерной прокрутки
-  let baseDistance, extraDistance, spinDistance;
-  
-  if (currentRouletteDesign === 'casino') {
-    // Для дизайна Лебедева - 16 секунд
-    baseDistance = 8000 + Math.random() * 4000; // 8000-12000px базовое расстояние для 16 секунд
-    extraDistance = Math.random() * 2000; // Дополнительное случайное расстояние
-    spinDistance = baseDistance + extraDistance;
-  } else {
-    // Для остальных дизайнов - 8 секунд
-    baseDistance = 4000 + Math.random() * 2000; // 4000-6000px базовое расстояние для 8 секунд
-    extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
-    spinDistance = baseDistance + extraDistance;
-  }
-  
-      // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
-    if (currentRouletteDesign === 'author') {
-      spinDistance = -spinDistance;
-    }
-    
-      // Для дизайна Лебедева применяем случайный поворот элементов и запускаем музыку
-  if (currentRouletteDesign === 'casino') {
-    const items = document.querySelectorAll('.roulette-item');
-    items.forEach(item => {
-      const randomRotation = (Math.random() - 0.5) * 20; // От -10 до +10 градусов
-      item.style.setProperty('--random-rotation', `${randomRotation}deg`);
-    });
-    
-    // Запускаем музыку для дизайна Лебедева
-    const music = document.getElementById('lebedevMusic');
-    if (music) {
-      music.currentTime = 0; // Сбрасываем время воспроизведения
-      music.play().catch(error => {
-        console.log('Не удалось воспроизвести музыку:', error);
-      });
-    }
-  }
+  // Генерируем случайное расстояние для равномерной прокрутки (8 секунд)
+  const baseDistance = 4000 + Math.random() * 2000; // 4000-6000px базовое расстояние
+  const extraDistance = Math.random() * 1000; // Дополнительное случайное расстояние
+  const spinDistance = baseDistance + extraDistance;
   
   // Вычисляем новую позицию (продолжаем с текущей позиции)
   const newPosition = rouletteCurrentPosition + spinDistance;
@@ -493,20 +443,14 @@ function spinRoulette(isFree = false) {
     icon.classList.add('spinning');
   });
   
-  // Применяем CSS анимацию с новой позицией
-  // Для дизайна Лебедева используем 16 секунд, для остальных - 8 секунд
-  const animationDuration = currentRouletteDesign === 'casino' ? '16s' : '8s';
+  // Применяем CSS анимацию с новой позицией (8 секунд)
+  const animationDuration = '8s';
   
-  if (currentRouletteDesign === 'author') {
-    items.style.transform = `translateX(${newPosition}px)`;
-    items.style.transition = `transform ${animationDuration} ease-out`;
-  } else {
-    items.style.transform = `translateX(-${newPosition}px)`;
-    items.style.transition = `transform ${animationDuration} ease-out`;
-  }
+  items.style.transform = `translateX(-${newPosition}px)`;
+  items.style.transition = `transform ${animationDuration} ease-out`;
   
-  // Показываем анимацию ожидания
-  const waitTime = currentRouletteDesign === 'casino' ? 16000 : 8000; // 16 секунд для Лебедева, 8 для остальных
+  // Показываем анимацию ожидания (8 секунд)
+  const waitTime = 8000;
   
   setTimeout(() => {
     // Делаем кнопки доступными
@@ -524,14 +468,7 @@ function spinRoulette(isFree = false) {
     // Определяем приз по позиции стрелки (центральный элемент)
     const centerPrize = determinePrizeByArrowPosition();
     
-    // Останавливаем музыку для дизайна Лебедева
-    if (currentRouletteDesign === 'casino') {
-      const music = document.getElementById('lebedevMusic');
-      if (music) {
-        music.pause();
-        music.currentTime = 0;
-      }
-    }
+    // Убираем ссылки на музыку Лебедева
     
     // Показываем модальное окно с призом, который указывает стрелка
     showPrizeModal(centerPrize, isFree);
@@ -1946,87 +1883,11 @@ function initializeRouletteHandlers() {
     console.error('❌ Заголовок превью призов не найден');
   }
   
-  // Обработчики переключения дизайнов
-  document.querySelectorAll('.design-option').forEach(option => {
-    option.addEventListener('click', () => {
-      const design = option.dataset.design;
-      switchRouletteDesign(design);
-    });
-  });
-  
-  console.log('✅ Обработчики переключения дизайнов добавлены');
+  // Убираем обработчики переключения дизайнов - оставляем только стандартный
   console.log('Инициализация обработчиков рулетки завершена');
 }
 
-// Функция переключения дизайна рулетки
-function switchRouletteDesign(design) {
-  console.log('Переключение дизайна рулетки на:', design);
-  
-  // Делаем кнопки дизайна недоступными
-  document.querySelectorAll('.design-option').forEach(option => {
-    option.disabled = true;
-  });
-  
-  // Обновляем активную опцию
-  document.querySelectorAll('.design-option').forEach(option => {
-    option.classList.remove('active');
-  });
-  
-  const activeOption = document.querySelector(`[data-design="${design}"]`);
-  if (activeOption) {
-    activeOption.classList.add('active');
-  }
-  
-  // Применяем темы для разных дизайнов
-  const rouletteSection = document.querySelector('.roulette-section');
-  if (rouletteSection) {
-    // Убираем все темы
-    rouletteSection.classList.remove('author-theme', 'casino-theme');
-    
-    if (design === 'author') {
-      rouletteSection.classList.add('author-theme');
-      console.log('✅ Космическая тема применена к секции рулетки');
-    } else if (design === 'casino') {
-      rouletteSection.classList.add('casino-theme');
-      console.log('✅ Казино тема применена к секции рулетки');
-    } else {
-      console.log('✅ Стандартная тема применена к секции рулетки');
-    }
-  } else {
-    console.error('❌ Секция рулетки не найдена');
-  }
-  
-  // Плавный переход - добавляем класс для анимации
-  const items = $("#rouletteItems");
-  if (items) {
-    items.classList.add('changing');
-  }
-  
-  // Обновляем текущий дизайн
-  currentRouletteDesign = design;
-  
-  // Пересоздаем рулетку с новым дизайном с небольшой задержкой
-  setTimeout(() => {
-    createRouletteWheel();
-    
-    // Убираем класс анимации и эффекты загрузки
-    if (items) {
-      setTimeout(() => {
-        items.classList.remove('changing');
-        
-        // Делаем кнопки дизайна доступными
-        document.querySelectorAll('.design-option').forEach(option => {
-          option.disabled = false;
-        });
-      }, 100);
-    }
-  }, 150);
-  
-  // НЕ сохраняем выбор - всегда начинаем со стандартного дизайна
-  // localStorage.setItem('rouletteDesign', design);
-  
-  toast(`Дизайн рулетки изменен на: ${design}`, 'success');
-}
+// Убираем функцию переключения дизайна - оставляем только стандартный
 
 // Обработчик клика по уровню
 $("#levelDisplay").addEventListener("click", ()=>{
