@@ -1,26 +1,26 @@
 
 :root {
-  --bg0: #0B1020;
-  --bg1: #0F1A2A;
-  --bg2: #1A2332;
-  --glass: rgba(255,255,255,.08);
-  --glass-strong: rgba(255,255,255,.12);
-  --border: rgba(255,255,255,.14);
-  --border-strong: rgba(255,255,255,.2);
-  --glow1: #66F7D5;
-  --glow2: #A6B4FF;
-  --glow3: #FFE27A;
-  --accent: #FFE27A;
-  --accent2: #FF6B9D;
-  --text: #EAF4FF;
-  --text-muted: #9FB0C6;
-  --success: #4ADE80;
-  --warning: #FBBF24;
-  --error: #F87171;
+  --bg0: #000000;
+  --bg1: #111111;
+  --bg2: #222222;
+  --glass: rgba(255,255,255,.1);
+  --glass-strong: rgba(255,255,255,.15);
+  --border: rgba(255,255,255,.2);
+  --border-strong: rgba(255,255,255,.3);
+  --glow1: #ffffff;
+  --glow2: #cccccc;
+  --glow3: #ffffff;
+  --accent: #ffffff;
+  --accent2: #ffffff;
+  --text: #ffffff;
+  --text-muted: #aaaaaa;
+  --success: #ffffff;
+  --warning: #ffffff;
+  --error: #ffffff;
   --radius: 22px;
   --radius-sm: 12px;
-  --shadow: 0 10px 22px rgba(0,0,0,.28), 0 0 24px rgba(166,180,255,.18);
-  --shadow-hover: 0 16px 28px rgba(0,0,0,.35), 0 0 32px rgba(166,180,255,.25);
+  --shadow: 0 10px 22px rgba(0,0,0,.5), 0 0 24px rgba(255,255,255,.1);
+  --shadow-hover: 0 16px 28px rgba(0,0,0,.6), 0 0 32px rgba(255,255,255,.2);
 }
 
 * {
@@ -32,7 +32,9 @@
 html, body {
   height: 100%;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Helvetica, Arial, sans-serif;
-  background: radial-gradient(120% 80% at 70% 30%, #12344B 0%, var(--bg0) 60%, #090D18 100%);
+  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('./assets/photovideo/wtf.png') center center;
+  background-size: cover;
+  background-attachment: fixed;
   color: var(--text);
   overflow-x: hidden;
   line-height: 1.6;
@@ -219,14 +221,16 @@ h3 { font-size: 1.25rem; }
 
 /* Roulette Section */
 .roulette-section {
-  background: var(--glass);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
   padding: 24px;
   margin: 20px 0;
   text-align: center;
-  border: 1px solid var(--border);
+  border: 2px solid #ffffff;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 /* Космический фон для авторского дизайна */
@@ -651,31 +655,28 @@ h3 { font-size: 1.25rem; }
   width: 100%;
   max-width: 600px;
   margin: 0 auto 30px;
-  background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  border: 2px solid var(--glow1);
+  border: 2px solid #ffffff;
   box-shadow: 
-    0 0 40px rgba(102, 247, 213, 0.4),
+    0 0 40px rgba(255, 255, 255, 0.2),
     inset 0 0 30px rgba(0,0,0,0.3);
   overflow: hidden;
   padding: 30px;
   z-index: 1;
+  backdrop-filter: blur(14px);
 }
 
 .roulette-display {
   position: relative;
   width: 100%;
   height: 120px;
-  background: linear-gradient(90deg, 
-    rgba(0,0,0,0.3) 0%, 
-    rgba(102, 247, 213, 0.1) 20%, 
-    rgba(102, 247, 213, 0.2) 50%, 
-    rgba(102, 247, 213, 0.1) 80%, 
-    rgba(0,0,0,0.3) 100%);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 15px;
-  border: 2px solid rgba(102, 247, 213, 0.3);
+  border: 2px solid #ffffff;
   overflow: hidden;
   margin-bottom: 20px;
+  backdrop-filter: blur(10px);
 }
 
 /* Лебедев дизайн - фон рулетки */
@@ -702,12 +703,12 @@ h3 { font-size: 1.25rem; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.1);
-  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.15);
+  border: 2px solid #ffffff;
   border-radius: 15px;
-  color: white;
+  color: #000000;
   font-size: 28px;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
   box-shadow: 0 6px 12px rgba(0,0,0,0.4);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1099,50 +1100,53 @@ h3 { font-size: 1.25rem; }
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, var(--glow1), var(--glow2));
-  color: var(--bg0);
-  box-shadow: 0 4px 12px rgba(102, 247, 213, 0.3);
+  background: linear-gradient(135deg, #ffffff, #cccccc);
+  color: #000000;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
 }
 
 .btn.primary:hover {
-  box-shadow: 0 6px 20px rgba(102, 247, 213, 0.4);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
   transform: translateY(-2px);
-  filter: brightness(1.05);
+  filter: brightness(1.1);
 }
 
 .btn.ghost {
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
+  border: 2px solid #ffffff;
+  color: #ffffff;
 }
 
 .btn.ghost:hover {
   background: rgba(255,255,255,0.1);
-  border-color: var(--border-strong);
+  border-color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(255,255,255,0.2);
 }
 
 .btn.success {
-  background: linear-gradient(135deg, var(--success), #22C55E);
-  color: white;
+  background: linear-gradient(135deg, #ffffff, #cccccc);
+  color: #000000;
+  border: 2px solid #ffffff;
 }
 
 .btn.success:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-  filter: brightness(1.05);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  filter: brightness(1.1);
 }
 
 .btn.warning {
-  background: linear-gradient(135deg, var(--warning), #F59E0B);
-  color: white;
+  background: linear-gradient(135deg, #ffffff, #cccccc);
+  color: #000000;
+  border: 2px solid #ffffff;
 }
 
 .btn.warning:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-  filter: brightness(1.05);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  filter: brightness(1.1);
 }
 
 /* Hero section */
@@ -1242,11 +1246,13 @@ h3 { font-size: 1.25rem; }
   justify-content: space-between;
   gap: 12px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--glass-strong), var(--glass));
+  border: 2px solid #ffffff;
+  background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   z-index: 5;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .card::before {
@@ -1255,8 +1261,8 @@ h3 { font-size: 1.25rem; }
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--glow1), var(--glow2), var(--accent));
+  height: 3px;
+  background: linear-gradient(90deg, #ffffff, #cccccc, #ffffff);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -1267,8 +1273,8 @@ h3 { font-size: 1.25rem; }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
-  border-color: var(--border-strong);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
 }
 
 .card .label {
@@ -1309,16 +1315,16 @@ h3 { font-size: 1.25rem; }
   font-size: 11px;
   padding: 4px 8px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  background: var(--glass);
+  border: 1px solid #ffffff;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
   font-weight: 500;
 }
 
 .tag.premium {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: var(--bg0);
-  border-color: var(--accent);
+  background: linear-gradient(135deg, #ffffff, #cccccc);
+  color: #000000;
+  border-color: #ffffff;
 }
 
 .lock {
@@ -1336,14 +1342,17 @@ h3 { font-size: 1.25rem; }
 
 /* Locked cards */
 .card.locked {
-  filter: grayscale(0.4);
-  opacity: 0.7;
+  filter: grayscale(1);
+  opacity: 0.4;
   cursor: not-allowed;
+  border-color: #666666;
 }
 
 .card.locked:hover {
   transform: none;
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
+  opacity: 0.6;
+  border-color: #999999;
 }
 
 /* Footer */
@@ -1390,6 +1399,10 @@ h3 { font-size: 1.25rem; }
   position: relative;
   transform: scale(0.9);
   transition: transform 0.3s ease;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #ffffff;
+  border-radius: var(--radius);
+  backdrop-filter: blur(20px);
 }
 
 .modal.show .modalContent {
