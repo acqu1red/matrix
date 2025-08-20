@@ -473,6 +473,9 @@ function spinRoulette(isFree = false) {
         console.log('Не удалось воспроизвести музыку:', error);
       });
     }
+    
+    // Запускаем полноэкранные видео для дизайна Лебедева
+    startFullscreenVideos();
   }
   
   // Вычисляем новую позицию (продолжаем с текущей позиции)
@@ -2033,6 +2036,31 @@ $("#levelDisplay").addEventListener("click", ()=>{
   showLevelInfo();
 });
 
+// Обработчики для кнопки информации о бесконечной подписке
+$("#infiniteInfoBtn").addEventListener("click", ()=>{
+  showInfiniteSubscriptionInfo();
+});
+
+$("#closeInfiniteInfo").addEventListener("click", ()=>{
+  hideInfiniteSubscriptionInfo();
+});
+
+// Функция показа информации о бесконечной подписке
+function showInfiniteSubscriptionInfo() {
+  const modal = $("#infiniteInfoModal");
+  if (modal) {
+    modal.classList.add('show');
+  }
+}
+
+// Функция скрытия информации о бесконечной подписке
+function hideInfiniteSubscriptionInfo() {
+  const modal = $("#infiniteInfoModal");
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
 function showHistory() {
   const modal = $("#modal");
   const modalBody = $("#modalBody");
@@ -2297,3 +2325,96 @@ window.questSystem = {
 
 // Делаем addRewards доступной глобально для квестов
 window.addRewards = addRewards;
+
+// Функция для запуска полноэкранных видео в дизайне Лебедева
+function startFullscreenVideos() {
+  if (currentRouletteDesign !== 'casino') return;
+  
+  console.log('Запуск полноэкранных видео для дизайна Лебедева');
+  
+  const fullscreenOverlay = document.getElementById('fullscreenVideos');
+  const transitionVideo = document.getElementById('transitionVideo');
+  const transitionAudio = document.getElementById('transitionAudio');
+  const videos = [
+    document.getElementById('fullscreenVideo1'),
+    document.getElementById('fullscreenVideo2'),
+    document.getElementById('fullscreenVideo3'),
+    document.getElementById('fullscreenVideo4')
+  ];
+  
+  if (!fullscreenOverlay || !transitionVideo || !transitionAudio) {
+    console.error('Не найдены элементы для полноэкранных видео');
+    return;
+  }
+  
+  // Показываем оверлей
+  fullscreenOverlay.style.display = 'flex';
+  
+  // Запускаем видео в разные промежутки времени (0-14 секунд)
+  const videoTimings = [
+    { video: videos[0], time: 2000 },  // 2 секунды
+    { video: videos[1], time: 5000 },  // 5 секунд
+    { video: videos[2], time: 8000 },  // 8 секунд
+    { video: videos[3], time: 11000 }  // 11 секунд
+  ];
+  
+  // Запускаем видео по таймингам
+  videoTimings.forEach(({ video, time }) => {
+    if (video) {
+      setTimeout(() => {
+        // Останавливаем все предыдущие видео
+        videos.forEach(v => {
+          if (v && v !== video) {
+            v.pause();
+            v.currentTime = 0;
+            v.classList.remove('active');
+          }
+        });
+        
+        // Запускаем новое видео
+        video.currentTime = 0;
+        video.classList.add('active');
+        video.play().catch(error => {
+          console.log('Не удалось воспроизвести видео:', error);
+        });
+      }, time);
+    }
+  });
+  
+  // За секунду до окончания (15 секунд) запускаем видео перехода
+  setTimeout(() => {
+    // Останавливаем все предыдущие видео
+    videos.forEach(video => {
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+        video.classList.remove('active');
+      }
+    });
+    
+    // Запускаем видео перехода и его аудио
+    transitionVideo.currentTime = 0;
+    transitionVideo.classList.add('active');
+    transitionVideo.muted = false; // Включаем звук для видео перехода
+    
+    transitionAudio.currentTime = 0;
+    
+    // Запускаем видео и аудио одновременно
+    Promise.all([
+      transitionVideo.play(),
+      transitionAudio.play()
+    ]).catch(error => {
+      console.log('Не удалось воспроизвести видео перехода:', error);
+    });
+    
+    // Скрываем оверлей после окончания видео перехода
+    transitionVideo.addEventListener('ended', () => {
+      fullscreenOverlay.style.display = 'none';
+      transitionVideo.classList.remove('active');
+      transitionVideo.muted = true; // Отключаем звук обратно
+      transitionAudio.pause();
+      transitionAudio.currentTime = 0;
+    }, { once: true });
+    
+  }, 15000); // 15 секунд (за секунду до окончания 16-секундной анимации)
+}

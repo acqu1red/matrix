@@ -23,6 +23,24 @@
   <audio id="lebedevMusic" preload="auto">
     <source src="./assets/photovideo/music.mp3" type="audio/mpeg">
   </audio>
+  
+  <!-- Модальное окно информации о бесконечной подписке -->
+  <div id="infiniteInfoModal" class="modal-overlay">
+    <div class="modal-content infinite-info-modal">
+      <div class="modal-header">
+        <h3>🪙 БЕСКОНЕЧНАЯ ПОДПИСКА</h3>
+        <button class="close-btn" id="closeInfiniteInfo">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Только в дизайне "Лебедев" есть эксклюзивный приз:</p>
+        <div class="prize-highlight">
+          <h4>🪙 БЕСКОНЕЧНАЯ ПОДПИСКА</h4>
+          <p>Если выиграете - получите подписку на канал <strong>НАВСЕГДА</strong></p>
+          <p>Промокод действует <strong>БЕЗЛИМИТНО</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
 </head>
 <body>
   <div id="app" class="app">
@@ -56,6 +74,13 @@
       <h2>🎲 Рулетка призов</h2>
       <p class="roulette-description">Крути рулетку и выигрывай призы! Подписки, скидки и бонусы ждут тебя.</p>
       
+      <!-- Кнопка информации о бесконечной подписке -->
+      <div class="infinite-subscription-info">
+        <button id="infiniteInfoBtn" class="info-button">
+          <img src="./assets/photovideo/wtf2.png" alt="Информация" class="info-icon">
+        </button>
+      </div>
+      
       <!-- Селектор дизайнов рулетки -->
       <div class="roulette-design-selector">
         <div class="design-option active" data-design="standard">
@@ -63,7 +88,6 @@
         </div>
         <div class="design-option" data-design="casino">
           <span class="design-icon">🎨</span>
-          <span class="design-name">Лебедев</span>
         </div>
         <div class="design-option" data-design="author">
           <span class="design-icon">🦠</span>
@@ -149,6 +173,33 @@
 
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Полноэкранные видео для дизайна Лебедева -->
+  <div id="fullscreenVideos" class="fullscreen-videos-overlay" style="display: none;">
+    <!-- Видео перехода (за секунду до окончания) -->
+    <video id="transitionVideo" class="fullscreen-video" preload="auto" muted>
+      <source src="./assets/photovideo/perehod.mov" type="video/quicktime">
+    </video>
+    
+    <!-- Видео для разных промежутков времени -->
+    <video id="fullscreenVideo1" class="fullscreen-video" preload="auto" muted>
+      <source src="./assets/photovideo/video_fullscrean1.mov" type="video/quicktime">
+    </video>
+    <video id="fullscreenVideo2" class="fullscreen-video" preload="auto" muted>
+      <source src="./assets/photovideo/video_fullscrean2.mov" type="video/quicktime">
+    </video>
+    <video id="fullscreenVideo3" class="fullscreen-video" preload="auto" muted>
+      <source src="./assets/photovideo/video_fullscrean3.mov" type="video/quicktime">
+    </video>
+    <video id="fullscreenVideo4" class="fullscreen-video" preload="auto" muted>
+      <source src="./assets/photovideo/video_fullscrean4.mov" type="video/quicktime">
+    </video>
+    
+    <!-- Аудио для видео перехода -->
+    <audio id="transitionAudio" preload="auto">
+      <source src="./assets/photovideo/perehod.mov" type="audio/quicktime">
+    </audio>
+  </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./quests.js"></script>
