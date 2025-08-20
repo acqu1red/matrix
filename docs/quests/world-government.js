@@ -154,9 +154,14 @@ class WorldGovernmentQuest {
         // Убираем подсветку со всех секторов
         sectors.forEach(s => s.classList.remove('drag-over'));
         
-        // Подсвечиваем сектор под пальцем
+        // Подсвечиваем сектор под пальцем только если он не заполнен
         if (sectorBelow) {
-          sectorBelow.classList.add('drag-over');
+          const sectorType = sectorBelow.dataset.sector;
+          const sectorData = this.sectors[sectorType];
+          
+          if (sectorData.members.length < sectorData.max) {
+            sectorBelow.classList.add('drag-over');
+          }
         }
       }
     });
@@ -182,7 +187,12 @@ class WorldGovernmentQuest {
       
       // Если персонаж был отпущен над сектором, назначаем его туда
       if (sectorBelow) {
-        this.assignCharacterToSector(sectorBelow.dataset.sector);
+        const sectorType = sectorBelow.dataset.sector;
+        const sectorData = this.sectors[sectorType];
+        
+        if (sectorData.members.length < sectorData.max) {
+          this.assignCharacterToSector(sectorType);
+        }
       }
       
       isDragging = false;
@@ -193,7 +203,12 @@ class WorldGovernmentQuest {
     sectors.forEach(sector => {
       sector.addEventListener('dragover', (e) => {
         e.preventDefault();
-        sector.classList.add('drag-over');
+        const sectorType = sector.dataset.sector;
+        const sectorData = this.sectors[sectorType];
+        
+        if (sectorData.members.length < sectorData.max) {
+          sector.classList.add('drag-over');
+        }
       });
 
       sector.addEventListener('dragleave', () => {
@@ -203,7 +218,12 @@ class WorldGovernmentQuest {
       sector.addEventListener('drop', (e) => {
         e.preventDefault();
         sector.classList.remove('drag-over');
-        this.assignCharacterToSector(sector.dataset.sector);
+        const sectorType = sector.dataset.sector;
+        const sectorData = this.sectors[sectorType];
+        
+        if (sectorData.members.length < sectorData.max) {
+          this.assignCharacterToSector(sectorType);
+        }
       });
     });
   }
@@ -229,6 +249,7 @@ class WorldGovernmentQuest {
     this.updateSectorDisplay(sectorType);
     this.loadNextCharacter();
     this.updateFinishButton();
+    this.updateSectorVisibility();
   }
 
   isCharacterCorrectForSector(character, sectorType) {
@@ -284,6 +305,7 @@ class WorldGovernmentQuest {
     Object.keys(this.sectors).forEach(sectorType => {
       this.updateSectorDisplay(sectorType);
     });
+    this.updateSectorVisibility();
   }
 
   loadCurrentCharacter() {
@@ -417,19 +439,19 @@ class WorldGovernmentQuest {
       sum + sector.members.filter(m => m.isCorrect).length, 0
     );
 
-    if (totalCorrect >= 15) {
+    if (totalCorrect >= 12) {
       successResults.push({
         type: 'success',
         title: 'Мировое господство!',
         content: 'Ваше тайное правительство успешно установило контроль над миром. США под вашим влиянием ввела санкции Ирану, Европа приняла ваши экономические реформы, а Китай признал ваше лидерство в технологической сфере.'
       });
-    } else if (totalCorrect >= 12) {
+    } else if (totalCorrect >= 9) {
       successResults.push({
         type: 'success',
         title: 'Региональное влияние!',
         content: 'Ваше правительство установило контроль над несколькими ключевыми регионами. Европа и Северная Америка находятся под вашим влиянием.'
       });
-    } else if (totalCorrect >= 8) {
+    } else if (totalCorrect >= 6) {
       successResults.push({
         type: 'success',
         title: 'Локальный контроль!',
@@ -806,6 +828,34 @@ class WorldGovernmentQuest {
 
   hideCharacterDetailsModal() {
     document.getElementById('character-details-modal').classList.remove('active');
+  }
+
+  updateSectorVisibility() {
+    Object.entries(this.sectors).forEach(([sectorType, sector]) => {
+      const sectorElement = document.querySelector(`[data-sector="${sectorType}"]`);
+      
+      if (sector.members.length >= sector.max) {
+        // Сектор заполнен - делаем его полупрозрачным и неактивным
+        sectorElement.style.opacity = '0.5';
+        sectorElement.style.pointerEvents = 'none';
+        sectorElement.classList.add('filled');
+        
+        // Добавляем индикатор заполнения
+        const countElement = sectorElement.querySelector('.sector-count');
+        countElement.style.color = 'var(--success)';
+        countElement.style.fontWeight = 'bold';
+      } else {
+        // Сектор не заполнен - возвращаем нормальный вид
+        sectorElement.style.opacity = '1';
+        sectorElement.style.pointerEvents = 'auto';
+        sectorElement.classList.remove('filled');
+        
+        // Возвращаем нормальный вид счетчика
+        const countElement = sectorElement.querySelector('.sector-count');
+        countElement.style.color = 'var(--glow2)';
+        countElement.style.fontWeight = 'normal';
+      }
+    });
   }
 }
 
