@@ -4,11 +4,11 @@ class WorldGovernmentQuest {
     this.characters = this.generateCharacters();
     this.currentCharacterIndex = 0;
     this.sectors = {
-      political: { max: 10, members: [], name: 'Политический' },
-      military: { max: 8, members: [], name: 'Военный' },
-      economic: { max: 6, members: [], name: 'Экономический' },
+      political: { max: 6, members: [], name: 'Политический' },
+      military: { max: 5, members: [], name: 'Военный' },
+      economic: { max: 2, members: [], name: 'Экономический' },
       research: { max: 2, members: [], name: 'Исследовательский' },
-      propaganda: { max: 5, members: [], name: 'Пропагандистский' }
+      propaganda: { max: 4, members: [], name: 'Пропагандистский' }
     };
     this.draggedElement = null;
     this.results = [];
@@ -328,19 +328,19 @@ class WorldGovernmentQuest {
       sum + sector.members.filter(m => m.isCorrect).length, 0
     );
 
-    if (totalCorrect >= 20) {
+    if (totalCorrect >= 15) {
       successResults.push({
         type: 'success',
         title: 'Мировое господство!',
         content: 'Ваше тайное правительство успешно установило контроль над миром. США под вашим влиянием ввела санкции Ирану, Европа приняла ваши экономические реформы, а Китай признал ваше лидерство в технологической сфере.'
       });
-    } else if (totalCorrect >= 15) {
+    } else if (totalCorrect >= 12) {
       successResults.push({
         type: 'success',
         title: 'Региональное влияние!',
         content: 'Ваше правительство установило контроль над несколькими ключевыми регионами. Европа и Северная Америка находятся под вашим влиянием.'
       });
-    } else if (totalCorrect >= 10) {
+    } else if (totalCorrect >= 8) {
       successResults.push({
         type: 'success',
         title: 'Локальный контроль!',
