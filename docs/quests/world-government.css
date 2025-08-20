@@ -1,0 +1,421 @@
+/* Основные стили для квеста "Мировое тайное правительство" */
+.world-government-quest {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0B1020 0%, #1A2332 100%);
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Модальные окна */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background: var(--bg0);
+  border: 2px solid var(--glow1);
+  border-radius: var(--radius);
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.warning-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.warning-header h2 {
+  color: var(--warning);
+  font-size: 24px;
+  margin: 0;
+}
+
+.warning-body {
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.warning-body p {
+  margin-bottom: 15px;
+  color: var(--text);
+}
+
+.modal-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 15px;
+}
+
+.modal-header h3 {
+  color: var(--text);
+  margin: 0;
+  font-size: 20px;
+}
+
+.modal-body {
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.modal-body ul {
+  margin: 15px 0;
+  padding-left: 20px;
+}
+
+.modal-body li {
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+.failure-probability {
+  background: var(--error);
+  color: white;
+  padding: 10px 15px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Основной интерфейс */
+.main-interface {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-interface.hidden {
+  display: none;
+}
+
+/* Контейнер острова */
+.island-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.island-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Секторы */
+.sector {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--glow1);
+  border-radius: var(--radius);
+  padding: 15px;
+  min-width: 120px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.sector:hover {
+  border-color: var(--glow2);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  transform: scale(1.05);
+}
+
+.sector.drag-over {
+  border-color: var(--success);
+  background: rgba(74, 222, 128, 0.2);
+  transform: scale(1.1);
+}
+
+.sector-label {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.sector-count {
+  font-size: 12px;
+  color: var(--glow2);
+  margin-bottom: 10px;
+}
+
+.sector-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.member-tag {
+  background: var(--glow1);
+  color: var(--bg0);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Позиционирование секторов */
+.political-sector {
+  top: 20%;
+  left: 28%;
+}
+
+.military-sector {
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.economic-sector {
+  top: 70%;
+  left: 30%;
+}
+
+.research-sector {
+  top: 85%;
+  left: 70%;
+}
+
+.propaganda-sector {
+  top: 15%;
+  left: 75%;
+}
+
+/* Нижняя панель */
+.bottom-panel {
+  background: var(--bg0);
+  border-top: 2px solid var(--border);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.character-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.character-card {
+  background: var(--bg1);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  min-width: 200px;
+  cursor: grab;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.character-card:hover {
+  border-color: var(--glow1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.character-card:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.character-card.dragging {
+  opacity: 0.8;
+  transform: rotate(5deg);
+  z-index: 100;
+}
+
+.character-name {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.character-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.trait {
+  background: var(--glow2);
+  color: var(--bg0);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.trait.correct {
+  background: var(--success);
+}
+
+.trait.incorrect {
+  background: var(--error);
+}
+
+.character-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Кнопки */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--glow1);
+  color: var(--bg0);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--glow2);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg1);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg2);
+  border-color: var(--glow1);
+  transform: translateY(-2px);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.character-card {
+  animation: fadeIn 0.5s ease;
+}
+
+.sector {
+  animation: fadeIn 0.8s ease;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .island-container {
+    padding: 10px;
+  }
+  
+  .sector {
+    min-width: 100px;
+    padding: 10px;
+  }
+  
+  .sector-label {
+    font-size: 12px;
+  }
+  
+  .bottom-panel {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .character-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .character-card {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+/* Скрытие элементов */
+.hidden {
+  display: none !important;
+}

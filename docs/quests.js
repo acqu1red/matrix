@@ -1105,17 +1105,17 @@ const QUESTS = [
      url: "quests/psychology.html"
    },
   { 
-    id: "cyber", 
-    theme: "Технологии", 
-    style: "synthwave", 
-    name: "Кибер‑взлом", 
-    intro: "Подбери паттерн, чтобы открыть шлюз.", 
-    description: "Взломай защищенную систему, подбирая правильные символы в нужном порядке.",
-    type: "minigame", 
-    difficulty: "medium",
-    rewards: { fragments: 3, experience: 75 },
+    id: "world-government", 
+    theme: "Стратегия", 
+    style: "conspiracy", 
+    name: "Мировое тайное правительство", 
+    intro: "Создай мировое тайное правительство, распределяя персонажей по секторам.", 
+    description: "Распредели персонажей по пяти секторам: политический, военный, экономический, исследовательский и пропагандистский. Каждый персонаж имеет определенные характеристики, которые должны соответствовать своему сектору.",
+    type: "strategy", 
+    difficulty: "hard",
+    rewards: { fragments: 5, experience: 1000 },
     available: true,
-    url: "quests/cyber.html"
+    url: "quests/world-government.html"
   },
   { 
     id: "bodylang", 
@@ -1437,6 +1437,7 @@ function buildCards(state){
   list.forEach((q, index) => {
     const card = document.createElement("div");
     card.className = "card fade-in";
+    card.setAttribute("data-style", q.style);
     card.style.animationDelay = `${index * 0.1}s`;
     
     card.innerHTML = `
@@ -1468,6 +1469,7 @@ function buildCards(state){
     others.forEach((q, index) => {
       const card = document.createElement("div");
       card.className = "card locked fade-in";
+      card.setAttribute("data-style", q.style);
       card.style.animationDelay = `${(list.length + index) * 0.1}s`;
       
       card.innerHTML = `

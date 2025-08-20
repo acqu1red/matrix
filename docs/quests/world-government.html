@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Мировое тайное правительство — Квест‑Хаб</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quests-black-white.css" />
+  <link rel="stylesheet" href="world-government.css" />
+</head>
+<body>
+  <div class="world-government-quest">
+    <!-- Предупреждение -->
+    <div id="warning-modal" class="modal active">
+      <div class="modal-content">
+        <div class="warning-header">
+          <h2>⚠️ ВНИМАНИЕ</h2>
+        </div>
+        <div class="warning-body">
+          <p><strong>Все совпадения случайны, все герои и персонажи вымышлены.</strong></p>
+          <p>Цель не отразить действительность, а сделать имитацию тренинга по распределению определенных людей на удобные для тебя места.</p>
+          <p>Это игра-симулятор для развития навыков управления персоналом и стратегического мышления.</p>
+        </div>
+        <div class="warning-footer">
+          <button id="start-quest" class="btn btn-primary">Начать квест</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Основной интерфейс -->
+    <div id="main-interface" class="main-interface hidden">
+      <!-- Остров с секторами -->
+      <div class="island-container">
+        <img src="../assets/photovideo/ostrov.png" alt="Остров" class="island-image">
+        
+        <!-- Политический сектор -->
+        <div class="sector political-sector" data-sector="political">
+          <div class="sector-label">Политический штаб</div>
+          <div class="sector-count">0/10</div>
+          <div class="sector-members"></div>
+        </div>
+
+        <!-- Военный сектор -->
+        <div class="sector military-sector" data-sector="military">
+          <div class="sector-label">Военный штаб</div>
+          <div class="sector-count">0/8</div>
+          <div class="sector-members"></div>
+        </div>
+
+        <!-- Экономический сектор -->
+        <div class="sector economic-sector" data-sector="economic">
+          <div class="sector-label">Экономический штаб</div>
+          <div class="sector-count">0/6</div>
+          <div class="sector-members"></div>
+        </div>
+
+        <!-- Исследовательский сектор -->
+        <div class="sector research-sector" data-sector="research">
+          <div class="sector-label">Исследовательский штаб</div>
+          <div class="sector-count">0/2</div>
+          <div class="sector-members"></div>
+        </div>
+
+        <!-- Пропагандистский сектор -->
+        <div class="sector propaganda-sector" data-sector="propaganda">
+          <div class="sector-label">Пропагандистский штаб</div>
+          <div class="sector-count">0/5</div>
+          <div class="sector-members"></div>
+        </div>
+      </div>
+
+      <!-- Нижняя панель с персонажами -->
+      <div class="bottom-panel">
+        <div class="character-container">
+          <div id="current-character" class="character-card">
+            <!-- Персонаж будет загружен динамически -->
+          </div>
+          <button id="skip-character" class="btn btn-secondary">Пропустить</button>
+        </div>
+        
+        <button id="finish-creation" class="btn btn-primary" disabled>Завершить создание</button>
+      </div>
+    </div>
+
+    <!-- Модальное окно завершения -->
+    <div id="finish-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Завершить создание мирового правительства?</h3>
+        </div>
+        <div class="modal-body">
+          <p><strong>Максимальное количество в секторах:</strong></p>
+          <ul>
+            <li>Политический: 10 человек</li>
+            <li>Военный: 8 человек</li>
+            <li>Экономический: 6 человек</li>
+            <li>Исследовательский: 2 человека</li>
+            <li>Пропагандистский: 5 человек</li>
+          </ul>
+          <p><strong>Важно:</strong> Чем больше нужных людей в структурах - тем меньше вероятность того что что-то пойдет не так.</p>
+        </div>
+        <div class="modal-footer">
+          <button id="confirm-finish" class="btn btn-primary">Подтвердить</button>
+          <button id="cancel-finish" class="btn btn-secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно результатов -->
+    <div id="results-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="results-title">Результаты создания</h3>
+          <div id="failure-probability" class="failure-probability hidden"></div>
+        </div>
+        <div class="modal-body">
+          <div id="results-content">
+            <!-- Контент будет загружен динамически -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="next-result" class="btn btn-primary">Далее</button>
+          <button id="finish-results" class="btn btn-secondary hidden">Завершить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="world-government.js"></script>
+</body>
+</html>

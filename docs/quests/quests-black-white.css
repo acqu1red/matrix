@@ -424,6 +424,23 @@ h3 { font-size: 1.25rem; }
   color: #ffffff;
 }
 
+/* Conspiracy theme styles */
+.card[data-style="conspiracy"] {
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.1), rgba(25, 25, 112, 0.1));
+  border-color: rgba(139, 0, 0, 0.3);
+}
+
+.card[data-style="conspiracy"]:hover {
+  border-color: rgba(139, 0, 0, 0.6);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 0, 0, 0.3);
+}
+
+.card[data-style="conspiracy"] .label {
+  color: rgba(139, 0, 0, 0.8);
+  background: rgba(139, 0, 0, 0.1);
+  border-color: rgba(139, 0, 0, 0.3);
+}
+
 /* Video styles */
 .video-container {
   background: rgba(255, 255, 255, 0.1);
