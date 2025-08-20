@@ -380,12 +380,12 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
   ],
   casino: [
-    { id: 'subscription', name: 'НЕО-ПОДПИСКА', icon: '⚡', count: 3, probability: 0.03 },
-    { id: 'discount500', name: '500 CREDITS', icon: '🔮', count: 1, probability: 0.10 },
-    { id: 'discount100', name: '100 CREDITS', icon: '💠', count: 3, probability: 0.15 },
-    { id: 'discount50', name: '50 CREDITS', icon: '⚙️', count: 4, probability: 0.20 },
-    { id: 'quest24h', name: 'HACK 24H', icon: '🎮', count: 5, probability: 0.75 },
-    { id: 'frodCourse', name: 'MATRIX', icon: '🌐', count: 1, probability: 0.0005 }
+    { id: 'subscription', name: '🎨 КРАСКИ', icon: '🎨', count: 3, probability: 0.03 },
+    { id: 'discount500', name: '🍭 КОНФЕТЫ', icon: '🍭', count: 1, probability: 0.10 },
+    { id: 'discount100', name: '🎈 ШАРИКИ', icon: '🎈', count: 3, probability: 0.15 },
+    { id: 'discount50', name: '🧸 МИШКИ', icon: '🧸', count: 4, probability: 0.20 },
+    { id: 'quest24h', name: '🎪 ЦИРК', icon: '🎪', count: 5, probability: 0.75 },
+    { id: 'frodCourse', name: '🌈 РАДУГА', icon: '🌈', count: 1, probability: 0.0005 }
   ],
   author: [
     { id: 'subscription', name: 'КОСМИЧЕСКАЯ ПОДПИСКА', icon: '🚀', count: 3, probability: 0.03 },
@@ -446,10 +446,19 @@ function spinRoulette(isFree = false) {
   const extraDistance = Math.random() * 2000; // Дополнительное случайное расстояние
   let spinDistance = baseDistance + extraDistance;
   
-  // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
-  if (currentRouletteDesign === 'author') {
-    spinDistance = -spinDistance;
-  }
+      // Для дизайна Лебедева прокручиваем налево (отрицательное значение)
+    if (currentRouletteDesign === 'author') {
+      spinDistance = -spinDistance;
+    }
+    
+    // Для дизайна Лебедева применяем случайный поворот элементов
+    if (currentRouletteDesign === 'casino') {
+      const items = document.querySelectorAll('.roulette-item');
+      items.forEach(item => {
+        const randomRotation = (Math.random() - 0.5) * 20; // От -10 до +10 градусов
+        item.style.setProperty('--random-rotation', `${randomRotation}deg`);
+      });
+    }
   
   // Вычисляем новую позицию (продолжаем с текущей позиции)
   const newPosition = rouletteCurrentPosition + spinDistance;

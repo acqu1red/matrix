@@ -283,12 +283,13 @@ h3 { font-size: 1.25rem; }
   z-index: 1;
 }
 
-/* Казино дизайн - фон секции */
+/* Лебедев дизайн - фон секции */
 .roulette-section.casino-theme {
   background: #ffffff !important;
-  border: 3px solid #000000 !important;
+  border: 5px solid #000000 !important;
   box-shadow: none !important;
   position: relative;
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
 }
 
 .roulette-section.casino-theme::before {
@@ -298,7 +299,7 @@ h3 { font-size: 1.25rem; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('../assets/photovideo/wtf.png') center center;
+  background: url('./assets/photovideo/wtf.png') center center;
   background-size: cover;
   opacity: 0.1;
   z-index: 0;
@@ -307,6 +308,53 @@ h3 { font-size: 1.25rem; }
 .roulette-section.casino-theme > * {
   position: relative;
   z-index: 1;
+}
+
+/* Детский стиль для заголовков и текста в дизайне Лебедева */
+.roulette-section.casino-theme h2 {
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  text-shadow: 3px 3px 0px #ffffff, -3px -3px 0px #ffffff, 3px -3px 0px #ffffff, -3px 3px 0px #ffffff !important;
+}
+
+.roulette-section.casino-theme .roulette-description {
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  font-size: 16px !important;
+  color: #000000 !important;
+  text-shadow: 1px 1px 0px #ffffff, -1px -1px 0px #ffffff, 1px -1px 0px #ffffff, -1px 1px 0px #ffffff !important;
+}
+
+.roulette-section.casino-theme .design-option {
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  border: 3px solid #000000 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.roulette-section.casino-theme .design-option.active {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.roulette-section.casino-theme .design-name {
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: inherit !important;
+}
+
+.roulette-section.casino-theme .icon-label {
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+  border: 2px solid #000000 !important;
+  border-radius: 10px !important;
+  padding: 4px 8px !important;
+  text-shadow: 1px 1px 0px #ffffff, -1px -1px 0px #ffffff, 1px -1px 0px #ffffff, -1px 1px 0px #ffffff !important;
 }
 
 .roulette-description {
@@ -1475,14 +1523,15 @@ h3 { font-size: 1.25rem; }
   box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
-/* Казино дизайн - детский мульяшный */
+/* Лебедев дизайн - максимально детский бело-черный */
 .roulette-container.casino {
   background: #ffffff;
-  border: 4px solid #000000;
-  border-radius: 20px;
+  border: 6px solid #000000;
+  border-radius: 25px;
   box-shadow: none;
   position: relative;
   overflow: hidden;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
 }
 
 .roulette-container.casino::before {
@@ -1492,7 +1541,7 @@ h3 { font-size: 1.25rem; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('../assets/photovideo/wtf.png') center center;
+  background: url('./assets/photovideo/wtf.png') center center;
   background-size: cover;
   opacity: 0.8;
   z-index: 0;
@@ -1500,12 +1549,14 @@ h3 { font-size: 1.25rem; }
 
 .roulette-container.casino .roulette-item {
   background: #ffffff;
-  border: 3px solid #000000;
-  border-radius: 15px;
+  border: 4px solid #000000;
+  border-radius: 20px;
   box-shadow: none;
   position: relative;
   overflow: hidden;
   z-index: 1;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  transform: rotate(var(--random-rotation, 0deg));
 }
 
 .roulette-container.casino .roulette-item::before {
@@ -1520,12 +1571,13 @@ h3 { font-size: 1.25rem; }
 }
 
 .roulette-container.casino .icon-symbol {
-  font-size: 24px;
+  font-size: 28px;
   color: #000000;
   filter: none;
   animation: none;
   z-index: 2;
   position: relative;
+  text-shadow: 2px 2px 0px #ffffff, -2px -2px 0px #ffffff, 2px -2px 0px #ffffff, -2px 2px 0px #ffffff;
 }
 
 /* Авторский дизайн - космический детский */
@@ -1781,19 +1833,20 @@ h3 { font-size: 1.25rem; }
   pointer-events: none;
 }
 
-/* Казино дизайн - кнопка рулетки */
+/* Лебедев дизайн - кнопка рулетки */
 .roulette-section.casino-theme #spinRoulette {
-  background: url('../assets/photovideo/ruletka.png') center center !important;
+  background: url('./assets/photovideo/ruletka.png') center center !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
-  border: 3px solid #000000 !important;
-  border-radius: 15px !important;
+  border: 5px solid #000000 !important;
+  border-radius: 20px !important;
   color: transparent !important;
   font-size: 0 !important;
-  padding: 20px 40px !important;
-  min-height: 60px !important;
+  padding: 25px 50px !important;
+  min-height: 70px !important;
   position: relative !important;
   overflow: hidden !important;
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
 }
 
 .roulette-section.casino-theme #spinRoulette::before {
