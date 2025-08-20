@@ -450,7 +450,7 @@ function spinRoulette(isFree = false) {
   items.style.transition = `transform ${animationDuration} ease-out`;
   
   // Запускаем аудио в начале прокрутки
-  const music = document.getElementById('rouletteMusic');
+  const music = isFree ? document.getElementById('rouletteMusic') : document.getElementById('rouletteMusicMulacoin');
   if (music) {
     music.currentTime = 0; // Сбрасываем время воспроизведения
     music.play().catch(error => {
@@ -478,7 +478,7 @@ function spinRoulette(isFree = false) {
     const centerPrize = determinePrizeByArrowPosition();
     
     // Останавливаем аудио после завершения прокрутки
-    const music = document.getElementById('rouletteMusic');
+    const music = isFree ? document.getElementById('rouletteMusic') : document.getElementById('rouletteMusicMulacoin');
     if (music) {
       music.pause();
       music.currentTime = 0;

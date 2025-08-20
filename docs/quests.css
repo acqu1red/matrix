@@ -790,21 +790,7 @@ h3 { font-size: 1.25rem; }
   overflow: hidden;
 }
 
-/* Картинка wtf2.png по центру */
-.wtf2-image-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 20px 0;
-  padding: 20px;
-}
-
-.wtf2-image {
-  max-width: 300px;
-  height: auto;
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
+/* Убираем стили для wtf2.png - картинка больше не используется */
 
 /* Убираем старые элементы с зелеными шариками */
 
@@ -1406,17 +1392,19 @@ h3 { font-size: 1.25rem; }
 
 /* Стили для картинок в кнопках */
 .button-image {
-  max-width: 100%;
+  max-width: 50%; /* Уменьшаем размер на 50% */
   height: auto;
   display: block;
   margin: 0 auto;
+  padding: 10px; /* Добавляем отступы по краям */
 }
 
 .preview-image {
-  max-width: 100%;
+  max-width: 50%; /* Уменьшаем размер на 50% */
   height: auto;
   display: block;
   margin: 0 auto;
+  padding: 10px; /* Добавляем отступы по краям */
 }
 
 /* Стили для кнопки "Крутить за mulacoin" */
