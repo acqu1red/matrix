@@ -432,10 +432,6 @@ function spinRoulette(isFree = false) {
   spinBtn.disabled = true;
   buyBtn.disabled = true;
   
-  // Сохраняем оригинальный текст кнопок
-  spinBtn.setAttribute('data-original-text', spinBtn.textContent);
-  buyBtn.setAttribute('data-original-text', buyBtn.textContent);
-  
   // Добавляем эффект загрузки на кнопки
   spinBtn.classList.add("loading");
   buyBtn.classList.add("loading");

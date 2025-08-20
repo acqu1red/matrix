@@ -1763,75 +1763,53 @@ h3 { font-size: 1.25rem; }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Эффекты загрузки для кнопок */
+/* Минималистичные эффекты загрузки для кнопок */
 .btn.loading {
   position: relative;
   pointer-events: none;
+  overflow: hidden;
 }
 
-.btn.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 18px;
-  height: 18px;
-  margin: -9px 0 0 -9px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: loadingSpin 1s linear infinite;
-  z-index: 2;
+/* Анимированный фон для кнопок рулетки */
+#spinRoulette.loading,
+#buySpin.loading {
+  background: linear-gradient(90deg, 
+    var(--glow1) 0%, 
+    var(--glow2) 25%, 
+    var(--accent) 50%, 
+    var(--glow2) 75%, 
+    var(--glow1) 100%) !important;
+  background-size: 200% 100% !important;
+  animation: shimmer 2s ease-in-out infinite !important;
+  border-color: var(--glow1) !important;
+  box-shadow: 0 0 20px rgba(102, 247, 213, 0.4) !important;
 }
 
-@keyframes loadingSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* Скрываем текст кнопки во время загрузки */
-.btn.loading {
-  color: transparent !important;
-}
-
-.btn.loading::before {
-  content: attr(data-original-text);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: transparent;
-  z-index: 1;
-}
-
-/* Специальные стили для кнопок дизайна */
+/* Анимированный фон для кнопок дизайна */
 .design-option.loading {
   position: relative;
   pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(90deg, 
+    rgba(102, 247, 213, 0.3) 0%, 
+    rgba(166, 180, 255, 0.3) 25%, 
+    rgba(255, 226, 122, 0.3) 50%, 
+    rgba(166, 180, 255, 0.3) 75%, 
+    rgba(102, 247, 213, 0.3) 100%) !important;
+  background-size: 200% 100% !important;
+  animation: designShimmer 2s ease-in-out infinite !important;
+  border-color: var(--glow1) !important;
+  box-shadow: 0 0 15px rgba(102, 247, 213, 0.3) !important;
 }
 
-.design-option.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border: 2px solid transparent;
-  border-top: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  animation: designLoadingSpin 1s linear infinite;
-  z-index: 3;
-}
-
-@keyframes designLoadingSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.design-option.loading .design-icon {
-  opacity: 0.3;
+@keyframes designShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Плавная анимация смены текста кнопки */
@@ -1852,37 +1830,4 @@ h3 { font-size: 1.25rem; }
 @keyframes textFadeIn {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
-}
-
-/* Специальные стили для кнопок рулетки - сохраняем оригинальный вид */
-#spinRoulette.loading,
-#buySpin.loading {
-  /* Сохраняем оригинальные стили кнопок */
-  background: inherit !important;
-  border-color: inherit !important;
-  color: transparent !important;
-  transform: none !important;
-  box-shadow: inherit !important;
-  /* Только отключаем взаимодействие */
-  pointer-events: none !important;
-}
-
-#spinRoulette.loading::after,
-#buySpin.loading::after {
-  border-top-color: #d6c7b8 !important;
-}
-
-/* Стили для кнопок дизайна - сохраняем оригинальный вид */
-.design-option.loading {
-  /* Сохраняем оригинальные стили */
-  background: inherit !important;
-  border-color: inherit !important;
-  transform: none !important;
-  box-shadow: inherit !important;
-  /* Только отключаем взаимодействие */
-  pointer-events: none !important;
-}
-
-.design-option.loading::after {
-  border-top-color: rgba(255, 255, 255, 0.8) !important;
 }
