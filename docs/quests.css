@@ -330,12 +330,14 @@ h3 { font-size: 1.25rem; }
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
   border: 3px solid #000000 !important;
   background: #ffffff !important;
-  color: #000000 !important;
+  color: #ffffff !important;
+  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
 }
 
 .roulette-section.casino-theme .design-option.active {
   background: #000000 !important;
   color: #ffffff !important;
+  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
 }
 
 .roulette-section.casino-theme .design-name {
@@ -349,12 +351,51 @@ h3 { font-size: 1.25rem; }
   font-family: 'Comic Sans MS', cursive, sans-serif !important;
   font-size: 12px !important;
   font-weight: 700 !important;
-  color: #000000 !important;
+  color: #ffffff !important;
   background: #ffffff !important;
   border: 2px solid #000000 !important;
   border-radius: 10px !important;
   padding: 4px 8px !important;
-  text-shadow: 1px 1px 0px #ffffff, -1px -1px 0px #ffffff, 1px -1px 0px #ffffff, -1px 1px 0px #ffffff !important;
+  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
+}
+
+/* Кнопка "Возможные призы" в дизайне Лебедева */
+.roulette-section.casino-theme .preview-header {
+  background: #ffffff !important;
+  border: 3px solid #000000 !important;
+  border-radius: 15px !important;
+  color: #ffffff !important;
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000 !important;
+}
+
+.roulette-section.casino-theme .preview-content {
+  background: #ffffff !important;
+  border: 3px solid #000000 !important;
+  border-radius: 15px !important;
+  color: #ffffff !important;
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+}
+
+.roulette-section.casino-theme .preview-content.expanded {
+  background: #ffffff !important;
+  border: 3px solid #000000 !important;
+  color: #ffffff !important;
+}
+
+.roulette-section.casino-theme .preview-items {
+  background: #ffffff !important;
+  color: #ffffff !important;
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+}
+
+.roulette-section.casino-theme .preview-item {
+  background: #ffffff !important;
+  border: 2px solid #000000 !important;
+  border-radius: 10px !important;
+  color: #ffffff !important;
+  font-family: 'Comic Sans MS', cursive, sans-serif !important;
+  text-shadow: 1px 1px 0px #000000, -1px -1px 0px #000000, 1px -1px 0px #000000, -1px 1px 0px #000000 !important;
 }
 
 .roulette-description {
@@ -1572,12 +1613,12 @@ h3 { font-size: 1.25rem; }
 
 .roulette-container.casino .icon-symbol {
   font-size: 28px;
-  color: #000000;
+  color: #ffffff;
   filter: none;
   animation: none;
   z-index: 2;
   position: relative;
-  text-shadow: 2px 2px 0px #ffffff, -2px -2px 0px #ffffff, 2px -2px 0px #ffffff, -2px 2px 0px #ffffff;
+  text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000;
 }
 
 /* Авторский дизайн - космический детский */

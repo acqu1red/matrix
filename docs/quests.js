@@ -380,12 +380,13 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
   ],
   casino: [
-    { id: 'subscription', name: '🎨 КРАСКИ', icon: '🎨', count: 3, probability: 0.03 },
-    { id: 'discount500', name: '🍭 КОНФЕТЫ', icon: '🍭', count: 1, probability: 0.10 },
-    { id: 'discount100', name: '🎈 ШАРИКИ', icon: '🎈', count: 3, probability: 0.15 },
-    { id: 'discount50', name: '🧸 МИШКИ', icon: '🧸', count: 4, probability: 0.20 },
-    { id: 'quest24h', name: '🎪 ЦИРК', icon: '🎪', count: 5, probability: 0.75 },
-    { id: 'frodCourse', name: '🌈 РАДУГА', icon: '🌈', count: 1, probability: 0.0005 }
+    { id: 'infiniteSubscription', name: '🪙 БЕСКОНЕЧНАЯ ПОДПИСКА', icon: '🪙', count: 1, probability: 0.01 },
+    { id: 'subscription', name: '⚰️ ПОДПИСКА', icon: '⚰️', count: 3, probability: 0.03 },
+    { id: 'discount500', name: '💀 500 РУБ', icon: '💀', count: 1, probability: 0.10 },
+    { id: 'discount100', name: '💉 100 РУБ', icon: '💉', count: 3, probability: 0.15 },
+    { id: 'discount50', name: '💸 50 РУБ', icon: '💸', count: 4, probability: 0.20 },
+    { id: 'quest24h', name: '🔪 КВЕСТ 24Ч', icon: '🔪', count: 5, probability: 0.75 },
+    { id: 'frodCourse', name: '🩻 КУРС', icon: '🩻', count: 1, probability: 0.0005 }
   ],
   author: [
     { id: 'subscription', name: 'КОСМИЧЕСКАЯ ПОДПИСКА', icon: '🚀', count: 3, probability: 0.03 },
@@ -611,6 +612,28 @@ async function showPrizeModal(prize, isFree = false) {
         Текущий баланс: ${userData.mulacoin} MULACOIN
       </p>
     `;
+  } else if (prize.id === 'infiniteSubscription') {
+    const promoCode = generatePromoCode(prize);
+    
+    // Даем опыт за бесконечную подписку
+    await addRewards(0, 200, 'roulette', prize.name, 'easy');
+    
+    // Сохраняем промокод в базу данных
+    await savePromocode(prize, promoCode);
+    
+    contentHTML = `
+      <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
+      <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
+        Нажмите на промокод, чтобы скопировать
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        +200 опыта получено!
+      </p>
+      <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
+         class="use-button" id="useButton" style="display: none;">
+        Использовать
+      </a>
+    `;
   } else if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
     const promoCode = generatePromoCode(prize);
     
@@ -676,7 +699,8 @@ async function showPrizeModal(prize, isFree = false) {
 }
 
 function generatePromoCode(prize) {
-  const prefix = prize.id === 'subscription' ? 'SUB' : 
+  const prefix = prize.id === 'infiniteSubscription' ? 'INF' :
+                prize.id === 'subscription' ? 'SUB' : 
                 prize.id === 'frodCourse' ? 'FROD' : 'DIS';
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `${prefix}-${rand}`;
@@ -684,6 +708,7 @@ function generatePromoCode(prize) {
 
 function getPromoMessage(prize, code) {
   const messages = {
+    infiniteSubscription: `🎉 Выиграл БЕСКОНЕЧНУЮ ПОДПИСКУ!\n\nПромокод: ${code}\n\nДействует навсегда!`,
     subscription: `🎉 Выиграл 1 месяц подписки!\n\nПромокод: ${code}\n\nДействует 30 дней.`,
     discount500: `🎉 Выиграл скидку 500 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
     discount100: `🎉 Выиграл скидку 100 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
