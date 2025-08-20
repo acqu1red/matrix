@@ -154,8 +154,8 @@
   background: rgba(0, 0, 0, 0.7);
   border: 2px solid var(--glow1);
   border-radius: var(--radius);
-  padding: 10px;
-  min-width: 84px;
+  padding: 8px;
+  min-width: 70px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -177,14 +177,14 @@
 .sector-label {
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 5px;
-  font-size: 10px;
+  margin-bottom: 4px;
+  font-size: 9px;
 }
 
 .sector-count {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--glow2);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .sector-members {
@@ -206,7 +206,7 @@
 /* Позиционирование секторов */
 .political-sector {
   top: 20%;
-  left: 28%;
+  left: 25%;
 }
 
 .military-sector {
@@ -215,18 +215,18 @@
 }
 
 .economic-sector {
-  top: 70%;
-  left: 30%;
+  top: 65%;
+  left: 25%;
 }
 
 .research-sector {
-  top: 85%;
-  left: 70%;
+  top: 80%;
+  left: 65%;
 }
 
 .propaganda-sector {
-  top: 15%;
-  left: 90%;
+  top: 12%;
+  left: 75%;
 }
 
 /* Нижняя панель */
@@ -414,6 +414,148 @@
     width: 100%;
     min-width: auto;
   }
+}
+
+/* Модальное окно со списком персонажей */
+.members-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.members-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.members-modal-content {
+  background: var(--bg0);
+  border: 2px solid var(--glow1);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalSlideIn 0.3s ease;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.member-item {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.member-item:hover {
+  border-color: var(--glow1);
+  background: var(--bg2);
+}
+
+.member-item-name {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.member-item-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.member-item-trait {
+  background: var(--glow2);
+  color: var(--bg0);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+/* Модальное окно с характеристиками персонажа */
+.character-details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.character-details-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.character-details-content {
+  background: var(--bg0);
+  border: 2px solid var(--glow1);
+  border-radius: var(--radius);
+  padding: 25px;
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+  animation: modalSlideIn 0.3s ease;
+}
+
+.character-details-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.character-details-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+  justify-content: center;
+}
+
+.character-details-trait {
+  background: var(--glow1);
+  color: var(--bg0);
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.character-details-description {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 /* Скрытие элементов */

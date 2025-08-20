@@ -126,6 +126,33 @@
         </div>
       </div>
     </div>
+
+    <!-- Модальное окно со списком персонажей -->
+    <div id="members-modal" class="members-modal">
+      <div class="members-modal-content">
+        <div class="modal-header">
+          <h3 id="members-title">Персонажи в штабе</h3>
+        </div>
+        <div class="members-list" id="members-list">
+          <!-- Список персонажей будет загружен динамически -->
+        </div>
+        <div class="modal-footer">
+          <button id="close-members" class="btn btn-secondary">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно с характеристиками персонажа -->
+    <div id="character-details-modal" class="character-details-modal">
+      <div class="character-details-content">
+        <div class="character-details-name" id="character-details-name"></div>
+        <div class="character-details-traits" id="character-details-traits"></div>
+        <div class="character-details-description" id="character-details-description"></div>
+        <div class="modal-footer">
+          <button id="close-character-details" class="btn btn-primary">Закрыть</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="world-government.js"></script>

@@ -58,6 +58,15 @@ class WorldGovernmentQuest {
       this.finishQuest();
     });
 
+    // Модальные окна персонажей
+    document.getElementById('close-members').addEventListener('click', () => {
+      this.hideMembersModal();
+    });
+
+    document.getElementById('close-character-details').addEventListener('click', () => {
+      this.hideCharacterDetailsModal();
+    });
+
     // Перетаскивание
     this.setupDragAndDrop();
   }
@@ -157,15 +166,29 @@ class WorldGovernmentQuest {
 
     countElement.textContent = `${sector.members.length}/${sector.max}`;
     
-    // Обновляем теги членов
+    // Обновляем отображение членов
     membersElement.innerHTML = '';
-    sector.members.forEach((member, index) => {
+    
+    if (sector.members.length === 0) {
+      return;
+    }
+    
+    if (sector.members.length === 1) {
       const tag = document.createElement('div');
-      tag.className = `member-tag ${member.isCorrect ? 'correct' : 'incorrect'}`;
-      tag.textContent = member.name.split(' ')[0];
-      tag.title = member.name;
+      tag.className = `member-tag ${sector.members[0].isCorrect ? 'correct' : 'incorrect'}`;
+      tag.textContent = sector.members[0].name.split(' ')[0];
+      tag.title = sector.members[0].name;
       membersElement.appendChild(tag);
-    });
+    } else {
+      // Показываем первого и "и другие..."
+      const tag = document.createElement('div');
+      tag.className = `member-tag ${sector.members[0].isCorrect ? 'correct' : 'incorrect'}`;
+      tag.textContent = `${sector.members[0].name.split(' ')[0]} и другие...`;
+      tag.title = `Нажмите для просмотра всех ${sector.members.length} персонажей`;
+      tag.style.cursor = 'pointer';
+      tag.addEventListener('click', () => this.showMembersList(sectorType));
+      membersElement.appendChild(tag);
+    }
   }
 
   updateSectorCounts() {
@@ -512,7 +535,7 @@ class WorldGovernmentQuest {
       characters.push({
         name: politicalNames[index],
         traits: traits,
-        description: 'Политический деятель с сильными лидерскими качествами и чувством долга.',
+        description: 'Человек с сильными лидерскими качествами и чувством долга.',
         correctSector: 'political'
       });
     });
@@ -548,7 +571,7 @@ class WorldGovernmentQuest {
       characters.push({
         name: militaryNames[index],
         traits: traits,
-        description: 'Военный специалист с агрессивным характером и готовностью к действиям.',
+        description: 'Человек с агрессивным характером и готовностью к решительным действиям.',
         correctSector: 'military'
       });
     });
@@ -579,7 +602,7 @@ class WorldGovernmentQuest {
       characters.push({
         name: economicNames[index],
         traits: traits,
-        description: 'Экономист с высоким самомнением и стремлением к личному успеху.',
+        description: 'Человек с высоким самомнением и стремлением к личному успеху.',
         correctSector: 'economic'
       });
     });
@@ -600,7 +623,7 @@ class WorldGovernmentQuest {
       characters.push({
         name: researchNames[index],
         traits: traits,
-        description: 'Исследователь с аналитическим мышлением и стремлением к открытиям.',
+        description: 'Человек с аналитическим мышлением и стремлением к открытиям.',
         correctSector: 'research'
       });
     });
@@ -626,12 +649,64 @@ class WorldGovernmentQuest {
       characters.push({
         name: propagandaNames[index],
         traits: traits,
-        description: 'Специалист по пропаганде с развитой эмпатией и актерскими способностями.',
+        description: 'Человек с развитой эмпатией и актерскими способностями.',
         correctSector: 'propaganda'
       });
     });
 
     return this.shuffleArray(characters);
+  }
+
+  showMembersList(sectorType) {
+    const sector = this.sectors[sectorType];
+    const modal = document.getElementById('members-modal');
+    const title = document.getElementById('members-title');
+    const list = document.getElementById('members-list');
+
+    title.textContent = `Персонажи в ${sector.name} штабе`;
+    list.innerHTML = '';
+
+    sector.members.forEach((member, index) => {
+      const item = document.createElement('div');
+      item.className = 'member-item';
+      item.innerHTML = `
+        <div class="member-item-name">${member.name}</div>
+        <div class="member-item-traits">
+          ${member.traits.map(trait => `<span class="member-item-trait">${trait}</span>`).join('')}
+        </div>
+      `;
+      
+      item.addEventListener('click', () => {
+        this.showCharacterDetails(member);
+      });
+      
+      list.appendChild(item);
+    });
+
+    modal.classList.add('active');
+  }
+
+  hideMembersModal() {
+    document.getElementById('members-modal').classList.remove('active');
+  }
+
+  showCharacterDetails(member) {
+    const modal = document.getElementById('character-details-modal');
+    const name = document.getElementById('character-details-name');
+    const traits = document.getElementById('character-details-traits');
+    const description = document.getElementById('character-details-description');
+
+    name.textContent = member.name;
+    traits.innerHTML = member.traits.map(trait => 
+      `<span class="character-details-trait">${trait}</span>`
+    ).join('');
+    description.textContent = member.description;
+
+    modal.classList.add('active');
+  }
+
+  hideCharacterDetailsModal() {
+    document.getElementById('character-details-modal').classList.remove('active');
   }
 }
 
