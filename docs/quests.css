@@ -361,6 +361,16 @@ h3 { font-size: 1.25rem; }
   border-radius: 10px !important;
   padding: 4px 8px !important;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
+  animation: labelBounce 2s ease-in-out infinite;
+}
+
+@keyframes labelBounce {
+  0%, 100% { 
+    transform: translateY(0px) scale(1);
+  }
+  50% { 
+    transform: translateY(-2px) scale(1.05);
+  }
 }
 
 /* Кнопка "Возможные призы" в дизайне Лебедева */
@@ -1604,6 +1614,22 @@ h3 { font-size: 1.25rem; }
   z-index: 1;
   font-family: 'Comic Sans MS', cursive, sans-serif;
   transform: rotate(var(--random-rotation, 0deg));
+  animation: itemFloat 3s ease-in-out infinite;
+}
+
+@keyframes itemFloat {
+  0%, 100% { 
+    transform: rotate(var(--random-rotation, 0deg)) translateY(0px) scale(1);
+  }
+  25% { 
+    transform: rotate(calc(var(--random-rotation, 0deg) + 2deg)) translateY(-3px) scale(1.02);
+  }
+  50% { 
+    transform: rotate(calc(var(--random-rotation, 0deg) - 1deg)) translateY(-5px) scale(1.05);
+  }
+  75% { 
+    transform: rotate(calc(var(--random-rotation, 0deg) + 1deg)) translateY(-2px) scale(1.03);
+  }
 }
 
 .roulette-container.casino .roulette-item::before {
@@ -1621,10 +1647,18 @@ h3 { font-size: 1.25rem; }
   font-size: 28px;
   color: #000000;
   filter: none;
-  animation: none;
   z-index: 2;
   position: relative;
-  text-shadow: none;
+  text-shadow: 2px 2px 0px #ffffff, -2px -2px 0px #ffffff, 2px -2px 0px #ffffff, -2px 2px 0px #ffffff;
+  animation: iconSpin 4s linear infinite;
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Авторский дизайн - космический детский */
@@ -1865,6 +1899,39 @@ h3 { font-size: 1.25rem; }
 @keyframes designChange {
   0% { opacity: 0.5; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+/* Анимация элементов рулетки во время прокрутки */
+.roulette-container.casino .roulette-item.spinning {
+  animation: itemSpin 0.5s ease-in-out infinite;
+}
+
+@keyframes itemSpin {
+  0% { 
+    transform: rotate(var(--random-rotation, 0deg)) translateY(0px) scale(1);
+  }
+  25% { 
+    transform: rotate(calc(var(--random-rotation, 0deg) + 5deg)) translateY(-8px) scale(1.1);
+  }
+  50% { 
+    transform: rotate(calc(var(--random-rotation, 0deg) - 3deg)) translateY(-12px) scale(1.15);
+  }
+  75% { 
+    transform: rotate(calc(var(--random-rotation, 0deg) + 4deg)) translateY(-6px) scale(1.08);
+  }
+  100% { 
+    transform: rotate(var(--random-rotation, 0deg)) translateY(0px) scale(1);
+  }
+}
+
+/* Ускоренная анимация иконок во время прокрутки */
+.roulette-container.casino .icon-symbol.spinning {
+  animation: iconSpinFast 0.3s linear infinite;
+}
+
+@keyframes iconSpinFast {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Стили для недоступных кнопок */

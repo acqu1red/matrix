@@ -467,6 +467,18 @@ function spinRoulette(isFree = false) {
   // Добавляем плавную анимацию скольжения
   items.classList.add('spinning');
   
+  // Добавляем анимацию к элементам рулетки
+  const rouletteItems = document.querySelectorAll('.roulette-item');
+  const iconSymbols = document.querySelectorAll('.icon-symbol');
+  
+  rouletteItems.forEach(item => {
+    item.classList.add('spinning');
+  });
+  
+  iconSymbols.forEach(icon => {
+    icon.classList.add('spinning');
+  });
+  
   // Применяем CSS анимацию с новой позицией
   // Для авторского дизайна используем положительное значение для прокрутки влево
   if (currentRouletteDesign === 'author') {
@@ -501,6 +513,19 @@ function spinRoulette(isFree = false) {
     // Убираем класс spinning, но НЕ сбрасываем позицию
     setTimeout(() => {
       items.classList.remove('spinning');
+      
+      // Убираем анимацию с элементов рулетки
+      const rouletteItems = document.querySelectorAll('.roulette-item');
+      const iconSymbols = document.querySelectorAll('.icon-symbol');
+      
+      rouletteItems.forEach(item => {
+        item.classList.remove('spinning');
+      });
+      
+      iconSymbols.forEach(icon => {
+        icon.classList.remove('spinning');
+      });
+      
       // Сохраняем текущую позицию для следующего спина
       items.style.transition = 'transform 8s ease-out';
     }, 1000);
