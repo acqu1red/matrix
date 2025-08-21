@@ -8,7 +8,7 @@ class WorldGovernmentQuest {
       military: { max: 3, members: [], name: 'Военный' },
       economic: { max: 2, members: [], name: 'Экономический' },
       research: { max: 2, members: [], name: 'Исследовательский' },
-      propaganda: { max: 3, members: [], name: 'Пропагандистский' }
+      propaganda: { max: 3, members: [], name: 'Пропагандический' }
     };
     this.draggedElement = null;
     this.results = [];

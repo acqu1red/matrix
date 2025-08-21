@@ -1134,7 +1134,7 @@ const QUESTS = [
     style: "conspiracy", 
     name: "Мировое тайное правительство", 
     intro: "Создай мировое тайное правительство, распределяя персонажей по секторам.", 
-    description: "Распредели персонажей по пяти секторам: политический, военный, экономический, исследовательский и пропагандистский. Каждый персонаж имеет определенные характеристики, которые должны соответствовать своему сектору.",
+    description: "Распредели персонажей по пяти секторам: политический, военный, экономический, исследовательский и пропагандический. Каждый персонаж имеет определенные характеристики, которые должны соответствовать своему сектору.",
     type: "strategy", 
     difficulty: "hard",
     rewards: { fragments: 5, experience: 1000 },
@@ -1343,7 +1343,7 @@ async function loadState(){
         console.log('📊 Структура таблицы subscriptions:', subColumns);
         
         // Ищем поле, которое может содержать ID пользователя
-        const possibleIdFields = ['telegram_id', 'user_id', 'tg_id', 'id', 'userid', 'telegramid'];
+        const possibleIdFields = ['user_id', 'telegram_id', 'tg_id', 'id', 'userid', 'telegramid'];
         let foundSubField = null;
         
         for (const field of possibleIdFields) {
@@ -1976,9 +1976,52 @@ $("#levelDisplay").addEventListener("click", ()=>{
   showLevelInfo();
 });
 
-function showHistory() {
+async function showHistory() {
   const modal = $("#modal");
   const modalBody = $("#modalBody");
+  
+  // Загружаем промокоды пользователя
+  let promocodes = [];
+  if (supabase && userData.telegramId) {
+    try {
+      const { data, error } = await supabase
+        .from('promocodes')
+        .select('*')
+        .eq('issued_to', userData.telegramId)
+        .order('issued_at', { ascending: false });
+      
+      if (!error && data) {
+        promocodes = data;
+        console.log('Загружены промокоды:', promocodes);
+      } else {
+        console.error('Ошибка загрузки промокодов:', error);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке промокодов:', error);
+    }
+  }
+  
+  // Загружаем историю рулетки
+  let rouletteHistory = [];
+  if (supabase && userData.telegramId) {
+    try {
+      const { data, error } = await supabase
+        .from('roulette_history')
+        .select('*')
+        .eq('user_id', userData.telegramId)
+        .order('won_at', { ascending: false })
+        .limit(10);
+      
+      if (!error && data) {
+        rouletteHistory = data;
+        console.log('Загружена история рулетки:', rouletteHistory);
+      } else {
+        console.error('Ошибка загрузки истории рулетки:', error);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке истории рулетки:', error);
+    }
+  }
   
   modalBody.innerHTML = `
     <div style="text-align: center; padding: 20px;">
@@ -2014,10 +2057,53 @@ function showHistory() {
         </div>
       </div>
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Промокоды</div>
-        <p style="font-size: 12px; color: var(--text-muted);">
-          Скопированные промокоды сохраняются здесь и доступны для повторного использования
-        </p>
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Промокоды (${promocodes.length})</div>
+        ${promocodes.length > 0 ? `
+          <div style="max-height: 200px; overflow-y: auto; margin: 8px 0;">
+            ${promocodes.map(promo => `
+              <div style="background: var(--bg1); border-radius: 4px; padding: 8px; margin: 4px 0; cursor: pointer;" 
+                   onclick="showPromoDetails('${promo.code}', '${promo.type}', '${promo.value}', '${promo.expires_at}', '${promo.status}')">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 600; color: var(--accent);">${promo.code}</span>
+                  <span style="font-size: 12px; color: ${promo.status === 'used' ? 'var(--error)' : 'var(--success)'};">
+                    ${promo.status === 'used' ? 'Использован' : 'Активен'}
+                  </span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  ${getPromoTypeText(promo.type)} - ${promo.value}${promo.type === 'discount' ? '₽' : ' дней'}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <p style="font-size: 12px; color: var(--text-muted);">
+            У вас пока нет промокодов. Крутите рулетку, чтобы получить!
+          </p>
+        `}
+      </div>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">История рулетки (${rouletteHistory.length})</div>
+        ${rouletteHistory.length > 0 ? `
+          <div style="max-height: 200px; overflow-y: auto; margin: 8px 0;">
+            ${rouletteHistory.map(record => `
+              <div style="background: var(--bg1); border-radius: 4px; padding: 8px; margin: 4px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 600; color: var(--glow1);">${record.prize_name}</span>
+                  <span style="font-size: 12px; color: var(--text-muted);">
+                    ${new Date(record.won_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  ${record.is_free ? 'Бесплатный спин' : `${record.mulacoin_spent} MULACOIN`}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <p style="font-size: 12px; color: var(--text-muted);">
+            История рулетки пуста. Начните крутить рулетку!
+          </p>
+        `}
       </div>
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
         <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Техническая информация</div>
@@ -2047,6 +2133,84 @@ function showHistory() {
   `;
   
   modal.classList.add("show");
+}
+
+// Функция для получения текста типа промокода
+function getPromoTypeText(type) {
+  const types = {
+    'subscription': 'Подписка',
+    'discount': 'Скидка',
+    'frod_course': 'Курс Фрода'
+  };
+  return types[type] || type;
+}
+
+// Функция для отображения деталей промокода
+function showPromoDetails(code, type, value, expiresAt, status) {
+  const modal = $("#modal");
+  const modalBody = $("#modalBody");
+  
+  const expiresDate = new Date(expiresAt);
+  const isExpired = expiresDate < new Date();
+  const statusText = status === 'used' ? 'Использован' : (isExpired ? 'Истек' : 'Активен');
+  const statusColor = status === 'used' ? 'var(--error)' : (isExpired ? 'var(--warning)' : 'var(--success)');
+  
+  modalBody.innerHTML = `
+    <div style="text-align: center; padding: 20px;">
+      <div style="font-size: 48px; margin-bottom: 16px;">🎫</div>
+      <h3 style="margin-bottom: 16px;">Промокод: ${code}</h3>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Информация о промокоде</div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Тип:</span>
+            <span style="font-weight: 600; color: var(--accent);">${getPromoTypeText(type)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Значение:</span>
+            <span style="font-weight: 600; color: var(--glow1);">${value}${type === 'discount' ? '₽' : ' дней'}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Статус:</span>
+            <span style="font-weight: 600; color: ${statusColor};">${statusText}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Действует до:</span>
+            <span style="font-weight: 600; color: var(--text-muted);">${expiresDate.toLocaleDateString()}</span>
+          </div>
+        </div>
+      </div>
+      ${status === 'used' || isExpired ? `
+        <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+          <div style="font-size: 14px; color: var(--text-muted);">
+            ${status === 'used' ? 'Этот промокод уже был использован.' : 'Этот промокод истек и больше не действителен.'}
+          </div>
+        </div>
+      ` : `
+        <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+          <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Использование промокода</div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+            Скопируйте промокод и отправьте администратору для активации
+          </p>
+          <button class="btn primary" onclick="copyToClipboard('${code}')" style="width: 100%;">
+            📋 Скопировать промокод
+          </button>
+        </div>
+      `}
+      <button class="btn ghost" onclick="closeModal()">Закрыть</button>
+    </div>
+  `;
+  
+  modal.classList.add("show");
+}
+
+// Функция для копирования в буфер обмена
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    toast('Промокод скопирован в буфер обмена!', 'success');
+  }).catch(() => {
+    toast('Ошибка копирования', 'error');
+  });
 }
 
 function showLevelInfo() {
