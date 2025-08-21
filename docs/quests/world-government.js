@@ -1,6 +1,10 @@
 // Квест "Мировое тайное правительство"
 class WorldGovernmentQuest {
   constructor() {
+    // Кэшируем DOM элементы для оптимизации
+    this.domCache = {};
+    this.eventListeners = new Map();
+    
     this.characters = this.generateCharacters();
     this.currentCharacterIndex = 0;
     this.sectors = {
@@ -16,70 +20,67 @@ class WorldGovernmentQuest {
     this.failureProbability = 0;
     this.storySystem = new WorldGovernmentStories();
     
+    // Оптимизация: используем requestAnimationFrame для плавных анимаций
+    this.animationFrameId = null;
+    this.lastUpdateTime = 0;
+    
     this.init();
   }
 
   init() {
+    this.cacheDOMElements();
     this.bindEvents();
     this.loadCurrentCharacter();
     this.updateSectorCounts();
   }
 
+  cacheDOMElements() {
+    // Кэшируем часто используемые DOM элементы
+    this.domCache = {
+      currentCharacter: document.getElementById('current-character'),
+      finishButton: document.getElementById('finish-creation'),
+      skipButton: document.getElementById('skip-character'),
+      sectors: document.querySelectorAll('.sector'),
+      resultsModal: document.getElementById('results-modal'),
+      resultsTitle: document.getElementById('results-title'),
+      resultsContent: document.getElementById('results-content'),
+      membersModal: document.getElementById('members-modal'),
+      membersList: document.getElementById('members-list'),
+      eliminationModal: document.getElementById('elimination-modal'),
+      eliminationZone: document.getElementById('elimination-zone'),
+      selectedAllies: document.getElementById('selected-allies'),
+      executeButton: document.getElementById('execute-elimination')
+    };
+  }
+
   bindEvents() {
-    // Кнопка начала квеста
-    document.getElementById('start-quest').addEventListener('click', () => {
-      this.hideWarning();
-    });
+    // Оптимизация: используем делегирование событий и кэшированные элементы
+    const eventHandlers = {
+      'start-quest': () => this.hideWarning(),
+      'back-to-main': () => this.goToMain(),
+      'skip-character': () => this.skipCharacter(),
+      'finish-creation': () => this.showFinishModal(),
+      'confirm-finish': () => {
+        this.hideFinishModal();
+        this.startResults();
+      },
+      'cancel-finish': () => this.hideFinishModal(),
+      'next-result': () => this.nextResult(),
+      'finish-results': () => this.finishQuest(),
+      'close-members': () => this.hideMembersModal(),
+      'close-character-details': () => this.hideCharacterDetailsModal(),
+      'cancel-elimination': () => this.hideEliminationModal(),
+      'execute-elimination': () => this.executeElimination()
+    };
 
-    // Кнопка "На главную"
-    document.getElementById('back-to-main').addEventListener('click', () => {
-      this.goToMain();
-    });
-
-    // Кнопка пропуска персонажа
-    document.getElementById('skip-character').addEventListener('click', () => {
-      this.skipCharacter();
-    });
-
-    // Кнопка завершения создания
-    document.getElementById('finish-creation').addEventListener('click', () => {
-      this.showFinishModal();
-    });
-
-    // Модальные окна
-    document.getElementById('confirm-finish').addEventListener('click', () => {
-      this.hideFinishModal();
-      this.startResults();
-    });
-
-    document.getElementById('cancel-finish').addEventListener('click', () => {
-      this.hideFinishModal();
-    });
-
-    document.getElementById('next-result').addEventListener('click', () => {
-      this.nextResult();
-    });
-
-    document.getElementById('finish-results').addEventListener('click', () => {
-      this.finishQuest();
-    });
-
-    // Модальные окна персонажей
-    document.getElementById('close-members').addEventListener('click', () => {
-      this.hideMembersModal();
-    });
-
-    document.getElementById('close-character-details').addEventListener('click', () => {
-      this.hideCharacterDetailsModal();
-    });
-
-    // Окно истребления
-    document.getElementById('cancel-elimination').addEventListener('click', () => {
-      this.hideEliminationModal();
-    });
-
-    document.getElementById('execute-elimination').addEventListener('click', () => {
-      this.executeElimination();
+    // Привязываем события с сохранением ссылок для возможности удаления
+    Object.entries(eventHandlers).forEach(([id, handler]) => {
+      const element = document.getElementById(id);
+      if (element) {
+        const boundHandler = handler.bind(this);
+        element.addEventListener('click', boundHandler);
+        this.eventListeners.set(id, { element, handler: boundHandler });
+      }
     });
 
     // Перетаскивание
@@ -105,88 +106,102 @@ class WorldGovernmentQuest {
   }
 
   setupDragAndDrop() {
-    const characterCard = document.getElementById('current-character');
-    const sectors = document.querySelectorAll('.sector');
+    const characterCard = this.domCache.currentCharacter;
+    const sectors = this.domCache.sectors;
 
-    // Drag events для персонажа (PC)
-    characterCard.addEventListener('dragstart', (e) => {
-      this.draggedElement = characterCard;
-      characterCard.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    characterCard.addEventListener('dragend', () => {
-      characterCard.classList.remove('dragging');
-      this.draggedElement = null;
-    });
-
-    // Touch events для персонажа (Mobile)
+    // Оптимизация: используем throttling для touchmove
+    let touchMoveThrottle = null;
+    let isDragging = false;
     let touchStartX = 0;
     let touchStartY = 0;
-    let isDragging = false;
-    let draggedElement = null;
     let touchStartTime = 0;
     let originalPosition = null;
 
-    characterCard.addEventListener('touchstart', (e) => {
+    // Drag events для персонажа (PC)
+    const dragStartHandler = (e) => {
+      this.draggedElement = characterCard;
+      characterCard.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const dragEndHandler = () => {
+      characterCard.classList.remove('dragging');
+      this.draggedElement = null;
+    };
+
+    characterCard.addEventListener('dragstart', dragStartHandler);
+    characterCard.addEventListener('dragend', dragEndHandler);
+
+    // Touch events для персонажа (Mobile) - оптимизированные
+    const touchStartHandler = (e) => {
       e.preventDefault();
       const touch = e.touches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
       touchStartTime = Date.now();
       isDragging = false;
-      draggedElement = characterCard;
       
       // Сохраняем исходное положение
       const rect = characterCard.getBoundingClientRect();
-      originalPosition = {
-        left: rect.left,
-        top: rect.top
-      };
-    });
+      originalPosition = { left: rect.left, top: rect.top };
+    };
 
-    characterCard.addEventListener('touchmove', (e) => {
+    const touchMoveHandler = (e) => {
       e.preventDefault();
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - touchStartX;
-      const deltaY = touch.clientY - touchStartY;
-      const touchDuration = Date.now() - touchStartTime;
       
-      // Начинаем перетаскивание только если движение достаточно большое или время нажатия достаточное
-      if (!isDragging && (Math.abs(deltaX) > 15 || Math.abs(deltaY) > 15 || touchDuration > 300)) {
-        isDragging = true;
-        characterCard.classList.add('dragging');
-        characterCard.style.position = 'fixed';
-        characterCard.style.zIndex = '1000';
-        characterCard.style.pointerEvents = 'none';
-        characterCard.style.transition = 'none'; // Отключаем анимации во время перетаскивания
-      }
+      // Throttling для производительности
+      if (touchMoveThrottle) return;
       
-      if (isDragging) {
-        characterCard.style.left = (touch.clientX - characterCard.offsetWidth / 2) + 'px';
-        characterCard.style.top = (touch.clientY - characterCard.offsetHeight / 2) + 'px';
+      touchMoveThrottle = requestAnimationFrame(() => {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+        const touchDuration = Date.now() - touchStartTime;
         
-        // Проверяем, над каким сектором находится палец
-        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-        const sectorBelow = elementBelow?.closest('.sector');
+        // Начинаем перетаскивание только если движение достаточно большое или время нажатия достаточное
+        if (!isDragging && (Math.abs(deltaX) > 15 || Math.abs(deltaY) > 15 || touchDuration > 300)) {
+          isDragging = true;
+          characterCard.classList.add('dragging');
+          characterCard.style.position = 'fixed';
+          characterCard.style.zIndex = '1000';
+          characterCard.style.pointerEvents = 'none';
+          characterCard.style.transition = 'none';
+        }
         
-        // Убираем подсветку со всех секторов
-        sectors.forEach(s => s.classList.remove('drag-over'));
-        
-        // Подсвечиваем сектор под пальцем только если он не заполнен
-        if (sectorBelow) {
-          const sectorType = sectorBelow.dataset.sector;
-          const sectorData = this.sectors[sectorType];
+        if (isDragging) {
+          characterCard.style.left = (touch.clientX - characterCard.offsetWidth / 2) + 'px';
+          characterCard.style.top = (touch.clientY - characterCard.offsetHeight / 2) + 'px';
           
-          if (sectorData.members.length < sectorData.max) {
-            sectorBelow.classList.add('drag-over');
+          // Оптимизация: кэшируем elementFromPoint результат
+          const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+          const sectorBelow = elementBelow?.closest('.sector');
+          
+          // Убираем подсветку со всех секторов
+          sectors.forEach(s => s.classList.remove('drag-over'));
+          
+          // Подсвечиваем сектор под пальцем только если он не заполнен
+          if (sectorBelow) {
+            const sectorType = sectorBelow.dataset.sector;
+            const sectorData = this.sectors[sectorType];
+            
+            if (sectorData.members.length < sectorData.max) {
+              sectorBelow.classList.add('drag-over');
+            }
           }
         }
-      }
-    });
+        
+        touchMoveThrottle = null;
+      });
+    };
 
-    characterCard.addEventListener('touchend', (e) => {
+    const touchEndHandler = (e) => {
       e.preventDefault();
+      
+      if (touchMoveThrottle) {
+        cancelAnimationFrame(touchMoveThrottle);
+        touchMoveThrottle = null;
+      }
+      
       const touch = e.changedTouches[0];
       const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
       const sectorBelow = elementBelow?.closest('.sector');
@@ -195,72 +210,75 @@ class WorldGovernmentQuest {
       sectors.forEach(s => s.classList.remove('drag-over'));
       
       if (isDragging) {
-        // Если персонаж был отпущен над сектором, назначаем его туда
         if (sectorBelow) {
           const sectorType = sectorBelow.dataset.sector;
           const sectorData = this.sectors[sectorType];
           
           if (sectorData.members.length < sectorData.max) {
             // Сбрасываем стили персонажа
-            characterCard.classList.remove('dragging');
-            characterCard.style.position = '';
-            characterCard.style.zIndex = '';
-            characterCard.style.left = '';
-            characterCard.style.top = '';
-            characterCard.style.pointerEvents = '';
-            characterCard.style.transition = '';
-            
+            this.resetCharacterStyles(characterCard);
             this.assignCharacterToSector(sectorType);
           } else {
-            // Сектор заполнен - возвращаем в исходное положение
             this.returnCharacterToOriginalPosition(characterCard, originalPosition);
           }
         } else {
-          // Не отпустили над сектором - возвращаем в исходное положение
           this.returnCharacterToOriginalPosition(characterCard, originalPosition);
         }
       }
       
       isDragging = false;
-      draggedElement = null;
       originalPosition = null;
-    });
+    };
 
-    // Предотвращаем конфликт с обычными кликами
-    characterCard.addEventListener('click', (e) => {
+    const clickHandler = (e) => {
       if (isDragging) {
         e.preventDefault();
         e.stopPropagation();
       }
-    });
+    };
 
-    // Drop events для секторов (PC)
-    sectors.forEach(sector => {
-      sector.addEventListener('dragover', (e) => {
+    characterCard.addEventListener('touchstart', touchStartHandler);
+    characterCard.addEventListener('touchmove', touchMoveHandler);
+    characterCard.addEventListener('touchend', touchEndHandler);
+    characterCard.addEventListener('click', clickHandler);
+
+    // Drop events для секторов (PC) - оптимизированные
+    const sectorEventHandlers = {
+      dragover: (e) => {
         e.preventDefault();
-        const sectorType = sector.dataset.sector;
+        const sectorType = e.currentTarget.dataset.sector;
         const sectorData = this.sectors[sectorType];
         
         if (sectorData.members.length < sectorData.max) {
-          sector.classList.add('drag-over');
+          e.currentTarget.classList.add('drag-over');
         }
-      });
-
-      sector.addEventListener('dragleave', () => {
-        sector.classList.remove('drag-over');
-      });
-
-      sector.addEventListener('drop', (e) => {
+      },
+      dragleave: (e) => {
+        e.currentTarget.classList.remove('drag-over');
+      },
+      drop: (e) => {
         e.preventDefault();
-        sector.classList.remove('drag-over');
-        const sectorType = sector.dataset.sector;
+        e.currentTarget.classList.remove('drag-over');
+        const sectorType = e.currentTarget.dataset.sector;
         const sectorData = this.sectors[sectorType];
         
         if (sectorData.members.length < sectorData.max) {
           this.assignCharacterToSector(sectorType);
         }
+      }
+    };
+
+    sectors.forEach(sector => {
+      Object.entries(sectorEventHandlers).forEach(([event, handler]) => {
+        sector.addEventListener(event, handler);
       });
     });
+
+    // Сохраняем ссылки на обработчики для возможности удаления
+    this.dragDropHandlers = {
+      characterCard: { dragStartHandler, dragEndHandler, touchStartHandler, touchMoveHandler, touchEndHandler, clickHandler },
+      sectors: sectorEventHandlers
+    };
   }
 
   assignCharacterToSector(sectorType) {
@@ -286,16 +304,26 @@ class WorldGovernmentQuest {
       assignedTo: sectorType
     });
 
-    this.updateSectorDisplay(sectorType);
-    this.loadNextCharacter();
-    this.updateFinishButton();
-    this.updateSectorVisibility();
-    
-    // Принудительное обновление для исправления багов
-    setTimeout(() => {
-      this.updateSectorVisibility();
+    // Оптимизация: группируем обновления DOM
+    this.batchDOMUpdates(() => {
+      this.updateSectorDisplay(sectorType);
+      this.loadNextCharacter();
       this.updateFinishButton();
-    }, 100);
+      this.updateSectorVisibility();
+    });
+  }
+
+  // Оптимизация: группировка DOM обновлений
+  batchDOMUpdates(updates) {
+    // Используем requestAnimationFrame для группировки обновлений
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    
+    this.animationFrameId = requestAnimationFrame(() => {
+      updates();
+      this.animationFrameId = null;
+    });
   }
 
   isCharacterCorrectForSector(character, sectorType) {
@@ -314,10 +342,11 @@ class WorldGovernmentQuest {
 
     countElement.textContent = `${sector.members.length}/${sector.max}`;
     
-    // Обновляем отображение членов
-    membersElement.innerHTML = '';
+    // Оптимизация: используем DocumentFragment для группировки DOM операций
+    const fragment = document.createDocumentFragment();
     
     if (sector.members.length === 0) {
+      membersElement.innerHTML = '';
       return;
     }
     
@@ -326,7 +355,7 @@ class WorldGovernmentQuest {
       tag.className = `member-tag ${sector.members[0].isCorrect ? 'correct' : 'incorrect'}`;
       tag.textContent = sector.members[0].name.split(' ')[0];
       tag.title = sector.members[0].name;
-      membersElement.appendChild(tag);
+      fragment.appendChild(tag);
     } else {
       // Показываем первого и "и другие..."
       const tag = document.createElement('div');
@@ -334,9 +363,23 @@ class WorldGovernmentQuest {
       tag.textContent = `${sector.members[0].name.split(' ')[0]} и другие...`;
       tag.title = `Нажмите для просмотра всех ${sector.members.length} персонажей`;
       tag.style.cursor = 'pointer';
-      tag.addEventListener('click', () => this.showMembersList(sectorType));
-      membersElement.appendChild(tag);
+      
+      // Оптимизация: используем bind для предотвращения создания новых функций
+      if (!this.memberClickHandlers) {
+        this.memberClickHandlers = new Map();
+      }
+      
+      if (!this.memberClickHandlers.has(sectorType)) {
+        this.memberClickHandlers.set(sectorType, () => this.showMembersList(sectorType));
+      }
+      
+      tag.addEventListener('click', this.memberClickHandlers.get(sectorType));
+      fragment.appendChild(tag);
     }
+    
+    // Оптимизация: очищаем и добавляем за одну операцию
+    membersElement.innerHTML = '';
+    membersElement.appendChild(fragment);
   }
 
   updateSectorCounts() {
@@ -348,9 +391,10 @@ class WorldGovernmentQuest {
 
   loadCurrentCharacter() {
     const character = this.getNextValidCharacter();
+    const characterCard = this.domCache.currentCharacter;
+    
     if (!character) {
       // Если нет подходящих персонажей, показываем сообщение
-      const characterCard = document.getElementById('current-character');
       characterCard.innerHTML = `
         <div class="character-name">Нет подходящих персонажей</div>
         <div class="character-description">Все доступные секторы заполнены или нет персонажей для оставшихся секторов.</div>
@@ -359,13 +403,12 @@ class WorldGovernmentQuest {
       return;
     }
 
-    const characterCard = document.getElementById('current-character');
+    // Оптимизация: используем template literals для лучшей производительности
+    const traitsHTML = character.traits.map(trait => `<span class="trait">${trait}</span>`).join('');
     
     characterCard.innerHTML = `
       <div class="character-name">${character.name}</div>
-      <div class="character-traits">
-        ${character.traits.map(trait => `<span class="trait">${trait}</span>`).join('')}
-      </div>
+      <div class="character-traits">${traitsHTML}</div>
       <div class="character-description">${character.description}</div>
     `;
     
@@ -1203,30 +1246,43 @@ class WorldGovernmentQuest {
 
   showMembersList(sectorType) {
     const sector = this.sectors[sectorType];
-    const modal = document.getElementById('members-modal');
+    const modal = this.domCache.membersModal;
     const title = document.getElementById('members-title');
-    const list = document.getElementById('members-list');
+    const list = this.domCache.membersList;
 
     title.textContent = `Персонажи в ${sector.name} штабе`;
-    list.innerHTML = '';
-
+    
+    // Оптимизация: используем DocumentFragment
+    const fragment = document.createDocumentFragment();
+    
     sector.members.forEach((member, index) => {
       const item = document.createElement('div');
       item.className = 'member-item';
+      
+      // Оптимизация: кэшируем HTML для traits
+      const traitsHTML = member.traits.map(trait => `<span class="member-item-trait">${trait}</span>`).join('');
+      
       item.innerHTML = `
         <div class="member-item-name">${member.name}</div>
-        <div class="member-item-traits">
-          ${member.traits.map(trait => `<span class="member-item-trait">${trait}</span>`).join('')}
-        </div>
+        <div class="member-item-traits">${traitsHTML}</div>
       `;
       
-      item.addEventListener('click', () => {
-        this.showCharacterDetails(member);
-      });
+      // Оптимизация: используем bind для предотвращения создания новых функций
+      if (!this.memberDetailHandlers) {
+        this.memberDetailHandlers = new Map();
+      }
       
-      list.appendChild(item);
+      const memberKey = `${member.name}-${sectorType}`;
+      if (!this.memberDetailHandlers.has(memberKey)) {
+        this.memberDetailHandlers.set(memberKey, () => this.showCharacterDetails(member));
+      }
+      
+      item.addEventListener('click', this.memberDetailHandlers.get(memberKey));
+      fragment.appendChild(item);
     });
 
+    list.innerHTML = '';
+    list.appendChild(fragment);
     modal.classList.add('active');
   }
 
@@ -1262,14 +1318,17 @@ class WorldGovernmentQuest {
 
     // Отображаем предателя
     const traitorCard = document.getElementById('traitor-card');
+    const traitorTraits = traitor.traits.join(', ');
     traitorCard.innerHTML = `
       <div class="character-name">${traitor.name}</div>
-      <div class="character-traits">${traitor.traits.join(', ')}</div>
+      <div class="character-traits">${traitorTraits}</div>
     `;
 
     // Отображаем доступных союзников
     const alliesContainer = document.getElementById('allies-container');
-    alliesContainer.innerHTML = '';
+    
+    // Оптимизация: используем DocumentFragment
+    const fragment = document.createDocumentFragment();
     
     allies.forEach((ally, index) => {
       const allyCard = document.createElement('div');
@@ -1277,9 +1336,10 @@ class WorldGovernmentQuest {
       allyCard.draggable = true;
       allyCard.dataset.allyIndex = index;
       
+      const allyTraits = ally.traits.join(', ');
       allyCard.innerHTML = `
         <div class="ally-name">${ally.name}</div>
-        <div class="ally-traits">${ally.traits.join(', ')}</div>
+        <div class="ally-traits">${allyTraits}</div>
       `;
 
       // Drag events для союзников
@@ -1292,35 +1352,46 @@ class WorldGovernmentQuest {
         allyCard.classList.remove('dragging');
       });
 
-      alliesContainer.appendChild(allyCard);
+      fragment.appendChild(allyCard);
     });
+
+    alliesContainer.innerHTML = '';
+    alliesContainer.appendChild(fragment);
 
     // Настройка зоны истребления
-    const eliminationZone = document.getElementById('elimination-zone');
-    eliminationZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      eliminationZone.style.borderColor = 'var(--accent)';
-      eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 123, 255, 0.1) 100%)';
-    });
+    const eliminationZone = this.domCache.eliminationZone;
+    
+    // Оптимизация: кэшируем обработчики событий
+    if (!this.eliminationZoneHandlers) {
+      this.eliminationZoneHandlers = {
+        dragover: (e) => {
+          e.preventDefault();
+          eliminationZone.style.borderColor = 'var(--accent)';
+          eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 123, 255, 0.1) 100%)';
+        },
+        dragleave: (e) => {
+          eliminationZone.style.borderColor = 'var(--accent)';
+          eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%)';
+        },
+        drop: (e) => {
+          e.preventDefault();
+          const allyIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          this.addAllyToElimination(allyIndex);
+          
+          eliminationZone.style.borderColor = 'var(--accent)';
+          eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%)';
+        }
+      };
+    }
 
-    eliminationZone.addEventListener('dragleave', () => {
-      eliminationZone.style.borderColor = 'var(--accent)';
-      eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%)';
-    });
-
-    eliminationZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      const allyIndex = parseInt(e.dataTransfer.getData('text/plain'));
-      this.addAllyToElimination(allyIndex);
-      
-      eliminationZone.style.borderColor = 'var(--accent)';
-      eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%)';
-    });
+    eliminationZone.addEventListener('dragover', this.eliminationZoneHandlers.dragover);
+    eliminationZone.addEventListener('dragleave', this.eliminationZoneHandlers.dragleave);
+    eliminationZone.addEventListener('drop', this.eliminationZoneHandlers.drop);
 
     // Touch events для мобильных устройств
     this.setupTouchElimination();
 
-    document.getElementById('elimination-modal').classList.add('active');
+    this.domCache.eliminationModal.classList.add('active');
   }
 
   setupTouchElimination() {
@@ -1405,22 +1476,32 @@ class WorldGovernmentQuest {
   }
 
   updateSelectedAlliesDisplay() {
-    const selectedAlliesContainer = document.getElementById('selected-allies');
-    selectedAlliesContainer.innerHTML = '';
+    const selectedAlliesContainer = this.domCache.selectedAllies;
+    
+    // Оптимизация: используем DocumentFragment
+    const fragment = document.createDocumentFragment();
 
     this.selectedAllies.forEach(ally => {
       const allyElement = document.createElement('div');
       allyElement.className = 'selected-ally';
       allyElement.innerHTML = `
         ${ally.name}
-        <button class="remove-ally" onclick="quest.removeAllyFromElimination(${ally.index})">×</button>
+        <button class="remove-ally" data-ally-index="${ally.index}">×</button>
       `;
-      selectedAlliesContainer.appendChild(allyElement);
+      
+      // Оптимизация: используем делегирование событий
+      const removeButton = allyElement.querySelector('.remove-ally');
+      removeButton.addEventListener('click', () => this.removeAllyFromElimination(ally.index));
+      
+      fragment.appendChild(allyElement);
     });
+
+    selectedAlliesContainer.innerHTML = '';
+    selectedAlliesContainer.appendChild(fragment);
   }
 
   updateEliminationButton() {
-    const executeButton = document.getElementById('execute-elimination');
+    const executeButton = this.domCache.executeButton;
     const isEnoughAllies = this.selectedAllies.length >= this.requiredAlliesCount;
     
     executeButton.disabled = !isEnoughAllies;
@@ -1460,6 +1541,16 @@ class WorldGovernmentQuest {
     return null;
   }
 
+  resetCharacterStyles(characterCard) {
+    characterCard.classList.remove('dragging');
+    characterCard.style.position = '';
+    characterCard.style.zIndex = '';
+    characterCard.style.left = '';
+    characterCard.style.top = '';
+    characterCard.style.pointerEvents = '';
+    characterCard.style.transition = '';
+  }
+
   returnCharacterToOriginalPosition(characterCard, originalPosition) {
     if (!originalPosition) return;
     
@@ -1472,13 +1563,7 @@ class WorldGovernmentQuest {
     
     // Через время анимации сбрасываем все стили
     setTimeout(() => {
-      characterCard.classList.remove('dragging');
-      characterCard.style.position = '';
-      characterCard.style.zIndex = '';
-      characterCard.style.left = '';
-      characterCard.style.top = '';
-      characterCard.style.pointerEvents = '';
-      characterCard.style.transition = '';
+      this.resetCharacterStyles(characterCard);
     }, 300);
   }
 
@@ -1502,15 +1587,33 @@ ${this.selectedAllies.map(ally => `• ${ally.name} (${ally.traits.join(', ')})`
   }
 
   hideEliminationModal() {
-    document.getElementById('elimination-modal').classList.remove('active');
+    this.domCache.eliminationModal.classList.remove('active');
+    
+    // Очищаем обработчики событий зоны истребления
+    if (this.eliminationZoneHandlers) {
+      const eliminationZone = this.domCache.eliminationZone;
+      eliminationZone.removeEventListener('dragover', this.eliminationZoneHandlers.dragover);
+      eliminationZone.removeEventListener('dragleave', this.eliminationZoneHandlers.dragleave);
+      eliminationZone.removeEventListener('drop', this.eliminationZoneHandlers.drop);
+    }
+    
     this.selectedAllies = [];
     this.currentTraitor = null;
     this.availableAllies = null;
   }
 
   updateSectorVisibility() {
+    // Оптимизация: кэшируем элементы секторов
+    if (!this.sectorElements) {
+      this.sectorElements = new Map();
+      this.domCache.sectors.forEach(sector => {
+        this.sectorElements.set(sector.dataset.sector, sector);
+      });
+    }
+    
     Object.entries(this.sectors).forEach(([sectorType, sector]) => {
-      const sectorElement = document.querySelector(`[data-sector="${sectorType}"]`);
+      const sectorElement = this.sectorElements.get(sectorType);
+      if (!sectorElement) return;
       
       if (sector.members.length >= sector.max) {
         // Сектор заполнен - делаем его полупрозрачным и неактивным
@@ -1520,8 +1623,10 @@ ${this.selectedAllies.map(ally => `• ${ally.name} (${ally.traits.join(', ')})`
         
         // Добавляем индикатор заполнения
         const countElement = sectorElement.querySelector('.sector-count');
-        countElement.style.color = 'var(--success)';
-        countElement.style.fontWeight = 'bold';
+        if (countElement) {
+          countElement.style.color = 'var(--success)';
+          countElement.style.fontWeight = 'bold';
+        }
       } else {
         // Сектор не заполнен - возвращаем нормальный вид
         sectorElement.style.opacity = '1';
@@ -1530,8 +1635,10 @@ ${this.selectedAllies.map(ally => `• ${ally.name} (${ally.traits.join(', ')})`
         
         // Возвращаем нормальный вид счетчика
         const countElement = sectorElement.querySelector('.sector-count');
-        countElement.style.color = 'var(--glow2)';
-        countElement.style.fontWeight = 'normal';
+        if (countElement) {
+          countElement.style.color = 'var(--glow2)';
+          countElement.style.fontWeight = 'normal';
+        }
       }
     });
   }
@@ -1541,4 +1648,34 @@ ${this.selectedAllies.map(ally => `• ${ally.name} (${ally.traits.join(', ')})`
 let quest;
 document.addEventListener('DOMContentLoaded', () => {
   quest = new WorldGovernmentQuest();
+});
+
+// Оптимизация: очистка ресурсов при уходе со страницы
+window.addEventListener('beforeunload', () => {
+  if (quest) {
+    // Очищаем все обработчики событий
+    if (quest.eventListeners) {
+      quest.eventListeners.forEach(({ element, handler }) => {
+        element.removeEventListener('click', handler);
+      });
+    }
+    
+    // Очищаем анимации
+    if (quest.animationFrameId) {
+      cancelAnimationFrame(quest.animationFrameId);
+    }
+    
+    // Очищаем drag & drop обработчики
+    if (quest.dragDropHandlers) {
+      const characterCard = quest.domCache.currentCharacter;
+      if (characterCard) {
+        characterCard.removeEventListener('dragstart', quest.dragDropHandlers.characterCard.dragStartHandler);
+        characterCard.removeEventListener('dragend', quest.dragDropHandlers.characterCard.dragEndHandler);
+        characterCard.removeEventListener('touchstart', quest.dragDropHandlers.characterCard.touchStartHandler);
+        characterCard.removeEventListener('touchmove', quest.dragDropHandlers.characterCard.touchMoveHandler);
+        characterCard.removeEventListener('touchend', quest.dragDropHandlers.characterCard.touchEndHandler);
+        characterCard.removeEventListener('click', quest.dragDropHandlers.characterCard.clickHandler);
+      }
+    }
+  }
 });
