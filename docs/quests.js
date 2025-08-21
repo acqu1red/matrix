@@ -1465,7 +1465,7 @@ function buildCards(state){
     card.style.animationDelay = `${index * 0.1}s`;
     
     card.innerHTML = `
-      ${state.isAdmin ? '<div class="premium-indicator">👑</div>' : ''}
+      ${state.isAdmin ? '<div class="premium-indicator">👑 Админ доступ</div>' : ''}
       <div class="label">${q.theme}</div>
       <h3>${q.name}</h3>
       <div class="description">${q.description}</div>
@@ -1487,7 +1487,7 @@ function buildCards(state){
     container.appendChild(card);
   });
 
-  // Показываем заблокированные квесты для бесплатных пользователей
+  // Показываем заблокированные квесты для бесплатных пользователей (но не для админов)
   if(!state.isSubscribed && !state.isAdmin){
     const others = QUESTS.filter(q => !q.available);
     others.forEach((q, index) => {
