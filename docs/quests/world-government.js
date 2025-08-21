@@ -31,6 +31,11 @@ class WorldGovernmentQuest {
       this.hideWarning();
     });
 
+    // Кнопка "На главную"
+    document.getElementById('back-to-main').addEventListener('click', () => {
+      this.goToMain();
+    });
+
     // Кнопка пропуска персонажа
     document.getElementById('skip-character').addEventListener('click', () => {
       this.skipCharacter();
@@ -68,6 +73,15 @@ class WorldGovernmentQuest {
       this.hideCharacterDetailsModal();
     });
 
+    // Окно истребления
+    document.getElementById('cancel-elimination').addEventListener('click', () => {
+      this.hideEliminationModal();
+    });
+
+    document.getElementById('execute-elimination').addEventListener('click', () => {
+      this.executeElimination();
+    });
+
     // Перетаскивание
     this.setupDragAndDrop();
   }
@@ -75,6 +89,11 @@ class WorldGovernmentQuest {
   hideWarning() {
     document.getElementById('warning-modal').classList.remove('active');
     document.getElementById('main-interface').classList.remove('hidden');
+  }
+
+  goToMain() {
+    // Возвращаемся на главную страницу квестов
+    window.location.href = '../quests.html';
   }
 
   showFinishModal() {
@@ -508,26 +527,29 @@ class WorldGovernmentQuest {
   }
 
   eliminateThreat(sectorType, memberName) {
-    // Удаляем угрозу
-    this.sectors[sectorType].members = this.sectors[sectorType].members.filter(
-      m => m.name !== memberName
-    );
+    // Находим предателя
+    const traitor = this.sectors[sectorType].members.find(m => m.name === memberName);
+    if (!traitor) return;
+
+    // Находим правильных членов сектора для истребления
+    const correctMembers = this.sectors[sectorType].members.filter(m => m.isCorrect);
     
-    // Уменьшаем вероятность неудачи
-    const sectorWeight = this.getSectorWeight(sectorType);
-    this.failureProbability = Math.max(0, this.failureProbability - sectorWeight * 15);
+    // Определяем количество требуемых союзников
+    const requiredCount = sectorType === 'research' ? 3 : 2;
     
-    // Обновляем отображение
-    this.updateSectorDisplay(sectorType);
-    
-    // Показываем сообщение об успешном устранении
-    const content = document.getElementById('results-content');
-    content.innerHTML = `
-      <p style="color: var(--success); font-weight: bold;">✅ Угроза успешно устранена!</p>
-      <p>${memberName} был нейтрализован силами ${this.sectors[sectorType].name} сектора.</p>
-      <p>Вероятность неудачи снижена на ${(sectorWeight * 15).toFixed(1)}%.</p>
-      <p style="color: #4ade80; font-weight: bold;">Продолжаем операцию...</p>
-    `;
+    if (correctMembers.length >= requiredCount) {
+      // Показываем окно истребления
+      this.showEliminationModal(traitor, correctMembers, requiredCount);
+    } else {
+      // Недостаточно сил для истребления
+      const content = document.getElementById('results-content');
+      content.innerHTML = `
+        <p style="color: var(--error); font-weight: bold;">❌ Недостаточно сил для истребления!</p>
+        <p>Для истребления ${memberName} требуется минимум ${requiredCount} правильных членов в ${this.sectors[sectorType].name} секторе.</p>
+        <p>Текущее количество: ${correctMembers.length}</p>
+        <p style="color: var(--warning); font-weight: bold;">Угроза остается активной...</p>
+      `;
+    }
   }
 
   nextResult() {
@@ -1214,6 +1236,222 @@ class WorldGovernmentQuest {
 
   hideCharacterDetailsModal() {
     document.getElementById('character-details-modal').classList.remove('active');
+  }
+
+  // Методы для окна истребления
+  showEliminationModal(traitor, allies, requiredCount) {
+    this.currentTraitor = traitor;
+    this.availableAllies = allies;
+    this.requiredAlliesCount = requiredCount;
+    this.selectedAllies = [];
+
+    // Отображаем предателя
+    const traitorCard = document.getElementById('traitor-card');
+    traitorCard.innerHTML = `
+      <div class="character-name">${traitor.name}</div>
+      <div class="character-traits">${traitor.traits.join(', ')}</div>
+    `;
+
+    // Отображаем доступных союзников
+    const alliesContainer = document.getElementById('allies-container');
+    alliesContainer.innerHTML = '';
+    
+    allies.forEach((ally, index) => {
+      const allyCard = document.createElement('div');
+      allyCard.className = 'ally-card';
+      allyCard.draggable = true;
+      allyCard.dataset.allyIndex = index;
+      
+      allyCard.innerHTML = `
+        <div class="ally-name">${ally.name}</div>
+        <div class="ally-traits">${ally.traits.join(', ')}</div>
+      `;
+
+      // Drag events для союзников
+      allyCard.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', index);
+        allyCard.classList.add('dragging');
+      });
+
+      allyCard.addEventListener('dragend', () => {
+        allyCard.classList.remove('dragging');
+      });
+
+      alliesContainer.appendChild(allyCard);
+    });
+
+    // Настройка зоны истребления
+    const eliminationZone = document.getElementById('elimination-zone');
+    eliminationZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      eliminationZone.style.borderColor = 'var(--accent)';
+      eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 123, 255, 0.1) 100%)';
+    });
+
+    eliminationZone.addEventListener('dragleave', () => {
+      eliminationZone.style.borderColor = 'var(--accent)';
+      eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%)';
+    });
+
+    eliminationZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const allyIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      this.addAllyToElimination(allyIndex);
+      
+      eliminationZone.style.borderColor = 'var(--accent)';
+      eliminationZone.style.background = 'linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%)';
+    });
+
+    // Touch events для мобильных устройств
+    this.setupTouchElimination();
+
+    document.getElementById('elimination-modal').classList.add('active');
+  }
+
+  setupTouchElimination() {
+    const allyCards = document.querySelectorAll('.ally-card');
+    const eliminationZone = document.getElementById('elimination-zone');
+
+    allyCards.forEach((card, index) => {
+      let isDragging = false;
+      let startX, startY;
+
+      card.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        card.classList.add('dragging');
+      });
+
+      card.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        
+        card.style.transform = `translate(${currentX - startX}px, ${currentY - startY}px)`;
+      });
+
+      card.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        card.classList.remove('dragging');
+        card.style.transform = '';
+
+        // Проверяем, попал ли элемент в зону истребления
+        const zoneRect = eliminationZone.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        
+        if (cardRect.left < zoneRect.right && cardRect.right > zoneRect.left &&
+            cardRect.top < zoneRect.bottom && cardRect.bottom > zoneRect.top) {
+          this.addAllyToElimination(index);
+        }
+      });
+    });
+  }
+
+  addAllyToElimination(allyIndex) {
+    if (this.selectedAllies.length >= this.requiredAlliesCount) {
+      return; // Уже достаточно союзников
+    }
+
+    const ally = this.availableAllies[allyIndex];
+    if (this.selectedAllies.find(a => a.index === allyIndex)) {
+      return; // Союзник уже выбран
+    }
+
+    this.selectedAllies.push({ ...ally, index: allyIndex });
+    this.updateSelectedAlliesDisplay();
+    this.updateEliminationButton();
+  }
+
+  removeAllyFromElimination(allyIndex) {
+    this.selectedAllies = this.selectedAllies.filter(a => a.index !== allyIndex);
+    this.updateSelectedAlliesDisplay();
+    this.updateEliminationButton();
+  }
+
+  updateSelectedAlliesDisplay() {
+    const selectedAlliesContainer = document.getElementById('selected-allies');
+    selectedAlliesContainer.innerHTML = '';
+
+    this.selectedAllies.forEach(ally => {
+      const allyElement = document.createElement('div');
+      allyElement.className = 'selected-ally';
+      allyElement.innerHTML = `
+        ${ally.name}
+        <button class="remove-ally" onclick="quest.removeAllyFromElimination(${ally.index})">×</button>
+      `;
+      selectedAlliesContainer.appendChild(allyElement);
+    });
+  }
+
+  updateEliminationButton() {
+    const executeButton = document.getElementById('execute-elimination');
+    const isEnoughAllies = this.selectedAllies.length >= this.requiredAlliesCount;
+    
+    executeButton.disabled = !isEnoughAllies;
+    executeButton.textContent = `Истребить предателя (${this.selectedAllies.length}/${this.requiredAlliesCount})`;
+  }
+
+  executeElimination() {
+    if (this.selectedAllies.length < this.requiredAlliesCount) {
+      return;
+    }
+
+    // Удаляем предателя из сектора
+    const sectorType = this.findSectorByMember(this.currentTraitor.name);
+    if (sectorType) {
+      this.sectors[sectorType].members = this.sectors[sectorType].members.filter(
+        m => m.name !== this.currentTraitor.name
+      );
+      this.updateSectorDisplay(sectorType);
+    }
+
+    // Уменьшаем вероятность неудачи
+    this.failureProbability = Math.max(0, this.failureProbability - 15);
+    
+    // Скрываем окно истребления
+    this.hideEliminationModal();
+    
+    // Показываем результат истребления
+    this.showEliminationResult();
+  }
+
+  findSectorByMember(memberName) {
+    for (const [sectorType, sector] of Object.entries(this.sectors)) {
+      if (sector.members.find(m => m.name === memberName)) {
+        return sectorType;
+      }
+    }
+    return null;
+  }
+
+  showEliminationResult() {
+    const resultText = `✅ Предатель ${this.currentTraitor.name} успешно истреблен! 
+    
+Использованные силы:
+${this.selectedAllies.map(ally => `• ${ally.name} (${ally.traits.join(', ')})`).join('\n')}
+
+Вероятность неудачи снижена до ${this.failureProbability}%`;
+
+    // Добавляем результат в общий список результатов
+    this.results.push({
+      type: 'elimination',
+      content: resultText,
+      title: 'Истребление предателя'
+    });
+
+    // Продолжаем показ результатов
+    this.nextResult();
+  }
+
+  hideEliminationModal() {
+    document.getElementById('elimination-modal').classList.remove('active');
+    this.selectedAllies = [];
+    this.currentTraitor = null;
+    this.availableAllies = null;
   }
 
   updateSectorVisibility() {

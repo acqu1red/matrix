@@ -31,6 +31,14 @@
 
     <!-- Основной интерфейс -->
     <div id="main-interface" class="main-interface hidden">
+      <!-- Кнопка "На главную" -->
+      <div class="header-controls">
+        <button id="back-to-main" class="btn btn-secondary back-btn">
+          <span class="back-icon">←</span>
+          На главную
+        </button>
+      </div>
+      
       <!-- Остров с секторами -->
       <div class="island-container">
         <img src="../assets/photovideo/ostrov.png" alt="Остров" class="island-image">
@@ -150,6 +158,50 @@
         <div class="character-details-description" id="character-details-description"></div>
         <div class="modal-footer">
           <button id="close-character-details" class="btn btn-primary">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно истребления предателя -->
+    <div id="elimination-modal" class="modal">
+      <div class="modal-content elimination-modal-content">
+        <div class="modal-header">
+          <h3>Истребление предателя</h3>
+          <div class="elimination-instruction">
+            <p>Выберите и перетащите подчиненных для истребления предателя</p>
+          </div>
+        </div>
+        <div class="elimination-container">
+          <!-- Левая сторона - предатель в клетке -->
+          <div class="traitor-section">
+            <div class="traitor-cage">
+              <div class="cage-header">Предатель</div>
+              <div class="traitor-card" id="traitor-card">
+                <!-- Предатель будет загружен динамически -->
+              </div>
+            </div>
+          </div>
+          
+          <!-- Правая сторона - доступные подчиненные -->
+          <div class="allies-section">
+            <div class="allies-header">Доступные подчиненные</div>
+            <div class="allies-container" id="allies-container">
+              <!-- Подчиненные будут загружены динамически -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Область для перетаскивания подчиненных -->
+        <div class="elimination-zone" id="elimination-zone">
+          <div class="zone-header">Зона истребления</div>
+          <div class="selected-allies" id="selected-allies">
+            <!-- Выбранные подчиненные будут здесь -->
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button id="execute-elimination" class="btn btn-danger" disabled>Истребить предателя</button>
+          <button id="cancel-elimination" class="btn btn-secondary">Отмена</button>
         </div>
       </div>
     </div>
