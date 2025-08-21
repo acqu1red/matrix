@@ -19,12 +19,9 @@ const ROULETTE_PRIZES = [
   { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 2, probability: 0.02, color: "#FFD700" },
   { id: "discount500", name: "Скидка 500₽", icon: "💰", count: 1, probability: 0.05, color: "#FF6B6B" },
   { id: "discount100", name: "Скидка 100₽", icon: "💵", count: 2, probability: 0.08, color: "#4ECDC4" },
-  { id: "discount50", name: "Скидка 50₽", icon: "🪙", count: 3, probability: 0.12, color: "#A8E6CF" },
   { id: "mulacoin100", name: "100 MULACOIN", icon: "🪙", count: 4, probability: 0.15, color: "#FFEAA7" },
   { id: "mulacoin50", name: "50 MULACOIN", icon: "🪙", count: 5, probability: 0.18, color: "#DDA0DD" },
-  { id: "mulacoin25", name: "25 MULACOIN", icon: "🪙", count: 6, probability: 0.20, color: "#98D8C8" },
-  { id: "mulacoin10", name: "10 MULACOIN", icon: "🪙", count: 7, probability: 0.25, color: "#87CEEB" },
-  { id: "spin1", name: "+1 SPIN", icon: "🎰", count: 8, probability: 0.30, color: "#FFB6C1" },
+  { id: "spin1", name: "+1 SPIN", icon: "🎰", count: 6, probability: 0.30, color: "#FFB6C1" },
   { id: "quest24h", name: "+1 квест 24ч", icon: "🎯", count: 3, probability: 0.15, color: "#F7DC6F" },
   { id: "frodCourse", name: "КУРС ФРОДА", icon: "📚", count: 1, probability: 0.0001, color: "#6C5CE7" }
 ];
@@ -404,12 +401,9 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'subscription', name: 'Подписка', icon: '👑', count: 3, probability: 0.03 },
     { id: 'discount500', name: '500₽', icon: '💎', count: 1, probability: 0.10 },
     { id: 'discount100', name: '100₽', icon: '💵', count: 3, probability: 0.15 },
-    { id: 'discount50', name: '50₽', icon: '💰', count: 4, probability: 0.20 },
     { id: 'mulacoin100', name: '100 MULACOIN', icon: '🪙', count: 5, probability: 0.25 },
     { id: 'mulacoin50', name: '50 MULACOIN', icon: '🪙', count: 6, probability: 0.30 },
-    { id: 'mulacoin25', name: '25 MULACOIN', icon: '🪙', count: 7, probability: 0.35 },
-    { id: 'mulacoin10', name: '10 MULACOIN', icon: '🪙', count: 8, probability: 0.40 },
-    { id: 'spin1', name: '+1 SPIN', icon: '🎰', count: 9, probability: 0.45 },
+    { id: 'spin1', name: '+1 SPIN', icon: '🎰', count: 7, probability: 0.45 },
     { id: 'quest24h', name: 'Квест 24ч', icon: '🎯', count: 5, probability: 0.75 },
     { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
   ]
