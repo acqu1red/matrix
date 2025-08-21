@@ -4,11 +4,11 @@ class WorldGovernmentQuest {
     this.characters = this.generateCharacters();
     this.currentCharacterIndex = 0;
     this.sectors = {
-      political: { max: 6, members: [], name: 'Политический' },
-      military: { max: 5, members: [], name: 'Военный' },
+      political: { max: 4, members: [], name: 'Политический' },
+      military: { max: 3, members: [], name: 'Военный' },
       economic: { max: 2, members: [], name: 'Экономический' },
       research: { max: 2, members: [], name: 'Исследовательский' },
-      propaganda: { max: 4, members: [], name: 'Пропагандистский' }
+      propaganda: { max: 3, members: [], name: 'Пропагандистский' }
     };
     this.draggedElement = null;
     this.results = [];
@@ -229,7 +229,12 @@ class WorldGovernmentQuest {
   }
 
   assignCharacterToSector(sectorType) {
-    const currentCharacter = this.characters[this.currentCharacterIndex];
+    const currentCharacter = this.getNextValidCharacter();
+    if (!currentCharacter) {
+      alert('Нет подходящих персонажей для размещения!');
+      return;
+    }
+
     const sector = this.sectors[sectorType];
 
     if (sector.members.length >= sector.max) {
@@ -250,6 +255,12 @@ class WorldGovernmentQuest {
     this.loadNextCharacter();
     this.updateFinishButton();
     this.updateSectorVisibility();
+    
+    // Принудительное обновление для исправления багов
+    setTimeout(() => {
+      this.updateSectorVisibility();
+      this.updateFinishButton();
+    }, 100);
   }
 
   isCharacterCorrectForSector(character, sectorType) {
@@ -309,7 +320,18 @@ class WorldGovernmentQuest {
   }
 
   loadCurrentCharacter() {
-    const character = this.characters[this.currentCharacterIndex];
+    const character = this.getNextValidCharacter();
+    if (!character) {
+      // Если нет подходящих персонажей, показываем сообщение
+      const characterCard = document.getElementById('current-character');
+      characterCard.innerHTML = `
+        <div class="character-name">Нет подходящих персонажей</div>
+        <div class="character-description">Все доступные секторы заполнены или нет персонажей для оставшихся секторов.</div>
+      `;
+      characterCard.draggable = false;
+      return;
+    }
+
     const characterCard = document.getElementById('current-character');
     
     characterCard.innerHTML = `
@@ -321,6 +343,41 @@ class WorldGovernmentQuest {
     `;
     
     characterCard.draggable = true;
+  }
+
+  getNextValidCharacter() {
+    // Получаем незаполненные секторы
+    const availableSectors = Object.entries(this.sectors).filter(([type, sector]) => 
+      sector.members.length < sector.max
+    );
+
+    if (availableSectors.length === 0) {
+      return null; // Все секторы заполнены
+    }
+
+    // Ищем персонажа, который подходит хотя бы к одному из доступных секторов
+    let attempts = 0;
+    const maxAttempts = this.characters.length * 2; // Максимум 2 полных цикла
+
+    while (attempts < maxAttempts) {
+      const character = this.characters[this.currentCharacterIndex];
+      
+      // Проверяем, подходит ли персонаж к какому-либо из доступных секторов
+      for (const [sectorType, sector] of availableSectors) {
+        if (this.isCharacterCorrectForSector(character, sectorType)) {
+          return character;
+        }
+      }
+
+      // Если персонаж не подходит, переходим к следующему
+      this.currentCharacterIndex++;
+      if (this.currentCharacterIndex >= this.characters.length) {
+        this.currentCharacterIndex = 0;
+      }
+      attempts++;
+    }
+
+    return null; // Не найден подходящий персонаж
   }
 
   loadNextCharacter() {
@@ -463,13 +520,13 @@ class WorldGovernmentQuest {
   }
 
   showResult() {
-    if (this.failureProbability >= 80) {
-      this.showFailureResult();
-      return;
-    }
-
     if (this.currentResultIndex >= this.results.length) {
-      this.showFinalResult();
+      // Показываем все сюжеты, затем проверяем вероятность неудачи
+      if (this.failureProbability >= 80) {
+        this.showFailureResult();
+      } else {
+        this.showFinalResult();
+      }
       return;
     }
 
@@ -712,7 +769,7 @@ class WorldGovernmentQuest {
     const economicNames = [
       'Джеффри Эпштейн', 'Бернард Мэдофф', 'Уоррен Баффет', 'Джордж Сорос', 'Билл Гейтс',
       'Джефф Безос', 'Артем Борисов', 'Алина Соколова', 'Максим Козлов', 'Дарья Морозова',
-      'Роман Волков', 'Ангелина Новикова'
+      'Роман Волков', 'Ангелина Новикова', 'Кирилл Лебедев', 'Полина Смирнова'
     ];
 
     economicTraits.forEach((traits, index) => {
@@ -763,7 +820,8 @@ class WorldGovernmentQuest {
 
     const propagandaNames = [
       'Джозеф Геббельс', 'Пол Джозеф Гоббс', 'Эдвард Бернейс', 'Анна Смирнова',
-      'Игорь Петров', 'Марина Козлова', 'Сергей Морозов', 'Ольга Волкова'
+      'Игорь Петров', 'Марина Козлова', 'Сергей Морозов', 'Ольга Волкова',
+      'Дмитрий Новиков', 'Татьяна Лебедева', 'Алексей Соколов', 'Елена Петрова'
     ];
 
     propagandaTraits.forEach((traits, index) => {
