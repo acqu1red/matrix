@@ -125,42 +125,41 @@ class WorldGovernmentQuest {
     let touchStartY = 0;
     let isDragging = false;
     let draggedElement = null;
+    let touchStartTime = 0;
+    let originalPosition = null;
 
     characterCard.addEventListener('touchstart', (e) => {
       e.preventDefault();
       const touch = e.touches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
+      touchStartTime = Date.now();
       isDragging = false;
       draggedElement = characterCard;
       
-      // Добавляем небольшую задержку для определения длительного нажатия
-      setTimeout(() => {
-        if (draggedElement === characterCard) {
-          isDragging = true;
-          characterCard.classList.add('dragging');
-          characterCard.style.position = 'fixed';
-          characterCard.style.zIndex = '1000';
-          characterCard.style.pointerEvents = 'none';
-        }
-      }, 200);
+      // Сохраняем исходное положение
+      const rect = characterCard.getBoundingClientRect();
+      originalPosition = {
+        left: rect.left,
+        top: rect.top
+      };
     });
 
     characterCard.addEventListener('touchmove', (e) => {
       e.preventDefault();
-      if (!isDragging) return;
-      
       const touch = e.touches[0];
       const deltaX = touch.clientX - touchStartX;
       const deltaY = touch.clientY - touchStartY;
+      const touchDuration = Date.now() - touchStartTime;
       
-      // Проверяем, что движение достаточно большое для начала перетаскивания
-      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      // Начинаем перетаскивание только если движение достаточно большое или время нажатия достаточное
+      if (!isDragging && (Math.abs(deltaX) > 15 || Math.abs(deltaY) > 15 || touchDuration > 300)) {
         isDragging = true;
         characterCard.classList.add('dragging');
         characterCard.style.position = 'fixed';
         characterCard.style.zIndex = '1000';
         characterCard.style.pointerEvents = 'none';
+        characterCard.style.transition = 'none'; // Отключаем анимации во время перетаскивания
       }
       
       if (isDragging) {
@@ -188,8 +187,6 @@ class WorldGovernmentQuest {
 
     characterCard.addEventListener('touchend', (e) => {
       e.preventDefault();
-      if (!isDragging) return;
-      
       const touch = e.changedTouches[0];
       const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
       const sectorBelow = elementBelow?.closest('.sector');
@@ -197,26 +194,44 @@ class WorldGovernmentQuest {
       // Убираем подсветку со всех секторов
       sectors.forEach(s => s.classList.remove('drag-over'));
       
-      // Сбрасываем стили персонажа
-      characterCard.classList.remove('dragging');
-      characterCard.style.position = '';
-      characterCard.style.zIndex = '';
-      characterCard.style.left = '';
-      characterCard.style.top = '';
-      characterCard.style.pointerEvents = '';
-      
-      // Если персонаж был отпущен над сектором, назначаем его туда
-      if (sectorBelow) {
-        const sectorType = sectorBelow.dataset.sector;
-        const sectorData = this.sectors[sectorType];
-        
-        if (sectorData.members.length < sectorData.max) {
-          this.assignCharacterToSector(sectorType);
+      if (isDragging) {
+        // Если персонаж был отпущен над сектором, назначаем его туда
+        if (sectorBelow) {
+          const sectorType = sectorBelow.dataset.sector;
+          const sectorData = this.sectors[sectorType];
+          
+          if (sectorData.members.length < sectorData.max) {
+            // Сбрасываем стили персонажа
+            characterCard.classList.remove('dragging');
+            characterCard.style.position = '';
+            characterCard.style.zIndex = '';
+            characterCard.style.left = '';
+            characterCard.style.top = '';
+            characterCard.style.pointerEvents = '';
+            characterCard.style.transition = '';
+            
+            this.assignCharacterToSector(sectorType);
+          } else {
+            // Сектор заполнен - возвращаем в исходное положение
+            this.returnCharacterToOriginalPosition(characterCard, originalPosition);
+          }
+        } else {
+          // Не отпустили над сектором - возвращаем в исходное положение
+          this.returnCharacterToOriginalPosition(characterCard, originalPosition);
         }
       }
       
       isDragging = false;
       draggedElement = null;
+      originalPosition = null;
+    });
+
+    // Предотвращаем конфликт с обычными кликами
+    characterCard.addEventListener('click', (e) => {
+      if (isDragging) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     });
 
     // Drop events для секторов (PC)
@@ -1315,12 +1330,16 @@ class WorldGovernmentQuest {
     allyCards.forEach((card, index) => {
       let isDragging = false;
       let startX, startY;
+      let originalTransform = '';
 
       card.addEventListener('touchstart', (e) => {
+        e.preventDefault();
         isDragging = true;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+        originalTransform = card.style.transform;
         card.classList.add('dragging');
+        card.style.transition = 'none';
       });
 
       card.addEventListener('touchmove', (e) => {
@@ -1335,9 +1354,10 @@ class WorldGovernmentQuest {
 
       card.addEventListener('touchend', (e) => {
         if (!isDragging) return;
+        e.preventDefault();
         isDragging = false;
         card.classList.remove('dragging');
-        card.style.transform = '';
+        card.style.transition = 'all 0.3s ease';
 
         // Проверяем, попал ли элемент в зону истребления
         const zoneRect = eliminationZone.getBoundingClientRect();
@@ -1346,6 +1366,18 @@ class WorldGovernmentQuest {
         if (cardRect.left < zoneRect.right && cardRect.right > zoneRect.left &&
             cardRect.top < zoneRect.bottom && cardRect.bottom > zoneRect.top) {
           this.addAllyToElimination(index);
+          card.style.transform = originalTransform;
+        } else {
+          // Возвращаем в исходное положение
+          card.style.transform = originalTransform;
+        }
+      });
+
+      // Предотвращаем конфликт с обычными кликами
+      card.addEventListener('click', (e) => {
+        if (isDragging) {
+          e.preventDefault();
+          e.stopPropagation();
         }
       });
     });
@@ -1426,6 +1458,28 @@ class WorldGovernmentQuest {
       }
     }
     return null;
+  }
+
+  returnCharacterToOriginalPosition(characterCard, originalPosition) {
+    if (!originalPosition) return;
+    
+    // Включаем анимации обратно
+    characterCard.style.transition = 'all 0.3s ease';
+    
+    // Возвращаем в исходное положение
+    characterCard.style.left = originalPosition.left + 'px';
+    characterCard.style.top = originalPosition.top + 'px';
+    
+    // Через время анимации сбрасываем все стили
+    setTimeout(() => {
+      characterCard.classList.remove('dragging');
+      characterCard.style.position = '';
+      characterCard.style.zIndex = '';
+      characterCard.style.left = '';
+      characterCard.style.top = '';
+      characterCard.style.pointerEvents = '';
+      characterCard.style.transition = '';
+    }, 300);
   }
 
   showEliminationResult() {
