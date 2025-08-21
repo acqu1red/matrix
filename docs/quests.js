@@ -23,6 +23,8 @@ const ROULETTE_PRIZES = [
   { id: "mulacoin100", name: "100 MULACOIN", icon: "🪙", count: 4, probability: 0.15, color: "#FFEAA7" },
   { id: "mulacoin50", name: "50 MULACOIN", icon: "🪙", count: 5, probability: 0.18, color: "#DDA0DD" },
   { id: "mulacoin25", name: "25 MULACOIN", icon: "🪙", count: 6, probability: 0.20, color: "#98D8C8" },
+  { id: "mulacoin10", name: "10 MULACOIN", icon: "🪙", count: 7, probability: 0.25, color: "#87CEEB" },
+  { id: "spin1", name: "+1 SPIN", icon: "🎰", count: 8, probability: 0.30, color: "#FFB6C1" },
   { id: "quest24h", name: "+1 квест 24ч", icon: "🎯", count: 3, probability: 0.15, color: "#F7DC6F" },
   { id: "frodCourse", name: "КУРС ФРОДА", icon: "📚", count: 1, probability: 0.0001, color: "#6C5CE7" }
 ];
@@ -403,6 +405,11 @@ const ROULETTE_PRIZES_DESIGNS = {
     { id: 'discount500', name: '500₽', icon: '💎', count: 1, probability: 0.10 },
     { id: 'discount100', name: '100₽', icon: '💵', count: 3, probability: 0.15 },
     { id: 'discount50', name: '50₽', icon: '💰', count: 4, probability: 0.20 },
+    { id: 'mulacoin100', name: '100 MULACOIN', icon: '🪙', count: 5, probability: 0.25 },
+    { id: 'mulacoin50', name: '50 MULACOIN', icon: '🪙', count: 6, probability: 0.30 },
+    { id: 'mulacoin25', name: '25 MULACOIN', icon: '🪙', count: 7, probability: 0.35 },
+    { id: 'mulacoin10', name: '10 MULACOIN', icon: '🪙', count: 8, probability: 0.40 },
+    { id: 'spin1', name: '+1 SPIN', icon: '🎰', count: 9, probability: 0.45 },
     { id: 'quest24h', name: 'Квест 24ч', icon: '🎯', count: 5, probability: 0.75 },
     { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
   ]
@@ -431,7 +438,13 @@ function spinRoulette(isFree = false) {
     userData.mulacoin -= SPIN_COST;
     updateCurrencyDisplay();
   } else if (isFree && !isAdmin()) {
-    userData.lastFreeSpin = new Date().toISOString();
+    // Проверяем, есть ли дополнительные спины
+    if (userData.freeSpins && userData.freeSpins > 0) {
+      userData.freeSpins -= 1;
+      toast(`🎰 Использован дополнительный спин! Осталось: ${userData.freeSpins}`, "success");
+    } else {
+      userData.lastFreeSpin = new Date().toISOString();
+    }
     updateRouletteButton();
   } else if (isAdmin()) {
     // Администраторы крутят бесплатно и без ограничений
@@ -694,6 +707,23 @@ async function showPrizeModal(prize, isFree = false) {
         Использовать
       </a>
     `;
+  } else if (prize.id === 'spin1') {
+    // Даем дополнительный спин
+    userData.freeSpins = (userData.freeSpins || 0) + 1;
+    await addRewards(0, 20, 'roulette', prize.name, 'easy');
+    
+    contentHTML = `
+      <p style="font-size: 16px; color: var(--accent); font-weight: bold;">
+        +1 дополнительный спин рулетки!
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        +20 опыта получено!
+      </p>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        Доступно бесплатных спинов: ${userData.freeSpins}
+      </p>
+    `;
+    updateRouletteButton();
   } else if (prize.id === 'quest24h') {
     // Даем опыт за дополнительный квест
     await addRewards(0, 30, 'roulette', prize.name, 'easy');
@@ -1742,6 +1772,13 @@ function isAdmin() {
 
 function canSpinFree() {
   if (isAdmin()) return true; // Админы могут крутить бесплатно всегда
+  
+  // Проверяем дополнительные спины
+  if (userData.freeSpins && userData.freeSpins > 0) {
+    return true;
+  }
+  
+  // Проверяем ежедневный бесплатный спин
   if (!userData.lastFreeSpin) return true;
   const now = new Date();
   const lastSpin = new Date(userData.lastFreeSpin);

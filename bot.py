@@ -924,6 +924,93 @@ async def check_subscription_command(update: Update, context: CallbackContext) -
             parse_mode='HTML'
         )
 
+async def setmula_command(update: Update, context: CallbackContext) -> None:
+    """Команда для выдачи MULACOIN пользователю"""
+    user = update.effective_user
+    
+    # Проверяем, является ли пользователь администратором
+    if user.id not in ADMIN_IDS and (user.username is None or user.username not in ADMIN_USERNAMES):
+        await update.effective_message.reply_text("У вас нет прав для выполнения этого действия!")
+        return
+    
+    try:
+        # Получаем аргументы команды
+        args = context.args
+        if len(args) != 2:
+            await update.effective_message.reply_text(
+                "❌ <b>Неверный формат команды!</b>\n\n"
+                "Использование: <code>/setmula [ID_пользователя] [количество]</code>\n\n"
+                "Пример: <code>/setmula 889935420 100</code>",
+                parse_mode='HTML'
+            )
+            return
+        
+        user_id = args[0]
+        amount = args[1]
+        
+        # Проверяем, что ID пользователя - число
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            await update.effective_message.reply_text(
+                "❌ <b>ID пользователя должен быть числом!</b>\n\n"
+                "Пример: <code>/setmula 889935420 100</code>",
+                parse_mode='HTML'
+            )
+            return
+        
+        # Проверяем, что количество - положительное число
+        try:
+            amount = int(amount)
+            if amount <= 0:
+                raise ValueError("Количество должно быть положительным")
+        except ValueError:
+            await update.effective_message.reply_text(
+                "❌ <b>Количество должно быть положительным числом!</b>\n\n"
+                "Пример: <code>/setmula 889935420 100</code>",
+                parse_mode='HTML'
+            )
+            return
+        
+        # Обновляем баланс пользователя в базе данных
+        result = supabase.table('bot_user').select('mulacoin').eq('telegram_id', str(user_id)).execute()
+        
+        if not result.data:
+            # Пользователь не найден, создаем новую запись
+            new_user_data = {
+                'telegram_id': str(user_id),
+                'mulacoin': amount,
+                'experience': 0,
+                'level': 1,
+                'created_at': 'now()'
+            }
+            supabase.table('bot_user').insert(new_user_data).execute()
+            current_balance = 0
+        else:
+            # Пользователь найден, обновляем баланс
+            current_balance = result.data[0].get('mulacoin', 0)
+            new_balance = current_balance + amount
+            supabase.table('bot_user').update({'mulacoin': new_balance}).eq('telegram_id', str(user_id)).execute()
+        
+        # Отправляем подтверждение
+        await update.effective_message.reply_text(
+            f"✅ <b>MULACOIN успешно выданы!</b>\n\n"
+            f"👤 <b>Пользователь:</b> {user_id}\n"
+            f"💰 <b>Выдано:</b> +{amount} MULACOIN\n"
+            f"💎 <b>Текущий баланс:</b> {current_balance + amount} MULACOIN\n\n"
+            f"🎯 <b>Выдал:</b> @{user.username or 'Unknown'}",
+            parse_mode='HTML'
+        )
+        
+        print(f"✅ Админ {user.username} выдал {amount} MULACOIN пользователю {user_id}")
+        
+    except Exception as e:
+        print(f"Ошибка команды setmula: {e}")
+        await update.effective_message.reply_text(
+            f"❌ <b>Произошла ошибка:</b> {str(e)}",
+            parse_mode='HTML'
+        )
+
 async def check_expired_subscriptions(update: Update, context: CallbackContext) -> None:
     """Проверяет и удаляет пользователей с истекшей подпиской"""
     user = update.effective_user
@@ -996,6 +1083,7 @@ def main() -> None:
     application.add_handler(CommandHandler("revoke", revoke_command))
     application.add_handler(CommandHandler("check", check_subscription_command))
     application.add_handler(CommandHandler("checkpromo", checkpromo_command))
+    application.add_handler(CommandHandler("setmula", setmula_command))
     
     application.add_handler(CallbackQueryHandler(button))
     
