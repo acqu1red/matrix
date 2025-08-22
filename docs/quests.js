@@ -1282,14 +1282,15 @@ async function loadState(){
     try{
       console.log('🔍 Проверяем подписку для пользователя:', userId);
       
-      // Проверяем таблицу Subscriptions с колонкой User_ID
-      console.log('📋 Проверяем таблицу Subscriptions...');
+      // Проверяем таблицу subscriptions с колонкой user_id
+      console.log('📋 Проверяем таблицу subscriptions...');
       
-      // Проверяем наличие пользователя в таблице Subscriptions
+      // Проверяем наличие пользователя в таблице subscriptions
       const { data: subscriptionData, error: subscriptionError } = await supabase
-        .from('Subscriptions')
+        .from('subscriptions')
         .select("*")
-        .eq('User_ID', userId)
+        .eq('user_id', userId)
+        .eq('status', 'active')
         .maybeSingle();
       
       if(!subscriptionError && subscriptionData) {
@@ -1321,9 +1322,14 @@ function featuredQuests(state){
   console.log('Квесты:', QUESTS.map(q => ({ id: q.id, name: q.name, available: q.available })));
   
   if(state.isSubscribed || state.isAdmin) {
-    console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
+    console.log('✅ Пользователь имеет подписку или админ, возвращаем первые 5 квестов');
     console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
-    return QUESTS;
+    
+    // Для подписчиков и админов показываем первые 5 квестов как доступные
+    const availableQuests = QUESTS.slice(0, 5).map(q => ({ ...q, available: true }));
+    const lockedQuests = QUESTS.slice(5).map(q => ({ ...q, available: false }));
+    
+    return [...availableQuests, ...lockedQuests];
   }
   
   // Для пользователей без подписки - НЕ ПОКАЗЫВАЕМ НИ ОДНОГО КВЕСТА
@@ -1384,9 +1390,9 @@ function buildCards(state){
       <div class="subscription-banner">
         <div class="lock-icon">🔒</div>
         <h3>Доступ к квестам ограничен</h3>
-        <p>Для доступа ко всем квестам необходимо быть в списке подписчиков</p>
+        <p>Для доступа к квестам необходимо быть в списке подписчиков</p>
         <div class="subscription-features">
-          <div class="feature">✅ Доступ ко всем 10 квестам</div>
+          <div class="feature">✅ Доступ к первым 5 квестам</div>
           <div class="feature">✅ Дополнительные награды</div>
           <div class="feature">✅ Новые вариации каждый день</div>
           <div class="feature">✅ Приоритетная поддержка</div>
@@ -1400,6 +1406,35 @@ function buildCards(state){
     // Добавляем обработчик для кнопки подписки
     const subscriptionBtn = subscriptionCard.querySelector('.subscription-btn');
     subscriptionBtn.addEventListener('click', showSubscriptionPrompt);
+  }
+  
+  // Показываем заблокированные квесты для подписчиков (но не для админов)
+  if(state.isSubscribed && !state.isAdmin){
+    const lockedQuests = list.filter(q => !q.available);
+    lockedQuests.forEach((q, index) => {
+      const card = document.createElement("div");
+      card.className = "card locked fade-in";
+      card.setAttribute("data-style", q.style);
+      card.style.animationDelay = `${(list.length + index) * 0.1}s`;
+      
+      card.innerHTML = `
+        <div class="lock">🔒 Заблокировано</div>
+        <div class="label">${q.theme}</div>
+        <h3>${q.name}</h3>
+        <div class="description">${q.description}</div>
+        <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
+        <div class="cta">
+          <button class="btn ghost locked-access-btn">Получить доступ</button>
+        </div>
+      `;
+      
+      container.appendChild(card);
+    });
+    
+    // Добавляем обработчики для заблокированных квестов
+    document.querySelectorAll('.locked-access-btn').forEach(btn => {
+      btn.addEventListener('click', showSubscriptionPrompt);
+    });
   }
 }
 
@@ -1479,7 +1514,7 @@ function showSubscriptionPrompt() {
       <div class="banner success">
         <strong>Преимущества подписки:</strong>
         <ul style="margin: 8px 0; padding-left: 20px;">
-          <li>Доступ ко всем 10 квестам</li>
+          <li>Доступ к первым 5 квестам</li>
           <li>Дополнительные награды</li>
           <li>Новые вариации каждый день</li>
           <li>Приоритетная поддержка</li>
