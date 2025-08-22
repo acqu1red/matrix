@@ -1321,21 +1321,22 @@ function featuredQuests(state){
   console.log('Всего квестов в системе:', QUESTS.length);
   console.log('Квесты:', QUESTS.map(q => ({ id: q.id, name: q.name, available: q.available })));
   
+  // Первые 5 квестов доступны ВСЕМ пользователям
+  const availableQuests = QUESTS.slice(0, 5).map(q => ({ ...q, available: true }));
+  
   if(state.isSubscribed || state.isAdmin) {
-    console.log('✅ Пользователь имеет подписку или админ, возвращаем первые 5 квестов');
+    console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
     console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
     
-    // Для подписчиков и админов показываем первые 5 квестов как доступные
-    const availableQuests = QUESTS.slice(0, 5).map(q => ({ ...q, available: true }));
+    // Для подписчиков и админов показываем все квесты
     const lockedQuests = QUESTS.slice(5).map(q => ({ ...q, available: false }));
-    
     return [...availableQuests, ...lockedQuests];
   }
   
-  // Для пользователей без подписки - НЕ ПОКАЗЫВАЕМ НИ ОДНОГО КВЕСТА
-  console.log('❌ Пользователь не имеет подписки - ВСЕ квесты заблокированы');
-  console.log('🔒 Заблокированные квесты:', QUESTS.map(q => q.name));
-  return [];
+  // Для пользователей без подписки показываем только первые 5 квестов
+  console.log('❌ Пользователь не имеет подписки - показываем только первые 5 квестов');
+  console.log('📋 Доступные квесты:', availableQuests.map(q => q.name));
+  return availableQuests;
 }
 
 /* ====== Cards ====== */
@@ -1380,8 +1381,37 @@ function buildCards(state){
     container.appendChild(card);
   });
 
-  // Показываем сообщение о необходимости подписки для пользователей без доступа
-  if(!state.isSubscribed && !state.isAdmin){
+  // Показываем заблокированные квесты для подписчиков (но не для админов)
+  if(state.isSubscribed && !state.isAdmin){
+    const lockedQuests = list.filter(q => !q.available);
+    lockedQuests.forEach((q, index) => {
+      const card = document.createElement("div");
+      card.className = "card locked fade-in";
+      card.setAttribute("data-style", q.style);
+      card.style.animationDelay = `${(list.length + index) * 0.1}s`;
+      
+      card.innerHTML = `
+        <div class="lock">🔒 Заблокировано</div>
+        <div class="label">${q.theme}</div>
+        <h3>${q.name}</h3>
+        <div class="description">${q.description}</div>
+        <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
+        <div class="cta">
+          <button class="btn ghost locked-access-btn">Получить доступ</button>
+        </div>
+      `;
+      
+      container.appendChild(card);
+    });
+    
+    // Добавляем обработчики для заблокированных квестов
+    document.querySelectorAll('.locked-access-btn').forEach(btn => {
+      btn.addEventListener('click', showSubscriptionPrompt);
+    });
+  }
+  
+  // Показываем сообщение о подписке для пользователей без подписки (после первых 5 квестов)
+  if(!state.isSubscribed && !state.isAdmin && list.length > 0){
     const subscriptionCard = document.createElement("div");
     subscriptionCard.className = "card subscription-prompt fade-in";
     subscriptionCard.style.animationDelay = `${list.length * 0.1}s`;
@@ -1389,15 +1419,15 @@ function buildCards(state){
     subscriptionCard.innerHTML = `
       <div class="subscription-banner">
         <div class="lock-icon">🔒</div>
-        <h3>Доступ к квестам ограничен</h3>
-        <p>Для доступа к квестам необходимо быть в списке подписчиков</p>
+        <h3>Хотите больше квестов?</h3>
+        <p>Оформите подписку для доступа ко всем квестам</p>
         <div class="subscription-features">
-          <div class="feature">✅ Доступ к первым 5 квестам</div>
+          <div class="feature">✅ Доступ ко всем 10 квестам</div>
           <div class="feature">✅ Дополнительные награды</div>
           <div class="feature">✅ Новые вариации каждый день</div>
           <div class="feature">✅ Приоритетная поддержка</div>
         </div>
-        <button class="btn primary subscription-btn">Получить доступ</button>
+        <button class="btn primary subscription-btn">Оформить подписку</button>
       </div>
     `;
     
@@ -1514,7 +1544,7 @@ function showSubscriptionPrompt() {
       <div class="banner success">
         <strong>Преимущества подписки:</strong>
         <ul style="margin: 8px 0; padding-left: 20px;">
-          <li>Доступ к первым 5 квестам</li>
+          <li>Доступ ко всем 10 квестам</li>
           <li>Дополнительные награды</li>
           <li>Новые вариации каждый день</li>
           <li>Приоритетная поддержка</li>
