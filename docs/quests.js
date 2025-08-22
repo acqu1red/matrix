@@ -1333,35 +1333,21 @@ async function loadState(){
       console.log('📋 Проверяем таблицу subscriptions...');
       
       try {
-        // Проверяем активную подписку в таблице subscriptions по user_id
+        // Проверяем наличие пользователя в таблице subscriptions (любая запись)
         const { data: subData, error: subError } = await supabase
           .from(SUBSCRIPTIONS_TABLE)
           .select("*")
           .eq('user_id', userId)
-          .eq('status', 'active')
-          .gte('end_date', new Date().toISOString())
           .maybeSingle();
         
         if(!subError && subData) {
           isSubscribed = true;
-          console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
+          console.log('✅ Пользователь найден в таблице subscriptions:', subData);
+          console.log('📅 Статус подписки:', subData.status);
+          console.log('📅 Дата окончания:', subData.end_date);
         } else {
-          console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
-          
-          // Проверяем любую подписку для диагностики
-          const { data: anySubData, error: anySubError } = await supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .select("*")
-            .eq('user_id', userId)
-            .maybeSingle();
-          
-          if(!anySubError && anySubData) {
-            console.log('ℹ️ Найдена подписка (возможно истекшая):', anySubData);
-            console.log('📅 Дата окончания:', anySubData.end_date);
-            console.log('📅 Текущая дата:', new Date().toISOString());
-          } else {
-            console.log('❌ Подписка не найдена в таблице subscriptions для user_id:', userId);
-          }
+          console.log('❌ Пользователь не найден в таблице subscriptions для user_id:', userId);
+          console.log('❌ Ошибка запроса:', subError);
         }
       } catch (subscriptionError) {
         console.error('❌ Ошибка при проверке подписки:', subscriptionError);
