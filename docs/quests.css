@@ -634,15 +634,17 @@ h3 { font-size: 1.25rem; }
 #prizeContent {
   flex: 1;
   width: 100%;
+  margin-bottom: 30px;
 }
 
 #prizeContent p {
   color: #666666 !important;
   font-weight: 500;
+  margin-bottom: 15px;
 }
 
 #closePrize {
-  margin-top: auto;
+  margin-top: 20px;
   margin-bottom: 0;
   align-self: center;
   min-width: 120px;
