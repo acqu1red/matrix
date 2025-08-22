@@ -1266,6 +1266,7 @@ async function loadState(){
   
   console.log('=== НАЧАЛО ПРОВЕРКИ ДОСТУПА ===');
   console.log('Данные пользователя:', { userId, username });
+  console.log('userData.telegramId:', userData.telegramId);
   console.log('Список админов:', ADMIN_IDS);
   
   // Проверка на администратора (по username и telegramId)
@@ -1333,6 +1334,9 @@ async function loadState(){
       console.log('📋 Проверяем таблицу subscriptions...');
       
       try {
+        console.log('🔍 Ищем пользователя с user_id:', userId);
+        console.log('🔍 Тип user_id:', typeof userId);
+        
         // Проверяем наличие пользователя в таблице subscriptions (любая запись)
         const { data: subData, error: subError } = await supabase
           .from(SUBSCRIPTIONS_TABLE)
@@ -1348,6 +1352,44 @@ async function loadState(){
         } else {
           console.log('❌ Пользователь не найден в таблице subscriptions для user_id:', userId);
           console.log('❌ Ошибка запроса:', subError);
+          
+          // Попробуем найти пользователя как строку
+          const { data: subDataString, error: subErrorString } = await supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("*")
+            .eq('user_id', String(userId))
+            .maybeSingle();
+          
+          if(!subErrorString && subDataString) {
+            isSubscribed = true;
+            console.log('✅ Пользователь найден при поиске как строка:', subDataString);
+          } else {
+            console.log('❌ Пользователь не найден даже при поиске как строка');
+            
+            // Покажем все записи для диагностики
+            const { data: allSubs, error: allSubsError } = await supabase
+              .from(SUBSCRIPTIONS_TABLE)
+              .select("*");
+            
+            if(!allSubsError && allSubs) {
+              console.log('📊 Все записи в таблице subscriptions:', allSubs);
+              console.log('🔍 Ищем совпадения с user_id:', userId);
+              
+              const matchingSubs = allSubs.filter(sub => 
+                sub.user_id === userId || 
+                sub.user_id === String(userId) ||
+                String(sub.user_id) === userId ||
+                String(sub.user_id) === String(userId)
+              );
+              
+              if(matchingSubs.length > 0) {
+                console.log('✅ Найдены совпадения:', matchingSubs);
+                isSubscribed = true;
+              } else {
+                console.log('❌ Совпадений не найдено');
+              }
+            }
+          }
         }
       } catch (subscriptionError) {
         console.error('❌ Ошибка при проверке подписки:', subscriptionError);
@@ -1419,6 +1461,8 @@ function buildCards(state){
   console.log('=== BUILD CARDS ===');
   console.log('Состояние пользователя:', state);
   console.log('Статус доступа:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
+  console.log('Тип isSubscribed:', typeof state.isSubscribed);
+  console.log('Тип isAdmin:', typeof state.isAdmin);
   
   const list = featuredQuests(state);
   console.log('📊 Квестов для отображения:', list.length);
