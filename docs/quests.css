@@ -1478,3 +1478,39 @@ h3 { font-size: 1.25rem; }
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+
+/* Subscription indicator */
+.subscription-indicator {
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1));
+  border: 2px solid #FFD700;
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2), 0 0 20px rgba(255, 215, 0, 0.1);
+  text-align: center;
+}
+
+.subscription-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.subscription-icon {
+  font-size: 24px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.subscription-text {
+  color: #FFD700;
+  font-size: 16px;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}

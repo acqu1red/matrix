@@ -1399,6 +1399,7 @@ function featuredQuests(state){
   if(state.isSubscribed || state.isAdmin) {
     console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
     console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
+    console.log('📋 Возвращаем все квесты:', QUESTS.map(q => q.name));
     return QUESTS;
   }
   
@@ -1452,7 +1453,7 @@ function buildCards(state){
     container.appendChild(card);
   });
 
-  // Показываем заблокированные квесты для бесплатных пользователей (но не для админов)
+  // Показываем заблокированные квесты для бесплатных пользователей
   if(!state.isSubscribed && !state.isAdmin){
     const others = QUESTS.filter(q => !q.available);
     others.forEach((q, index) => {
@@ -1479,6 +1480,19 @@ function buildCards(state){
     document.querySelectorAll('.locked-access-btn').forEach(btn => {
       btn.addEventListener('click', showSubscriptionPrompt);
     });
+  }
+  
+  // Добавляем индикатор подписки для пользователей с подпиской
+  if(state.isSubscribed && !state.isAdmin){
+    const subscriptionIndicator = document.createElement("div");
+    subscriptionIndicator.className = "subscription-indicator";
+    subscriptionIndicator.innerHTML = `
+      <div class="subscription-banner">
+        <span class="subscription-icon">👑</span>
+        <span class="subscription-text">Активна подписка - все квесты доступны</span>
+      </div>
+    `;
+    container.appendChild(subscriptionIndicator);
   }
 }
 
