@@ -1277,145 +1277,34 @@ async function loadState(){
     console.log('❌ Пользователь не является админом');
   }
   
-  // Проверка подписки через Supabase
-  if(supabase && userId){
+  // Проверка подписки через Supabase - ТОЛЬКО таблица Subscriptions
+  if(supabase && userId && !isAdmin){
     try{
       console.log('🔍 Проверяем подписку для пользователя:', userId);
       
-      // Проверяем таблицу admins
-      console.log('📋 Проверяем таблицу admins...');
+      // Проверяем таблицу Subscriptions с колонкой User_ID
+      console.log('📋 Проверяем таблицу Subscriptions...');
       
-      // Сначала получаем структуру таблицы admins
-      const { data: adminsStructure, error: adminsStructureError } = await supabase
-        .from('admins')
+      // Проверяем наличие пользователя в таблице Subscriptions
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('Subscriptions')
         .select("*")
-        .limit(1);
+        .eq('User_ID', userId)
+        .maybeSingle();
       
-      if (!adminsStructureError && adminsStructure && adminsStructure.length > 0) {
-        const adminsColumns = Object.keys(adminsStructure[0]);
-        console.log('📊 Структура таблицы admins:', adminsColumns);
-        
-        // Ищем поле, которое может содержать ID пользователя
-        const possibleIdFields = ['telegram_id', 'user_id', 'tg_id', 'id', 'userid', 'telegramid'];
-        let foundAdminField = null;
-        
-        for (const field of possibleIdFields) {
-          if (adminsColumns.includes(field)) {
-            foundAdminField = field;
-            break;
-          }
-        }
-        
-        if (foundAdminField) {
-          console.log('🔍 Найдено поле для ID в admins:', foundAdminField);
-          
-          const { data: adminsData, error: adminsError } = await supabase
-            .from('admins')
-            .select("*")
-            .eq(foundAdminField, userId)
-            .maybeSingle();
-          
-          if(!adminsError && adminsData) {
-            isAdmin = true;
-            isSubscribed = true;
-            console.log('✅ Пользователь найден в таблице admins:', adminsData);
-          } else {
-            console.log('❌ Пользователь не найден в таблице admins:', adminsError);
-          }
-        } else {
-          console.log('❌ Не найдено подходящее поле для ID в таблице admins');
-        }
+      if(!subscriptionError && subscriptionData) {
+        isSubscribed = true;
+        console.log('✅ Пользователь найден в таблице Subscriptions:', subscriptionData);
       } else {
-        console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
-      }
-      
-      // Проверяем таблицу subscriptions
-      console.log('📋 Проверяем таблицу subscriptions...');
-      
-      // Сначала получаем структуру таблицы subscriptions
-      const { data: subStructure, error: subStructureError } = await supabase
-        .from(SUBSCRIPTIONS_TABLE)
-        .select("*")
-        .limit(1);
-      
-      if (!subStructureError && subStructure && subStructure.length > 0) {
-        const subColumns = Object.keys(subStructure[0]);
-        console.log('📊 Структура таблицы subscriptions:', subColumns);
-        
-        // Ищем поле, которое может содержать ID пользователя
-        const possibleIdFields = ['user_id', 'telegram_id', 'tg_id', 'id', 'userid', 'telegramid'];
-        let foundSubField = null;
-        
-        for (const field of possibleIdFields) {
-          if (subColumns.includes(field)) {
-            foundSubField = field;
-            break;
-          }
-        }
-        
-        if (foundSubField) {
-          console.log('🔍 Найдено поле для ID в subscriptions:', foundSubField);
-          
-          // Проверяем активную подписку
-          const { data: subData, error: subError } = await supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .select("*")
-            .eq(foundSubField, userId)
-            .eq('status', 'active')
-            .maybeSingle();
-          
-          if(!subError && subData) {
-            isSubscribed = true;
-            console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
-          } else {
-            console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
-            
-            // Проверяем любую подписку (не только активную)
-            const { data: anySubData, error: anySubError } = await supabase
-              .from(SUBSCRIPTIONS_TABLE)
-              .select("*")
-              .eq(foundSubField, userId)
-              .maybeSingle();
-            
-            if(!anySubError && anySubData) {
-              console.log('ℹ️ Найдена неактивная подписка:', anySubData);
-            } else {
-              console.log('❌ Подписка не найдена в таблице subscriptions:', anySubError);
-            }
-          }
-        } else {
-          console.log('❌ Не найдено подходящее поле для ID в таблице subscriptions');
-        }
-      } else {
-        console.log('❌ Не удалось получить структуру таблицы subscriptions:', subStructureError);
-      }
-      
-      // Показываем структуру таблиц для диагностики
-      console.log('🔍 Диагностика таблиц...');
-      const { data: tableInfo, error: tableError } = await supabase
-        .from(SUBSCRIPTIONS_TABLE)
-        .select("*")
-        .limit(1);
-      
-      if(!tableError && tableInfo && tableInfo.length > 0) {
-        console.log('📊 Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
-      }
-      
-      // Показываем все записи в таблице admins для диагностики
-      const { data: allAdmins, error: adminsTableError } = await supabase
-        .from('admins')
-        .select("*")
-        .limit(5);
-      
-      if(!adminsTableError && allAdmins) {
-        console.log('📊 Первые 5 записей в таблице admins:', allAdmins);
+        console.log('❌ Пользователь не найден в таблице Subscriptions:', subscriptionError);
+        console.log('🔒 Доступ к квестам ЗАБЛОКИРОВАН');
       }
       
     } catch(e){ 
       console.error("❌ Ошибка проверки Supabase:", e); 
     }
-  } else {
-    console.log('❌ Supabase недоступен или userId отсутствует');
+  } else if (!isAdmin) {
+    console.log('❌ Supabase недоступен или userId отсутствует - доступ ЗАБЛОКИРОВАН');
   }
   
   console.log('📊 ИТОГОВОЕ СОСТОЯНИЕ:', { userId, username, isSubscribed, isAdmin });
@@ -1437,12 +1326,10 @@ function featuredQuests(state){
     return QUESTS;
   }
   
-  // Для бесплатных пользователей показываем только доступные квесты
-  const availableQuests = QUESTS.filter(q => q.available);
-  console.log('❌ Бесплатный пользователь, доступных квестов:', availableQuests.length);
-  console.log('📋 Доступные квесты:', availableQuests.map(q => q.name));
-  console.log('🔒 Заблокированные квесты:', QUESTS.filter(q => !q.available).map(q => q.name));
-  return availableQuests;
+  // Для пользователей без подписки - НЕ ПОКАЗЫВАЕМ НИ ОДНОГО КВЕСТА
+  console.log('❌ Пользователь не имеет подписки - ВСЕ квесты заблокированы');
+  console.log('🔒 Заблокированные квесты:', QUESTS.map(q => q.name));
+  return [];
 }
 
 /* ====== Cards ====== */
@@ -1487,33 +1374,32 @@ function buildCards(state){
     container.appendChild(card);
   });
 
-  // Показываем заблокированные квесты для бесплатных пользователей (но не для админов)
+  // Показываем сообщение о необходимости подписки для пользователей без доступа
   if(!state.isSubscribed && !state.isAdmin){
-    const others = QUESTS.filter(q => !q.available);
-    others.forEach((q, index) => {
-      const card = document.createElement("div");
-      card.className = "card locked fade-in";
-      card.setAttribute("data-style", q.style);
-      card.style.animationDelay = `${(list.length + index) * 0.1}s`;
-      
-      card.innerHTML = `
-        <div class="lock">🔒 Заблокировано</div>
-        <div class="label">${q.theme}</div>
-        <h3>${q.name}</h3>
-        <div class="description">${q.description}</div>
-        <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
-        <div class="cta">
-          <button class="btn ghost locked-access-btn">Получить доступ</button>
-        </div>
-      `;
-      
-      container.appendChild(card);
-    });
+    const subscriptionCard = document.createElement("div");
+    subscriptionCard.className = "card subscription-prompt fade-in";
+    subscriptionCard.style.animationDelay = `${list.length * 0.1}s`;
     
-    // Добавляем обработчики для заблокированных квестов
-    document.querySelectorAll('.locked-access-btn').forEach(btn => {
-      btn.addEventListener('click', showSubscriptionPrompt);
-    });
+    subscriptionCard.innerHTML = `
+      <div class="subscription-banner">
+        <div class="lock-icon">🔒</div>
+        <h3>Доступ к квестам ограничен</h3>
+        <p>Для доступа ко всем квестам необходимо быть в списке подписчиков</p>
+        <div class="subscription-features">
+          <div class="feature">✅ Доступ ко всем 10 квестам</div>
+          <div class="feature">✅ Дополнительные награды</div>
+          <div class="feature">✅ Новые вариации каждый день</div>
+          <div class="feature">✅ Приоритетная поддержка</div>
+        </div>
+        <button class="btn primary subscription-btn">Получить доступ</button>
+      </div>
+    `;
+    
+    container.appendChild(subscriptionCard);
+    
+    // Добавляем обработчик для кнопки подписки
+    const subscriptionBtn = subscriptionCard.querySelector('.subscription-btn');
+    subscriptionBtn.addEventListener('click', showSubscriptionPrompt);
   }
 }
 

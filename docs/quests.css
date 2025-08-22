@@ -975,6 +975,69 @@ h3 { font-size: 1.25rem; }
   border-color: #999999;
 }
 
+/* Subscription prompt card */
+.card.subscription-prompt {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  border: 2px solid var(--glow1);
+  text-align: center;
+  padding: 40px 30px;
+}
+
+.subscription-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.lock-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.subscription-banner h3 {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.subscription-banner p {
+  color: #cccccc;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.subscription-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.subscription-features .feature {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.subscription-btn {
+  margin-top: 10px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 200px;
+}
+
 /* Footer */
 .foot {
   margin: 16px;
