@@ -1336,18 +1336,6 @@ async function loadState(){
       try {
         console.log('🔍 Ищем пользователя с user_id:', userId);
         console.log('🔍 Тип user_id:', typeof userId);
-        console.log('🔍 userData.telegramId:', userData.telegramId);
-        console.log('🔍 Тип userData.telegramId:', typeof userData.telegramId);
-        
-        // Сначала покажем все записи в таблице для диагностики
-        const { data: allSubs, error: allSubsError } = await supabase
-          .from(SUBSCRIPTIONS_TABLE)
-          .select("*");
-        
-        if(!allSubsError && allSubs) {
-          console.log('📊 Все записи в таблице subscriptions:', allSubs);
-          console.log('🔍 user_id из таблицы:', allSubs.map(sub => ({ user_id: sub.user_id, type: typeof sub.user_id })));
-        }
         
         // Проверяем наличие пользователя в таблице subscriptions (любая запись)
         const { data: subData, error: subError } = await supabase
@@ -2058,6 +2046,9 @@ async function showHistory() {
     }
   }
   
+  // Проверяем статус подписки
+  const subscriptionStatus = await checkSubscriptionStatus();
+  
   modalBody.innerHTML = `
     <div style="text-align: center; padding: 20px;">
       <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
@@ -2141,18 +2132,24 @@ async function showHistory() {
         `}
       </div>
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Техническая информация</div>
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Статус подписки</div>
         <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Supabase:</span>
-            <span style="color: ${supabase ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
-              ${supabase ? '✅ Подключен' : '❌ Не подключен'}
+            <span>Подписка:</span>
+            <span style="color: ${subscriptionStatus ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
+              ${subscriptionStatus ? '✅ Активна' : '❌ Не активна'}
             </span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span>Telegram ID:</span>
             <span style="color: var(--text-muted); font-weight: 600;">
               ${userData.telegramId || 'Не получен'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Supabase:</span>
+            <span style="color: ${supabase ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
+              ${supabase ? '✅ Подключен' : '❌ Не подключен'}
             </span>
           </div>
         </div>
@@ -2178,6 +2175,32 @@ function getPromoTypeText(type) {
     'frod_course': 'Курс Фрода'
   };
   return types[type] || type;
+}
+
+// Функция для проверки статуса подписки
+async function checkSubscriptionStatus() {
+  if (!supabase || !userData.telegramId) {
+    return false;
+  }
+  
+  try {
+    const { data: subData, error: subError } = await supabase
+      .from(SUBSCRIPTIONS_TABLE)
+      .select("*")
+      .eq('user_id', userData.telegramId)
+      .maybeSingle();
+    
+    if (!subError && subData) {
+      console.log('✅ Подписка найдена в checkSubscriptionStatus:', subData);
+      return true;
+    } else {
+      console.log('❌ Подписка не найдена в checkSubscriptionStatus для user_id:', userData.telegramId);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Ошибка при проверке статуса подписки:', error);
+    return false;
+  }
 }
 
 // Функция для отображения деталей промокода
@@ -2439,45 +2462,3 @@ window.questSystem = {
 
 // Делаем addRewards доступной глобально для квестов
 window.addRewards = addRewards;
-
-// Добавляем глобальную функцию для тестирования подписки
-window.testSubscription = async function() {
-  if (!supabase || !userData.telegramId) {
-    console.log('❌ Supabase или Telegram ID недоступны');
-    return;
-  }
-  
-  console.log('🧪 ТЕСТИРОВАНИЕ ПОДПИСКИ');
-  console.log('Telegram ID:', userData.telegramId);
-  
-  try {
-    // Показываем все записи
-    const { data: allSubs, error: allSubsError } = await supabase
-      .from(SUBSCRIPTIONS_TABLE)
-      .select("*");
-    
-    if(!allSubsError && allSubs) {
-      console.log('📊 Все записи в таблице subscriptions:', allSubs);
-      
-      // Ищем совпадения
-      const matchingSubs = allSubs.filter(sub => 
-        sub.user_id === userData.telegramId || 
-        sub.user_id === String(userData.telegramId) ||
-        String(sub.user_id) === userData.telegramId ||
-        String(sub.user_id) === String(userData.telegramId)
-      );
-      
-      console.log('🔍 Найденные совпадения:', matchingSubs);
-      
-      if (matchingSubs.length > 0) {
-        console.log('✅ ПОДПИСКА НАЙДЕНА!');
-        alert('Подписка найдена! Проверьте консоль для деталей.');
-      } else {
-        console.log('❌ ПОДПИСКА НЕ НАЙДЕНА');
-        alert('Подписка не найдена! Проверьте консоль для деталей.');
-      }
-    }
-  } catch (error) {
-    console.error('❌ Ошибка тестирования:', error);
-  }
-};
