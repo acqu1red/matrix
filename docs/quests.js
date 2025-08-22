@@ -1336,6 +1336,18 @@ async function loadState(){
       try {
         console.log('🔍 Ищем пользователя с user_id:', userId);
         console.log('🔍 Тип user_id:', typeof userId);
+        console.log('🔍 userData.telegramId:', userData.telegramId);
+        console.log('🔍 Тип userData.telegramId:', typeof userData.telegramId);
+        
+        // Сначала покажем все записи в таблице для диагностики
+        const { data: allSubs, error: allSubsError } = await supabase
+          .from(SUBSCRIPTIONS_TABLE)
+          .select("*");
+        
+        if(!allSubsError && allSubs) {
+          console.log('📊 Все записи в таблице subscriptions:', allSubs);
+          console.log('🔍 user_id из таблицы:', allSubs.map(sub => ({ user_id: sub.user_id, type: typeof sub.user_id })));
+        }
         
         // Проверяем наличие пользователя в таблице subscriptions (любая запись)
         const { data: subData, error: subError } = await supabase
@@ -2427,3 +2439,45 @@ window.questSystem = {
 
 // Делаем addRewards доступной глобально для квестов
 window.addRewards = addRewards;
+
+// Добавляем глобальную функцию для тестирования подписки
+window.testSubscription = async function() {
+  if (!supabase || !userData.telegramId) {
+    console.log('❌ Supabase или Telegram ID недоступны');
+    return;
+  }
+  
+  console.log('🧪 ТЕСТИРОВАНИЕ ПОДПИСКИ');
+  console.log('Telegram ID:', userData.telegramId);
+  
+  try {
+    // Показываем все записи
+    const { data: allSubs, error: allSubsError } = await supabase
+      .from(SUBSCRIPTIONS_TABLE)
+      .select("*");
+    
+    if(!allSubsError && allSubs) {
+      console.log('📊 Все записи в таблице subscriptions:', allSubs);
+      
+      // Ищем совпадения
+      const matchingSubs = allSubs.filter(sub => 
+        sub.user_id === userData.telegramId || 
+        sub.user_id === String(userData.telegramId) ||
+        String(sub.user_id) === userData.telegramId ||
+        String(sub.user_id) === String(userData.telegramId)
+      );
+      
+      console.log('🔍 Найденные совпадения:', matchingSubs);
+      
+      if (matchingSubs.length > 0) {
+        console.log('✅ ПОДПИСКА НАЙДЕНА!');
+        alert('Подписка найдена! Проверьте консоль для деталей.');
+      } else {
+        console.log('❌ ПОДПИСКА НЕ НАЙДЕНА');
+        alert('Подписка не найдена! Проверьте консоль для деталей.');
+      }
+    }
+  } catch (error) {
+    console.error('❌ Ошибка тестирования:', error);
+  }
+};
