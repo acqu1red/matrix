@@ -60,11 +60,11 @@ function initTG() {
       
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userData.telegramId = tg.initDataUnsafe.user.id;
-        console.log('Telegram ID получен:', userData.telegramId);
+        // console.log('Telegram ID получен:', userData.telegramId);
       }
     }
   } catch (e) {
-    console.log("TG init fail", e);
+    // console.log("TG init fail", e);
   }
 }
 
@@ -72,10 +72,10 @@ function initTG() {
 async function initSupabase() {
   try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase инициализирован');
+    // console.log('Supabase инициализирован');
     return true;
   } catch (error) {
-    console.error('Ошибка инициализации Supabase:', error);
+    // console.error('Ошибка инициализации Supabase:', error);
     return false;
   }
 }
@@ -95,10 +95,10 @@ async function loadUserData(telegramId) {
       userData.level = data.level || 1;
       userData.experience = data.experience || 0;
       updateUI();
-      console.log('Данные пользователя загружены:', userData);
+      // console.log('Данные пользователя загружены:', userData);
     }
   } catch (error) {
-    console.error('Ошибка загрузки данных пользователя:', error);
+    // console.error('Ошибка загрузки данных пользователя:', error);
   }
 }
 
@@ -112,13 +112,13 @@ async function updateUserData(updates) {
       .eq('telegram_id', String(userData.telegramId));
     
     if (error) {
-      console.error('Ошибка обновления данных:', error);
+      // console.error('Ошибка обновления данных:', error);
     } else {
       Object.assign(userData, updates);
       updateUI();
     }
   } catch (error) {
-    console.error('Ошибка обновления данных пользователя:', error);
+    // console.error('Ошибка обновления данных пользователя:', error);
   }
 }
 
@@ -165,7 +165,7 @@ function createCaseRoulette() {
     container.appendChild(item);
   });
   
-  console.log('Кейс рулетка создана с', prizeSet.length, 'призами');
+  // console.log('Кейс рулетка создана с', prizeSet.length, 'призами');
 }
 
 function spinCaseRoulette(isFree = false) {
@@ -194,7 +194,7 @@ function spinCaseRoulette(isFree = false) {
   const music = $('#caseSpinMusic');
   if (music) {
     music.currentTime = 0;
-    music.play().catch(e => console.log('Audio play failed:', e));
+    music.play().catch(e => { /* Audio play failed */ });
   }
   
   // Calculate spin distance
@@ -292,7 +292,7 @@ async function saveCasePrize(prize) {
         won_at: new Date().toISOString()
       });
   } catch (error) {
-    console.error('Ошибка сохранения приза:', error);
+    // console.error('Ошибка сохранения приза:', error);
   }
 }
 
@@ -358,7 +358,7 @@ async function showHistoryModal() {
       `;
     }
   } catch (error) {
-    console.error('Ошибка загрузки истории:', error);
+    // console.error('Ошибка загрузки истории:', error);
     content.innerHTML = '<p style="text-align: center; color: var(--error);">Ошибка загрузки истории</p>';
   }
   
@@ -425,7 +425,7 @@ async function showDailyRewardsModal() {
     setTimeout(() => modal.classList.add('show'), 10);
     
   } catch (error) {
-    console.error('Ошибка при показе модала ежедневных наград:', error);
+    // console.error('Ошибка при показе модала ежедневных наград:', error);
     showToast('Ошибка загрузки ежедневных наград', 'error');
   }
 }
@@ -452,7 +452,7 @@ async function getDailyRewardStatus() {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Ошибка при загрузке статуса ежедневных наград:', error);
+      // console.error('Ошибка при загрузке статуса ежедневных наград:', error);
       return getDefaultDailyStatus();
     }
 
@@ -502,7 +502,7 @@ async function getDailyRewardStatus() {
     };
 
   } catch (error) {
-    console.error('Ошибка при получении статуса ежедневных наград:', error);
+    // console.error('Ошибка при получении статуса ежедневных наград:', error);
     return getDefaultDailyStatus();
   }
 }
@@ -632,7 +632,7 @@ async function claimDailyReward() {
     loadBalance(); // Обновляем баланс на странице
 
   } catch (error) {
-    console.error('Ошибка при получении ежедневной награды:', error);
+    // console.error('Ошибка при получении ежедневной награды:', error);
     showToast('Ошибка при получении награды', 'error');
   }
 }
@@ -675,7 +675,7 @@ function bindEvents() {
 
 /* ====== Initialization ====== */
 document.addEventListener('DOMContentLoaded', async function() {
-  console.log('Кейс Эпштейна загружается...');
+  // console.log('Кейс Эпштейна загружается...');
   
   // Initialize Telegram
   initTG();
@@ -703,6 +703,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Update UI
   updateUI();
   
-  console.log('Кейс Эпштейна готов к использованию');
+  // console.log('Кейс Эпштейна готов к использованию');
   toast('Добро пожаловать в тайную лабораторию...', 'success');
 });

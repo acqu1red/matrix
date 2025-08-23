@@ -3,45 +3,156 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Мировое тайное правительство — Квест‑Хаб</title>
+  <title>🏛️ Глубинное государство — Архивы Эпштейна</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="quests-black-white.css" />
   <link rel="stylesheet" href="world-government.css" />
 </head>
 <body>
+  <!-- Мистический фон с анимацией -->
+  <div class="mystical-background">
+    <div class="conspiracy-lines"></div>
+    <div class="floating-symbols"></div>
+    <div class="data-stream"></div>
+  </div>
+
   <div class="world-government-quest">
-    <!-- Предупреждение -->
-    <div id="warning-modal" class="modal active">
-      <div class="modal-content">
-        <div class="warning-header">
-          <h2>⚠️ ВНИМАНИЕ</h2>
+    <!-- Предупреждение с новым дизайном -->
+    <div id="warning-modal" class="modal active conspiracy-modal">
+      <div class="modal-content glitch-effect">
+        <div class="warning-header conspiracy-header">
+          <div class="classified-stamp">CLASSIFIED</div>
+          <h2 class="glitch-text">🔺 ОПЕРАЦИЯ "ЭПШТЕЙН" 🔺</h2>
+          <div class="danger-stripes"></div>
         </div>
-        <div class="warning-body">
-          <p><strong>Все совпадения случайны, все герои и персонажи вымышлены.</strong></p>
-          <p>Цель не отразить действительность, а сделать имитацию тренинга по распределению определенных людей на удобные для тебя места.</p>
-          <p>Это игра-симулятор для развития навыков управления персоналом и стратегического мышления. Чем больше будет ваша сфера влияния - тем больше вы будете получать опыта и MULACOIN!</p>
+        <div class="warning-body conspiracy-text">
+          <div class="document-header">
+            <span class="file-number">FILE #E-2024-013</span>
+            <span class="clearance-level">CLEARANCE: ULTRA SECRET</span>
+          </div>
+          <p class="typewriter-text"><strong>⚠️ ВНИМАНИЕ: КОНФИДЕНЦИАЛЬНЫЕ АРХИВЫ ⚠️</strong></p>
+          <p class="typewriter-text">Данная операция является симуляцией создания теневого правительства на основе архивных материалов проекта "Эпштейн".</p>
+          <p class="typewriter-text">Все персонажи и события основаны на реальных конспирологических теориях и расследованиях. Цель - создать идеальную структуру власти для контроля мирового порядка.</p>
+          <p class="typewriter-text final-warning">🔻 ЧЕМ ВЫШЕ ВАШЕ ВЛИЯНИЕ - ТЕМ БОЛЬШЕ СЕКРЕТОВ И НАГРАД! 🔻</p>
         </div>
         <div class="warning-footer">
-          <button id="start-quest" class="btn btn-primary">Начать квест</button>
+          <button id="start-quest" class="btn btn-primary glowing-btn">
+            <span class="btn-text">🔓 ПОЛУЧИТЬ ДОСТУП К АРХИВАМ</span>
+            <div class="btn-glow"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Новое информационное окно о квесте -->
+    <div id="quest-info-modal" class="modal quest-info-modal">
+      <div class="modal-content info-modal-content">
+        <div class="info-header">
+          <div class="pyramid-icon">🔺</div>
+          <h2 class="mission-title">ДОСЬЕ: ОПЕРАЦИЯ "ГЛУБИННОЕ ГОСУДАРСТВО"</h2>
+          <div class="mission-code">MISSION CODE: EPSTEIN-SHADOW</div>
+        </div>
+        <div class="info-body">
+          <div class="briefing-section">
+            <h3>📋 БРИФИНГ ОПЕРАЦИИ</h3>
+            <p>Вы получили доступ к засекреченным архивам сети Джеффри Эпштейна. Ваша миссия - создать теневое правительство, используя компромат и связи из "Черной книги".</p>
+          </div>
+          
+          <div class="objectives-section">
+            <h3>🎯 ЦЕЛИ ОПЕРАЦИИ</h3>
+            <ul class="objectives-list">
+              <li>🏛️ Разместить агентов в ключевых секторах власти</li>
+              <li>💰 Установить экономический контроль через финансовые элиты</li>
+              <li>🎖️ Обеспечить военную поддержку операции</li>
+              <li>🔬 Контролировать научные исследования и технологии</li>
+              <li>📺 Манипулировать общественным мнением через СМИ</li>
+            </ul>
+          </div>
+          
+          <div class="gameplay-section">
+            <h3>🎮 КАК ИГРАТЬ</h3>
+            <div class="instruction-cards">
+              <div class="instruction-card">
+                <div class="card-icon">👤</div>
+                <div class="card-text">
+                  <strong>Изучите досье:</strong><br>
+                  Каждый персонаж имеет уникальные связи и компромат
+                </div>
+              </div>
+              <div class="instruction-card">
+                <div class="card-icon">🎯</div>
+                <div class="card-text">
+                  <strong>Стратегическое размещение:</strong><br>
+                  Перетащите агентов в подходящие секторы власти
+                </div>
+              </div>
+              <div class="instruction-card">
+                <div class="card-icon">⚡</div>
+                <div class="card-text">
+                  <strong>Управление рисками:</strong><br>
+                  Неправильное размещение увеличивает риск провала
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="rewards-section">
+            <h3>💎 НАГРАДЫ ЗА УСПЕХ</h3>
+            <div class="rewards-grid">
+              <div class="reward-item">
+                <span class="reward-icon">🪙</span>
+                <span class="reward-text">500-2000 MULACOIN</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">⭐</span>
+                <span class="reward-text">1000-5000 Опыта</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">🔑</span>
+                <span class="reward-text">Доступ к новым архивам</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="info-footer">
+          <button id="close-quest-info" class="btn btn-primary mission-start-btn">
+            <span class="btn-icon">🚀</span>
+            <span class="btn-text">НАЧАТЬ ОПЕРАЦИЮ</span>
+            <div class="btn-particles"></div>
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Основной интерфейс -->
     <div id="main-interface" class="main-interface hidden">
-      <!-- Кнопка "На главную" -->
-      <div class="header-controls">
-        <button id="back-to-main" class="btn btn-secondary back-btn">
-          <span class="back-icon">←</span>
-          На главную
-        </button>
+      <!-- Улучшенные элементы управления -->
+      <div class="command-header">
+        <div class="header-controls">
+          <button id="back-to-main" class="btn btn-secondary back-btn sophisticated-btn">
+            <span class="back-icon">←</span>
+            <span class="btn-text">Выйти из операции</span>
+          </button>
+        </div>
+        <div class="mission-status">
+          <div class="status-indicator active"></div>
+          <span class="status-text">ОПЕРАЦИЯ "ЭПШТЕЙН" АКТИВНА</span>
+        </div>
+        <div class="conspiracy-level">
+          <span class="level-label">Уровень заговора:</span>
+          <div class="level-indicator" id="conspiracy-level">
+            <div class="level-bar"></div>
+            <span class="level-text">1/5</span>
+          </div>
+        </div>
       </div>
       
-      <!-- Остров с секторами -->
-      <div class="island-container">
-        <img src="../assets/photovideo/ostrov.png" alt="Остров" class="island-image">
+      <!-- Мистический остров с улучшенными секторами -->
+      <div class="shadow-island-container">
+        <div class="island-glow-effect"></div>
+        <img src="../assets/photovideo/ostrov.png" alt="Остров силы" class="shadow-island-image">
         
         <!-- Политический сектор -->
         <div class="sector political-sector" data-sector="political">
@@ -71,24 +182,51 @@
           <div class="sector-members"></div>
         </div>
 
-        <!-- Пропагандистский сектор -->
-        <div class="sector propaganda-sector" data-sector="propaganda">
-          <div class="sector-label">Пропагандический штаб</div>
-          <div class="sector-count">0/5</div>
+        <!-- Медиаимперия -->
+        <div class="conspiracy-sector propaganda-sector elite-sector" data-sector="propaganda">
+          <div class="sector-icon">📺</div>
+          <div class="sector-label">Медиаимперия</div>
+          <div class="sector-count">0/3</div>
+          <div class="sector-power-level">
+            <div class="power-bar"></div>
+          </div>
           <div class="sector-members"></div>
+          <div class="sector-influence">Влияние: 0%</div>
         </div>
       </div>
 
-      <!-- Нижняя панель с персонажами -->
-      <div class="bottom-panel">
-        <div class="character-container">
-          <div id="current-character" class="character-card">
-            <!-- Персонаж будет загружен динамически -->
+      <!-- Улучшенная панель управления агентами -->
+      <div class="command-panel">
+        <div class="agent-briefing">
+          <div class="briefing-header">
+            <div class="classified-badge">🔴 СЕКРЕТНО</div>
+            <h3>ДОСЬЕ АГЕНТА</h3>
           </div>
-          <button id="skip-character" class="btn btn-secondary">Пропустить</button>
+          <div id="current-character" class="agent-dossier">
+            <!-- Досье агента будет загружено динамически -->
+          </div>
+          <div class="agent-controls">
+            <button id="skip-character" class="btn btn-secondary operation-btn">
+              <span class="btn-icon">⏭️</span>
+              <span class="btn-text">УСТРАНИТЬ АГЕНТА</span>
+            </button>
+          </div>
         </div>
         
-        <button id="finish-creation" class="btn btn-primary" disabled>Завершить создание</button>
+        <div class="operation-control">
+          <div class="danger-zone">
+            <div class="nuclear-warning">
+              <div class="warning-animation"></div>
+              <span class="warning-text">⚠️ ОПАСНОСТЬ МАКСИМАЛЬНАЯ ⚠️</span>
+            </div>
+            <button id="finish-creation" class="btn btn-primary doomsday-btn" disabled>
+              <div class="btn-glow-effect"></div>
+              <span class="btn-icon">🔥</span>
+              <span class="btn-text">ЗАПУСТИТЬ ОПЕРАЦИЮ</span>
+              <div class="countdown-timer hidden" id="countdown-timer">5</div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -209,5 +347,19 @@
 
   <script src="world-government-stories.js"></script>
   <script src="world-government.js"></script>
+  
+  <script>
+    // Показать информационное окно после дисклеймера
+    document.getElementById('start-quest').addEventListener('click', function() {
+      document.getElementById('warning-modal').classList.remove('active');
+      document.getElementById('quest-info-modal').classList.add('active');
+    });
+    
+    // Начать основной квест
+    document.getElementById('close-quest-info').addEventListener('click', function() {
+      document.getElementById('quest-info-modal').classList.remove('active');
+      document.getElementById('main-interface').classList.remove('hidden');
+    });
+  </script>
 </body>
 </html>

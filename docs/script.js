@@ -103,7 +103,7 @@ async function createOrGetUser(userData) {
         if (error) throw error;
         return data;
     } catch (error) {
-        console.error('Ошибка при создании пользователя:', error);
+        // console.error('Ошибка при создании пользователя:', error);
     }
 }
 
@@ -124,7 +124,7 @@ async function checkAdminRights() {
             document.getElementById('adminFooter').classList.add('active');
         }
     } catch (error) {
-        console.error('Ошибка при проверке прав админа:', error);
+        // console.error('Ошибка при проверке прав админа:', error);
     }
 }
 
@@ -265,7 +265,7 @@ async function sendMessage() {
             })
             .eq('id', conversationId);
         
-        console.log('Сообщение успешно отправлено:', data);
+        // console.log('Сообщение успешно отправлено:', data);
         
         // Добавляем сообщение в кэш
         const newMessage = {
@@ -281,7 +281,7 @@ async function sendMessage() {
         await checkAndNotifyAdmins(conversationId, text, currentUserId);
         
     } catch (error) {
-        console.error('Ошибка при отправке сообщения:', error);
+        // console.error('Ошибка при отправке сообщения:', error);
         showError('Не удалось отправить сообщение');
         
         // Можно добавить визуальную индикацию ошибки
@@ -368,7 +368,7 @@ async function sendAdminMessage() {
             })
             .eq('id', currentConversationId);
         
-        console.log('Ответ админа успешно отправлен:', data);
+        // console.log('Ответ админа успешно отправлен:', data);
         
         // Отправляем уведомление пользователю (через backend API)
         await notifyUser(currentConversationId);
@@ -382,7 +382,7 @@ async function sendAdminMessage() {
         }
         
     } catch (error) {
-        console.error('Ошибка при отправке ответа:', error);
+        // console.error('Ошибка при отправке ответа:', error);
         showError('Не удалось отправить ответ');
         
         // Визуальная индикация ошибки
@@ -432,7 +432,7 @@ async function createOrGetConversation() {
         return data.id;
         
     } catch (error) {
-        console.error('Ошибка при создании диалога:', error);
+        // console.error('Ошибка при создании диалога:', error);
         return null;
     }
 }
@@ -442,7 +442,7 @@ async function loadAdminConversations() {
     if (!isAdmin) return;
     
     try {
-        console.log('Загружаем диалоги для админа...');
+        // console.log('Загружаем диалоги для админа...');
         
         // Загружаем статистику
         await loadAdminStats();
@@ -453,38 +453,38 @@ async function loadAdminConversations() {
             .select('*')
             .limit(1);
             
-        console.log('Тест подключения:', { testData, testError });
+        // console.log('Тест подключения:', { testData, testError });
         
         // Сначала тестируем простую функцию
         const { data: testRpc, error: testRpcError } = await supabaseClient
             .rpc('test_connection');
             
-        console.log('Тест RPC:', { testRpc, testRpcError });
+        // console.log('Тест RPC:', { testRpc, testRpcError });
         
         // Проверяем таблицы
         const { data: tableCheck, error: tableError } = await supabaseClient
             .rpc('check_tables');
             
-        console.log('Проверка таблиц:', { tableCheck, tableError });
+        // console.log('Проверка таблиц:', { tableCheck, tableError });
         
         // Пробуем простую функцию диалогов
         const { data: simpleData, error: simpleError } = await supabaseClient
             .rpc('get_conversations_simple');
             
-        console.log('Простые диалоги:', { simpleData, simpleError });
+        // console.log('Простые диалоги:', { simpleData, simpleError });
         
         // Теперь пробуем основную RPC
         const { data, error } = await supabaseClient
             .rpc('get_admin_conversations');
             
-        console.log('RPC результат:', { data, error });
-        console.log('Данные диалогов:', data);
+        // console.log('RPC результат:', { data, error });
+        // console.log('Данные диалогов:', data);
         
         if (error) {
-            console.error('RPC ошибка:', error);
+            // console.error('RPC ошибка:', error);
             // Показываем простые диалоги если основная функция не работает
             if (simpleData && simpleData.length > 0) {
-                console.log('Используем простые диалоги');
+                // console.log('Используем простые диалоги');
                 renderConversationsList(simpleData.map(conv => ({
                     ...conv,
                     username: `Пользователь #${conv.user_id}`,
@@ -502,21 +502,21 @@ async function loadAdminConversations() {
             return;
         }
         
-        console.log('Диалоги загружены:', data);
+        // console.log('Диалоги загружены:', data);
         
         // Проверяем структуру данных
         if (data && data.length > 0) {
-            console.log('Первый диалог:', data[0]);
-            console.log('Поля первого диалога:', Object.keys(data[0]));
-            console.log('Username первого диалога:', data[0].username);
-            console.log('Message count первого диалога:', data[0].message_count);
-            console.log('Last message первого диалога:', data[0].last_message);
+            // console.log('Первый диалог:', data[0]);
+            // console.log('Поля первого диалога:', Object.keys(data[0]));
+            // console.log('Username первого диалога:', data[0].username);
+            // console.log('Message count первого диалога:', data[0].message_count);
+            // console.log('Last message первого диалога:', data[0].last_message);
         }
         
         renderConversationsList(data);
         
     } catch (error) {
-        console.error('Ошибка при загрузке диалогов:', error);
+        // console.error('Ошибка при загрузке диалогов:', error);
         conversationsList.innerHTML = '<div class="loading">Ошибка загрузки: ' + error.message + '</div>';
     }
 }
@@ -528,7 +528,7 @@ async function loadAdminStats() {
             .rpc('get_conversations_stats');
             
         if (error) {
-            console.error('Ошибка при загрузке статистики:', error);
+            // console.error('Ошибка при загрузке статистики:', error);
             return;
         }
         
@@ -539,7 +539,7 @@ async function loadAdminStats() {
             document.getElementById('totalMessages').textContent = stats.total_messages || 0;
         }
     } catch (error) {
-        console.error('Ошибка при загрузке статистики:', error);
+        // console.error('Ошибка при загрузке статистики:', error);
     }
 }
 
@@ -566,7 +566,7 @@ function filterConversations(conversations, filter) {
 
 // Отображение списка диалогов
 function renderConversationsList(conversations) {
-    console.log('renderConversationsList вызвана с:', conversations);
+    // console.log('renderConversationsList вызвана с:', conversations);
     
     // Сохраняем все диалоги в кэш
     allConversations = conversations || [];
@@ -575,13 +575,13 @@ function renderConversationsList(conversations) {
     const filteredConversations = filterConversations(allConversations, currentFilter);
     
     if (!filteredConversations || filteredConversations.length === 0) {
-        console.log('Нет диалогов для отображения после фильтрации');
+        // console.log('Нет диалогов для отображения после фильтрации');
         conversationsList.innerHTML = '<div class="loading">Нет диалогов по выбранному фильтру</div>';
         return;
     }
     
     const html = filteredConversations.map(conv => {
-        console.log('Обрабатываем диалог:', conv);
+        // console.log('Обрабатываем диалог:', conv);
         
         // Используем username из базы данных (уже обработанный в SQL)
         const username = conv.username || 'Неизвестный пользователь';
@@ -603,7 +603,7 @@ function renderConversationsList(conversations) {
         // Формируем текст для предварительного просмотра
         const previewText = messageCount > 0 ? `${messageCount} сообщений` : 'Нет сообщений';
         
-        console.log('Данные для отображения:', {
+        // console.log('Данные для отображения:', {
             username,
             lastMessage,
             messageCount,
@@ -633,7 +633,7 @@ function renderConversationsList(conversations) {
         `;
     }).join('');
     
-    console.log('Сгенерированный HTML:', html);
+    // console.log('Сгенерированный HTML:', html);
     conversationsList.innerHTML = html;
     
     // Добавляем обработчики клика
@@ -650,7 +650,7 @@ function renderConversationsList(conversations) {
 async function openConversationDialog(conversationId, userId) {
     currentConversationId = conversationId;
     
-    console.log('Открытие диалога:', { conversationId, userId });
+    // console.log('Открытие диалога:', { conversationId, userId });
     
     try {
         // Получаем информацию о пользователе
@@ -661,11 +661,11 @@ async function openConversationDialog(conversationId, userId) {
             .single();
             
         if (userError) {
-            console.error('Ошибка получения пользователя:', userError);
+            // console.error('Ошибка получения пользователя:', userError);
             throw userError;
         }
         
-        console.log('Пользователь найден:', user);
+        // console.log('Пользователь найден:', user);
         
         // Получаем сообщения диалога
         let messages = null;
@@ -677,15 +677,15 @@ async function openConversationDialog(conversationId, userId) {
             messages = result.data;
             messagesError = result.error;
         } catch (error) {
-            console.error('Ошибка при вызове RPC:', error);
+            // console.error('Ошибка при вызове RPC:', error);
             messagesError = error;
         }
         
         if (messagesError) {
-            console.error('Ошибка RPC get_conversation_messages:', messagesError);
+            // console.error('Ошибка RPC get_conversation_messages:', messagesError);
             
             // Попробуем альтернативный способ получения сообщений
-            console.log('Пробуем альтернативный способ получения сообщений...');
+            // console.log('Пробуем альтернативный способ получения сообщений...');
             try {
                 const { data: altMessages, error: altError } = await supabaseClient
                     .from('messages')
@@ -694,7 +694,7 @@ async function openConversationDialog(conversationId, userId) {
                     .order('created_at', { ascending: true });
                 
                 if (altError) {
-                    console.error('Ошибка альтернативного запроса:', altError);
+                    // console.error('Ошибка альтернативного запроса:', altError);
                     throw messagesError; // Возвращаемся к оригинальной ошибке
                 }
                 
@@ -717,14 +717,14 @@ async function openConversationDialog(conversationId, userId) {
                     created_at: msg.created_at
                 }));
                 
-                console.log('Сообщения получены альтернативным способом:', messages);
+                // console.log('Сообщения получены альтернативным способом:', messages);
             } catch (altError) {
-                console.error('Альтернативный способ тоже не сработал:', altError);
+                // console.error('Альтернативный способ тоже не сработал:', altError);
                 throw messagesError;
             }
         }
         
-        console.log('Сообщения получены:', messages);
+        // console.log('Сообщения получены:', messages);
         
         // Отображаем информацию о пользователе
         const username = user.username || user.first_name || `Пользователь #${user.telegram_id}`;
@@ -745,7 +745,7 @@ async function openConversationDialog(conversationId, userId) {
         showConversationDialog();
         
     } catch (error) {
-        console.error('Ошибка при открытии диалога:', error);
+        // console.error('Ошибка при открытии диалога:', error);
         showError('Не удалось загрузить диалог');
     }
 }
@@ -798,7 +798,7 @@ async function markMessagesAsRead(conversationId) {
             .eq('conversation_id', conversationId)
             .neq('sender_id', currentUserId);
     } catch (error) {
-        console.error('Ошибка при отметке сообщений:', error);
+        // console.error('Ошибка при отметке сообщений:', error);
     }
 }
 
@@ -813,7 +813,7 @@ async function notifyUser(conversationId) {
             .single();
             
         if (error || !conversation) {
-            console.error('Ошибка при получении диалога:', error);
+            // console.error('Ошибка при получении диалога:', error);
             return;
         }
         
@@ -849,10 +849,10 @@ async function notifyUser(conversationId) {
             throw new Error('Failed to send notification');
         }
         
-        console.log('Уведомление отправлено пользователю');
+        // console.log('Уведомление отправлено пользователю');
         
     } catch (error) {
-        console.error('Ошибка при отправке уведомления:', error);
+        // console.error('Ошибка при отправке уведомления:', error);
     }
 }
 
@@ -871,7 +871,7 @@ async function notifyAdminsNewMessage(conversationId, messageText, userId) {
             .single();
             
         if (userError) {
-            console.error('Ошибка при получении информации о пользователе:', userError);
+            // console.error('Ошибка при получении информации о пользователе:', userError);
             return;
         }
         
@@ -908,17 +908,17 @@ async function notifyAdminsNewMessage(conversationId, messageText, userId) {
                 });
                 
                 if (response.ok) {
-                    console.log(`Уведомление отправлено администратору ${adminId}`);
+                    // console.log(`Уведомление отправлено администратору ${adminId}`);
                 } else {
-                    console.error(`Ошибка отправки уведомления администратору ${adminId}:`, response.status);
+                    // console.error(`Ошибка отправки уведомления администратору ${adminId}:`, response.status);
                 }
             } catch (error) {
-                console.error(`Ошибка при отправке уведомления администратору ${adminId}:`, error);
+                // console.error(`Ошибка при отправке уведомления администратору ${adminId}:`, error);
             }
         }
         
     } catch (error) {
-        console.error('Ошибка при отправке уведомлений администраторам:', error);
+        // console.error('Ошибка при отправке уведомлений администраторам:', error);
     }
 }
 
@@ -937,7 +937,7 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
             .single();
             
         if (userError) {
-            console.error('Ошибка при получении информации о пользователе:', userError);
+            // console.error('Ошибка при получении информации о пользователе:', userError);
             return;
         }
         
@@ -974,17 +974,17 @@ async function notifyAdminsFollowUpQuestion(conversationId, messageText, userId)
                 });
                 
                 if (response.ok) {
-                    console.log(`Уведомление о вопросе отправлено администратору ${adminId}`);
+                    // console.log(`Уведомление о вопросе отправлено администратору ${adminId}`);
                 } else {
-                    console.error(`Ошибка отправки уведомления администратору ${adminId}:`, response.status);
+                    // console.error(`Ошибка отправки уведомления администратору ${adminId}:`, response.status);
                 }
             } catch (error) {
-                console.error(`Ошибка при отправке уведомления администратору ${adminId}:`, error);
+                // console.error(`Ошибка при отправке уведомления администратору ${adminId}:`, error);
             }
         }
         
     } catch (error) {
-        console.error('Ошибка при отправке уведомлений администраторам:', error);
+        // console.error('Ошибка при отправке уведомлений администраторам:', error);
     }
 }
 
@@ -999,7 +999,7 @@ async function checkAndNotifyAdmins(conversationId, messageText, userId) {
             .single();
             
         if (convError) {
-            console.error('Ошибка при получении информации о диалоге:', convError);
+            // console.error('Ошибка при получении информации о диалоге:', convError);
             return;
         }
         
@@ -1012,7 +1012,7 @@ async function checkAndNotifyAdmins(conversationId, messageText, userId) {
             .limit(5);
             
         if (msgError) {
-            console.error('Ошибка при получении сообщений:', msgError);
+            // console.error('Ошибка при получении сообщений:', msgError);
             return;
         }
         
@@ -1048,7 +1048,7 @@ async function checkAndNotifyAdmins(conversationId, messageText, userId) {
         }
         
     } catch (error) {
-        console.error('Ошибка при проверке типа уведомления:', error);
+        // console.error('Ошибка при проверке типа уведомления:', error);
     }
 }
 
@@ -1059,13 +1059,13 @@ async function checkIfUserIsAdmin(userId) {
             .rpc('is_admin', { user_telegram_id: userId });
             
         if (error) {
-            console.error('Ошибка при проверке прав администратора:', error);
+            // console.error('Ошибка при проверке прав администратора:', error);
             return false;
         }
         
         return data || false;
     } catch (error) {
-        console.error('Ошибка при проверке прав администратора:', error);
+        // console.error('Ошибка при проверке прав администратора:', error);
         return false;
     }
 }
@@ -1144,7 +1144,7 @@ async function loadUserConversation(conversationId) {
         currentConversationId = conversationId;
         
     } catch (error) {
-        console.error('Ошибка при загрузке диалога пользователя:', error);
+        // console.error('Ошибка при загрузке диалога пользователя:', error);
     }
 }
 
@@ -1159,7 +1159,7 @@ async function loadAdminConversationDirect(conversationId) {
             .single();
             
         if (convError) {
-            console.error('Ошибка при получении диалога:', convError);
+            // console.error('Ошибка при получении диалога:', convError);
             return;
         }
         
@@ -1167,7 +1167,7 @@ async function loadAdminConversationDirect(conversationId) {
         await openConversationDialog(conversationId, conversation.user_id);
         
     } catch (error) {
-        console.error('Ошибка при загрузке диалога администратора:', error);
+        // console.error('Ошибка при загрузке диалога администратора:', error);
     }
 }
 
@@ -1223,7 +1223,7 @@ async function loadMessagesWithPagination(conversationId, loadMore = false) {
         updateNavigationButtons();
         
     } catch (error) {
-        console.error('Ошибка при загрузке сообщений:', error);
+        // console.error('Ошибка при загрузке сообщений:', error);
         showError('Не удалось загрузить сообщения');
     } finally {
         isLoadingMessages = false;
@@ -1264,7 +1264,7 @@ async function loadNewMessages(conversationId) {
         }
         
     } catch (error) {
-        console.error('Ошибка при загрузке новых сообщений:', error);
+        // console.error('Ошибка при загрузке новых сообщений:', error);
     }
 }
 
@@ -1621,7 +1621,7 @@ function showError(message) {
     if (tg && tg.showAlert) {
         tg.showAlert(message);
     } else {
-        alert(message);
+        // alert message
     }
 }
 

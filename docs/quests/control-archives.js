@@ -329,11 +329,11 @@ function initTG() {
       
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userData.telegramId = tg.initDataUnsafe.user.id;
-        console.log('Telegram ID получен:', userData.telegramId);
+        // console.log('Telegram ID получен:', userData.telegramId);
       }
     }
   } catch (e) {
-    console.log("TG init fail", e);
+    // console.log("TG init fail", e);
   }
 }
 
@@ -341,10 +341,10 @@ function initTG() {
 async function initSupabase() {
   try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase инициализирован');
+    // console.log('Supabase инициализирован');
     return true;
   } catch (error) {
-    console.error('Ошибка инициализации Supabase:', error);
+    // console.error('Ошибка инициализации Supabase:', error);
     return false;
   }
 }
@@ -364,10 +364,10 @@ async function loadUserData(telegramId) {
       userData.level = data.level || 1;
       userData.experience = data.experience || 0;
       updateUI();
-      console.log('Данные пользователя загружены:', userData);
+      // console.log('Данные пользователя загружены:', userData);
     }
   } catch (error) {
-    console.error('Ошибка загрузки данных пользователя:', error);
+    // console.error('Ошибка загрузки данных пользователя:', error);
   }
 }
 
@@ -381,13 +381,13 @@ async function updateUserData(updates) {
       .eq('telegram_id', String(userData.telegramId));
     
     if (error) {
-      console.error('Ошибка обновления данных:', error);
+      // console.error('Ошибка обновления данных:', error);
     } else {
       Object.assign(userData, updates);
       updateUI();
     }
   } catch (error) {
-    console.error('Ошибка обновления данных пользователя:', error);
+    // console.error('Ошибка обновления данных пользователя:', error);
   }
 }
 
@@ -611,7 +611,7 @@ function bindEvents() {
 
 /* ====== Initialization ====== */
 document.addEventListener('DOMContentLoaded', async function() {
-  console.log('Архивы Контроля загружаются...');
+  // console.log('Архивы Контроля загружаются...');
   
   // Initialize Telegram
   initTG();
@@ -630,6 +630,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Update UI
   updateUI();
   
-  console.log('Архивы Контроля готовы к использованию');
+  // console.log('Архивы Контроля готовы к использованию');
   toast('Добро пожаловать в секретные архивы...', 'info');
 });

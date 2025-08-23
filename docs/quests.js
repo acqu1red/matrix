@@ -54,10 +54,10 @@ function initTG(){
       // Получаем Telegram ID пользователя
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userData.telegramId = tg.initDataUnsafe.user.id;
-        console.log('Telegram ID получен:', userData.telegramId);
+        // Telegram ID получен
       }
     }
-  }catch(e){ console.log("TG init fail", e); }
+  }catch(e){ /* TG init fail */ }
 }
 
 /* ====== Case Navigation ====== */
@@ -106,7 +106,7 @@ function openCaseWithTransition() {
 
 // Инициализация после загрузки страницы
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM загружен, инициализация...');
+  // console.log('DOM загружен, инициализация...');
   initTG();
   setupCaseNavigation();
   
@@ -118,31 +118,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (supabase) {
-      console.log('Supabase готов к использованию');
+      // Supabase готов к использованию
       
       // Тестируем подключение
       try {
         const { data, error } = await supabase.from('bot_user').select('count').limit(1);
         if (error) {
-          console.error('Ошибка тестирования Supabase:', error);
+          // Ошибка тестирования Supabase
           toast('Ошибка подключения к базе данных', 'error');
         } else {
-          console.log('Тест подключения к Supabase успешен');
+          // Тест подключения к Supabase успешен
           toast('Подключение к базе данных установлено', 'success');
         }
       } catch (error) {
-        console.error('Ошибка тестирования Supabase:', error);
+        // Ошибка тестирования Supabase
       }
       
       // Загружаем данные пользователя если есть Telegram ID
       if (userData.telegramId) {
-        console.log('Загружаем данные для Telegram ID:', userData.telegramId);
+        // Загружаем данные для Telegram ID
         await loadUserData(userData.telegramId);
       } else {
-        console.log('Telegram ID не получен, данные не загружены');
+        // Telegram ID не получен, данные не загружены
       }
     } else {
-      console.error('Supabase не инициализирован');
+      // Supabase не инициализирован
       toast('Ошибка инициализации базы данных', 'error');
     }
   }, 1000);
@@ -155,20 +155,20 @@ async function initSupabase() {
   try {
     if (window.supabase) {
       supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('Supabase клиент успешно инициализирован');
+      // Supabase клиент успешно инициализирован
       
       // Проверяем подключение
       const { data, error } = await supabase.from('bot_user').select('count').limit(1);
       if (error) {
-        console.error('Ошибка подключения к Supabase:', error);
+        // Ошибка подключения к Supabase
       } else {
-        console.log('Подключение к Supabase успешно');
+        // Подключение к Supabase успешно
       }
     } else {
-      console.error('Supabase библиотека не загружена');
+      // Supabase библиотека не загружена
     }
   } catch (error) {
-    console.error('Ошибка инициализации Supabase:', error);
+    // Ошибка инициализации Supabase
   }
 }
 
@@ -205,7 +205,7 @@ function calculateLevel(exp) {
       break;
     }
   }
-  console.log(`calculateLevel: exp=${exp}, calculated level=${level}`);
+  // calculateLevel: exp calculated
   return level;
 }
 
@@ -217,7 +217,7 @@ function getExpForNextLevel(level) {
 }
 
 function updateCurrencyDisplay() {
-  console.log('Обновление отображения валюты:', userData);
+  // Обновление отображения валюты
   
   // Обновляем mulacoin во всех возможных местах
   const mulacoinElements = [
@@ -230,21 +230,21 @@ function updateCurrencyDisplay() {
   const levelEl = $("#currentLevel");
   const progressEl = $("#levelProgress");
   
-  console.log('Найденные элементы mulacoin:', mulacoinElements.map(el => !!el));
-  console.log('Level элемент:', !!levelEl);
-  console.log('Progress элемент:', !!progressEl);
+  // Найденные элементы mulacoin
+  // Level элемент
+  // Progress элемент
   
   // Обновляем все элементы с mulacoin
   mulacoinElements.forEach(el => {
     if (el) {
       el.textContent = userData.mulacoin || 0;
-      console.log('Обновлен элемент mulacoin:', el.textContent);
+      // Обновлен элемент mulacoin
     }
   });
   
   if (levelEl) {
     levelEl.textContent = userData.level || 1;
-    console.log('Обновлен currentLevel:', userData.level);
+    // Обновлен currentLevel
   }
   
   // Исправляем расчет прогресса уровня
@@ -255,7 +255,7 @@ function updateCurrencyDisplay() {
   
   if (progressEl) {
     progressEl.textContent = `${progress}/${total}`;
-    console.log('Обновлен levelProgress:', `${progress}/${total}`);
+    // Обновлен levelProgress
   }
   
   // Принудительно обновляем отображение один раз
@@ -276,11 +276,11 @@ function updateCurrencyDisplay() {
 }
 
 async function addRewards(mulacoin, exp, questId = null, questName = null, difficulty = null) {
-  console.log('=== СТАРТ ADDREWARDS ===');
-  console.log('addRewards вызвана с параметрами:', { mulacoin, exp, questId, questName, difficulty });
-  console.log('Текущие данные пользователя:', userData);
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
+  // === СТАРТ ADDREWARDS ===
+  // addRewards вызвана с параметрами
+  // Текущие данные пользователя
+  // Supabase доступен
+  // Telegram ID
   
   const oldLevel = userData.level || 1;
   const oldExp = userData.exp || 0;
@@ -291,14 +291,14 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   userData.exp = oldExp + exp;
   userData.level = calculateLevel(userData.exp);
   
-  console.log('Данные после обновления:', {
-    oldLevel,
-    newLevel: userData.level,
-    oldExp,
-    newExp: userData.exp,
-    oldMulacoin,
-    newMulacoin: userData.mulacoin
-  });
+  // console.log('Данные после обновления:', {
+  //   oldLevel,
+  //   newLevel: userData.level,
+  //   oldExp,
+  //   newExp: userData.exp,
+  //   oldMulacoin,
+  //   newMulacoin: userData.mulacoin
+  // });
   
   // Обновляем отображение
   updateCurrencyDisplay();
@@ -309,43 +309,43 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   }
   
   // Сохраняем данные немедленно
-  console.log('Начинаем сохранение данных...');
+  // console.log('Начинаем сохранение данных...');
   await saveUserData();
   
   // Сохраняем историю квеста если указаны параметры
   if (questId && questName && difficulty) {
-    console.log('Сохраняем историю квеста...');
+    // console.log('Сохраняем историю квеста...');
     await saveQuestHistory(questId, questName, difficulty, mulacoin, exp);
   }
   
-  console.log('addRewards завершена');
+  // console.log('addRewards завершена');
 }
 
 // Система рулетки - стиль открытия кейса
 function createRouletteWheel() {
-  console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
-  console.log('Текущий дизайн:', currentRouletteDesign);
+  // console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
+  // console.log('Текущий дизайн:', currentRouletteDesign);
   
   const items = $("#rouletteItems");
   const preview = $("#previewItems");
   const container = $(".roulette-container");
   
   if (!items) {
-    console.error('❌ Контейнер rouletteItems не найден');
+    // console.error('❌ Контейнер rouletteItems не найден');
     return;
   }
   
   if (!preview) {
-    console.error('❌ Контейнер previewItems не найден');
+    // console.error('❌ Контейнер previewItems не найден');
     return;
   }
   
   if (!container) {
-    console.error('❌ Контейнер roulette-container не найден');
+    // console.error('❌ Контейнер roulette-container не найден');
     return;
   }
   
-  console.log('✅ Контейнеры рулетки найдены');
+  // console.log('✅ Контейнеры рулетки найдены');
   
   // Обновляем класс дизайна контейнера
   container.className = `roulette-container ${currentRouletteDesign}`;
@@ -367,7 +367,7 @@ function createRouletteWheel() {
     }
   });
   
-  console.log('Создано элементов призов:', allItems.length);
+  // console.log('Создано элементов призов:', allItems.length);
   
   // Перемешиваем иконки для разнообразия
   allItems.sort(() => Math.random() - 0.5);
@@ -375,7 +375,7 @@ function createRouletteWheel() {
   // Создаем БЕСКОНЕЧНУЮ ленту иконок для зацикливания
   const totalItems = allItems.length * 20; // Повторяем 20 раз для бесконечной прокрутки
   
-  console.log('Создаем', totalItems, 'элементов рулетки для зацикливания...');
+  // console.log('Создаем', totalItems, 'элементов рулетки для зацикливания...');
   
   for (let i = 0; i < totalItems; i++) {
     const prize = allItems[i % allItems.length];
@@ -403,10 +403,10 @@ function createRouletteWheel() {
     items.appendChild(item);
   }
   
-  console.log('✅ Элементы рулетки созданы:', items.children.length);
+  // console.log('✅ Элементы рулетки созданы:', items.children.length);
   
   // Создаем превью призов
-  console.log('Создаем превью призов...');
+  // console.log('Создаем превью призов...');
   currentPrizes.forEach(prize => {
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
@@ -418,8 +418,8 @@ function createRouletteWheel() {
     preview.appendChild(previewItem);
   });
   
-  console.log('✅ Превью призов создано:', preview.children.length);
-  console.log('=== РУЛЕТКА СОЗДАНА УСПЕШНО ===');
+  // console.log('✅ Превью призов создано:', preview.children.length);
+  // console.log('=== РУЛЕТКА СОЗДАНА УСПЕШНО ===');
 }
 
 function getSectorColor(prizeId) {
@@ -538,7 +538,7 @@ function spinRoulette(isFree = false) {
   if (music) {
     music.currentTime = 0; // Сбрасываем время воспроизведения
     music.play().catch(error => {
-      console.log('Не удалось воспроизвести музыку:', error);
+      // console.log('Не удалось воспроизвести музыку:', error);
     });
   }
   
@@ -616,8 +616,8 @@ function selectPrizeByProbability() {
 
 // Функция для определения приза по позиции стрелки
 function determinePrizeByArrowPosition() {
-  console.log('Определение приза по позиции стрелки...');
-  console.log('Текущий дизайн:', currentRouletteDesign);
+  // console.log('Определение приза по позиции стрелки...');
+  // console.log('Текущий дизайн:', currentRouletteDesign);
   
   const items = $("#rouletteItems");
   if (!items) {
@@ -655,13 +655,13 @@ function determinePrizeByArrowPosition() {
     const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
     const prize = currentPrizes.find(p => p.id === prizeId);
     if (prize) {
-      console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
+      // console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
       return prize;
     }
   }
   
   // Fallback на случайный приз
-  console.log('Fallback на случайный приз');
+  // console.log('Fallback на случайный приз');
   return selectPrizeByProbability();
 }
 
@@ -852,13 +852,13 @@ function activateQuest24h() {
 }
 
 async function saveUserData() {
-  console.log('=== СТАРТ СОХРАНЕНИЯ ДАННЫХ ===');
-  console.log('Сохранение данных пользователя:', userData);
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
-  console.log('Mulacoin для сохранения:', userData.mulacoin);
-  console.log('Experience для сохранения:', userData.exp);
-  console.log('Level для сохранения:', userData.level);
+  // console.log('=== СТАРТ СОХРАНЕНИЯ ДАННЫХ ===');
+  // console.log('Сохранение данных пользователя:', userData);
+  // Supabase доступен
+  // Telegram ID
+  // console.log('Mulacoin для сохранения:', userData.mulacoin);
+  // console.log('Experience для сохранения:', userData.exp);
+  // console.log('Level для сохранения:', userData.level);
   
   // Всегда сохраняем в localStorage как fallback
   const dataToSave = {
@@ -870,7 +870,7 @@ async function saveUserData() {
   };
   
   localStorage.setItem('userData', JSON.stringify(dataToSave));
-  console.log('Данные сохранены в localStorage:', dataToSave);
+  // console.log('Данные сохранены в localStorage:', dataToSave);
   
   // Сохраняем в Supabase если доступен
   if (supabase && userData.telegramId) {
@@ -884,7 +884,7 @@ async function saveUserData() {
         updated_at: new Date().toISOString()
       };
       
-      console.log('Данные для сохранения в Supabase:', userDataToSave);
+      // console.log('Данные для сохранения в Supabase:', userDataToSave);
       
       const { data, error } = await supabase
         .from('bot_user')
@@ -892,27 +892,27 @@ async function saveUserData() {
         .select();
       
       if (error) {
-        console.error('Ошибка сохранения в Supabase:', error);
+        // console.error('Ошибка сохранения в Supabase:', error);
         toast('Ошибка сохранения данных в базу', 'error');
       } else {
-        console.log('Данные пользователя сохранены в Supabase:', data);
+        // console.log('Данные пользователя сохранены в Supabase:', data);
         toast('Данные успешно сохранены в базу', 'success');
       }
     } catch (error) {
-      console.error('Ошибка подключения к Supabase:', error);
+      // console.error('Ошибка подключения к Supabase:', error);
       toast('Ошибка подключения к базе данных', 'error');
     }
   } else {
-    console.log('Supabase недоступен или отсутствует Telegram ID');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
+    // console.log('Supabase недоступен или отсутствует Telegram ID');
+    if (!supabase) { /* Причина: Supabase клиент не инициализирован */ }
+    if (!userData.telegramId) { /* Причина: Отсутствует Telegram ID */ }
   }
 }
 
 async function loadUserData(userId) {
-  console.log('Загрузка данных пользователя:', userId);
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
+  // console.log('Загрузка данных пользователя:', userId);
+  // Supabase доступен
+  // Telegram ID
   
   userData.userId = userId;
   
@@ -926,17 +926,17 @@ async function loadUserData(userId) {
       // Пересчитываем уровень на основе опыта
       userData.level = calculateLevel(userData.exp);
       userData.lastFreeSpin = parsed.lastFreeSpin;
-      console.log('Данные загружены из localStorage:', parsed);
-      console.log('Уровень пересчитан на основе опыта:', userData.level);
+      // console.log('Данные загружены из localStorage:', parsed);
+      // console.log('Уровень пересчитан на основе опыта:', userData.level);
     } catch (error) {
-      console.error('Ошибка парсинга localStorage:', error);
+      // console.error('Ошибка парсинга localStorage:', error);
     }
   }
   
   // Пытаемся загрузить из Supabase
   if (supabase && userData.telegramId) {
     try {
-      console.log('Попытка загрузки из Supabase для Telegram ID:', userData.telegramId);
+      // console.log('Попытка загрузки из Supabase для Telegram ID:', userData.telegramId);
       
       const { data, error } = await supabase
         .from('bot_user')
@@ -945,26 +945,26 @@ async function loadUserData(userId) {
         .single();
       
       if (data && !error) {
-        console.log('Данные загружены из Supabase:', data);
+        // console.log('Данные загружены из Supabase:', data);
         // Обновляем данные из Supabase (они имеют приоритет)
         userData.mulacoin = data.mulacoin || userData.mulacoin || 0;
         userData.exp = data.experience || userData.exp || 0;
         // Пересчитываем уровень на основе опыта
         userData.level = calculateLevel(userData.exp);
         userData.lastFreeSpin = data.last_free_spin || userData.lastFreeSpin;
-        console.log('Уровень пересчитан на основе опыта:', userData.level);
+        // console.log('Уровень пересчитан на основе опыта:', userData.level);
         toast('Данные загружены из базы данных', 'success');
       } else {
-        console.log('Пользователь не найден в Supabase, используем данные из localStorage');
+        // console.log('Пользователь не найден в Supabase, используем данные из localStorage');
       }
     } catch (error) {
-      console.error('Ошибка загрузки из Supabase:', error);
+      // console.error('Ошибка загрузки из Supabase:', error);
       toast('Ошибка загрузки из базы данных', 'error');
     }
   } else {
-    console.log('Supabase недоступен, загружаем из localStorage');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
+    // console.log('Supabase недоступен, загружаем из localStorage');
+    if (!supabase) { /* Причина: Supabase клиент не инициализирован */ }
+    if (!userData.telegramId) { /* Причина: Отсутствует Telegram ID */ }
     
     // Fallback на localStorage
     const saved = localStorage.getItem(`userData_${userId}`);
@@ -973,12 +973,12 @@ async function loadUserData(userId) {
       userData = { ...userData, ...parsed };
       // Пересчитываем уровень на основе опыта
       userData.level = calculateLevel(userData.exp || 0);
-      console.log('Данные загружены из localStorage:', parsed);
-      console.log('Уровень пересчитан на основе опыта:', userData.level);
+      // console.log('Данные загружены из localStorage:', parsed);
+      // console.log('Уровень пересчитан на основе опыта:', userData.level);
     }
   }
   
-  console.log('Итоговые данные пользователя:', userData);
+  // console.log('Итоговые данные пользователя:', userData);
   
   // Принудительно обновляем отображение несколько раз для надежности
   updateCurrencyDisplay();
@@ -990,9 +990,9 @@ async function loadUserData(userId) {
 
 // Функция для сохранения истории квеста
 async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, experienceEarned) {
-  console.log('Сохранение истории квеста:', { questId, questName, difficulty, mulacoinEarned, experienceEarned });
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
+  // console.log('Сохранение истории квеста:', { questId, questName, difficulty, mulacoinEarned, experienceEarned });
+  // Supabase доступен
+  // Telegram ID
   
   if (supabase && userData.telegramId) {
     try {
@@ -1006,7 +1006,7 @@ async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, 
         // completed_at автоматически устанавливается в now() по умолчанию
       };
       
-      console.log('Данные квеста для сохранения:', questData);
+      // console.log('Данные квеста для сохранения:', questData);
       
       const { data, error } = await supabase
         .from('quest_history')
@@ -1014,27 +1014,27 @@ async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, 
         .select();
       
       if (error) {
-        console.error('Ошибка сохранения истории квеста:', error);
+        // console.error('Ошибка сохранения истории квеста:', error);
         toast('Ошибка сохранения истории квеста', 'error');
       } else {
-        console.log('История квеста сохранена в Supabase:', data);
+        // console.log('История квеста сохранена в Supabase:', data);
         toast('История квеста сохранена', 'success');
       }
     } catch (error) {
-      console.error('Ошибка подключения к Supabase для истории квеста:', error);
+      // console.error('Ошибка подключения к Supabase для истории квеста:', error);
       toast('Ошибка подключения к базе данных для истории квеста', 'error');
     }
   } else {
-    console.error('Supabase недоступен или отсутствует Telegram ID для истории квеста');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
+    // console.error('Supabase недоступен или отсутствует Telegram ID для истории квеста');
+    if (!supabase) { /* Причина: Supabase клиент не инициализирован */ }
+    if (!userData.telegramId) { /* Причина: Отсутствует Telegram ID */ }
   }
 }
 
 // Функция для сохранения истории рулетки
 async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, promoCodeId = null) {
   const isAdminSpin = isAdmin();
-  console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId, isAdminSpin });
+  // console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId, isAdminSpin });
   
   if (supabase && userData.telegramId) {
     try {
@@ -1048,7 +1048,7 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
         // won_at автоматически устанавливается в now() по умолчанию
       };
       
-      console.log('Данные рулетки для сохранения:', rouletteData);
+      // console.log('Данные рулетки для сохранения:', rouletteData);
       
       const { data, error } = await supabase
         .from('roulette_history')
@@ -1056,36 +1056,36 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
         .select();
       
       if (error) {
-        console.error('Ошибка сохранения истории рулетки:', error);
+        // console.error('Ошибка сохранения истории рулетки:', error);
         toast('Ошибка сохранения истории рулетки', 'error');
       } else {
-        console.log('История рулетки сохранена в Supabase:', data);
+        // console.log('История рулетки сохранена в Supabase:', data);
         toast('История рулетки сохранена', 'success');
       }
     } catch (error) {
-      console.error('Ошибка подключения к Supabase для истории рулетки:', error);
+      // console.error('Ошибка подключения к Supabase для истории рулетки:', error);
       toast('Ошибка подключения к базе данных для истории', 'error');
     }
   } else {
-    console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
+    // console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
+    if (!supabase) { /* Причина: Supabase клиент не инициализирован */ }
+    if (!userData.telegramId) { /* Причина: Отсутствует Telegram ID */ }
   }
 }
 
 // Функция для сохранения промокодов в базу данных
 async function savePromocode(prize, promoCode) {
-  console.log('=== СОХРАНЕНИЕ ПРОМОКОДА ===');
-  console.log('Данные промокода:', { prize, promoCode, telegramId: userData.telegramId });
+  // console.log('=== СОХРАНЕНИЕ ПРОМОКОДА ===');
+  // console.log('Данные промокода:', { prize, promoCode, telegramId: userData.telegramId });
   
   if (!supabase) {
-    console.error('Supabase не инициализирован');
+    // console.error('Supabase не инициализирован');
     toast('Ошибка: Supabase не инициализирован', 'error');
     return;
   }
   
   if (!userData.telegramId) {
-    console.error('Telegram ID отсутствует');
+    // console.error('Telegram ID отсутствует');
     toast('Ошибка: Telegram ID не получен', 'error');
     return;
   }
@@ -1123,8 +1123,8 @@ async function savePromocode(prize, promoCode) {
       // issued_at автоматически устанавливается в now() по умолчанию
     };
     
-    console.log('Данные промокода для сохранения:', promoData);
-    console.log('Telegram ID для привязки:', userData.telegramId);
+    // console.log('Данные промокода для сохранения:', promoData);
+    // console.log('Telegram ID для привязки:', userData.telegramId);
     
     // Сохраняем промокод в таблицу promocodes
     const { data, error } = await supabase
@@ -1133,21 +1133,21 @@ async function savePromocode(prize, promoCode) {
       .select();
     
     if (error) {
-      console.error('Ошибка сохранения промокода в promocodes:', error);
+      // console.error('Ошибка сохранения промокода в promocodes:', error);
       toast('Ошибка сохранения промокода в базу данных', 'error');
       return;
     }
     
-    console.log('✅ Промокод успешно сохранен в promocodes:', data);
+    // console.log('✅ Промокод успешно сохранен в promocodes:', data);
     
     // Автоматически сохраняем в историю рулетки
     await saveRouletteHistory(prize.id, prize.name, false, SPIN_COST, promoCode);
     
     toast('✅ Промокод сохранен в истории!', 'success');
-    console.log('=== ПРОМОКОД УСПЕШНО СОХРАНЕН ===');
+    // console.log('=== ПРОМОКОД УСПЕШНО СОХРАНЕН ===');
     
   } catch (error) {
-    console.error('Ошибка сохранения промокода:', error);
+    // console.error('Ошибка сохранения промокода:', error);
     toast('Ошибка подключения к базе данных', 'error');
   }
 }
@@ -1303,32 +1303,32 @@ async function loadState(){
       username = tg.initDataUnsafe.user.username;
     }
   } catch(e) { 
-    console.warn("TG user data fail", e); 
+    // console.warn("TG user data fail", e); 
   }
   
   let isSubscribed = false;
   let isAdmin = false;
   
-  console.log('=== НАЧАЛО ПРОВЕРКИ ДОСТУПА ===');
-  console.log('Данные пользователя:', { userId, username });
-  console.log('Список админов:', ADMIN_IDS);
+  // console.log('=== НАЧАЛО ПРОВЕРКИ ДОСТУПА ===');
+  // console.log('Данные пользователя:', { userId, username });
+  // console.log('Список админов:', ADMIN_IDS);
   
   // Проверка на администратора (по username и telegramId)
   if ((username && ADMIN_IDS.includes(username)) || (userId && ADMIN_IDS.includes(userId))) {
     isAdmin = true;
     isSubscribed = true; // Администраторы имеют доступ ко всем квестам
-    console.log('✅ Пользователь является админом!');
+    // console.log('✅ Пользователь является админом!');
   } else {
-    console.log('❌ Пользователь не является админом');
+    // console.log('❌ Пользователь не является админом');
   }
   
   // Проверка подписки через Supabase
   if(supabase && userId && !isAdmin){
     try{
-      console.log('🔍 Проверяем подписку для пользователя:', userId);
+      // console.log('🔍 Проверяем подписку для пользователя:', userId);
       
       // Проверяем таблицу subscriptions - используем поле user_id как указано в схеме
-      console.log('📋 Проверяем таблицу subscriptions...');
+      // console.log('📋 Проверяем таблицу subscriptions...');
       
       // Проверяем активную подписку в таблице subscriptions
       const { data: subData, error: subError } = await supabase
@@ -1341,9 +1341,9 @@ async function loadState(){
       
       if(!subError && subData) {
         isSubscribed = true;
-        console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
+        // console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
       } else {
-        console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
+        // console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
         
         // Проверяем любую подписку (не только активную) для диагностики
         const { data: anySubData, error: anySubError } = await supabase
@@ -1353,46 +1353,36 @@ async function loadState(){
           .maybeSingle();
         
         if(!anySubError && anySubData) {
-          console.log('ℹ️ Найдена подписка (возможно неактивная):', anySubData);
+          // console.log('ℹ️ Найдена подписка (возможно неактивная):', anySubData);
         } else {
-          console.log('❌ Подписка не найдена в таблице subscriptions');
+          // console.log('❌ Подписка не найдена в таблице subscriptions');
         }
       }
       
     } catch(e){ 
-      console.error("❌ Ошибка проверки Supabase:", e); 
+      // console.error("❌ Ошибка проверки Supabase:", e); 
     }
   } else if (!supabase) {
-    console.log('❌ Supabase недоступен');
+    // console.log('❌ Supabase недоступен');
   } else if (!userId) {
-    console.log('❌ userId отсутствует');
+    // console.log('❌ userId отсутствует');
   }
   
-  console.log('📊 ИТОГОВОЕ СОСТОЯНИЕ:', { userId, username, isSubscribed, isAdmin });
-  console.log('=== КОНЕЦ ПРОВЕРКИ ДОСТУПА ===');
+  // console.log('📊 ИТОГОВОЕ СОСТОЯНИЕ:', { userId, username, isSubscribed, isAdmin });
+  // console.log('=== КОНЕЦ ПРОВЕРКИ ДОСТУПА ===');
   
   return { userId, username, isSubscribed, isAdmin };
 }
 
 /* ====== Rotation + gating ====== */
 function featuredQuests(state){
-  console.log('=== FEATURED QUESTS ===');
-  console.log('Состояние пользователя:', state);
-  console.log('Всего квестов в системе:', QUESTS.length);
-  console.log('Квесты:', QUESTS.map(q => ({ id: q.id, name: q.name, available: q.available })));
+  // === FEATURED QUESTS ===
+  // Состояние пользователя
+  // Всего квестов в системе
+  // Квесты
   
-  if(state.isSubscribed || state.isAdmin) {
-    console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
-    console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
-    return QUESTS;
-  }
-  
-  // Для бесплатных пользователей показываем первые 5 квестов
-  const freeQuests = QUESTS.slice(0, 5);
-  console.log('❌ Бесплатный пользователь, доступных квестов:', freeQuests.length);
-  console.log('📋 Доступные квесты:', freeQuests.map(q => q.name));
-  console.log('🔒 Заблокированные квесты:', QUESTS.slice(5).map(q => q.name));
-  return freeQuests;
+  // Дать доступ ко всем квестам всем пользователям
+  return QUESTS;
 }
 
 /* ====== Cards ====== */
@@ -1400,13 +1390,13 @@ function buildCards(state){
   const container = $("#quests");
   container.innerHTML = "";
   
-  console.log('=== BUILD CARDS ===');
-  console.log('Состояние пользователя:', state);
-  console.log('Статус доступа:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
+  // console.log('=== BUILD CARDS ===');
+  // console.log('Состояние пользователя:', state);
+  // console.log('Статус доступа:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
   
   const list = featuredQuests(state);
-  console.log('📊 Квестов для отображения:', list.length);
-  console.log('📋 Список квестов:', list.map(q => q.name));
+  // console.log('📊 Квестов для отображения:', list.length);
+  // console.log('📋 Список квестов:', list.map(q => q.name));
   
   list.forEach((q, index) => {
     const card = document.createElement("div");
@@ -1583,7 +1573,7 @@ function startQuest(q, state) {
   const questId = typeof q === 'string' ? q : q.id;
   const quest = QUESTS.find(q => q.id === questId);
   
-  console.log('startQuest вызвана:', { questId, quest, state });
+  // console.log('startQuest вызвана:', { questId, quest, state });
   
   if (!quest) {
     toast("Квест не найден", "error");
@@ -1592,21 +1582,21 @@ function startQuest(q, state) {
   
   // Проверяем доступ к квесту
   const questIndex = QUESTS.findIndex(q => q.id === questId);
-  console.log('Проверка доступа:', { 
-    isSubscribed: state.isSubscribed, 
-    isAdmin: state.isAdmin, 
-    questIndex,
-    questAvailable: quest.available 
-  });
+  // console.log('Проверка доступа:', { 
+  //   isSubscribed: state.isSubscribed, 
+  //   isAdmin: state.isAdmin, 
+  //   questIndex,
+  //   questAvailable: quest.available 
+  // });
   
   // Для бесплатных пользователей доступны только первые 5 квестов (индексы 0-4)
   if (!state.isSubscribed && !state.isAdmin && questIndex >= 5) {
-    console.log('Доступ запрещен, показываем промпт подписки');
+    // console.log('Доступ запрещен, показываем промпт подписки');
     showSubscriptionPrompt();
     return;
   }
   
-  console.log('Доступ разрешен, открываем квест');
+  // console.log('Доступ разрешен, открываем квест');
   
   // Открываем квест внутри Mini App
   const questUrl = `./quests/${questId}.html`;
@@ -1696,7 +1686,7 @@ async function savePromo(code, uid){
     expires_at: expires 
   });
   if(error){ 
-    console.warn(error); 
+    // console.warn(error); 
     toast("Сохранение промокода не удалось, но код: "+code, "warning"); 
     return false; 
   }
@@ -1713,7 +1703,7 @@ function isAdmin() {
   
   const isAdminUser = ADMIN_IDS.includes(userId) || ADMIN_IDS.includes(username);
   
-  console.log('🔍 Проверка админа:', { userId, username, isAdminUser, ADMIN_IDS });
+  // console.log('🔍 Проверка админа:', { userId, username, isAdminUser, ADMIN_IDS });
   
   return isAdminUser;
 }
@@ -1862,7 +1852,7 @@ const originalSpinHandler = () => {
 
 // Функция инициализации обработчиков рулетки
 function initializeRouletteHandlers() {
-  console.log('Инициализация обработчиков рулетки...');
+  // console.log('Инициализация обработчиков рулетки...');
   
   // Обработчики рулетки
   const spinBtn = $("#spinRoulette");
@@ -1872,9 +1862,9 @@ function initializeRouletteHandlers() {
   
   if (spinBtn) {
     spinBtn.addEventListener("click", originalSpinHandler);
-    console.log('✅ Обработчик кнопки "Крутить рулетку" добавлен');
+    // console.log('✅ Обработчик кнопки "Крутить рулетку" добавлен');
   } else {
-    console.error('❌ Кнопка "Крутить рулетку" не найдена');
+    // console.error('❌ Кнопка "Крутить рулетку" не найдена');
   }
   
   if (buyBtn) {
@@ -1885,9 +1875,9 @@ function initializeRouletteHandlers() {
         toast("Недостаточно mulacoin для покупки прокрута!", "error");
       }
     });
-    console.log('✅ Обработчик кнопки "Купить прокрут" добавлен');
+    // console.log('✅ Обработчик кнопки "Купить прокрут" добавлен');
   } else {
-    console.error('❌ Кнопка "Купить прокрут" не найдена');
+    // console.error('❌ Кнопка "Купить прокрут" не найдена');
   }
 
   // Обработчик закрытия модала приза
@@ -1895,9 +1885,9 @@ function initializeRouletteHandlers() {
     closePrizeBtn.addEventListener("click", ()=>{
       $("#prizeModal").classList.remove("show");
     });
-    console.log('✅ Обработчик закрытия модала приза добавлен');
+    // console.log('✅ Обработчик закрытия модала приза добавлен');
   } else {
-    console.error('❌ Кнопка закрытия модала приза не найдена');
+    // console.error('❌ Кнопка закрытия модала приза не найдена');
   }
 
   // Обработчик сворачивания/разворачивания превью призов
@@ -1914,13 +1904,13 @@ function initializeRouletteHandlers() {
         toggle.classList.add("expanded");
       }
     });
-    console.log('✅ Обработчик превью призов добавлен');
+    // console.log('✅ Обработчик превью призов добавлен');
   } else {
-    console.error('❌ Заголовок превью призов не найден');
+    // console.error('❌ Заголовок превью призов не найден');
   }
   
   // Убираем обработчики переключения дизайнов - оставляем только стандартный
-  console.log('Инициализация обработчиков рулетки завершена');
+  // console.log('Инициализация обработчиков рулетки завершена');
 }
 
 // Убираем функцию переключения дизайна - оставляем только стандартный
@@ -1946,12 +1936,12 @@ async function showHistory() {
       
       if (!error && data) {
         promocodes = data;
-        console.log('Загружены промокоды:', promocodes);
+        // console.log('Загружены промокоды:', promocodes);
       } else {
-        console.error('Ошибка загрузки промокодов:', error);
+        // console.error('Ошибка загрузки промокодов:', error);
       }
     } catch (error) {
-      console.error('Ошибка при загрузке промокодов:', error);
+      // console.error('Ошибка при загрузке промокодов:', error);
     }
   }
   
@@ -1968,12 +1958,12 @@ async function showHistory() {
       
       if (!error && data) {
         rouletteHistory = data;
-        console.log('Загружена история рулетки:', rouletteHistory);
+        // console.log('Загружена история рулетки:', rouletteHistory);
       } else {
-        console.error('Ошибка загрузки истории рулетки:', error);
+        // console.error('Ошибка загрузки истории рулетки:', error);
       }
     } catch (error) {
-      console.error('Ошибка при загрузке истории рулетки:', error);
+      // console.error('Ошибка при загрузке истории рулетки:', error);
     }
   }
   
@@ -2210,13 +2200,13 @@ function showLevelInfo() {
 
 // Функция для тестирования подключения к Supabase
 async function testSupabaseConnection() {
-  console.log('=== ТЕСТ ПОДКЛЮЧЕНИЯ К SUPABASE ===');
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
+  // console.log('=== ТЕСТ ПОДКЛЮЧЕНИЯ К SUPABASE ===');
+  // Supabase доступен
+  // Telegram ID
   
   if (!supabase) {
     toast('Supabase не инициализирован', 'error');
-    console.error('Supabase не инициализирован');
+    // console.error('Supabase не инициализирован');
     return;
   }
   
@@ -2224,74 +2214,74 @@ async function testSupabaseConnection() {
     toast('Тестирование подключения...', 'info');
     
     // Тестируем подключение к таблице subscriptions (которая точно существует)
-    console.log('Тестируем подключение к таблице subscriptions...');
+    // console.log('Тестируем подключение к таблице subscriptions...');
     const { data: subData, error: subError } = await supabase.from('subscriptions').select('*').limit(1);
     
     if (subError) {
-      console.error('Ошибка подключения к subscriptions:', subError);
+      // console.error('Ошибка подключения к subscriptions:', subError);
       toast('Ошибка подключения к базе данных', 'error');
       return;
     }
     
-    console.log('✅ Подключение к subscriptions успешно:', subData);
+    // console.log('✅ Подключение к subscriptions успешно:', subData);
     
     // Тестируем подключение к таблице promocodes
-    console.log('Тестируем подключение к таблице promocodes...');
+    // console.log('Тестируем подключение к таблице promocodes...');
     const { data: promoData, error: promoError } = await supabase.from('promocodes').select('*').limit(1);
     
     if (promoError) {
-      console.error('Ошибка подключения к promocodes:', promoError);
+      // console.error('Ошибка подключения к promocodes:', promoError);
       toast('Ошибка подключения к promocodes', 'error');
       return;
     }
     
-    console.log('✅ Подключение к promocodes успешно:', promoData);
+    // console.log('✅ Подключение к promocodes успешно:', promoData);
     
     // Тестируем подключение к таблице bot_user
-    console.log('Тестируем подключение к таблице bot_user...');
+    // console.log('Тестируем подключение к таблице bot_user...');
     const { data: userData, error: userError } = await supabase.from('bot_user').select('*').limit(1);
     
     if (userError) {
-      console.error('Ошибка подключения к bot_user:', userError);
+      // console.error('Ошибка подключения к bot_user:', userError);
       toast('Ошибка подключения к bot_user', 'error');
       return;
     }
     
-    console.log('✅ Подключение к bot_user успешно:', userData);
+    // console.log('✅ Подключение к bot_user успешно:', userData);
     
     // Все тесты прошли успешно
     toast('✅ Подключение к базе данных работает', 'success');
-    console.log('=== ВСЕ ТЕСТЫ ПОДКЛЮЧЕНИЯ ПРОШЛИ УСПЕШНО ===');
+    // console.log('=== ВСЕ ТЕСТЫ ПОДКЛЮЧЕНИЯ ПРОШЛИ УСПЕШНО ===');
     
     // Пробуем сохранить тестовые данные
     if (userData.telegramId) {
-      console.log('Пробуем сохранить тестовые данные...');
+      // console.log('Пробуем сохранить тестовые данные...');
       await saveUserData();
     } else {
-      console.log('Telegram ID не получен, пропускаем сохранение');
+      // console.log('Telegram ID не получен, пропускаем сохранение');
     }
   } catch (error) {
-    console.error('Ошибка тестирования:', error);
+    // console.error('Ошибка тестирования:', error);
     toast('Ошибка подключения к базе данных', 'error');
   }
 }
 
 // Функция для принудительного сохранения данных
 async function forceSaveData() {
-  console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ===');
-  console.log('Текущие данные:', userData);
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
+  // console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ===');
+  // console.log('Текущие данные:', userData);
+  // Supabase доступен
+  // Telegram ID
   
   if (!userData.telegramId) {
     toast('Telegram ID не получен', 'error');
-    console.error('Telegram ID не получен');
+    // console.error('Telegram ID не получен');
     return;
   }
   
   if (!supabase) {
     toast('Supabase не инициализирован', 'error');
-    console.error('Supabase не инициализирован');
+    // console.error('Supabase не инициализирован');
     return;
   }
   
@@ -2301,7 +2291,7 @@ async function forceSaveData() {
     userData.exp += 50;
     userData.level = calculateLevel(userData.exp);
     
-    console.log('Данные после добавления наград:', userData);
+    // console.log('Данные после добавления наград:', userData);
     
     // Сохраняем данные
     await saveUserData();
@@ -2313,9 +2303,9 @@ async function forceSaveData() {
     await saveRouletteHistory('test', 'Тестовый приз', true, 0);
     
     toast('Тестовые данные сохранены', 'success');
-    console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ЗАВЕРШЕНО ===');
+    // console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ЗАВЕРШЕНО ===');
   } catch (error) {
-    console.error('Ошибка принудительного сохранения:', error);
+    // console.error('Ошибка принудительного сохранения:', error);
     toast('Ошибка сохранения тестовых данных', 'error');
   }
 }
@@ -2333,7 +2323,7 @@ loadState().then(async state=>{
   
   // Всегда начинаем со стандартного дизайна рулетки
   currentRouletteDesign = 'standard';
-  console.log('Установлен стандартный дизайн рулетки');
+  // console.log('Установлен стандартный дизайн рулетки');
   
   // Создаем рулетку
   createRouletteWheel();

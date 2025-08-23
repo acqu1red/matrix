@@ -88,8 +88,8 @@ class WorldGovernmentQuest {
   }
 
   hideWarning() {
-    document.getElementById('warning-modal').classList.remove('active');
-    document.getElementById('main-interface').classList.remove('hidden');
+    // Теперь показываем информационное окно вместо прямого перехода к игре
+    // Логика перехода перенесена в HTML script section
   }
 
   goToMain() {
@@ -284,14 +284,14 @@ class WorldGovernmentQuest {
   assignCharacterToSector(sectorType) {
     const currentCharacter = this.getNextValidCharacter();
     if (!currentCharacter) {
-      alert('Нет подходящих персонажей для размещения!');
+      // Нет подходящих персонажей для размещения
       return;
     }
 
     const sector = this.sectors[sectorType];
 
     if (sector.members.length >= sector.max) {
-      alert(`Сектор ${sector.name} уже заполнен!`);
+      // Сектор уже заполнен
       return;
     }
 
@@ -481,39 +481,40 @@ class WorldGovernmentQuest {
     this.results = [];
     this.failureProbability = 0;
 
-    // Генерируем полную последовательность сюжетов
-    this.results = this.storySystem.generateFullStorySequence(this.sectors);
-
     // Анализируем каждую ошибку для расчета вероятности неудачи
     Object.entries(this.sectors).forEach(([sectorType, sector]) => {
       const incorrectMembers = sector.members.filter(member => !member.isCorrect);
       
       incorrectMembers.forEach(member => {
-        // Увеличиваем вероятность неудачи
         const sectorWeight = this.getSectorWeight(sectorType);
         this.failureProbability += sectorWeight * 15;
       });
     });
 
-    // Добавляем финальные сюжеты в зависимости от результата
-    const finalStories = this.storySystem.generateFinalStories();
+    // Используем новую систему сюжетов в стиле Эпштейна
+    const epsteinStory = this.storySystem.getEpsteinFinaleStory(this.sectors, this.failureProbability);
     
-    if (this.failureProbability >= 80) {
-      this.results.push(finalStories.find(story => story.type === 'final_failure'));
+    // Преобразуем фазы в результаты
+    if (epsteinStory && epsteinStory.phases) {
+      epsteinStory.phases.forEach((phase, index) => {
+        this.results.push({
+          title: `${epsteinStory.title} - ${phase.title}`,
+          content: phase.content,
+          rewards: phase.rewards,
+          type: index === 0 ? 'main' : 'continuation',
+          isEpsteinStory: true
+        });
+      });
     } else {
-      const totalCorrect = Object.values(this.sectors).reduce((sum, sector) => 
-        sum + sector.members.filter(m => m.isCorrect).length, 0
-      );
-
-      if (totalCorrect >= 12) {
-        this.results.push(finalStories.find(story => story.type === 'final_success'));
-      } else if (totalCorrect >= 9) {
-        this.results.push(finalStories.find(story => story.type === 'final_partial'));
-      } else if (totalCorrect >= 6) {
-        this.results.push(finalStories.find(story => story.type === 'final_minimal'));
-      } else {
-        this.results.push(finalStories.find(story => story.type === 'final_failure'));
-      }
+      // Fallback на случай если что-то пошло не так
+      this.results.push({
+        title: "🔺 ОПЕРАЦИЯ ЗАВЕРШЕНА",
+        content: `Ваша теневая сеть ${this.failureProbability <= 30 ? 'успешно установила контроль над мировым порядком' : 'столкнулась с серьёзными проблемами'}. 
+        
+Вероятность провала: ${this.failureProbability}%`,
+        rewards: { mulacoin: Math.max(100, 1000 - this.failureProbability * 10), exp: Math.max(200, 2000 - this.failureProbability * 20) },
+        type: 'fallback'
+      });
     }
   }
 
@@ -696,12 +697,12 @@ class WorldGovernmentQuest {
     document.getElementById('results-modal').classList.remove('active');
     
     // Можно добавить редирект или другие действия
-    alert('Квест завершен! Награды выданы.');
+    // Квест завершен! Награды выданы
   }
 
   giveRewards() {
     // Здесь должна быть интеграция с системой наград
-    console.log('Выдано: 500 MULACOIN и 1000 опыта');
+    // console.log('Выдано: 500 MULACOIN и 1000 опыта');
     // В реальном приложении здесь был бы API вызов
   }
 

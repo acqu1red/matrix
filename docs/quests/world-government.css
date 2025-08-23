@@ -1,74 +1,150 @@
-/* Основные стили для квеста "Мировое тайное правительство" */
+/* УЛУЧШЕННЫЕ СТИЛИ ДЛЯ КВЕСТА "ГЛУБИННОЕ ГОСУДАРСТВО - АРХИВЫ ЭПШТЕЙНА" */
+
+/* CSS ПЕРЕМЕННЫЕ ДЛЯ ТЕОРИИ ЗАГОВОРА */
+:root {
+  --conspiracy-primary: #0a0a0a;
+  --conspiracy-secondary: #1a1a2e;
+  --conspiracy-accent: #16213e;
+  --conspiracy-highlight: #0f3460;
+  --conspiracy-danger: #dc2626;
+  --conspiracy-warning: #f59e0b;
+  --conspiracy-success: #10b981;
+  --conspiracy-gold: #fbbf24;
+  --conspiracy-red: #ef4444;
+  --conspiracy-purple: #8b5cf6;
+  --conspiracy-blue: #3b82f6;
+  
+  /* Мистические цвета */
+  --mystical-glow: #00ffff;
+  --shadow-glow: #ff00ff;
+  --elite-gold: #ffd700;
+  --blood-red: #8b0000;
+  --matrix-green: #00ff41;
+  
+  /* Анимационные переменные */
+  --glow-pulse: glow-pulse 2s ease-in-out infinite alternate;
+  --shadow-dance: shadow-dance 3s ease-in-out infinite;
+  --conspiracy-flicker: conspiracy-flicker 1.5s linear infinite;
+}
+
+/* БАЗОВЫЕ СТИЛИ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Orbitron', 'Inter', sans-serif;
+  background: var(--conspiracy-primary);
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* МИСТИЧЕСКИЙ ФОНОВЫЙ СЛОЙ */
+.mystical-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: radial-gradient(circle at 20% 80%, #120a2a 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, #271c3a 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, #1a1a2e 0%, transparent 50%),
+              linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.conspiracy-lines {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(45deg, transparent 40%, rgba(0,255,255,0.03) 50%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, rgba(255,0,255,0.03) 50%, transparent 60%);
+  background-size: 50px 50px;
+  animation: conspiracy-move 20s linear infinite;
+}
+
+.floating-symbols {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.floating-symbols::before,
+.floating-symbols::after {
+  content: '👁️ 🔺 ⚡ 🗲 ⟐ ☉ ⧩ ◊';
+  position: absolute;
+  font-size: 20px;
+  color: rgba(255,255,255,0.1);
+  animation: float-symbols 30s linear infinite;
+  white-space: nowrap;
+}
+
+.floating-symbols::before {
+  top: 20%;
+  left: -100%;
+  animation-delay: 0s;
+}
+
+.floating-symbols::after {
+  top: 60%;
+  left: -100%;
+  animation-delay: -15s;
+}
+
+.data-stream {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(0,255,65,0.1) 20%, 
+    rgba(0,255,65,0.2) 50%, 
+    rgba(0,255,65,0.1) 80%, 
+    transparent 100%);
+  overflow: hidden;
+}
+
+.data-stream::before {
+  content: '01101001 10010110 11001010 01010101 10101010 00110011 11100111 01010101';
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--matrix-green);
+  white-space: pre;
+  animation: matrix-rain 8s linear infinite;
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+/* ОСНОВНОЙ КОНТЕЙНЕР КВЕСТА */
 .world-government-quest {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0B1020 0%, #1A2332 100%);
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
 }
 
-/* Кнопка "На главную" */
-.header-controls {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 1000;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.back-icon {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .header-controls {
-    top: 10px;
-    left: 10px;
-  }
-  
-  .back-btn {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-}
-
-/* Модальные окна */
+/* УЛУЧШЕННЫЕ МОДАЛЬНЫЕ ОКНА */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .modal.active {
@@ -76,799 +152,1100 @@
   visibility: visible;
 }
 
-.modal-content {
-  background: var(--bg0);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
-  padding: 30px;
-  max-width: 500px;
+.conspiracy-modal .modal-content {
+  background: linear-gradient(135deg, 
+    rgba(26, 26, 46, 0.95) 0%, 
+    rgba(22, 33, 62, 0.95) 50%, 
+    rgba(15, 52, 96, 0.95) 100%);
+  border: 2px solid var(--mystical-glow);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
   width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
   position: relative;
-  animation: modalSlideIn 0.3s ease;
+  overflow: hidden;
+  box-shadow: 
+    0 0 50px rgba(0, 255, 255, 0.3),
+    inset 0 0 50px rgba(255, 0, 255, 0.1);
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.glitch-effect {
+  animation: glitch 0.3s ease-in-out infinite alternate;
 }
 
-.warning-header {
+.conspiracy-header {
   text-align: center;
-  margin-bottom: 20px;
-}
-
-.warning-header h2 {
-  color: var(--warning);
-  font-size: 24px;
-  margin: 0;
-}
-
-.warning-body {
   margin-bottom: 30px;
-  line-height: 1.6;
+  position: relative;
 }
 
-.warning-body p {
-  margin-bottom: 15px;
-  color: var(--text);
-}
-
-.modal-header {
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 15px;
-}
-
-.modal-header h3 {
-  color: var(--text);
-  margin: 0;
-  font-size: 20px;
-}
-
-.modal-body {
-  margin-bottom: 25px;
-  line-height: 1.6;
-}
-
-.modal-body ul {
-  margin: 15px 0;
-  padding-left: 20px;
-}
-
-.modal-body li {
-  margin-bottom: 8px;
-  color: var(--text);
-}
-
-.modal-footer {
-  display: flex;
-  gap: 15px;
-  justify-content: flex-end;
-}
-
-.failure-probability {
-  background: var(--error);
+.classified-stamp {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: var(--conspiracy-danger);
   color: white;
-  padding: 10px 15px;
-  border-radius: var(--radius-sm);
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  transform: rotate(15deg);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+  animation: var(--glow-pulse);
+}
+
+.glitch-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--mystical-glow);
+  text-shadow: 
+    0 0 10px currentColor,
+    2px 2px 0 var(--shadow-glow),
+    -2px -2px 0 var(--shadow-glow);
+  animation: var(--conspiracy-flicker);
+  margin: 20px 0;
+}
+
+.danger-stripes {
+  height: 10px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--conspiracy-danger) 0px,
+    var(--conspiracy-danger) 10px,
+    var(--conspiracy-warning) 10px,
+    var(--conspiracy-warning) 20px
+  );
+  margin: 20px 0;
+  border-radius: 5px;
+  animation: stripe-move 1s linear infinite;
+}
+
+.conspiracy-text {
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.file-number {
+  color: var(--conspiracy-gold);
+  font-weight: bold;
+}
+
+.clearance-level {
+  color: var(--conspiracy-danger);
+  font-weight: bold;
+}
+
+.typewriter-text {
   margin-bottom: 15px;
+  overflow: hidden;
+  border-right: 3px solid var(--mystical-glow);
+  white-space: nowrap;
+  animation: typewriter 3s steps(40) forwards;
+}
+
+.typewriter-text:nth-child(2) { animation-delay: 0.5s; }
+.typewriter-text:nth-child(3) { animation-delay: 1s; }
+.typewriter-text:nth-child(4) { animation-delay: 1.5s; }
+
+.final-warning {
+  background: linear-gradient(45deg, var(--conspiracy-danger), var(--conspiracy-warning));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
   text-align: center;
+  padding: 20px;
+  border: 2px solid var(--conspiracy-danger);
+  border-radius: 15px;
+  animation: var(--glow-pulse);
+}
+
+/* ИНФОРМАЦИОННОЕ ОКНО О КВЕСТЕ */
+.quest-info-modal .modal-content {
+  background: linear-gradient(135deg, 
+    rgba(10, 10, 10, 0.98) 0%, 
+    rgba(26, 26, 46, 0.98) 30%, 
+    rgba(22, 33, 62, 0.98) 70%, 
+    rgba(15, 52, 96, 0.98) 100%);
+  border: 3px solid var(--elite-gold);
+  border-radius: 25px;
+  max-width: 800px;
+  box-shadow: 
+    0 0 100px rgba(255, 215, 0, 0.4),
+    inset 0 0 50px rgba(255, 215, 0, 0.1);
+}
+
+.info-modal-content {
+  padding: 50px;
+}
+
+.info-header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.pyramid-icon {
+  font-size: 60px;
+  animation: var(--glow-pulse);
+  display: block;
+  margin-bottom: 20px;
+}
+
+.mission-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(45deg, var(--elite-gold), var(--mystical-glow), var(--shadow-glow));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  margin: 0 0 15px 0;
+  animation: var(--conspiracy-flicker);
+}
+
+.mission-code {
+  font-family: 'Courier New', monospace;
+  color: var(--matrix-green);
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--matrix-green);
+  display: inline-block;
+}
+
+.info-body {
+  margin-bottom: 40px;
+}
+
+.briefing-section,
+.objectives-section,
+.gameplay-section,
+.rewards-section {
+  margin-bottom: 35px;
+  padding: 25px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.briefing-section h3,
+.objectives-section h3,
+.gameplay-section h3,
+.rewards-section h3 {
+  color: var(--elite-gold);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.objectives-list {
+  list-style: none;
+  padding: 0;
+}
+
+.objectives-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.objectives-list li:last-child {
+  border-bottom: none;
+}
+
+.instruction-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.instruction-card {
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.1), 
+    rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.instruction-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+  border-color: var(--conspiracy-blue);
+}
+
+.card-icon {
+  font-size: 30px;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.card-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.reward-item {
+  background: linear-gradient(135deg, 
+    rgba(16, 185, 129, 0.1), 
+    rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.reward-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(16, 185, 129, 0.3);
+}
+
+.reward-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.reward-text {
+  font-size: 12px;
   font-weight: 600;
 }
 
-/* Основной интерфейс */
+/* УЛУЧШЕННЫЕ КНОПКИ */
+.btn {
+  position: relative;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 15px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-height: 50px;
+}
+
+.glowing-btn {
+  background: linear-gradient(45deg, var(--conspiracy-danger), var(--conspiracy-warning));
+  color: white;
+  border: 2px solid var(--elite-gold);
+  box-shadow: 
+    0 0 30px rgba(220, 38, 38, 0.5),
+    inset 0 0 30px rgba(245, 158, 11, 0.2);
+}
+
+.glowing-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 10px 50px rgba(220, 38, 38, 0.7),
+    inset 0 0 50px rgba(245, 158, 11, 0.3);
+}
+
+.btn-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent);
+  transition: left 0.5s ease;
+}
+
+.glowing-btn:hover .btn-glow {
+  left: 100%;
+}
+
+.mission-start-btn {
+  background: linear-gradient(45deg, var(--mystical-glow), var(--conspiracy-blue));
+  color: white;
+  border: 2px solid var(--elite-gold);
+  position: relative;
+  overflow: hidden;
+}
+
+.mission-start-btn:hover {
+  transform: translateY(-5px) scale(1.08);
+  box-shadow: 0 15px 60px rgba(0, 255, 255, 0.6);
+}
+
+.btn-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.btn-particles::before {
+  content: '✦ ✧ ⟡ ◊';
+  position: absolute;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  animation: particle-float 2s ease-in-out infinite;
+}
+
+/* ГЛАВНЫЙ ИНТЕРФЕЙС */
 .main-interface {
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
 }
 
 .main-interface.hidden {
   display: none;
 }
 
-/* Контейнер острова */
-.island-container {
+/* КОМАНДНЫЙ ЗАГОЛОВОК */
+.command-header {
+  background: linear-gradient(135deg, 
+    rgba(26, 26, 46, 0.95), 
+    rgba(22, 33, 62, 0.95));
+  backdrop-filter: blur(20px);
+  border-bottom: 2px solid var(--mystical-glow);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 30px;
+  align-items: center;
   position: relative;
-  min-height: 60vh;
+  z-index: 100;
+}
+
+.sophisticated-btn {
+  background: linear-gradient(45deg, 
+    rgba(220, 38, 38, 0.2), 
+    rgba(139, 69, 19, 0.2));
+  border: 2px solid var(--conspiracy-danger);
+  color: var(--conspiracy-danger);
+  padding: 12px 25px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.sophisticated-btn:hover {
+  background: var(--conspiracy-danger);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+}
+
+.mission-status {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: center;
+}
+
+.status-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--conspiracy-danger);
+  animation: var(--glow-pulse);
+}
+
+.status-indicator.active {
+  background: var(--matrix-green);
+  box-shadow: 0 0 20px var(--matrix-green);
+}
+
+.status-text {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--elite-gold);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.conspiracy-level {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.level-label {
+  font-size: 14px;
+  color: var(--mystical-glow);
+  font-weight: 600;
+}
+
+.level-indicator {
+  position: relative;
+  width: 100px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  border: 1px solid var(--mystical-glow);
+  overflow: hidden;
+}
+
+.level-bar {
+  height: 100%;
+  width: 20%;
+  background: linear-gradient(90deg, var(--mystical-glow), var(--shadow-glow));
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  animation: var(--glow-pulse);
+}
+
+.level-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+/* МИСТИЧЕСКИЙ ОСТРОВ */
+.shadow-island-container {
+  position: relative;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 40px;
+  min-height: 60vh;
 }
 
-.island-image {
+.island-glow-effect {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, 
+    rgba(0, 255, 255, 0.1) 0%, 
+    rgba(255, 0, 255, 0.1) 30%, 
+    transparent 70%);
+  animation: var(--shadow-dance);
+  border-radius: 50%;
+  filter: blur(20px);
+}
+
+.shadow-island-image {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: var(--radius);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  box-shadow: 
+    0 0 100px rgba(0, 255, 255, 0.3),
+    0 0 200px rgba(255, 0, 255, 0.2);
+  filter: 
+    drop-shadow(0 0 30px rgba(0, 255, 255, 0.5))
+    drop-shadow(0 0 60px rgba(255, 0, 255, 0.3));
 }
 
-/* Секторы */
-.sector {
+/* ЭЛИТНЫЕ СЕКТОРЫ */
+.conspiracy-sector {
   position: absolute;
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
-  padding: 8px;
-  min-width: 70px;
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.9), 
+    rgba(26, 26, 46, 0.9));
+  border: 3px solid var(--mystical-glow);
+  border-radius: 20px;
+  padding: 15px;
+  min-width: 120px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(15px);
+  overflow: hidden;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 255, 0.3),
+    inset 0 0 30px rgba(255, 0, 255, 0.1);
 }
 
-.sector:hover {
-  border-color: var(--glow2);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-  transform: scale(1.05);
+.conspiracy-sector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(0, 255, 255, 0.2), 
+    transparent);
+  transition: left 0.6s ease;
 }
 
-.sector.drag-over {
-  border-color: var(--success);
-  background: rgba(74, 222, 128, 0.2);
-  transform: scale(1.1);
+.conspiracy-sector:hover::before {
+  left: 100%;
 }
 
-.sector.filled {
-  border-color: var(--success);
-  background: rgba(74, 222, 128, 0.1);
+.conspiracy-sector:hover {
+  transform: scale(1.1) translateY(-5px);
+  border-color: var(--elite-gold);
+  box-shadow: 
+    0 15px 60px rgba(255, 215, 0, 0.4),
+    inset 0 0 50px rgba(255, 215, 0, 0.2);
 }
 
-.sector.filled:hover {
-  transform: none;
-  box-shadow: none;
-  cursor: not-allowed;
+.elite-sector {
+  position: relative;
+}
+
+.sector-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+  animation: var(--glow-pulse);
 }
 
 .sector-label {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 4px;
-  font-size: 9px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: var(--elite-gold);
+  margin-bottom: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .sector-count {
-  font-size: 8px;
-  color: var(--glow2);
-  margin-bottom: 6px;
+  font-size: 10px;
+  color: var(--mystical-glow);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.sector-power-level {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--mystical-glow);
+}
+
+.power-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--conspiracy-danger), var(--conspiracy-warning));
+  border-radius: 4px;
+  transition: width 0.8s ease;
+  animation: power-pulse 1.5s ease-in-out infinite alternate;
 }
 
 .sector-members {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
   justify-content: center;
+  margin-bottom: 8px;
+  min-height: 30px;
+}
+
+.sector-influence {
+  font-size: 9px;
+  color: var(--shadow-glow);
+  font-weight: 600;
 }
 
 .member-tag {
-  background: var(--glow1);
-  color: var(--bg0);
-  padding: 1px 4px;
-  border-radius: 8px;
+  background: linear-gradient(45deg, var(--mystical-glow), var(--shadow-glow));
+  color: black;
+  padding: 2px 6px;
+  border-radius: 10px;
   font-size: 8px;
-  font-weight: 500;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
-/* Позиционирование секторов */
+/* ПОЗИЦИОНИРОВАНИЕ СЕКТОРОВ */
 .political-sector {
-  top: 20%;
-  left: 25%;
-}
-
-.military-sector {
-  top: 40%;
-  left: 50%;
-}
-
-.economic-sector {
-  top: 60%;
+  top: 15%;
   left: 20%;
 }
 
+.military-sector {
+  top: 35%;
+  right: 15%;
+}
+
+.economic-sector {
+  bottom: 35%;
+  left: 15%;
+}
+
 .research-sector {
-  top: 75%;
-  left: 60%;
+  bottom: 20%;
+  right: 25%;
 }
 
 .propaganda-sector {
-  top: 12%;
-  left: 70%;
+  top: 10%;
+  right: 35%;
 }
 
-/* Нижняя панель */
-.bottom-panel {
-  background: var(--bg0);
-  border-top: 2px solid var(--border);
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-shrink: 0;
+/* ПАНЕЛЬ УПРАВЛЕНИЯ АГЕНТАМИ */
+.command-panel {
+  background: linear-gradient(135deg, 
+    rgba(10, 10, 10, 0.95), 
+    rgba(26, 26, 46, 0.95));
+  border-top: 3px solid var(--elite-gold);
+  padding: 30px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 40px;
+  backdrop-filter: blur(20px);
+  position: relative;
 }
 
-.character-container {
+.command-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--mystical-glow), 
+    var(--elite-gold), 
+    var(--shadow-glow), 
+    var(--mystical-glow));
+  animation: rainbow-flow 3s linear infinite;
+}
+
+.agent-briefing {
+  position: relative;
+}
+
+.briefing-header {
   display: flex;
   align-items: center;
   gap: 15px;
-  flex: 1;
+  margin-bottom: 20px;
 }
 
-.character-card {
-  background: var(--bg1);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  min-width: 200px;
-  cursor: grab;
-  transition: all 0.3s ease;
-  user-select: none;
-}
-
-.character-card:hover {
-  border-color: var(--glow1);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.character-card:active {
-  cursor: grabbing;
-  transform: scale(0.98);
-}
-
-.character-card.dragging {
-  opacity: 0.8;
-  transform: rotate(5deg);
-  z-index: 100;
-  transition: none !important;
-}
-
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-  .character-card {
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-  }
-  
-  .sector {
-    touch-action: none;
-  }
-  
-  .character-card.dragging {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  }
-}
-
-.character-name {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.character-traits {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
-.trait {
-  background: var(--glow2);
-  color: var(--bg0);
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.trait.correct {
-  background: var(--success);
-}
-
-.trait.incorrect {
-  background: var(--error);
-}
-
-.character-description {
+.classified-badge {
+  background: var(--conspiracy-danger);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
   font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  font-weight: bold;
+  animation: var(--glow-pulse);
 }
 
-/* Кнопки */
-.btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
+.briefing-header h3 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--elite-gold);
+  margin: 0;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.agent-dossier {
+  background: linear-gradient(135deg, 
+    rgba(22, 33, 62, 0.8), 
+    rgba(15, 52, 96, 0.8));
+  border: 2px solid var(--mystical-glow);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
   transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-dossier::before {
+  content: 'TOP SECRET';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--conspiracy-danger);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: bold;
+  transform: rotate(15deg);
+}
+
+.agent-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.operation-btn {
+  background: linear-gradient(45deg, 
+    rgba(139, 69, 19, 0.8), 
+    rgba(160, 82, 45, 0.8));
+  border: 2px solid var(--conspiracy-warning);
+  color: var(--conspiracy-warning);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.operation-btn:hover {
+  background: var(--conspiracy-warning);
+  color: black;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+}
+
+/* ЗОНА ОПАСНОСТИ */
+.operation-control {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  min-height: 44px;
-  min-width: 44px;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.danger-zone {
+  text-align: center;
+  position: relative;
 }
 
-.btn-primary {
-  background: var(--glow1);
-  color: var(--bg0);
+.nuclear-warning {
+  margin-bottom: 25px;
+  position: relative;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: var(--glow2);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+.warning-animation {
+  width: 100px;
+  height: 100px;
+  border: 5px solid var(--conspiracy-danger);
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  position: relative;
+  animation: nuclear-pulse 1s ease-in-out infinite;
 }
 
-.btn-secondary {
-  background: var(--bg1);
-  color: var(--text);
-  border: 2px solid var(--border);
+.warning-animation::before {
+  content: '☢️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  animation: var(--conspiracy-flicker);
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg2);
-  border-color: var(--glow1);
-  transform: translateY(-2px);
+.warning-text {
+  color: var(--conspiracy-danger);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  animation: var(--glow-pulse);
 }
 
-/* Анимации */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+.doomsday-btn {
+  background: linear-gradient(45deg, 
+    var(--blood-red), 
+    var(--conspiracy-danger));
+  border: 3px solid var(--elite-gold);
+  color: white;
+  font-size: 18px;
+  padding: 20px 40px;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.doomsday-btn:enabled:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 50px var(--conspiracy-danger),
+    0 0 100px rgba(220, 38, 38, 0.5);
+}
+
+.btn-glow-effect {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent);
+  transition: left 0.6s ease;
+}
+
+.doomsday-btn:hover .btn-glow-effect {
+  left: 100%;
+}
+
+.countdown-timer {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 40px;
+  height: 40px;
+  background: var(--conspiracy-danger);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+/* АНИМАЦИИ */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes glow-pulse {
+  0% { 
+    box-shadow: 0 0 20px currentColor; 
+    filter: brightness(1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  100% { 
+    box-shadow: 0 0 40px currentColor, 0 0 60px currentColor; 
+    filter: brightness(1.2);
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+@keyframes shadow-dance {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
-.character-card {
-  animation: fadeIn 0.5s ease;
+@keyframes conspiracy-flicker {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.8; }
 }
 
-.sector {
-  animation: fadeIn 0.8s ease;
+@keyframes conspiracy-move {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .island-container {
-    padding: 10px;
+@keyframes float-symbols {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100vw); }
+}
+
+@keyframes matrix-rain {
+  0% { transform: translateY(-100%) rotate(90deg); }
+  100% { transform: translateY(100vh) rotate(90deg); }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes stripe-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 0; }
+}
+
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(180deg); }
+}
+
+@keyframes power-pulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@keyframes rainbow-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes nuclear-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 20px var(--conspiracy-danger); }
+  50% { transform: scale(1.1); box-shadow: 0 0 40px var(--conspiracy-danger); }
+  100% { transform: scale(1); box-shadow: 0 0 20px var(--conspiracy-danger); }
+}
+
+@keyframes countdown-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* АДАПТИВНОСТЬ */
+@media (max-width: 1024px) {
+  .command-header {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: center;
   }
   
-  .sector {
-    min-width: 70px;
-    padding: 8px;
+  .shadow-island-container {
+    padding: 20px;
+  }
+  
+  .conspiracy-sector {
+    min-width: 100px;
+    padding: 12px;
+  }
+  
+  .command-panel {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-modal-content {
+    padding: 30px 20px;
+  }
+  
+  .mission-title {
+    font-size: 24px;
+  }
+  
+  .instruction-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .conspiracy-sector {
+    position: relative !important;
+    margin: 10px;
+    display: inline-block;
+  }
+  
+  .shadow-island-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .command-panel {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .glitch-text {
+    font-size: 20px;
+  }
+  
+  .conspiracy-sector {
+    min-width: 80px;
+    padding: 10px;
   }
   
   .sector-label {
     font-size: 9px;
   }
   
-  .bottom-panel {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .character-container {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .character-card {
-    width: 100%;
-    min-width: auto;
+  .doomsday-btn {
+    padding: 15px 25px;
+    font-size: 14px;
   }
 }
 
-/* Модальное окно со списком персонажей */
-.members-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
+/* СКРЫТИЕ ЭЛЕМЕНТОВ */
+.hidden {
+  display: none !important;
 }
 
-.members-modal.active {
-  opacity: 1;
-  visibility: visible;
+/* ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ */
+.conspiracy-sector.drag-over {
+  border-color: var(--matrix-green) !important;
+  background: rgba(16, 185, 129, 0.2) !important;
+  transform: scale(1.15) !important;
+  box-shadow: 0 0 50px rgba(16, 185, 129, 0.6) !important;
 }
 
-.members-modal-content {
-  background: var(--bg0);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
-  padding: 20px;
-  max-width: 400px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  position: relative;
-  animation: modalSlideIn 0.3s ease;
+.agent-dossier:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 50px rgba(0, 255, 255, 0.4);
 }
 
-.members-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.member-item {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.member-item:hover {
-  border-color: var(--glow1);
-  background: var(--bg2);
-}
-
-.member-item-name {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 5px;
-}
-
-.member-item-traits {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-
-.member-item-trait {
-  background: var(--glow2);
-  color: var(--bg0);
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 9px;
-  font-weight: 500;
-}
-
-/* Модальное окно с характеристиками персонажа */
-.character-details-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.character-details-modal.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.character-details-content {
-  background: var(--bg0);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
-  padding: 25px;
-  max-width: 450px;
-  width: 90%;
-  position: relative;
-  animation: modalSlideIn 0.3s ease;
-}
-
-.character-details-name {
-  font-size: 20px;
+/* ЭФФЕКТЫ ДЛЯ ПЕРСОНАЖЕЙ */
+.character-name {
+  font-family: 'Orbitron', sans-serif;
   font-weight: 700;
-  color: var(--text);
+  color: var(--elite-gold);
   margin-bottom: 15px;
-  text-align: center;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.character-details-traits {
+.character-traits {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 15px;
-  justify-content: center;
 }
 
-.character-details-trait {
-  background: var(--glow1);
-  color: var(--bg0);
-  padding: 5px 10px;
-  border-radius: 12px;
+.trait {
+  background: linear-gradient(45deg, var(--conspiracy-blue), var(--conspiracy-purple));
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
   font-size: 12px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
 }
 
-.character-details-description {
-  color: var(--text-secondary);
-  line-height: 1.5;
-  text-align: center;
-  margin-bottom: 20px;
+.trait.correct {
+  background: linear-gradient(45deg, var(--matrix-green), var(--conspiracy-success));
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
 }
 
-/* Модальное окно истребления предателя */
-.elimination-modal-content {
-  max-width: 800px;
-  width: 95%;
-  max-height: 90vh;
+.trait.incorrect {
+  background: linear-gradient(45deg, var(--conspiracy-danger), var(--blood-red));
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
 }
 
-.elimination-instruction {
-  margin-top: 10px;
-  padding: 10px;
-  background: var(--warning);
-  border-radius: var(--radius-sm);
+.character-description {
   font-size: 14px;
-  color: var(--bg0);
-  text-align: center;
-}
-
-.elimination-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.traitor-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.traitor-cage {
-  border: 3px solid var(--error);
-  border-radius: var(--radius);
-  padding: 15px;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
-}
-
-.cage-header {
-  text-align: center;
-  font-weight: 600;
-  color: var(--error);
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-.traitor-card {
-  background: var(--bg1);
-  border: 2px solid var(--error);
-  border-radius: var(--radius-sm);
-  padding: 15px;
-  text-align: center;
-}
-
-.traitor-card .character-name {
-  font-weight: 600;
-  color: var(--error);
-  margin-bottom: 10px;
-}
-
-.traitor-card .character-traits {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.allies-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.allies-header {
-  text-align: center;
-  font-weight: 600;
-  color: var(--success);
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-.allies-container {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 2px solid var(--success);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, rgba(0, 255, 0, 0.02) 100%);
-}
-
-.ally-card {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  margin-bottom: 8px;
-  cursor: grab;
-  transition: all 0.3s ease;
-  user-select: none;
-}
-
-.ally-card:hover {
-  background: var(--bg2);
-  border-color: var(--success);
-  transform: translateY(-2px);
-}
-
-.ally-card.dragging {
-  opacity: 0.5;
-  transform: rotate(5deg);
-}
-
-.ally-card .ally-name {
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 5px;
-}
-
-.ally-card .ally-traits {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.elimination-zone {
-  border: 2px dashed var(--accent);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
-  min-height: 100px;
-  display: flex;
-  flex-direction: column;
-}
-
-.zone-header {
-  text-align: center;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-.selected-allies {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  min-height: 60px;
-  align-items: center;
-  justify-content: center;
-}
-
-.selected-ally {
-  background: var(--accent);
-  color: white;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.selected-ally:hover {
-  background: var(--accent-hover);
-  transform: scale(1.05);
-}
-
-.remove-ally {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 10px;
-}
-
-.btn-danger {
-  background: var(--error);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #d32f2f;
-  transform: translateY(-2px);
-}
-
-.btn-danger:disabled {
-  background: var(--bg2);
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-/* Мобильные стили для истребления */
-@media (max-width: 768px) {
-  .elimination-container {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  .elimination-modal-content {
-    width: 98%;
-    max-height: 95vh;
-  }
-  
-  .allies-container {
-    max-height: 200px;
-  }
-  
-  .elimination-zone {
-    min-height: 80px;
-  }
-}
-
-/* Скрытие элементов */
-.hidden {
-  display: none !important;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
 }

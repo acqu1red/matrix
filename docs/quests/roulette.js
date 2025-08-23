@@ -33,14 +33,14 @@ let currentRouletteDesign = 'standard';
 
 // Основные функции рулетки
 function createRouletteWheel() {
-  console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
+  // console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
   
   const items = $("#rouletteItems");
   const preview = $("#previewItems");
   const container = $(".roulette-container");
   
   if (!items || !preview || !container) {
-    console.error('❌ Контейнеры рулетки не найдены');
+    // console.error('❌ Контейнеры рулетки не найдены');
     return;
   }
   
@@ -96,7 +96,7 @@ function createRouletteWheel() {
     preview.appendChild(previewItem);
   });
   
-  console.log('=== РУЛЕТКА СОЗДАНА УСПЕШНО ===');
+  // console.log('=== РУЛЕТКА СОЗДАНА УСПЕШНО ===');
 }
 
 function spinRoulette(isFree = false) {
@@ -167,7 +167,7 @@ function spinRoulette(isFree = false) {
   if (music) {
     music.currentTime = 0;
     music.play().catch(error => {
-      console.log('Не удалось воспроизвести музыку:', error);
+      // console.log('Не удалось воспроизвести музыку:', error);
     });
   }
   
@@ -338,8 +338,8 @@ function selectPrizeByProbability() {
 }
 
 function determinePrizeByArrowPosition() {
-  console.log('Определение приза по позиции стрелки...');
-  console.log('Текущий дизайн:', currentRouletteDesign);
+  // console.log('Определение приза по позиции стрелки...');
+  // console.log('Текущий дизайн:', currentRouletteDesign);
   
   const items = $("#rouletteItems");
   if (!items) {
@@ -375,12 +375,12 @@ function determinePrizeByArrowPosition() {
     const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
     const prize = currentPrizes.find(p => p.id === prizeId);
     if (prize) {
-      console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
+      // console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
       return prize;
     }
   }
   
-  console.log('Fallback на случайный приз');
+  // console.log('Fallback на случайный приз');
   return selectPrizeByProbability();
 }
 
@@ -549,14 +549,14 @@ function copyPromoCode() {
     
     toast('Промокод скопирован! Сохранен в Истории.', 'success');
   }).catch(err => {
-    console.error('Ошибка копирования:', err);
+    // console.error('Ошибка копирования:', err);
     toast('Ошибка копирования промокода', 'error');
   });
 }
 
 async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, promoCodeId = null) {
   const isAdminSpin = isAdmin();
-  console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId, isAdminSpin });
+  // console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId, isAdminSpin });
   
   if (supabase && userData.telegramId) {
     try {
@@ -569,7 +569,7 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
         promo_code_id: promoCodeId
       };
       
-      console.log('Данные рулетки для сохранения:', rouletteData);
+      // console.log('Данные рулетки для сохранения:', rouletteData);
       
       const { data, error } = await supabase
         .from('roulette_history')
@@ -577,35 +577,35 @@ async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, 
         .select();
       
       if (error) {
-        console.error('Ошибка сохранения истории рулетки:', error);
+        // console.error('Ошибка сохранения истории рулетки:', error);
         toast('Ошибка сохранения истории рулетки', 'error');
       } else {
-        console.log('История рулетки сохранена в Supabase:', data);
+        // console.log('История рулетки сохранена в Supabase:', data);
         toast('История рулетки сохранена', 'success');
       }
     } catch (error) {
-      console.error('Ошибка подключения к Supabase для истории рулетки:', error);
+      // console.error('Ошибка подключения к Supabase для истории рулетки:', error);
       toast('Ошибка подключения к базе данных для истории', 'error');
     }
   } else {
-    console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
+    // console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
+    if (!supabase) { /* Причина: Supabase клиент не инициализирован */ }
+    if (!userData.telegramId) { /* Причина: Отсутствует Telegram ID */ }
   }
 }
 
 async function savePromocode(prize, promoCode) {
-  console.log('=== СОХРАНЕНИЕ ПРОМОКОДА ===');
-  console.log('Данные промокода:', { prize, promoCode, telegramId: userData.telegramId });
+  // console.log('=== СОХРАНЕНИЕ ПРОМОКОДА ===');
+  // console.log('Данные промокода:', { prize, promoCode, telegramId: userData.telegramId });
   
   if (!supabase) {
-    console.error('Supabase не инициализирован');
+    // console.error('Supabase не инициализирован');
     toast('Ошибка: Supabase не инициализирован', 'error');
     return;
   }
   
   if (!userData.telegramId) {
-    console.error('Telegram ID отсутствует');
+    // console.error('Telegram ID отсутствует');
     toast('Ошибка: Telegram ID не получен', 'error');
     return;
   }
@@ -639,8 +639,8 @@ async function savePromocode(prize, promoCode) {
       expires_at: expiresAt.toISOString()
     };
     
-    console.log('Данные промокода для сохранения:', promoData);
-    console.log('Telegram ID для привязки:', userData.telegramId);
+    // console.log('Данные промокода для сохранения:', promoData);
+    // console.log('Telegram ID для привязки:', userData.telegramId);
     
     const { data, error } = await supabase
       .from('promocodes')
@@ -648,26 +648,26 @@ async function savePromocode(prize, promoCode) {
       .select();
     
     if (error) {
-      console.error('Ошибка сохранения промокода в promocodes:', error);
+      // console.error('Ошибка сохранения промокода в promocodes:', error);
       toast('Ошибка сохранения промокода в базу данных', 'error');
       return;
     }
     
-    console.log('✅ Промокод успешно сохранен в promocodes:', data);
+    // console.log('✅ Промокод успешно сохранен в promocodes:', data);
     
     await saveRouletteHistory(prize.id, prize.name, false, SPIN_COST, promoCode);
     
     toast('✅ Промокод сохранен в истории!', 'success');
-    console.log('=== ПРОМОКОД УСПЕШНО СОХРАНЕН ===');
+    // console.log('=== ПРОМОКОД УСПЕШНО СОХРАНЕН ===');
     
   } catch (error) {
-    console.error('Ошибка сохранения промокода:', error);
+    // console.error('Ошибка сохранения промокода:', error);
     toast('Ошибка подключения к базе данных', 'error');
   }
 }
 
 function initializeRouletteHandlers() {
-  console.log('Инициализация обработчиков рулетки...');
+  // console.log('Инициализация обработчиков рулетки...');
   
   const spinBtn = $("#spinRoulette");
   const buyBtn = $("#buySpin");
@@ -676,7 +676,7 @@ function initializeRouletteHandlers() {
   
   if (spinBtn) {
     spinBtn.addEventListener("click", originalSpinHandler);
-    console.log('✅ Обработчик кнопки "Крутить рулетку" добавлен');
+    // console.log('✅ Обработчик кнопки "Крутить рулетку" добавлен');
   }
   
   if (buyBtn) {
@@ -687,14 +687,14 @@ function initializeRouletteHandlers() {
         toast("Недостаточно mulacoin для покупки прокрута!", "error");
       }
     });
-    console.log('✅ Обработчик кнопки "Купить прокрут" добавлен');
+    // console.log('✅ Обработчик кнопки "Купить прокрут" добавлен');
   }
 
   if (closePrizeBtn) {
     closePrizeBtn.addEventListener("click", ()=>{
       $("#prizeModal").classList.remove("show");
     });
-    console.log('✅ Обработчик закрытия модала приза добавлен');
+    // console.log('✅ Обработчик закрытия модала приза добавлен');
   }
 
   if (previewHeader) {
@@ -710,7 +710,7 @@ function initializeRouletteHandlers() {
         toggle.classList.add("expanded");
       }
     });
-    console.log('✅ Обработчик превью призов добавлен');
+    // console.log('✅ Обработчик превью призов добавлен');
   }
 }
 

@@ -36,13 +36,13 @@ const CONFIG = {
             this.isAdmin = adminIds.includes(this.currentUserId);
             
             if (this.isAdmin) {
-                console.log('Пользователь является администратором');
+                // console.log('Пользователь является администратором');
             } else {
-                console.log('Пользователь не является администратором');
+                // console.log('Пользователь не является администратором');
             }
             
         } catch (error) {
-            console.error('Ошибка при проверке прав админа:', error);
+            // console.error('Ошибка при проверке прав админа:', error);
             this.isAdmin = false;
         }
     }
