@@ -1427,35 +1427,35 @@ function buildCards(state){
     container.appendChild(card);
   });
 
-  // Показываем заблокированные квесты для бесплатных пользователей (но не для админов)
-  if(!state.isSubscribed && !state.isAdmin){
-    // Показываем квесты с индекса 5 (6-й квест и далее) как заблокированные
-    const lockedQuests = QUESTS.slice(5);
-    lockedQuests.forEach((q, index) => {
-      const card = document.createElement("div");
-      card.className = "card locked fade-in";
-      card.setAttribute("data-style", q.style);
-      card.style.animationDelay = `${(list.length + index) * 0.1}s`;
-      
-      card.innerHTML = `
-        <div class="lock">🔒 Заблокировано</div>
-        <div class="label">${q.theme}</div>
-        <h3>${q.name}</h3>
-        <div class="description">${q.description}</div>
+  // Показываем ВСЕ квесты как доступные для всех пользователей
+  const remainingQuests = QUESTS.slice(5);
+  remainingQuests.forEach((q, index) => {
+    const card = document.createElement("div");
+    card.className = "card fade-in";
+    card.setAttribute("data-style", q.style);
+    card.style.animationDelay = `${(list.length + index) * 0.1}s`;
+    
+    card.innerHTML = `
+      <div class="label">${q.theme}</div>
+      <h3>${q.name}</h3>
+      <div class="description">${q.description}</div>
+      <div class="meta">
         <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
-        <div class="cta">
-          <button class="btn ghost locked-access-btn">Получить доступ</button>
-        </div>
-      `;
-      
-      container.appendChild(card);
+        <div class="tag">Вариация #${variationIndex()+1}/10</div>
+      </div>
+      <div class="cta">
+        <button class="btn primary start">Начать квест</button>
+        <button class="btn ghost details">Подробнее</button>
+      </div>
+    `;
+    
+    card.querySelector(".start").addEventListener("click", ()=>startQuest(q, state));
+    card.querySelector(".details").addEventListener("click", ()=>{
+      showQuestDetails(q, state);
     });
     
-    // Добавляем обработчики для заблокированных квестов
-    document.querySelectorAll('.locked-access-btn').forEach(btn => {
-      btn.addEventListener('click', showSubscriptionPrompt);
-    });
-  }
+    container.appendChild(card);
+  });
 }
 
 function getDifficultyText(difficulty) {
@@ -1494,11 +1494,7 @@ function showQuestDetails(q, state) {
           <div style="font-weight: 600; color: var(--glow2);">+${q.rewards.experience}</div>
         </div>
       </div>
-      ${!state.isSubscribed && !state.isAdmin ? `
-        <div class="banner warning">
-          <strong>💡 Подсказка:</strong> Подписчики получают доступ ко всем квестам и дополнительные награды!
-        </div>
-      ` : ''}
+
     </div>
     <div class="questActions">
       <button class="btn primary" id="startQuestBtn">Начать квест</button>
@@ -1521,46 +1517,7 @@ function showQuestDetails(q, state) {
   }
 }
 
-function showSubscriptionPrompt() {
-  const modal = $("#modal");
-  const modalBody = $("#modalBody");
-  
-  modalBody.innerHTML = `
-    <div class="questIntro">
-      <h3>🔒 Доступ ограничен</h3>
-      <p>Этот квест доступен только для подписчиков</p>
-      </div>
-    <div class="questBody">
-      <div class="banner success">
-        <strong>Преимущества подписки:</strong>
-        <ul style="margin: 8px 0; padding-left: 20px;">
-          <li>Доступ ко всем 10 квестам</li>
-          <li>Дополнительные награды</li>
-          <li>Новые вариации каждый день</li>
-          <li>Приоритетная поддержка</li>
-        </ul>
-      </div>
-    </div>
-    <div class="questActions">
-      <button class="btn primary" id="openSubscriptionBtn">Оформить подписку</button>
-      <button class="btn ghost" id="closeSubscriptionBtn">Позже</button>
-    </div>
-  `;
-  
-  modal.classList.add("show");
-  
-  // Добавляем обработчики событий для кнопок подписки
-  const openSubscriptionBtn = modal.querySelector("#openSubscriptionBtn");
-  const closeSubscriptionBtn = modal.querySelector("#closeSubscriptionBtn");
-  
-  if (openSubscriptionBtn) {
-    openSubscriptionBtn.addEventListener("click", openSubscription);
-  }
-  
-  if (closeSubscriptionBtn) {
-    closeSubscriptionBtn.addEventListener("click", closeModal);
-  }
-}
+
 
 function openSubscription() {
   // Используем window.location.href вместо tg.openLink для открытия внутри Mini App
@@ -1589,12 +1546,7 @@ function startQuest(q, state) {
   //   questAvailable: quest.available 
   // });
   
-  // Для бесплатных пользователей доступны только первые 5 квестов (индексы 0-4)
-  if (!state.isSubscribed && !state.isAdmin && questIndex >= 5) {
-    // console.log('Доступ запрещен, показываем промпт подписки');
-    showSubscriptionPrompt();
-    return;
-  }
+  // ВСЕ квесты доступны всем пользователям без ограничений
   
   // console.log('Доступ разрешен, открываем квест');
   
