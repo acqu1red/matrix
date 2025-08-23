@@ -871,6 +871,15 @@ async function loadUserData(userId) {
   
   userData.userId = userId;
   
+  // Получаем telegram_id из Telegram WebApp (как в subscription.html)
+  const telegram_id = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id : null;
+  if (telegram_id) {
+    userData.telegramId = telegram_id.toString();
+    console.log('✅ Telegram ID получен из WebApp:', userData.telegramId);
+  } else {
+    console.log('❌ Не удалось получить Telegram ID из WebApp');
+  }
+  
   // Сначала загружаем из localStorage как fallback
   const saved = localStorage.getItem('userData');
   if (saved) {
@@ -1256,6 +1265,9 @@ async function loadState(){
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
       userId = String(tg.initDataUnsafe.user.id);
       username = tg.initDataUnsafe.user.username;
+      console.log('✅ Telegram данные получены:', { userId, username });
+    } else {
+      console.log('❌ Telegram данные недоступны');
     }
   } catch(e) { 
     console.warn("TG user data fail", e); 
@@ -1277,142 +1289,56 @@ async function loadState(){
     console.log('❌ Пользователь не является админом');
   }
   
-  // Проверка подписки через Supabase
+  // Проверка подписки через Supabase (используем логику из subscription.html)
   if(supabase && userId){
     try{
       console.log('🔍 Проверяем подписку для пользователя:', userId);
       
-      // Проверяем таблицу admins
+      // Проверяем таблицу admins (упрощенная логика)
       console.log('📋 Проверяем таблицу admins...');
-      
-      // Сначала получаем структуру таблицы admins
-      const { data: adminsStructure, error: adminsStructureError } = await supabase
+      const { data: adminsData, error: adminsError } = await supabase
         .from('admins')
         .select("*")
-        .limit(1);
+        .eq('telegram_id', userId.toString())
+        .maybeSingle();
       
-      if (!adminsStructureError && adminsStructure && adminsStructure.length > 0) {
-        const adminsColumns = Object.keys(adminsStructure[0]);
-        console.log('📊 Структура таблицы admins:', adminsColumns);
-        
-        // Ищем поле, которое может содержать ID пользователя
-        const possibleIdFields = ['telegram_id', 'user_id', 'tg_id', 'id', 'userid', 'telegramid'];
-        let foundAdminField = null;
-        
-        for (const field of possibleIdFields) {
-          if (adminsColumns.includes(field)) {
-            foundAdminField = field;
-            break;
-          }
-        }
-        
-        if (foundAdminField) {
-          console.log('🔍 Найдено поле для ID в admins:', foundAdminField);
-          
-          const { data: adminsData, error: adminsError } = await supabase
-            .from('admins')
-            .select("*")
-            .eq(foundAdminField, userId)
-            .maybeSingle();
-          
-          if(!adminsError && adminsData) {
-            isAdmin = true;
-            isSubscribed = true;
-            console.log('✅ Пользователь найден в таблице admins:', adminsData);
-          } else {
-            console.log('❌ Пользователь не найден в таблице admins:', adminsError);
-          }
-        } else {
-          console.log('❌ Не найдено подходящее поле для ID в таблице admins');
-        }
+      if(!adminsError && adminsData) {
+        isAdmin = true;
+        isSubscribed = true;
+        console.log('✅ Пользователь найден в таблице admins:', adminsData);
       } else {
-        console.log('❌ Не удалось получить структуру таблицы admins:', adminsStructureError);
+        console.log('❌ Пользователь не найден в таблице admins');
       }
       
-      // Проверяем таблицу subscriptions
+      // Проверяем таблицу subscriptions (используем логику из subscription.html)
       console.log('📋 Проверяем таблицу subscriptions...');
       
-      // Сначала получаем структуру таблицы subscriptions
-      const { data: subStructure, error: subStructureError } = await supabase
+      const { data: subscriptions, error } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
-        .select("*")
+        .select('*')
+        .eq('user_id', userId.toString())
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
         .limit(1);
       
-      if (!subStructureError && subStructure && subStructure.length > 0) {
-        const subColumns = Object.keys(subStructure[0]);
-        console.log('📊 Структура таблицы subscriptions:', subColumns);
+      if (error) {
+        console.log('❌ Ошибка при проверке подписки:', error);
+      } else if (subscriptions && subscriptions.length > 0) {
+        const subscription = subscriptions[0];
+        const endDate = new Date(subscription.end_date);
+        const now = new Date();
         
-        // Ищем поле, которое может содержать ID пользователя
-        const possibleIdFields = ['user_id', 'telegram_id', 'tg_id', 'id', 'userid', 'telegramid'];
-        let foundSubField = null;
-        
-        for (const field of possibleIdFields) {
-          if (subColumns.includes(field)) {
-            foundSubField = field;
-            break;
-          }
-        }
-        
-        if (foundSubField) {
-          console.log('🔍 Найдено поле для ID в subscriptions:', foundSubField);
-          
-          // Проверяем активную подписку с учетом end_date
-          const currentDate = new Date().toISOString();
-          const { data: subData, error: subError } = await supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .select("*")
-            .eq(foundSubField, userId)
-            .eq('status', 'active')
-            .gte('end_date', currentDate)
-            .maybeSingle();
-          
-          if(!subError && subData) {
-            isSubscribed = true;
-            console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
-          } else {
-            console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
-            
-            // Проверяем любую подписку (не только активную) для диагностики
-            const { data: anySubData, error: anySubError } = await supabase
-              .from(SUBSCRIPTIONS_TABLE)
-              .select("*")
-              .eq(foundSubField, userId)
-              .maybeSingle();
-            
-            if(!anySubError && anySubData) {
-              console.log('ℹ️ Найдена подписка (возможно истекшая):', anySubData);
-              console.log('📅 Дата окончания:', anySubData.end_date);
-              console.log('📅 Текущая дата:', currentDate);
-            } else {
-              console.log('❌ Подписка не найдена в таблице subscriptions:', anySubError);
-            }
-          }
+        // Проверяем, что подписка не истекла
+        if (endDate > now) {
+          isSubscribed = true;
+          console.log('✅ Активная подписка найдена:', subscription);
+          console.log('📅 Дата окончания:', subscription.end_date);
+          console.log('📅 Текущая дата:', now.toISOString());
         } else {
-          console.log('❌ Не найдено подходящее поле для ID в таблице subscriptions');
+          console.log('❌ Подписка истекла:', subscription.end_date);
         }
       } else {
-        console.log('❌ Не удалось получить структуру таблицы subscriptions:', subStructureError);
-      }
-      
-      // Показываем структуру таблиц для диагностики
-      console.log('🔍 Диагностика таблиц...');
-      const { data: tableInfo, error: tableError } = await supabase
-        .from(SUBSCRIPTIONS_TABLE)
-        .select("*")
-        .limit(1);
-      
-      if(!tableError && tableInfo && tableInfo.length > 0) {
-        console.log('📊 Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
-      }
-      
-      // Показываем все записи в таблице admins для диагностики
-      const { data: allAdmins, error: adminsTableError } = await supabase
-        .from('admins')
-        .select("*")
-        .limit(5);
-      
-      if(!adminsTableError && allAdmins) {
-        console.log('📊 Первые 5 записей в таблице admins:', allAdmins);
+        console.log('❌ Активная подписка не найдена');
       }
       
     } catch(e){ 
