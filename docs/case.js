@@ -160,7 +160,7 @@ function createCaseRoulette() {
     const item = document.createElement('div');
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
-    item.innerHTML = prize.icon;
+    item.innerHTML = `<div class="roulette-icon">${prize.icon}</div>`;
     item.title = prize.name;
     container.appendChild(item);
   });
@@ -216,7 +216,7 @@ function spinCaseRoulette(isFree = false) {
   rouletteItems.classList.add('spinning');
   rouletteItems.style.transform = `translateX(${currentRoulettePosition}px)`;
   
-  // Determine winner after spin
+  // Determine winner after spin (15 seconds)
   setTimeout(() => {
     const winningPrize = selectPrizeByPosition(finalPosition, items);
     showCasePrize(winningPrize);
@@ -228,7 +228,7 @@ function spinCaseRoulette(isFree = false) {
     spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутить Кейс</span>';
     
     rouletteItems.classList.remove('spinning');
-  }, 4000);
+  }, 15000);
 }
 
 function selectPrizeByPosition(position, items) {
@@ -286,11 +286,10 @@ async function saveCasePrize(prize) {
     await supabase
       .from('roulette_history')
       .insert({
-        user_id: userData.telegramId,
+        user_id: String(userData.telegramId),
         prize_id: prize.id,
         prize_name: prize.name,
-        won_at: new Date().toISOString(),
-        source: 'epstein_case'
+        won_at: new Date().toISOString()
       });
   } catch (error) {
     console.error('Ошибка сохранения приза:', error);
@@ -331,8 +330,7 @@ async function showHistoryModal() {
     const { data, error } = await supabase
       .from('roulette_history')
       .select('*')
-      .eq('user_id', userData.telegramId)
-      .eq('source', 'epstein_case')
+      .eq('user_id', String(userData.telegramId))
       .order('won_at', { ascending: false })
       .limit(20);
     
@@ -391,6 +389,15 @@ function goBackToQuests() {
   }, 500);
 }
 
+function navigateToQuest(questId) {
+  const transition = $('#pageTransition');
+  transition.classList.remove('hidden');
+  
+  setTimeout(() => {
+    window.location.href = `./quests/${questId}.html`;
+  }, 500);
+}
+
 /* ====== Event Listeners ====== */
 function bindEvents() {
   // Back button
@@ -401,6 +408,11 @@ function bindEvents() {
   $('#buySpinCase')?.addEventListener('click', () => spinCaseRoulette(false));
   $('#showPrizes')?.addEventListener('click', showPrizesModal);
   $('#showHistory')?.addEventListener('click', showHistoryModal);
+  
+  // Lore navigation
+  $('#loreIsland')?.addEventListener('click', () => navigateToQuest('world-government'));
+  $('#loreSymbols')?.addEventListener('click', () => navigateToQuest('body-language'));
+  $('#loreData')?.addEventListener('click', () => navigateToQuest('control-archives'));
   
   // Modal controls
   $('#closePrizesModal')?.addEventListener('click', () => closeModal('#prizesModal'));

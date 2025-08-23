@@ -381,6 +381,11 @@ body::before {
     0 0 30px var(--shadow-gold);
 }
 
+.roulette-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
 .roulette-pointer {
   position: absolute;
   top: -25px;
@@ -623,6 +628,27 @@ body::before {
   line-height: 1.5;
 }
 
+.lore-button {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.lore-button:hover {
+  border-color: var(--conspiracy);
+  box-shadow: 0 8px 25px var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+.lore-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--conspiracy);
+  font-weight: 600;
+  opacity: 0.8;
+}
+
 /* Footer */
 .conspiracy-footer {
   margin: 32px 20px 20px;
@@ -801,6 +827,11 @@ body::before {
   margin-bottom: 20px;
 }
 
+.prize-content #closePrize {
+  margin-top: 20px;
+  align-self: center;
+}
+
 /* Toast */
 .toast {
   position: fixed;
@@ -897,5 +928,5 @@ body::before {
 
 /* Spinning Animation */
 .roulette-items.spinning {
-  transition: transform 4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 15s cubic-bezier(0.23, 1, 0.32, 1);
 }

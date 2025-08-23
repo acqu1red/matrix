@@ -66,8 +66,17 @@ function setupCaseNavigation() {
   const caseImage = document.getElementById('caseImage');
   
   if (caseButton && caseImage) {
-    // Set initial image (closed case)
-    caseImage.src = './assets/rulette/case_open.png';
+    // Preload and set initial image
+    const img = new Image();
+    img.onload = function() {
+      caseImage.src = this.src;
+      caseImage.style.opacity = '1';
+    };
+    img.src = './assets/rulette/case_open.png';
+    
+    // Set loading state
+    caseImage.style.opacity = '0.5';
+    caseImage.style.transition = 'opacity 0.3s ease';
     
     // Add click handler for case transition
     caseButton.addEventListener('click', () => {
@@ -1204,17 +1213,17 @@ const QUESTS = [
     url: "quests/profiling.html"
   },
   { 
-    id: "roi", 
-    theme: "Маркетинг", 
-    style: "neo", 
-    name: "ROI‑калькулятор", 
-    intro: "Выбери кампанию с лучшей окупаемостью.", 
-    description: "Проанализируй данные маркетинговых кампаний и выбери наиболее прибыльную.",
-    type: "puzzle", 
+    id: "control-archives", 
+    theme: "Конспирация", 
+    style: "conspiracy", 
+    name: "Архивы Контроля", 
+    intro: "Раскрой тайны мирового управления через секретные документы.", 
+    description: "Изучай засекреченные архивы механизмов влияния элиты на мировые процессы. Анализируй документы и раскрывай связи теневых организаций.",
+    type: "investigation", 
     difficulty: "medium",
-    rewards: { fragments: 3, experience: 80 },
+    rewards: { fragments: 5, experience: 1000 },
     available: false,
-    url: "quests/roi.html"
+    url: "quests/control-archives.html"
   },
   { 
     id: "funnel", 

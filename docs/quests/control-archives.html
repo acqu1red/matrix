@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Архивы Контроля</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Creepster&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="control-archives.css" />
+  <script>
+    (function(){
+      if (!window.Telegram || !window.Telegram.WebApp) {
+        var s = document.createElement('script');
+        s.src = "https://telegram.org/js/telegram-web-app.js";
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Header -->
+    <header class="glass topbar">
+      <div class="brand">
+        <button id="backToQuests" class="btn ghost back-btn">
+          <span>←</span> Назад
+        </button>
+        <h1>📊 Архивы Контроля</h1>
+      </div>
+      <div class="currency-display">
+        <span class="currency-icon">🪙</span>
+        <span class="currency-amount" id="mulacoinAmount">0</span>
+      </div>
+    </header>
+
+    <!-- Introduction -->
+    <section class="intro-section glass">
+      <div class="intro-content">
+        <div class="classified-seal">
+          <div class="seal-text">TOP SECRET</div>
+          <div class="seal-circle">🔒</div>
+        </div>
+        <h2>Секретные Архивы Механизмов Контроля</h2>
+        <p class="intro-text">
+          Добро пожаловать в засекреченную базу данных операций влияния. 
+          Здесь хранятся документы о том, как элита управляет массами через 
+          медиа, финансы и политические институты. Каждый документ раскрывает 
+          новый аспект глобального контроля.
+        </p>
+      </div>
+    </section>
+
+    <!-- Document Archive Interface -->
+    <section class="archive-section">
+      <div class="archive-header">
+        <h3>🗂️ Система Классификации Документов</h3>
+        <p>Выберите тематику для изучения механизмов влияния</p>
+      </div>
+
+      <div class="document-categories">
+        <button class="category-card glass" data-category="media">
+          <div class="category-icon">📺</div>
+          <h4>Медиа Контроль</h4>
+          <p>Манипуляции через СМИ и пропаганда</p>
+          <div class="classification">СЕКРЕТНО</div>
+        </button>
+
+        <button class="category-card glass" data-category="finance">
+          <div class="category-icon">💰</div>
+          <h4>Финансовое Влияние</h4>
+          <p>Экономические рычаги давления</p>
+          <div class="classification">СОВЕРШЕННО СЕКРЕТНО</div>
+        </button>
+
+        <button class="category-card glass" data-category="political">
+          <div class="category-icon">🏛️</div>
+          <h4>Политические Операции</h4>
+          <p>Скрытое воздействие на власть</p>
+          <div class="classification">УЛЬТРА СЕКРЕТНО</div>
+        </button>
+
+        <button class="category-card glass" data-category="social">
+          <div class="category-icon">👥</div>
+          <h4>Социальная Инженерия</h4>
+          <p>Управление общественным мнением</p>
+          <div class="classification">СЕКРЕТНО</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Document Viewer -->
+    <section class="document-viewer" id="documentViewer" style="display: none;">
+      <div class="viewer-header">
+        <button id="closeViewer" class="btn ghost">✕ Закрыть</button>
+        <div class="document-info">
+          <span class="document-title" id="documentTitle">Документ загружается...</span>
+          <span class="document-date" id="documentDate">Дата классификации</span>
+        </div>
+      </div>
+
+      <div class="document-content glass">
+        <div class="document-stamp">
+          <div class="stamp-text">РАССЕКРЕЧЕНО</div>
+          <div class="stamp-date">2024</div>
+        </div>
+        
+        <div class="document-text" id="documentText">
+          <!-- Document content will be loaded here -->
+        </div>
+
+        <div class="document-signatures">
+          <div class="signature">
+            <div class="signature-line">████████████</div>
+            <div class="signature-name">[ДАННЫЕ УДАЛЕНЫ]</div>
+          </div>
+          <div class="signature">
+            <div class="signature-line">████████████</div>
+            <div class="signature-name">[ЗАСЕКРЕЧЕНО]</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="document-actions">
+        <button id="analyzeDocument" class="btn primary">
+          <span class="btn-icon">🔍</span>
+          Анализировать Документ
+        </button>
+        <button id="nextDocument" class="btn ghost">
+          <span class="btn-icon">📄</span>
+          Следующий Документ
+        </button>
+      </div>
+    </section>
+
+    <!-- Analysis Results -->
+    <section class="analysis-section" id="analysisSection" style="display: none;">
+      <div class="analysis-header">
+        <h3>🎯 Результаты Анализа</h3>
+        <div class="analysis-score">
+          <span>Точность анализа: </span>
+          <span id="analysisScore" class="score-value">0%</span>
+        </div>
+      </div>
+
+      <div class="analysis-content glass">
+        <div class="analysis-text" id="analysisText">
+          <!-- Analysis results will be loaded here -->
+        </div>
+
+        <div class="revealed-connections">
+          <h4>🕸️ Раскрытые Связи</h4>
+          <div class="connections-grid" id="connectionsGrid">
+            <!-- Connections will be loaded here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="analysis-actions">
+        <button id="completeAnalysis" class="btn success">
+          <span class="btn-icon">✅</span>
+          Завершить Анализ
+        </button>
+        <button id="continueInvestigation" class="btn ghost">
+          <span class="btn-icon">🔍</span>
+          Продолжить Расследование
+        </button>
+      </div>
+    </section>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker glass">
+      <div class="progress-header">
+        <span>📊 Прогресс Расследования</span>
+        <span id="progressPercentage">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="documents-analyzed">
+        <span>Проанализировано документов: </span>
+        <span id="documentsCount">0/20</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal">
+    <div class="modalContent glass">
+      <div class="success-content">
+        <div class="success-icon">🏆</div>
+        <h3>Расследование Завершено!</h3>
+        <p>Вы успешно раскрыли механизмы контроля элиты и собрали достаточно доказательств.</p>
+        
+        <div class="rewards-list">
+          <div class="reward-item">
+            <span class="reward-icon">🪙</span>
+            <span>+5 MULACOIN</span>
+          </div>
+          <div class="reward-item">
+            <span class="reward-icon">⭐</span>
+            <span>+1000 опыта</span>
+          </div>
+          <div class="reward-item">
+            <span class="reward-icon">🎯</span>
+            <span>Доступ к секретным материалам</span>
+          </div>
+        </div>
+
+        <button id="claimRewards" class="btn primary large">
+          Получить Награды
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="control-archives.js"></script>
+</body>
+</html>
