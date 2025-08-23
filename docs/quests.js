@@ -880,6 +880,9 @@ async function loadUserData(userId) {
     console.log('❌ Не удалось получить Telegram ID из WebApp');
   }
   
+  // Используем telegram_id для загрузки данных из Supabase
+  const telegramIdForQuery = telegram_id ? telegram_id.toString() : userData.telegramId;
+  
   // Сначала загружаем из localStorage как fallback
   const saved = localStorage.getItem('userData');
   if (saved) {
@@ -898,14 +901,14 @@ async function loadUserData(userId) {
   }
   
   // Пытаемся загрузить из Supabase
-  if (supabase && userData.telegramId) {
+  if (supabase && telegramIdForQuery) {
     try {
-      console.log('Попытка загрузки из Supabase для Telegram ID:', userData.telegramId);
+      console.log('Попытка загрузки из Supabase для Telegram ID:', telegramIdForQuery);
       
       const { data, error } = await supabase
         .from('bot_user')
         .select('*')
-        .eq('telegram_id', userData.telegramId)
+        .eq('telegram_id', telegramIdForQuery)
         .single();
       
       if (data && !error) {
@@ -1273,6 +1276,10 @@ async function loadState(){
     console.warn("TG user data fail", e); 
   }
   
+  // Получаем telegram_id точно как в subscription.html
+  const telegram_id = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id : null;
+  console.log('🔍 Telegram ID для проверки подписки:', telegram_id);
+  
   let isSubscribed = false;
   let isAdmin = false;
   
@@ -1290,16 +1297,16 @@ async function loadState(){
   }
   
   // Проверка подписки через Supabase (используем логику из subscription.html)
-  if(supabase && userId){
+  if(supabase && telegram_id){
     try{
-      console.log('🔍 Проверяем подписку для пользователя:', userId);
+      console.log('🔍 Проверяем подписку для пользователя:', telegram_id);
       
       // Проверяем таблицу admins (упрощенная логика)
       console.log('📋 Проверяем таблицу admins...');
       const { data: adminsData, error: adminsError } = await supabase
         .from('admins')
         .select("*")
-        .eq('telegram_id', userId.toString())
+        .eq('telegram_id', telegram_id.toString())
         .maybeSingle();
       
       if(!adminsError && adminsData) {
@@ -1312,21 +1319,37 @@ async function loadState(){
       
       // Проверяем таблицу subscriptions (используем логику из subscription.html)
       console.log('📋 Проверяем таблицу subscriptions...');
+      console.log('🔍 Параметры запроса:');
+      console.log('- telegram_id:', telegram_id);
+      console.log('- telegram_id.toString():', telegram_id.toString());
+      console.log('- SUPABASE_TABLE:', SUBSCRIPTIONS_TABLE);
       
       const { data: subscriptions, error } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
         .select('*')
-        .eq('user_id', userId.toString())
+        .eq('user_id', telegram_id.toString())
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1);
+      
+      console.log('📊 Результат запроса:');
+      console.log('- error:', error);
+      console.log('- subscriptions:', subscriptions);
+      console.log('- subscriptions.length:', subscriptions ? subscriptions.length : 'null');
       
       if (error) {
         console.log('❌ Ошибка при проверке подписки:', error);
       } else if (subscriptions && subscriptions.length > 0) {
         const subscription = subscriptions[0];
+        console.log('📋 Найдена подписка:', subscription);
+        
         const endDate = new Date(subscription.end_date);
         const now = new Date();
+        
+        console.log('📅 Сравнение дат:');
+        console.log('- endDate:', endDate);
+        console.log('- now:', now);
+        console.log('- endDate > now:', endDate > now);
         
         // Проверяем, что подписка не истекла
         if (endDate > now) {
@@ -1339,6 +1362,10 @@ async function loadState(){
         }
       } else {
         console.log('❌ Активная подписка не найдена');
+        console.log('🔍 Возможные причины:');
+        console.log('- Пользователь не найден в таблице');
+        console.log('- Статус подписки не "active"');
+        console.log('- Неправильный user_id');
       }
       
     } catch(e){ 
@@ -1351,6 +1378,19 @@ async function loadState(){
   console.log('📊 ИТОГОВОЕ СОСТОЯНИЕ:', { userId, username, isSubscribed, isAdmin });
   console.log('=== КОНЕЦ ПРОВЕРКИ ДОСТУПА ===');
   
+  // Добавляем дополнительную диагностику
+  if (isSubscribed) {
+    console.log('🎉 Пользователь имеет подписку!');
+  } else {
+    console.log('❌ Пользователь НЕ имеет подписки');
+  }
+  
+  if (isAdmin) {
+    console.log('👑 Пользователь является админом!');
+  } else {
+    console.log('👤 Пользователь НЕ является админом');
+  }
+  
   return { userId, username, isSubscribed, isAdmin };
 }
 
@@ -1361,9 +1401,15 @@ function featuredQuests(state){
   console.log('Всего квестов в системе:', QUESTS.length);
   console.log('Квесты:', QUESTS.map(q => ({ id: q.id, name: q.name, available: q.available })));
   
+  console.log('🔍 Проверка доступа:');
+  console.log('- isSubscribed:', state.isSubscribed);
+  console.log('- isAdmin:', state.isAdmin);
+  console.log('- Условие (isSubscribed || isAdmin):', state.isSubscribed || state.isAdmin);
+  
   if(state.isSubscribed || state.isAdmin) {
     console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
     console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
+    console.log('📋 Возвращаем квестов:', QUESTS.length);
     return QUESTS;
   }
   
@@ -1387,6 +1433,10 @@ function buildCards(state){
   const list = featuredQuests(state);
   console.log('📊 Квестов для отображения:', list.length);
   console.log('📋 Список квестов:', list.map(q => q.name));
+  console.log('🔍 Детали списка:');
+  console.log('- Тип list:', typeof list);
+  console.log('- Длина list:', list.length);
+  console.log('- Первые 3 квеста:', list.slice(0, 3).map(q => q.name));
   
   list.forEach((q, index) => {
     const card = document.createElement("div");
@@ -2300,6 +2350,14 @@ async function forceSaveData() {
 
 /* ====== Init ====== */
 loadState().then(async state=>{
+  console.log('=== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ===');
+  console.log('Полученное состояние:', state);
+  console.log('Проверка состояния:');
+  console.log('- state.isSubscribed:', state.isSubscribed);
+  console.log('- state.isAdmin:', state.isAdmin);
+  console.log('- state.userId:', state.userId);
+  console.log('- state.username:', state.username);
+  
   buildCards(state);
   maybeOfferPromo(state);
   
@@ -2324,6 +2382,8 @@ loadState().then(async state=>{
   
   // Инициализируем обработчики событий после создания рулетки
   initializeRouletteHandlers();
+  
+  console.log('=== ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА ===');
 });
 
 // Глобальные функции для доступа из других файлов
