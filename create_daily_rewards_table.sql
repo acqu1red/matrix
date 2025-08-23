@@ -30,17 +30,10 @@ CREATE TRIGGER update_daily_rewards_updated_at
 -- Добавляем политики RLS (Row Level Security)
 ALTER TABLE daily_rewards ENABLE ROW LEVEL SECURITY;
 
--- Политика для чтения своих данных
-CREATE POLICY "Users can view own daily rewards" ON daily_rewards
-    FOR SELECT USING (user_id = auth.jwt() ->> 'user_id');
-
--- Политика для обновления своих данных
-CREATE POLICY "Users can update own daily rewards" ON daily_rewards
-    FOR UPDATE USING (user_id = auth.jwt() ->> 'user_id');
-
--- Политика для создания записи
-CREATE POLICY "Users can insert own daily rewards" ON daily_rewards
-    FOR INSERT WITH CHECK (user_id = auth.jwt() ->> 'user_id');
+-- Политика для полного доступа для анонимных пользователей (как в других таблицах)
+CREATE POLICY "Enable all access for daily_rewards" ON daily_rewards
+    FOR ALL USING (true)
+    WITH CHECK (true);
 
 -- Grant permissions
 GRANT ALL ON daily_rewards TO anon;
