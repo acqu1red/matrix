@@ -398,6 +398,245 @@ function navigateToQuest(questId) {
   }, 500);
 }
 
+/* ====== Daily Rewards System ====== */
+
+const DAILY_REWARDS = [10, 15, 15, 20, 20, 25, 50];
+
+function checkDailyRewardModal() {
+  // Проверяем URL параметр для автоматического показа модала
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('daily') === 'true') {
+    setTimeout(() => {
+      showDailyRewardsModal();
+    }, 1000);
+  }
+}
+
+async function showDailyRewardsModal() {
+  const modal = $('#dailyRewardsModal');
+  if (!modal) return;
+
+  try {
+    // Загружаем статус ежедневных наград
+    const status = await getDailyRewardStatus();
+    updateDailyRewardsUI(status);
+    
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('show'), 10);
+    
+  } catch (error) {
+    console.error('Ошибка при показе модала ежедневных наград:', error);
+    showToast('Ошибка загрузки ежедневных наград', 'error');
+  }
+}
+
+function hideDailyRewardsModal() {
+  const modal = $('#dailyRewardsModal');
+  if (!modal) return;
+  
+  modal.classList.remove('show');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 300);
+}
+
+async function getDailyRewardStatus() {
+  try {
+    const userId = getUserId();
+    if (!userId) return getDefaultDailyStatus();
+
+    const { data, error } = await supabase
+      .from('daily_rewards')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Ошибка при загрузке статуса ежедневных наград:', error);
+      return getDefaultDailyStatus();
+    }
+
+    if (!data) {
+      // Создаем новую запись
+      const newRecord = {
+        user_id: userId,
+        current_day: 1,
+        last_claimed: null,
+        streak_active: true
+      };
+      
+      await supabase.from('daily_rewards').insert(newRecord);
+      return newRecord;
+    }
+
+    // Проверяем стрик и возможность получения награды
+    const now = new Date();
+    let canClaim = true;
+    let nextClaimTime = null;
+
+    if (data.last_claimed) {
+      const lastClaimed = new Date(data.last_claimed);
+      const timeDiff = now - lastClaimed;
+      const hoursSinceLastClaim = timeDiff / (1000 * 60 * 60);
+
+      // Если прошло менее 24 часов - награда недоступна
+      if (hoursSinceLastClaim < 24) {
+        canClaim = false;
+        nextClaimTime = new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000);
+      }
+      
+      // Если прошло более 48 часов - сбрасываем стрик
+      if (hoursSinceLastClaim > 48) {
+        await supabase
+          .from('daily_rewards')
+          .update({ current_day: 1, streak_active: true })
+          .eq('user_id', userId);
+        data.current_day = 1;
+      }
+    }
+
+    return {
+      ...data,
+      can_claim: canClaim,
+      next_claim_time: nextClaimTime
+    };
+
+  } catch (error) {
+    console.error('Ошибка при получении статуса ежедневных наград:', error);
+    return getDefaultDailyStatus();
+  }
+}
+
+function getDefaultDailyStatus() {
+  return {
+    current_day: 1,
+    can_claim: true,
+    streak_active: true,
+    last_claimed: null,
+    next_claim_time: null
+  };
+}
+
+function updateDailyRewardsUI(status) {
+  const currentDay = status.current_day || 1;
+  const canClaim = status.can_claim !== false;
+  
+  // Обновляем состояние дней
+  for (let day = 1; day <= 7; day++) {
+    const dayElement = $(`.daily-item[data-day="${day}"]`);
+    if (!dayElement) continue;
+    
+    dayElement.classList.remove('current', 'completed', 'locked');
+    
+    if (day < currentDay) {
+      dayElement.classList.add('completed');
+    } else if (day === currentDay) {
+      dayElement.classList.add('current');
+    } else {
+      dayElement.classList.add('locked');
+    }
+  }
+  
+  // Обновляем кнопку получения
+  const claimButton = $('#claimDailyReward');
+  const timerDiv = $('#dailyTimer');
+  
+  if (canClaim) {
+    claimButton.disabled = false;
+    claimButton.querySelector('.btn-text').textContent = 'Получить';
+    timerDiv.style.display = 'none';
+  } else {
+    claimButton.disabled = true;
+    claimButton.querySelector('.btn-text').textContent = 'Получено';
+    
+    if (status.next_claim_time) {
+      timerDiv.style.display = 'block';
+      startCountdown(status.next_claim_time);
+    }
+  }
+}
+
+function startCountdown(targetTime) {
+  const timerText = $('#timerText');
+  if (!timerText) return;
+  
+  const updateTimer = () => {
+    const now = new Date();
+    const diff = targetTime - now;
+    
+    if (diff <= 0) {
+      timerText.textContent = '00:00:00';
+      // Обновляем статус наград
+      setTimeout(() => {
+        showDailyRewardsModal();
+      }, 1000);
+      return;
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    timerText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  updateTimer();
+  setInterval(updateTimer, 1000);
+}
+
+async function claimDailyReward() {
+  try {
+    const userId = getUserId();
+    if (!userId) {
+      showToast('Ошибка: пользователь не найден', 'error');
+      return;
+    }
+
+    const status = await getDailyRewardStatus();
+    if (!status.can_claim) {
+      showToast('Награда еще недоступна', 'warning');
+      return;
+    }
+
+    const currentDay = status.current_day || 1;
+    const rewardAmount = DAILY_REWARDS[Math.min(currentDay - 1, DAILY_REWARDS.length - 1)];
+
+    // Обновляем баланс пользователя
+    await addMulacoin(rewardAmount);
+
+    // Обновляем статус ежедневной награды
+    const nextDay = currentDay >= 7 ? 1 : currentDay + 1;
+    
+    await supabase
+      .from('daily_rewards')
+      .update({
+        current_day: nextDay,
+        last_claimed: new Date().toISOString(),
+        streak_active: true
+      })
+      .eq('user_id', userId);
+
+    // Показываем успешное получение
+    showToast(`🎉 Получено ${rewardAmount} MULACOIN!`, 'success');
+    
+    // Обновляем UI
+    const newStatus = {
+      ...status,
+      current_day: nextDay,
+      can_claim: false,
+      last_claimed: new Date().toISOString(),
+      next_claim_time: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    
+    updateDailyRewardsUI(newStatus);
+    loadBalance(); // Обновляем баланс на странице
+
+  } catch (error) {
+    console.error('Ошибка при получении ежедневной награды:', error);
+    showToast('Ошибка при получении награды', 'error');
+  }
+}
+
 /* ====== Event Listeners ====== */
 function bindEvents() {
   // Back button
@@ -413,6 +652,11 @@ function bindEvents() {
   $('#loreIsland')?.addEventListener('click', () => navigateToQuest('world-government'));
   $('#loreSymbols')?.addEventListener('click', () => navigateToQuest('body-language'));
   $('#loreData')?.addEventListener('click', () => navigateToQuest('control-archives'));
+  
+  // Daily rewards events
+  $('#dailyRewardsBtn')?.addEventListener('click', showDailyRewardsModal);
+  $('#claimDailyReward')?.addEventListener('click', claimDailyReward);
+  $('#closeDailyModal')?.addEventListener('click', hideDailyRewardsModal);
   
   // Modal controls
   $('#closePrizesModal')?.addEventListener('click', () => closeModal('#prizesModal'));
@@ -449,6 +693,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Bind events
   bindEvents();
+  
+  // Check for daily reward modal
+  checkDailyRewardModal();
   
   // Hide page transition
   hidePageTransition();

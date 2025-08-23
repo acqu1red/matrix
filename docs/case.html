@@ -37,6 +37,9 @@
         <h1>🔮 Кейс Эпштейна</h1>
       </div>
       <div class="actions">
+        <button id="dailyRewardsBtn" class="btn ghost daily-btn" title="Ежедневные награды">
+          <span class="daily-icon">💰</span>
+        </button>
         <div class="mulacoin-display">
           <span class="currency-icon">🪙</span>
           <span class="currency-amount" id="mulacoinAmount">0</span>
@@ -182,6 +185,72 @@
 
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Daily Rewards Modal -->
+  <div id="dailyRewardsModal" class="modal daily-modal">
+    <div class="modal-content daily-content">
+      <div class="daily-header">
+        <h2>🏝️ Ежедневные награды острова Эпштейна</h2>
+        <p class="daily-subtitle">
+          Заходите каждый день, чтобы собрать максимум MULACOIN за неделю. 
+          Пропустите день - и стрик сбросится!
+        </p>
+      </div>
+      
+      <div class="daily-progress">
+        <div class="week-label">Прогресс недели:</div>
+        <div class="daily-grid">
+          <div class="daily-item" data-day="1">
+            <div class="daily-day">День 1</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">10</div>
+          </div>
+          <div class="daily-item" data-day="2">
+            <div class="daily-day">День 2</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">15</div>
+          </div>
+          <div class="daily-item" data-day="3">
+            <div class="daily-day">День 3</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">15</div>
+          </div>
+          <div class="daily-item" data-day="4">
+            <div class="daily-day">День 4</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">20</div>
+          </div>
+          <div class="daily-item" data-day="5">
+            <div class="daily-day">День 5</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">20</div>
+          </div>
+          <div class="daily-item" data-day="6">
+            <div class="daily-day">День 6</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">25</div>
+          </div>
+          <div class="daily-item" data-day="7">
+            <div class="daily-day">День 7</div>
+            <div class="daily-coin">🪙</div>
+            <div class="daily-amount">50</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="daily-actions">
+        <button id="claimDailyReward" class="btn primary large daily-claim-btn">
+          <span class="btn-icon">💰</span>
+          <span class="btn-text">Получить</span>
+        </button>
+        <div id="dailyTimer" class="daily-timer" style="display: none;">
+          Новая награда через: <span id="timerText">--:--:--</span>
+        </div>
+      </div>
+
+      <button id="closeDailyModal" class="close-btn daily-close">×</button>
+    </div>
+  </div>
 
   <!-- Audio -->
   <audio id="caseSpinMusic" preload="auto">
