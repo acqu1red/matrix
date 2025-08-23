@@ -60,10 +60,46 @@ function initTG(){
   }catch(e){ console.log("TG init fail", e); }
 }
 
+/* ====== Case Navigation ====== */
+function setupCaseNavigation() {
+  const caseButton = document.getElementById('mysteryCaseBtn');
+  const caseImage = document.getElementById('caseImage');
+  
+  if (caseButton && caseImage) {
+    // Set initial image (closed case)
+    caseImage.src = './assets/rulette/case_open.png';
+    
+    // Add click handler for case transition
+    caseButton.addEventListener('click', () => {
+      openCaseWithTransition();
+    });
+  }
+}
+
+function openCaseWithTransition() {
+  // Create transition overlay
+  const transition = document.createElement('div');
+  transition.className = 'page-transition active';
+  transition.innerHTML = `
+    <div class="transition-content">
+      <div class="transition-spinner"></div>
+      <div class="transition-text">Открываем тайный кейс...</div>
+    </div>
+  `;
+  
+  document.body.appendChild(transition);
+  
+  // Navigate to case page after transition
+  setTimeout(() => {
+    window.location.href = './case.html';
+  }, 1000);
+}
+
 // Инициализация после загрузки страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM загружен, инициализация...');
-initTG();
+  initTG();
+  setupCaseNavigation();
   
   // Инициализируем Supabase и загружаем данные
   setTimeout(async () => {
