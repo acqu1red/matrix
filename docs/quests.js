@@ -1613,17 +1613,16 @@ function formatCountdown(ms){
 
 function initMysteryCase(){
   const btn = document.getElementById('mysteryCaseBtn');
-  const imgOpen = document.getElementById('caseImageOpen');
-  const imgClosed = document.getElementById('caseImageClosed');
+  const img = document.getElementById('caseImage');
   const caseModal = document.getElementById('caseModal');
   const caseModalClose = document.getElementById('caseModalClose');
   const countdown = document.getElementById('caseCountdown');
 
-  if(!btn || !imgOpen || !imgClosed) return;
+  if(!btn || !img) return;
 
   const available = isCaseAvailable();
-  imgOpen.style.display = available ? 'block' : 'none';
-  imgClosed.style.display = available ? 'none' : 'block';
+  img.src = available ? './assets/rulette/case_open.png' : './assets/rulette/case_closed.png';
+  img.style.display = 'block';
 
   btn.addEventListener('click', ()=>{
     if(isCaseAvailable()){
