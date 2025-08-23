@@ -48,5 +48,12 @@ CREATE POLICY "Enable all access for daily_rewards" ON daily_rewards
 -- 8. Даем права доступа
 GRANT ALL ON daily_rewards TO anon;
 GRANT ALL ON daily_rewards TO authenticated;
-GRANT USAGE ON SEQUENCE daily_rewards_id_seq TO anon;
-GRANT USAGE ON SEQUENCE daily_rewards_id_seq TO authenticated;
+
+-- 9. Даем права на последовательность (только если она существует)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'daily_rewards_id_seq') THEN
+        GRANT USAGE, SELECT ON SEQUENCE daily_rewards_id_seq TO anon;
+        GRANT USAGE, SELECT ON SEQUENCE daily_rewards_id_seq TO authenticated;
+    END IF;
+END $$;
