@@ -1235,7 +1235,7 @@ const QUESTS = [
     type: "puzzle", 
     difficulty: "easy",
     rewards: { fragments: 2, experience: 400 },
-    available: false,
+    available: true,
     url: "quests/funnel.html"
   },
   { 
@@ -1248,7 +1248,7 @@ const QUESTS = [
     type: "quiz", 
     difficulty: "easy",
     rewards: { fragments: 2, experience: 350 },
-    available: false,
+    available: true,
     url: "quests/copy.html"
   },
   { 
@@ -1261,7 +1261,7 @@ const QUESTS = [
     type: "analysis", 
     difficulty: "medium",
     rewards: { fragments: 3, experience: 600 },
-    available: false,
+    available: true,
     url: "quests/audience.html"
   },
   { 
@@ -1274,7 +1274,7 @@ const QUESTS = [
     type: "analysis", 
     difficulty: "hard",
     rewards: { fragments: 5, experience: 900 },
-    available: false,
+    available: true,
     url: "quests/competitors.html"
   },
   { 
@@ -1287,7 +1287,7 @@ const QUESTS = [
     type: "analysis", 
     difficulty: "hard",
     rewards: { fragments: 4, experience: 850 },
-    available: false,
+    available: true,
     url: "quests/trends.html"
   }
 ];
