@@ -14,18 +14,6 @@ const MAX_DAILY_FREE = 5;
 const TOTAL_QUESTS = 10; // Уменьшил до 10 квестов
 const VARIATIONS_PER_QUEST = 10;
 
-// Система рулетки - обновленная с mulacoin призами
-const ROULETTE_PRIZES = [
-  { id: "subscription", name: "1 месяц подписки", icon: "👑", count: 2, probability: 0.02, color: "#FFD700" },
-  { id: "discount500", name: "Скидка 500₽", icon: "💰", count: 1, probability: 0.05, color: "#FF6B6B" },
-  { id: "discount100", name: "Скидка 100₽", icon: "💵", count: 2, probability: 0.08, color: "#4ECDC4" },
-  { id: "mulacoin100", name: "100 MULACOIN", icon: "🪙", count: 4, probability: 0.15, color: "#FFEAA7" },
-  { id: "mulacoin50", name: "50 MULACOIN", icon: "🪙", count: 5, probability: 0.18, color: "#DDA0DD" },
-  { id: "spin1", name: "+1 SPIN", icon: "🎰", count: 6, probability: 0.30, color: "#FFB6C1" },
-  { id: "quest24h", name: "+1 квест 24ч", icon: "🎯", count: 3, probability: 0.15, color: "#F7DC6F" },
-  { id: "frodCourse", name: "КУРС ФРОДА", icon: "📚", count: 1, probability: 0.0001, color: "#6C5CE7" }
-];
-
 // Система уровней
 const LEVEL_EXP = [
   100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500,
@@ -38,8 +26,6 @@ const QUEST_REWARDS = {
   medium: { mulacoin: 3, exp: 500 },
   hard: { mulacoin: 5, exp: 1000 }
 };
-
-const SPIN_COST = 13;
 
 /* ====== Telegram init ====== */
 let tg = null;
@@ -147,7 +133,7 @@ let userData = {
   exp: 0,
   level: 1,
   userId: null,
-  lastFreeSpin: null, // Добавляем отслеживание последнего бесплатного прокрута
+  
   telegramId: null
 };
 
@@ -276,535 +262,11 @@ async function addRewards(mulacoin, exp, questId = null, questName = null, diffi
   console.log('addRewards завершена');
 }
 
-// Система рулетки - стиль открытия кейса
-function createRouletteWheel() {
-  console.log('=== СОЗДАНИЕ РУЛЕТКИ ===');
-  console.log('Текущий дизайн:', currentRouletteDesign);
-  
-  const items = $("#rouletteItems");
-  const preview = $("#previewItems");
-  const container = $(".roulette-container");
-  
-  if (!items) {
-    console.error('❌ Контейнер rouletteItems не найден');
-    return;
-  }
-  
-  if (!preview) {
-    console.error('❌ Контейнер previewItems не найден');
-    return;
-  }
-  
-  if (!container) {
-    console.error('❌ Контейнер roulette-container не найден');
-    return;
-  }
-  
-  console.log('✅ Контейнеры рулетки найдены');
-  
-  // Обновляем класс дизайна контейнера
-  container.className = `roulette-container ${currentRouletteDesign}`;
-  
-  items.innerHTML = '';
-  preview.innerHTML = '';
-  
-  // Сбрасываем позицию рулетки только при создании
-  rouletteCurrentPosition = 0;
-  
-  // Получаем призы для текущего дизайна
-  const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
-  
-  // Создаем иконки на основе призов
-  let allItems = [];
-  currentPrizes.forEach(prize => {
-    for (let i = 0; i < prize.count; i++) {
-      allItems.push(prize);
-    }
-  });
-  
-  console.log('Создано элементов призов:', allItems.length);
-  
-  // Перемешиваем иконки для разнообразия
-  allItems.sort(() => Math.random() - 0.5);
-  
-  // Создаем БЕСКОНЕЧНУЮ ленту иконок для зацикливания
-  const totalItems = allItems.length * 20; // Повторяем 20 раз для бесконечной прокрутки
-  
-  console.log('Создаем', totalItems, 'элементов рулетки для зацикливания...');
-  
-  for (let i = 0; i < totalItems; i++) {
-    const prize = allItems[i % allItems.length];
-    const item = document.createElement('div');
-    item.className = 'roulette-item';
-    item.dataset.prize = prize.id;
-    
-    // Для авторского дизайна добавляем случайный поворот
-    if (currentRouletteDesign === 'author') {
-      const randomRotation = (Math.random() - 0.5) * 20; // от -10 до +10 градусов
-      item.style.setProperty('--random-rotation', `${randomRotation}deg`);
-    }
-    
-    // Создаем содержимое иконки
-    const symbol = document.createElement('div');
-    symbol.className = 'icon-symbol';
-    symbol.textContent = prize.icon;
-    
-    const label = document.createElement('div');
-    label.className = 'icon-label';
-    label.textContent = prize.name;
-    
-    item.appendChild(symbol);
-    item.appendChild(label);
-    items.appendChild(item);
-  }
-  
-  console.log('✅ Элементы рулетки созданы:', items.children.length);
-  
-  // Создаем превью призов
-  console.log('Создаем превью призов...');
-  currentPrizes.forEach(prize => {
-    const previewItem = document.createElement('div');
-    previewItem.className = 'preview-item';
-    
-    const name = document.createElement('span');
-    name.textContent = prize.name;
-    
-    previewItem.appendChild(name);
-    preview.appendChild(previewItem);
-  });
-  
-  console.log('✅ Превью призов создано:', preview.children.length);
-  console.log('=== РУЛЕТКА СОЗДАНА УСПЕШНО ===');
-}
+// Рулетка временно отключена - перенесена в отдельный файл
 
-function getSectorColor(prizeId) {
-  const colors = {
-    subscription: 'linear-gradient(45deg, #FFD700, #FFA500)',
-    discount500: 'linear-gradient(45deg, #FF6B6B, #FF8E8E)',
-    discount100: 'linear-gradient(45deg, #4ECDC4, #44A08D)',
-    discount50: 'linear-gradient(45deg, #A8E6CF, #7FCDCD)',
-    quest24h: 'linear-gradient(45deg, #FFEAA7, #DDA0DD)',
-    frodCourse: 'linear-gradient(45deg, #6C5CE7, #A29BFE)'
-  };
-  return colors[prizeId] || 'linear-gradient(45deg, #74B9FF, #0984E3)';
-}
 
-// Глобальная переменная для хранения текущей позиции рулетки
-let rouletteCurrentPosition = 0;
 
-// Глобальная переменная для текущего дизайна рулетки
-let currentRouletteDesign = 'standard';
 
-// Иконки призов для стандартного дизайна
-const ROULETTE_PRIZES_DESIGNS = {
-  standard: [
-    { id: 'subscription', name: 'Подписка', icon: '👑', count: 3, probability: 0.03 },
-    { id: 'discount500', name: '500₽', icon: '💎', count: 1, probability: 0.10 },
-    { id: 'discount100', name: '100₽', icon: '💵', count: 3, probability: 0.15 },
-    { id: 'mulacoin100', name: '100 MULACOIN', icon: '🪙', count: 5, probability: 0.25 },
-    { id: 'mulacoin50', name: '50 MULACOIN', icon: '🪙', count: 6, probability: 0.30 },
-    { id: 'spin1', name: '+1 SPIN', icon: '🎰', count: 7, probability: 0.45 },
-    { id: 'quest24h', name: 'Квест 24ч', icon: '🎯', count: 5, probability: 0.75 },
-    { id: 'frodCourse', name: 'Курс', icon: '📚', count: 1, probability: 0.0005 }
-  ]
-};
-
-function spinRoulette(isFree = false) {
-  const items = $("#rouletteItems");
-  const spinBtn = $("#spinRoulette");
-  const buyBtn = $("#buySpin");
-  
-  if (!items || !spinBtn) return;
-  
-  // Проверяем возможность бесплатного прокрута (кроме админов)
-  if (isFree && !canSpinFree() && !isAdmin()) {
-    toast("Бесплатный прокрут доступен раз в день!", "error");
-    return;
-  }
-  
-  // Списываем mulacoin только если это не бесплатный прокрут и не админ
-  if (!isFree && !isAdmin() && userData.mulacoin < SPIN_COST) {
-    toast("Недостаточно mulacoin для прокрута рулетки!", "error");
-    return;
-  }
-  
-  if (!isFree && !isAdmin()) {
-    userData.mulacoin -= SPIN_COST;
-    updateCurrencyDisplay();
-  } else if (isFree && !isAdmin()) {
-    // Проверяем, есть ли дополнительные спины
-    if (userData.freeSpins && userData.freeSpins > 0) {
-      userData.freeSpins -= 1;
-      toast(`🎰 Использован дополнительный спин! Осталось: ${userData.freeSpins}`, "success");
-    } else {
-      userData.lastFreeSpin = new Date().toISOString();
-    }
-    updateRouletteButton();
-  } else if (isAdmin()) {
-    // Администраторы крутят бесплатно и без ограничений
-    toast("🎯 Администратор: бесплатный прокрут", "success");
-  }
-  
-  saveUserData();
-  
-  spinBtn.disabled = true;
-  buyBtn.disabled = true;
-  
-  // Делаем кнопки недоступными
-  spinBtn.disabled = true;
-  buyBtn.disabled = true;
-  
-  // Делаем кнопки дизайна недоступными
-  document.querySelectorAll('.design-option').forEach(option => {
-    option.disabled = true;
-  });
-  
-  // Генерируем случайное расстояние для равномерной прокрутки (15 секунд)
-  const baseDistance = 7500 + Math.random() * 3000; // 7500-10500px базовое расстояние для 15 секунд
-  const extraDistance = Math.random() * 1500; // Дополнительное случайное расстояние
-  const spinDistance = baseDistance + extraDistance;
-  
-  // Вычисляем новую позицию (продолжаем с текущей позиции)
-  const newPosition = rouletteCurrentPosition + spinDistance;
-  
-  // Добавляем плавную анимацию скольжения
-  items.classList.add('spinning');
-  
-  // Добавляем анимацию к элементам рулетки
-  const rouletteItems = document.querySelectorAll('.roulette-item');
-  const iconSymbols = document.querySelectorAll('.icon-symbol');
-  
-  rouletteItems.forEach(item => {
-    item.classList.add('spinning');
-  });
-  
-  iconSymbols.forEach(icon => {
-    icon.classList.add('spinning');
-  });
-  
-  // Применяем CSS анимацию с новой позицией (15 секунд)
-  const animationDuration = '15s';
-  
-  items.style.transform = `translateX(-${newPosition}px)`;
-  items.style.transition = `transform ${animationDuration} ease-out`;
-  
-  // Запускаем аудио в начале прокрутки
-  const music = isFree ? document.getElementById('rouletteMusic') : document.getElementById('rouletteMusicMulacoin');
-  if (music) {
-    music.currentTime = 0; // Сбрасываем время воспроизведения
-    music.play().catch(error => {
-      console.log('Не удалось воспроизвести музыку:', error);
-    });
-  }
-  
-  // Показываем анимацию ожидания (15 секунд)
-  const waitTime = 15000;
-  
-  setTimeout(() => {
-    // Делаем кнопки доступными
-    spinBtn.disabled = false;
-    buyBtn.disabled = false;
-    
-    // Делаем кнопки дизайна доступными
-    document.querySelectorAll('.design-option').forEach(option => {
-      option.disabled = false;
-    });
-    
-    // Обновляем текущую позицию рулетки
-    rouletteCurrentPosition = newPosition;
-    
-    // Определяем приз по позиции стрелки (центральный элемент)
-    const centerPrize = determinePrizeByArrowPosition();
-    
-    // Останавливаем аудио после завершения прокрутки
-    const music = isFree ? document.getElementById('rouletteMusic') : document.getElementById('rouletteMusicMulacoin');
-    if (music) {
-      music.pause();
-      music.currentTime = 0;
-    }
-    
-    // Показываем модальное окно с призом, который указывает стрелка
-    showPrizeModal(centerPrize, isFree);
-    
-    // Плавно обновляем кнопку с анимацией
-    updateRouletteButtonWithAnimation();
-    
-    // Убираем класс spinning, но НЕ сбрасываем позицию
-    setTimeout(() => {
-      items.classList.remove('spinning');
-      
-      // Убираем анимацию с элементов рулетки
-      const rouletteItems = document.querySelectorAll('.roulette-item');
-      const iconSymbols = document.querySelectorAll('.icon-symbol');
-      
-      rouletteItems.forEach(item => {
-        item.classList.remove('spinning');
-      });
-      
-      iconSymbols.forEach(icon => {
-        icon.classList.remove('spinning');
-      });
-      
-      // Сохраняем текущую позицию для следующего спина
-      items.style.transition = 'transform 8s ease-out';
-    }, 1000);
-  }, waitTime);
-}
-
-function selectPrizeByProbability() {
-  const rand = Math.random();
-  let cumulative = 0;
-  
-  // Получаем призы для текущего дизайна
-  const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
-  
-  for (const prize of currentPrizes) {
-    cumulative += prize.probability;
-    if (rand <= cumulative) {
-      return prize;
-    }
-  }
-  
-  // Если ничего не выбрано, возвращаем самый частый приз
-  return currentPrizes[4]; // quest24h
-}
-
-// Функция для определения приза по позиции стрелки
-function determinePrizeByArrowPosition() {
-  console.log('Определение приза по позиции стрелки...');
-  console.log('Текущий дизайн:', currentRouletteDesign);
-  
-  const items = $("#rouletteItems");
-  if (!items) {
-    const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
-    return currentPrizes[0];
-  }
-  
-  const allItems = items.querySelectorAll('.roulette-item');
-  if (allItems.length === 0) {
-    const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
-    return currentPrizes[0];
-  }
-  
-  // Вычисляем позицию стрелки (центр экрана)
-  const containerWidth = items.offsetWidth || 600;
-  const centerX = containerWidth / 2;
-  
-  // Находим элемент, который находится в центре
-  let centerItem = null;
-  let minDistance = Infinity;
-  
-  allItems.forEach((item, index) => {
-    const itemRect = item.getBoundingClientRect();
-    const itemCenterX = itemRect.left + itemRect.width / 2;
-    const distance = Math.abs(itemCenterX - centerX);
-    
-    if (distance < minDistance) {
-      minDistance = distance;
-      centerItem = item;
-    }
-  });
-  
-  if (centerItem) {
-    const prizeId = centerItem.dataset.prize;
-    const currentPrizes = ROULETTE_PRIZES_DESIGNS[currentRouletteDesign] || ROULETTE_PRIZES_DESIGNS.standard;
-    const prize = currentPrizes.find(p => p.id === prizeId);
-    if (prize) {
-      console.log('Приз по позиции стрелки:', prize.name, 'ID:', prize.id, 'Позиция:', rouletteCurrentPosition);
-      return prize;
-    }
-  }
-  
-  // Fallback на случайный приз
-  console.log('Fallback на случайный приз');
-  return selectPrizeByProbability();
-}
-
-async function showPrizeModal(prize, isFree = false) {
-  const modal = $("#prizeModal");
-  const icon = $("#prizeIcon");
-  const title = $("#prizeTitle");
-  const description = $("#prizeDescription");
-  const content = $("#prizeContent");
-  
-  icon.textContent = prize.icon;
-  title.textContent = "Поздравляем!";
-  description.textContent = `Вы выиграли: ${prize.name}`;
-  
-  // Сохраняем историю рулетки
-  const isAdminSpin = isAdmin();
-  await saveRouletteHistory(prize.id, prize.name, isFree || isAdminSpin, isFree || isAdminSpin ? 0 : SPIN_COST);
-  
-  let contentHTML = '';
-  
-  // Обрабатываем mulacoin призы через единую систему наград
-  if (prize.id.startsWith('mulacoin')) {
-    const mulacoinAmount = parseInt(prize.id.replace('mulacoin', ''));
-    const expAmount = Math.round(mulacoinAmount / 10); // 1 опыт за каждые 10 mulacoin
-    
-    // Используем единую систему наград
-    await addRewards(mulacoinAmount, expAmount, 'roulette', prize.name, 'easy');
-    
-    contentHTML = `
-      <p style="font-size: 16px; color: var(--accent); font-weight: bold;">
-        +${mulacoinAmount} MULACOIN добавлено к вашему балансу!
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        +${expAmount} опыта получено!
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        Текущий баланс: ${userData.mulacoin} MULACOIN
-      </p>
-    `;
-  } else if (prize.id === 'infiniteSubscription') {
-    const promoCode = generatePromoCode(prize);
-    
-    // Даем опыт за бесконечную подписку
-    await addRewards(0, 200, 'roulette', prize.name, 'easy');
-    
-    // Сохраняем промокод в базу данных
-    await savePromocode(prize, promoCode);
-    
-    contentHTML = `
-      <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
-        Нажмите на промокод, чтобы скопировать
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        +200 опыта получено!
-      </p>
-      <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
-         class="use-button" id="useButton" style="display: none;">
-        Использовать
-      </a>
-    `;
-  } else if (prize.id === 'subscription' || prize.id.startsWith('discount')) {
-    const promoCode = generatePromoCode(prize);
-    
-    // Даем небольшой опыт за промокоды
-    const expAmount = prize.id === 'subscription' ? 50 : 25;
-    await addRewards(0, expAmount, 'roulette', prize.name, 'easy');
-    
-    // Сохраняем промокод в базу данных
-    await savePromocode(prize, promoCode);
-    
-    contentHTML = `
-      <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
-        Нажмите на промокод, чтобы скопировать
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        +${expAmount} опыта получено!
-      </p>
-      <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
-         class="use-button" id="useButton" style="display: none;">
-        Использовать
-      </a>
-    `;
-  } else if (prize.id === 'spin1') {
-    // Даем дополнительный спин
-    userData.freeSpins = (userData.freeSpins || 0) + 1;
-    await addRewards(0, 20, 'roulette', prize.name, 'easy');
-    
-    contentHTML = `
-      <p style="font-size: 16px; color: var(--accent); font-weight: bold;">
-        +1 дополнительный спин рулетки!
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        +20 опыта получено!
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        Доступно бесплатных спинов: ${userData.freeSpins}
-      </p>
-    `;
-    updateRouletteButton();
-  } else if (prize.id === 'quest24h') {
-    // Даем опыт за дополнительный квест
-    await addRewards(0, 30, 'roulette', prize.name, 'easy');
-    
-    contentHTML = `
-      <p style="font-size: 14px; color: var(--text-muted);">
-        Вам открыт дополнительный квест на 24 часа!
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        +30 опыта получено!
-      </p>
-    `;
-    activateQuest24h();
-  } else if (prize.id === 'frodCourse') {
-    const promoCode = generatePromoCode(prize);
-    
-    // Даем опыт за курс фрода
-    await addRewards(0, 100, 'roulette', prize.name, 'easy');
-    
-    // Сохраняем промокод в базу данных
-    await savePromocode(prize, promoCode);
-    
-    contentHTML = `
-      <div class="promo-code" id="promoCode" onclick="copyPromoCode()">${promoCode}</div>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 8px 0;">
-        Нажмите на промокод, чтобы скопировать
-      </p>
-      <p style="font-size: 14px; color: var(--text-muted);">
-        +100 опыта получено!
-      </p>
-      <a href="https://t.me/acqu1red?text=${encodeURIComponent(getPromoMessage(prize, promoCode))}" 
-         class="use-button" id="useButton" style="display: none;">
-        Использовать
-      </a>
-    `;
-  }
-  
-  content.innerHTML = contentHTML;
-  modal.classList.add('show');
-}
-
-function generatePromoCode(prize) {
-  const prefix = prize.id === 'infiniteSubscription' ? 'INF' :
-                prize.id === 'subscription' ? 'SUB' : 
-                prize.id === 'frodCourse' ? 'FROD' : 'DIS';
-  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `${prefix}-${rand}`;
-}
-
-function getPromoMessage(prize, code) {
-  const messages = {
-    infiniteSubscription: `🎉 Выиграл БЕСКОНЕЧНУЮ ПОДПИСКУ!\n\nПромокод: ${code}\n\nДействует навсегда!`,
-    subscription: `🎉 Выиграл 1 месяц подписки!\n\nПромокод: ${code}\n\nДействует 30 дней.`,
-    discount500: `🎉 Выиграл скидку 500 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
-    discount100: `🎉 Выиграл скидку 100 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
-    discount50: `🎉 Выиграл скидку 50 рублей!\n\nПромокод: ${code}\n\nДействует 7 дней.`,
-    frodCourse: `🎉 Выиграл ПОЛНЫЙ КУРС ПО ФРОДУ!\n\nПромокод: ${code}\n\nДействует 60 дней.`
-  };
-  return messages[prize.id] || `Промокод: ${code}`;
-}
-
-function copyPromoCode() {
-  const promoCode = $("#promoCode");
-  if (!promoCode) return;
-  
-  const text = promoCode.textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    promoCode.classList.add('copied');
-    promoCode.textContent = 'Скопировано!';
-    
-    setTimeout(() => {
-      promoCode.style.display = 'none';
-      const useButton = $("#useButton");
-      if (useButton) {
-        useButton.style.display = 'inline-block';
-        useButton.style.animation = 'fadeIn 0.5s ease';
-      }
-    }, 1000);
-    
-    toast('Промокод скопирован! Сохранен в Истории.', 'success');
-  });
-}
-
-function activateQuest24h() {
-  // Логика активации дополнительного квеста
-  toast('Дополнительный квест активирован на 24 часа!', 'success');
-}
 
 async function saveUserData() {
   console.log('=== СТАРТ СОХРАНЕНИЯ ДАННЫХ ===');
@@ -820,7 +282,7 @@ async function saveUserData() {
     mulacoin: userData.mulacoin || 0,
     exp: userData.exp || 0,
     level: userData.level || 1,
-    lastFreeSpin: userData.lastFreeSpin,
+
     telegramId: userData.telegramId
   };
   
@@ -835,7 +297,7 @@ async function saveUserData() {
         mulacoin: userData.mulacoin || 0,
         experience: userData.exp || 0,
         level: userData.level || 1,
-        last_free_spin: userData.lastFreeSpin,
+    
         updated_at: new Date().toISOString()
       };
       
@@ -892,7 +354,7 @@ async function loadUserData(userId) {
       userData.exp = parsed.exp || 0;
       // Пересчитываем уровень на основе опыта
       userData.level = calculateLevel(userData.exp);
-      userData.lastFreeSpin = parsed.lastFreeSpin;
+
       console.log('Данные загружены из localStorage:', parsed);
       console.log('Уровень пересчитан на основе опыта:', userData.level);
     } catch (error) {
@@ -918,7 +380,7 @@ async function loadUserData(userId) {
         userData.exp = data.experience || userData.exp || 0;
         // Пересчитываем уровень на основе опыта
         userData.level = calculateLevel(userData.exp);
-        userData.lastFreeSpin = data.last_free_spin || userData.lastFreeSpin;
+
         console.log('Уровень пересчитан на основе опыта:', userData.level);
         toast('Данные загружены из базы данных', 'success');
       } else {
@@ -951,8 +413,6 @@ async function loadUserData(userId) {
   updateCurrencyDisplay();
   setTimeout(() => updateCurrencyDisplay(), 100);
   setTimeout(() => updateCurrencyDisplay(), 500);
-  
-  updateRouletteButton();
 }
 
 // Функция для сохранения истории квеста
@@ -998,126 +458,7 @@ async function saveQuestHistory(questId, questName, difficulty, mulacoinEarned, 
   }
 }
 
-// Функция для сохранения истории рулетки
-async function saveRouletteHistory(prizeType, prizeName, isFree, mulacoinSpent, promoCodeId = null) {
-  const isAdminSpin = isAdmin();
-  console.log('Сохранение истории рулетки:', { prizeType, prizeName, isFree, mulacoinSpent, promoCodeId, isAdminSpin });
-  
-  if (supabase && userData.telegramId) {
-    try {
-      const rouletteData = {
-        user_id: userData.telegramId,
-        prize_type: prizeType,
-        prize_name: isAdminSpin ? `${prizeName} (Админ)` : prizeName,
-        is_free: isFree,
-        mulacoin_spent: mulacoinSpent,
-        promo_code_id: promoCodeId
-        // won_at автоматически устанавливается в now() по умолчанию
-      };
-      
-      console.log('Данные рулетки для сохранения:', rouletteData);
-      
-      const { data, error } = await supabase
-        .from('roulette_history')
-        .insert(rouletteData)
-        .select();
-      
-      if (error) {
-        console.error('Ошибка сохранения истории рулетки:', error);
-        toast('Ошибка сохранения истории рулетки', 'error');
-      } else {
-        console.log('История рулетки сохранена в Supabase:', data);
-        toast('История рулетки сохранена', 'success');
-      }
-    } catch (error) {
-      console.error('Ошибка подключения к Supabase для истории рулетки:', error);
-      toast('Ошибка подключения к базе данных для истории', 'error');
-    }
-  } else {
-    console.error('Supabase недоступен или отсутствует Telegram ID для истории рулетки');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
-  }
-}
 
-// Функция для сохранения промокодов в базу данных
-async function savePromocode(prize, promoCode) {
-  console.log('=== СОХРАНЕНИЕ ПРОМОКОДА ===');
-  console.log('Данные промокода:', { prize, promoCode, telegramId: userData.telegramId });
-  
-  if (!supabase) {
-    console.error('Supabase не инициализирован');
-    toast('Ошибка: Supabase не инициализирован', 'error');
-    return;
-  }
-  
-  if (!userData.telegramId) {
-    console.error('Telegram ID отсутствует');
-    toast('Ошибка: Telegram ID не получен', 'error');
-    return;
-  }
-  
-  try {
-    // Определяем тип промокода
-    let promoType = 'discount';
-    let promoValue = 0;
-    
-    if (prize.id === 'subscription') {
-      promoType = 'subscription';
-      promoValue = 30; // 30 дней
-    } else if (prize.id === 'frodCourse') {
-      promoType = 'frod_course';
-      promoValue = 60; // 60 дней
-    } else if (prize.id === 'discount500') {
-      promoValue = 500;
-    } else if (prize.id === 'discount100') {
-      promoValue = 100;
-    } else if (prize.id === 'discount50') {
-      promoValue = 50;
-    }
-    
-    // Вычисляем дату истечения
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (prize.id === 'subscription' ? 30 : 7));
-    
-    const promoData = {
-      code: promoCode,
-      type: promoType,
-      value: promoValue,
-      issued_to: userData.telegramId,
-      expires_at: expiresAt.toISOString()
-      // status автоматически устанавливается в 'issued' по умолчанию
-      // issued_at автоматически устанавливается в now() по умолчанию
-    };
-    
-    console.log('Данные промокода для сохранения:', promoData);
-    console.log('Telegram ID для привязки:', userData.telegramId);
-    
-    // Сохраняем промокод в таблицу promocodes
-    const { data, error } = await supabase
-      .from('promocodes')
-      .insert(promoData)
-      .select();
-    
-    if (error) {
-      console.error('Ошибка сохранения промокода в promocodes:', error);
-      toast('Ошибка сохранения промокода в базу данных', 'error');
-      return;
-    }
-    
-    console.log('✅ Промокод успешно сохранен в promocodes:', data);
-    
-    // Автоматически сохраняем в историю рулетки
-    await saveRouletteHistory(prize.id, prize.name, false, SPIN_COST, promoCode);
-    
-    toast('✅ Промокод сохранен в истории!', 'success');
-    console.log('=== ПРОМОКОД УСПЕШНО СОХРАНЕН ===');
-    
-  } catch (error) {
-    console.error('Ошибка сохранения промокода:', error);
-    toast('Ошибка подключения к базе данных', 'error');
-  }
-}
 
 function dayIndex(){ return Math.floor(Date.now() / (24*60*60*1000)); }
 function variationIndex(){ return dayIndex() % VARIATIONS_PER_QUEST; }
@@ -1324,7 +665,7 @@ async function loadState(){
       console.log('- telegram_id.toString():', telegram_id.toString());
       console.log('- SUPABASE_TABLE:', SUBSCRIPTIONS_TABLE);
       
-      const { data: subscriptions, error } = await supabase
+      let { data: subscriptions, error } = await supabase
         .from(SUBSCRIPTIONS_TABLE)
         .select('*')
         .eq('user_id', telegram_id.toString())
@@ -1339,7 +680,24 @@ async function loadState(){
       
       if (error) {
         console.log('❌ Ошибка при проверке подписки:', error);
-      } else if (subscriptions && subscriptions.length > 0) {
+      } else if (!subscriptions || subscriptions.length === 0) {
+        // Fallback: проверяем записи по telegram_id на случай несовпадения колонок
+        console.log('ℹ️ По user_id активная подписка не найдена. Пробуем fallback по telegram_id...');
+        const fb = await supabase
+          .from(SUBSCRIPTIONS_TABLE)
+          .select('*')
+          .eq('telegram_id', telegram_id.toString())
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (!fb.error) {
+          subscriptions = fb.data;
+        } else {
+          console.log('❌ Ошибка fallback-запроса по telegram_id:', fb.error);
+        }
+      }
+
+      if (subscriptions && subscriptions.length > 0) {
         const subscription = subscriptions[0];
         console.log('📋 Найдена подписка:', subscription);
         
@@ -1413,11 +771,11 @@ function featuredQuests(state){
     return QUESTS;
   }
   
-  // Для бесплатных пользователей показываем только первые 5 квестов
-  const freeQuests = QUESTS.slice(0, 5);
+  // Для бесплатных пользователей показываем только первые 4 квеста
+  const freeQuests = QUESTS.slice(0, 4);
   console.log('❌ Бесплатный пользователь, доступных квестов:', freeQuests.length);
   console.log('📋 Доступные квесты:', freeQuests.map(q => q.name));
-  console.log('🔒 Заблокированные квесты:', QUESTS.slice(5).map(q => q.name));
+  console.log('🔒 Заблокированные квесты:', QUESTS.slice(4).map(q => q.name));
   return freeQuests;
 }
 
@@ -1469,7 +827,7 @@ function buildCards(state){
 
   // Показываем заблокированные квесты для бесплатных пользователей (но не для админов)
   if(!state.isSubscribed && !state.isAdmin){
-    const lockedQuests = QUESTS.slice(5); // Квесты с 6-го и далее
+    const lockedQuests = QUESTS.slice(4); // Квесты с 5-го и далее
     lockedQuests.forEach((q, index) => {
       const card = document.createElement("div");
       card.className = "card locked fade-in";
@@ -1628,7 +986,7 @@ function startQuest(q, state) {
     questAvailable: questIndex < 5 || state.isSubscribed || state.isAdmin
   });
   
-  if (!state.isSubscribed && !state.isAdmin && questIndex >= 5) {
+  if (!state.isSubscribed && !state.isAdmin && questIndex >= 4) {
     console.log('Доступ запрещен, показываем промпт подписки');
     showSubscriptionPrompt();
     return;
@@ -1746,127 +1104,7 @@ function isAdmin() {
   return isAdminUser;
 }
 
-function canSpinFree() {
-  if (isAdmin()) return true; // Админы могут крутить бесплатно всегда
-  
-  // Проверяем дополнительные спины
-  if (userData.freeSpins && userData.freeSpins > 0) {
-    return true;
-  }
-  
-  // Проверяем ежедневный бесплатный спин
-  if (!userData.lastFreeSpin) return true;
-  const now = new Date();
-  const lastSpin = new Date(userData.lastFreeSpin);
-  const diffTime = now - lastSpin;
-  const diffDays = diffTime / (1000 * 60 * 60 * 24);
-  return diffDays >= 1;
-}
 
-function updateRouletteButton() {
-  const spinBtn = $("#spinRoulette");
-  const buyBtn = $("#buySpin");
-  
-  if (!spinBtn || !buyBtn) return;
-  
-  // Очищаем содержимое кнопок
-  spinBtn.innerHTML = '';
-  buyBtn.innerHTML = '';
-  
-  if (isAdmin()) {
-    // Специальная картинка для администраторов
-    const adminImg = document.createElement('img');
-    adminImg.src = './assets/photovideo/ruletka.png';
-    adminImg.alt = 'Крутить рулетку (∞)';
-    adminImg.className = 'button-image';
-    spinBtn.appendChild(adminImg);
-    spinBtn.disabled = false;
-    spinBtn.classList.remove("disabled");
-    spinBtn.title = "Администратор: бесконечные попытки";
-  } else if (canSpinFree()) {
-    // Обычная картинка для кручения
-    const spinImg = document.createElement('img');
-    spinImg.src = './assets/photovideo/ruletka.png';
-    spinImg.alt = 'Крутить рулетку';
-    spinImg.className = 'button-image';
-    spinBtn.appendChild(spinImg);
-    spinBtn.disabled = false;
-    spinBtn.classList.remove("disabled");
-  } else {
-    // Картинка для лимита
-    const limitImg = document.createElement('img');
-    limitImg.src = './assets/photovideo/ruletka2.png';
-    limitImg.alt = 'Лимит исчерпан';
-    limitImg.className = 'button-image';
-    spinBtn.appendChild(limitImg);
-    spinBtn.disabled = true;
-    spinBtn.classList.add("disabled");
-  }
-  
-  // Обновляем картинку кнопки покупки
-  const buyImg = document.createElement('img');
-  buyImg.src = './assets/photovideo/mulacoin.png';
-  buyImg.alt = `Крутить за ${SPIN_COST} MULACOIN`;
-  buyImg.className = 'button-image';
-  buyBtn.appendChild(buyImg);
-}
-
-// Функция для плавного обновления кнопки с анимацией
-function updateRouletteButtonWithAnimation() {
-  const spinBtn = $("#spinRoulette");
-  const buyBtn = $("#buySpin");
-  
-  if (!spinBtn || !buyBtn) return;
-  
-  // Добавляем класс для плавного перехода
-  spinBtn.classList.add("transitioning");
-  
-  // Определяем новую картинку
-  let newImageSrc = "";
-  let isDisabled = false;
-  
-  if (isAdmin()) {
-    newImageSrc = './assets/photovideo/ruletka.png';
-    isDisabled = false;
-    spinBtn.title = "Администратор: бесконечные попытки";
-  } else if (canSpinFree()) {
-    newImageSrc = './assets/photovideo/ruletka.png';
-    isDisabled = false;
-  } else {
-    newImageSrc = './assets/photovideo/ruletka2.png';
-    isDisabled = true;
-  }
-  
-  // Плавно меняем картинку
-  setTimeout(() => {
-    spinBtn.innerHTML = '';
-    const newImg = document.createElement('img');
-    newImg.src = newImageSrc;
-    newImg.alt = isDisabled ? 'Лимит исчерпан' : 'Крутить рулетку';
-    newImg.className = 'button-image';
-    spinBtn.appendChild(newImg);
-    spinBtn.disabled = isDisabled;
-    
-    if (isDisabled) {
-      spinBtn.classList.add("disabled");
-    } else {
-      spinBtn.classList.remove("disabled");
-    }
-    
-    // Убираем класс перехода
-    setTimeout(() => {
-      spinBtn.classList.remove("transitioning");
-    }, 300);
-  }, 200);
-  
-  // Обновляем картинку кнопки покупки
-  buyBtn.innerHTML = '';
-  const buyImg = document.createElement('img');
-  buyImg.src = './assets/photovideo/mulacoin.png';
-  buyImg.alt = `Крутить за ${SPIN_COST} MULACOIN`;
-  buyImg.className = 'button-image';
-  buyBtn.appendChild(buyImg);
-}
 
 /* ====== Header buttons ====== */
 $("#btnSubscribe").addEventListener("click", ()=>{
@@ -1877,81 +1115,7 @@ $("#btnHistory").addEventListener("click", ()=>{
   showHistory();
 });
 
-// Оригинальный обработчик для кнопки рулетки
-const originalSpinHandler = () => {
-  if (canSpinFree()) {
-    spinRoulette(true);
-  } else if (userData.mulacoin >= SPIN_COST) {
-    spinRoulette(false);
-  } else {
-    toast("Недостаточно mulacoin для прокрута рулетки!", "error");
-  }
-};
 
-// Функция инициализации обработчиков рулетки
-function initializeRouletteHandlers() {
-  console.log('Инициализация обработчиков рулетки...');
-  
-  // Обработчики рулетки
-  const spinBtn = $("#spinRoulette");
-  const buyBtn = $("#buySpin");
-  const closePrizeBtn = $("#closePrize");
-  const previewHeader = $("#previewHeader");
-  
-  if (spinBtn) {
-    spinBtn.addEventListener("click", originalSpinHandler);
-    console.log('✅ Обработчик кнопки "Крутить рулетку" добавлен');
-  } else {
-    console.error('❌ Кнопка "Крутить рулетку" не найдена');
-  }
-  
-  if (buyBtn) {
-    buyBtn.addEventListener("click", ()=>{
-      if (userData.mulacoin >= SPIN_COST) {
-        spinRoulette(false);
-      } else {
-        toast("Недостаточно mulacoin для покупки прокрута!", "error");
-      }
-    });
-    console.log('✅ Обработчик кнопки "Купить прокрут" добавлен');
-  } else {
-    console.error('❌ Кнопка "Купить прокрут" не найдена');
-  }
-
-  // Обработчик закрытия модала приза
-  if (closePrizeBtn) {
-    closePrizeBtn.addEventListener("click", ()=>{
-      $("#prizeModal").classList.remove("show");
-    });
-    console.log('✅ Обработчик закрытия модала приза добавлен');
-  } else {
-    console.error('❌ Кнопка закрытия модала приза не найдена');
-  }
-
-  // Обработчик сворачивания/разворачивания превью призов
-  if (previewHeader) {
-    previewHeader.addEventListener("click", ()=>{
-      const content = $("#previewContent");
-      const toggle = $("#previewHeader .preview-toggle");
-      
-      if (content.classList.contains("expanded")) {
-        content.classList.remove("expanded");
-        toggle.classList.remove("expanded");
-      } else {
-        content.classList.add("expanded");
-        toggle.classList.add("expanded");
-      }
-    });
-    console.log('✅ Обработчик превью призов добавлен');
-  } else {
-    console.error('❌ Заголовок превью призов не найден');
-  }
-  
-  // Убираем обработчики переключения дизайнов - оставляем только стандартный
-  console.log('Инициализация обработчиков рулетки завершена');
-}
-
-// Убираем функцию переключения дизайна - оставляем только стандартный
 
 // Обработчик клика по уровню
 $("#levelDisplay").addEventListener("click", ()=>{
@@ -2028,27 +1192,7 @@ async function showHistory() {
     }
   }
   
-  // Загружаем историю рулетки
-  let rouletteHistory = [];
-  if (supabase && userData.telegramId) {
-    try {
-      const { data, error } = await supabase
-        .from('roulette_history')
-        .select('*')
-        .eq('user_id', userData.telegramId)
-        .order('won_at', { ascending: false })
-        .limit(10);
-      
-      if (!error && data) {
-        rouletteHistory = data;
-        console.log('Загружена история рулетки:', rouletteHistory);
-      } else {
-        console.error('Ошибка загрузки истории рулетки:', error);
-      }
-    } catch (error) {
-      console.error('Ошибка при загрузке истории рулетки:', error);
-    }
-  }
+
   
   modalBody.innerHTML = `
     <div style="text-align: center; padding: 20px;">
@@ -2104,34 +1248,11 @@ async function showHistory() {
           </div>
         ` : `
           <p style="font-size: 12px; color: var(--text-muted);">
-            У вас пока нет промокодов. Крутите рулетку, чтобы получить!
+            У вас пока нет промокодов.
           </p>
         `}
       </div>
-      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">История рулетки (${rouletteHistory.length})</div>
-        ${rouletteHistory.length > 0 ? `
-          <div style="max-height: 200px; overflow-y: auto; margin: 8px 0;">
-            ${rouletteHistory.map(record => `
-              <div style="background: var(--bg1); border-radius: 4px; padding: 8px; margin: 4px 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-weight: 600; color: var(--glow1);">${record.prize_name}</span>
-                  <span style="font-size: 12px; color: var(--text-muted);">
-                    ${new Date(record.won_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-                  ${record.is_free ? 'Бесплатный спин' : `${record.mulacoin_spent} MULACOIN`}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        ` : `
-          <p style="font-size: 12px; color: var(--text-muted);">
-            История рулетки пуста. Начните крутить рулетку!
-          </p>
-        `}
-      </div>
+
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
         <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Статус подписки</div>
         <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
@@ -2413,8 +1534,7 @@ async function forceSaveData() {
     // Сохраняем тестовую историю квеста
     await saveQuestHistory('test', 'Тестовый квест', 'easy', 10, 50);
     
-    // Сохраняем тестовую историю рулетки
-    await saveRouletteHistory('test', 'Тестовый приз', true, 0);
+
     
     toast('Тестовые данные сохранены', 'success');
     console.log('=== ПРИНУДИТЕЛЬНОЕ СОХРАНЕНИЕ ЗАВЕРШЕНО ===');
@@ -2443,21 +1563,7 @@ loadState().then(async state=>{
   // Обновляем отображение валюты после загрузки данных
   updateCurrencyDisplay();
   
-  // Всегда начинаем со стандартного дизайна рулетки
-  currentRouletteDesign = 'standard';
-  console.log('Установлен стандартный дизайн рулетки');
-  
-  // Создаем рулетку
-  createRouletteWheel();
-  
-  // Убираем все темы при инициализации (стандартный дизайн)
-  const rouletteSection = document.querySelector('.roulette-section');
-  if (rouletteSection) {
-    rouletteSection.classList.remove('author-theme', 'casino-theme');
-  }
-  
-  // Инициализируем обработчики событий после создания рулетки
-  initializeRouletteHandlers();
+
   
   console.log('=== ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА ===');
 });

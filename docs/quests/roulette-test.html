@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест системы рулетки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            background: #333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Тест системы рулетки</h1>
+        
+        <div class="test-section">
+            <h2>Инициализация</h2>
+            <button onclick="initRoulette()">Инициализировать рулетку</button>
+            <div id="init-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Тестирование функций</h2>
+            <button onclick="testCreateWheel()">Создать рулетку</button>
+            <button onclick="testSpin()">Крутить рулетку</button>
+            <button onclick="testCanSpinFree()">Проверить бесплатный спин</button>
+            <button onclick="testUpdateButton()">Обновить кнопку</button>
+            <div id="test-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Тестирование призов</h2>
+            <button onclick="testPrizeSelection()">Выбрать приз</button>
+            <button onclick="testPrizeDetermination()">Определить приз по позиции</button>
+            <div id="prize-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Тестирование промокодов</h2>
+            <button onclick="testPromoCode()">Сгенерировать промокод</button>
+            <button onclick="testPromoMessage()">Создать сообщение промокода</button>
+            <div id="promo-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Мок-данные для тестирования
+        window.userData = {
+            mulacoin: 100,
+            exp: 500,
+            level: 5,
+            telegramId: '123456789',
+            freeSpins: 2,
+            lastFreeSpin: null
+        };
+
+        window.supabase = {
+            from: () => ({
+                select: () => Promise.resolve({ data: [], error: null }),
+                insert: () => Promise.resolve({ data: [], error: null }),
+                eq: () => ({ order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }) })
+            })
+        };
+
+        window.toast = (message, type) => {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            document.getElementById('test-result').textContent += `[${type.toUpperCase()}] ${message}\n`;
+        };
+
+        window.$ = (selector) => {
+            if (selector === '#rouletteItems') {
+                return document.createElement('div');
+            }
+            if (selector === '#spinRoulette') {
+                return document.createElement('button');
+            }
+            if (selector === '#buySpin') {
+                return document.createElement('button');
+            }
+            return null;
+        };
+
+        window.isAdmin = () => false;
+
+        window.addRewards = async (mulacoin, exp, source, description, difficulty) => {
+            console.log(`Добавлены награды: ${mulacoin} mulacoin, ${exp} exp`);
+            return true;
+        };
+
+        window.updateCurrencyDisplay = () => {
+            console.log('Обновлено отображение валюты');
+        };
+
+        window.saveUserData = async () => {
+            console.log('Данные пользователя сохранены');
+        };
+
+        // Загружаем систему рулетки
+        const script = document.createElement('script');
+        script.src = 'roulette.js';
+        document.head.appendChild(script);
+
+        script.onload = () => {
+            console.log('Система рулетки загружена');
+            document.getElementById('init-result').textContent = 'Система рулетки загружена успешно';
+        };
+
+        function initRoulette() {
+            try {
+                if (window.rouletteSystem) {
+                    document.getElementById('init-result').textContent = 'Рулетка инициализирована:\n' + 
+                        JSON.stringify(window.rouletteSystem, null, 2);
+                } else {
+                    document.getElementById('init-result').textContent = 'Ошибка: система рулетки не найдена';
+                }
+            } catch (error) {
+                document.getElementById('init-result').textContent = 'Ошибка инициализации: ' + error.message;
+            }
+        }
+
+        function testCreateWheel() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.createRouletteWheel) {
+                    window.rouletteSystem.createRouletteWheel();
+                    document.getElementById('test-result').textContent = 'Рулетка создана успешно';
+                } else {
+                    document.getElementById('test-result').textContent = 'Ошибка: функция createRouletteWheel не найдена';
+                }
+            } catch (error) {
+                document.getElementById('test-result').textContent = 'Ошибка создания рулетки: ' + error.message;
+            }
+        }
+
+        function testSpin() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.spinRoulette) {
+                    window.rouletteSystem.spinRoulette(true);
+                    document.getElementById('test-result').textContent = 'Рулетка прокручена';
+                } else {
+                    document.getElementById('test-result').textContent = 'Ошибка: функция spinRoulette не найдена';
+                }
+            } catch (error) {
+                document.getElementById('test-result').textContent = 'Ошибка прокрутки: ' + error.message;
+            }
+        }
+
+        function testCanSpinFree() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.canSpinFree) {
+                    const result = window.rouletteSystem.canSpinFree();
+                    document.getElementById('test-result').textContent = `Можно крутить бесплатно: ${result}`;
+                } else {
+                    document.getElementById('test-result').textContent = 'Ошибка: функция canSpinFree не найдена';
+                }
+            } catch (error) {
+                document.getElementById('test-result').textContent = 'Ошибка проверки: ' + error.message;
+            }
+        }
+
+        function testUpdateButton() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.updateRouletteButton) {
+                    window.rouletteSystem.updateRouletteButton();
+                    document.getElementById('test-result').textContent = 'Кнопка обновлена';
+                } else {
+                    document.getElementById('test-result').textContent = 'Ошибка: функция updateRouletteButton не найдена';
+                }
+            } catch (error) {
+                document.getElementById('test-result').textContent = 'Ошибка обновления: ' + error.message;
+            }
+        }
+
+        function testPrizeSelection() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.selectPrizeByProbability) {
+                    const prize = window.rouletteSystem.selectPrizeByProbability();
+                    document.getElementById('prize-result').textContent = 'Выбран приз:\n' + 
+                        JSON.stringify(prize, null, 2);
+                } else {
+                    document.getElementById('prize-result').textContent = 'Ошибка: функция selectPrizeByProbability не найдена';
+                }
+            } catch (error) {
+                document.getElementById('prize-result').textContent = 'Ошибка выбора приза: ' + error.message;
+            }
+        }
+
+        function testPrizeDetermination() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.determinePrizeByArrowPosition) {
+                    const prize = window.rouletteSystem.determinePrizeByArrowPosition();
+                    document.getElementById('prize-result').textContent = 'Приз по позиции:\n' + 
+                        JSON.stringify(prize, null, 2);
+                } else {
+                    document.getElementById('prize-result').textContent = 'Ошибка: функция determinePrizeByArrowPosition не найдена';
+                }
+            } catch (error) {
+                document.getElementById('prize-result').textContent = 'Ошибка определения приза: ' + error.message;
+            }
+        }
+
+        function testPromoCode() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.generatePromoCode) {
+                    const testPrize = { id: 'subscription', name: 'Подписка' };
+                    const promoCode = window.rouletteSystem.generatePromoCode(testPrize);
+                    document.getElementById('promo-result').textContent = 'Сгенерирован промокод: ' + promoCode;
+                } else {
+                    document.getElementById('promo-result').textContent = 'Ошибка: функция generatePromoCode не найдена';
+                }
+            } catch (error) {
+                document.getElementById('promo-result').textContent = 'Ошибка генерации: ' + error.message;
+            }
+        }
+
+        function testPromoMessage() {
+            try {
+                if (window.rouletteSystem && window.rouletteSystem.getPromoMessage) {
+                    const testPrize = { id: 'subscription', name: 'Подписка' };
+                    const message = window.rouletteSystem.getPromoMessage(testPrize, 'TEST-123');
+                    document.getElementById('promo-result').textContent = 'Сообщение промокода:\n' + message;
+                } else {
+                    document.getElementById('promo-result').textContent = 'Ошибка: функция getPromoMessage не найдена';
+                }
+            } catch (error) {
+                document.getElementById('promo-result').textContent = 'Ошибка создания сообщения: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
