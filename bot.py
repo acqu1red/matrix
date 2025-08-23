@@ -31,6 +31,35 @@ ADMIN_IDS = [
     7365307696,
 ]
 
+# ---------- MULACOIN functions ----------
+
+async def add_mulacoin_to_user(user_id: int, amount: int):
+    """Добавляет MULACOIN пользователю"""
+    try:
+        # Проверяем существующий баланс
+        result = supabase.table('bot_user').select('mulacoin').eq('telegram_id', str(user_id)).execute()
+        
+        if not result.data:
+            # Пользователь не найден, создаем новую запись
+            new_user_data = {
+                'telegram_id': str(user_id),
+                'mulacoin': amount,
+                'experience': 0,
+                'level': 1,
+                'created_at': 'now()'
+            }
+            supabase.table('bot_user').insert(new_user_data).execute()
+        else:
+            # Пользователь найден, обновляем баланс
+            current_balance = result.data[0].get('mulacoin', 0)
+            new_balance = current_balance + amount
+            supabase.table('bot_user').update({'mulacoin': new_balance}).eq('telegram_id', str(user_id)).execute()
+        
+        return True
+    except Exception as e:
+        print(f"Ошибка при добавлении MULACOIN: {e}")
+        return False
+
 # ---------- Daily rewards functions ----------
 
 DAILY_REWARDS = [10, 15, 15, 20, 20, 25, 50]  # Награды по дням
@@ -97,7 +126,7 @@ async def claim_daily_reward(user_id: int) -> dict:
         reward_amount = DAILY_REWARDS[min(current_day - 1, len(DAILY_REWARDS) - 1)]
         
         # Обновляем баланс пользователя
-        await add_mulacoin(user_id, reward_amount)
+        await add_mulacoin_to_user(user_id, reward_amount)
         
         # Обновляем статус ежедневной награды
         next_day = current_day + 1 if current_day < 7 else 1
