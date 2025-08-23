@@ -1266,7 +1266,6 @@ async function loadState(){
   
   console.log('=== НАЧАЛО ПРОВЕРКИ ДОСТУПА ===');
   console.log('Данные пользователя:', { userId, username });
-  console.log('userData.telegramId:', userData.telegramId);
   console.log('Список админов:', ADMIN_IDS);
   
   // Проверка на администратора (по username и telegramId)
@@ -1333,70 +1332,78 @@ async function loadState(){
       // Проверяем таблицу subscriptions
       console.log('📋 Проверяем таблицу subscriptions...');
       
-      try {
-        console.log('🔍 Ищем пользователя с user_id:', userId);
-        console.log('🔍 Тип user_id:', typeof userId);
+      // Сначала получаем структуру таблицы subscriptions
+      const { data: subStructure, error: subStructureError } = await supabase
+        .from(SUBSCRIPTIONS_TABLE)
+        .select("*")
+        .limit(1);
+      
+      if (!subStructureError && subStructure && subStructure.length > 0) {
+        const subColumns = Object.keys(subStructure[0]);
+        console.log('📊 Структура таблицы subscriptions:', subColumns);
         
-        // Проверяем наличие пользователя в таблице subscriptions (любая запись)
-        const { data: subData, error: subError } = await supabase
-          .from(SUBSCRIPTIONS_TABLE)
-          .select("*")
-          .eq('user_id', userId)
-          .maybeSingle();
+        // Ищем поле, которое может содержать ID пользователя
+        const possibleIdFields = ['user_id', 'telegram_id', 'tg_id', 'id', 'userid', 'telegramid'];
+        let foundSubField = null;
         
-        if(!subError && subData) {
-          isSubscribed = true;
-          console.log('✅ Пользователь найден в таблице subscriptions:', subData);
-          console.log('📅 Статус подписки:', subData.status);
-          console.log('📅 Дата окончания:', subData.end_date);
-        } else {
-          console.log('❌ Пользователь не найден в таблице subscriptions для user_id:', userId);
-          console.log('❌ Ошибка запроса:', subError);
-          
-          // Попробуем найти пользователя как строку
-          const { data: subDataString, error: subErrorString } = await supabase
-            .from(SUBSCRIPTIONS_TABLE)
-            .select("*")
-            .eq('user_id', String(userId))
-            .maybeSingle();
-          
-          if(!subErrorString && subDataString) {
-            isSubscribed = true;
-            console.log('✅ Пользователь найден при поиске как строка:', subDataString);
-          } else {
-            console.log('❌ Пользователь не найден даже при поиске как строка');
-            
-            // Покажем все записи для диагностики
-            const { data: allSubs, error: allSubsError } = await supabase
-              .from(SUBSCRIPTIONS_TABLE)
-              .select("*");
-            
-            if(!allSubsError && allSubs) {
-              console.log('📊 Все записи в таблице subscriptions:', allSubs);
-              console.log('🔍 Ищем совпадения с user_id:', userId);
-              
-              const matchingSubs = allSubs.filter(sub => 
-                sub.user_id === userId || 
-                sub.user_id === String(userId) ||
-                String(sub.user_id) === userId ||
-                String(sub.user_id) === String(userId)
-              );
-              
-              if(matchingSubs.length > 0) {
-                console.log('✅ Найдены совпадения:', matchingSubs);
-                isSubscribed = true;
-              } else {
-                console.log('❌ Совпадений не найдено');
-              }
-            }
+        for (const field of possibleIdFields) {
+          if (subColumns.includes(field)) {
+            foundSubField = field;
+            break;
           }
         }
-      } catch (subscriptionError) {
-        console.error('❌ Ошибка при проверке подписки:', subscriptionError);
+        
+        if (foundSubField) {
+          console.log('🔍 Найдено поле для ID в subscriptions:', foundSubField);
+          
+          // Проверяем активную подписку с учетом end_date
+          const currentDate = new Date().toISOString();
+          const { data: subData, error: subError } = await supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("*")
+            .eq(foundSubField, userId)
+            .eq('status', 'active')
+            .gte('end_date', currentDate)
+            .maybeSingle();
+          
+          if(!subError && subData) {
+            isSubscribed = true;
+            console.log('✅ Активная подписка найдена в таблице subscriptions:', subData);
+          } else {
+            console.log('❌ Активная подписка не найдена в таблице subscriptions:', subError);
+            
+            // Проверяем любую подписку (не только активную) для диагностики
+            const { data: anySubData, error: anySubError } = await supabase
+              .from(SUBSCRIPTIONS_TABLE)
+              .select("*")
+              .eq(foundSubField, userId)
+              .maybeSingle();
+            
+            if(!anySubError && anySubData) {
+              console.log('ℹ️ Найдена подписка (возможно истекшая):', anySubData);
+              console.log('📅 Дата окончания:', anySubData.end_date);
+              console.log('📅 Текущая дата:', currentDate);
+            } else {
+              console.log('❌ Подписка не найдена в таблице subscriptions:', anySubError);
+            }
+          }
+        } else {
+          console.log('❌ Не найдено подходящее поле для ID в таблице subscriptions');
+        }
+      } else {
+        console.log('❌ Не удалось получить структуру таблицы subscriptions:', subStructureError);
       }
       
       // Показываем структуру таблиц для диагностики
       console.log('🔍 Диагностика таблиц...');
+      const { data: tableInfo, error: tableError } = await supabase
+        .from(SUBSCRIPTIONS_TABLE)
+        .select("*")
+        .limit(1);
+      
+      if(!tableError && tableInfo && tableInfo.length > 0) {
+        console.log('📊 Структура таблицы subscriptions:', Object.keys(tableInfo[0]));
+      }
       
       // Показываем все записи в таблице admins для диагностики
       const { data: allAdmins, error: adminsTableError } = await supabase
@@ -1406,16 +1413,6 @@ async function loadState(){
       
       if(!adminsTableError && allAdmins) {
         console.log('📊 Первые 5 записей в таблице admins:', allAdmins);
-      }
-      
-      // Показываем записи в таблице subscriptions для диагностики
-      const { data: allSubs, error: subsTableError } = await supabase
-        .from(SUBSCRIPTIONS_TABLE)
-        .select("*")
-        .limit(5);
-      
-      if(!subsTableError && allSubs) {
-        console.log('📊 Первые 5 записей в таблице subscriptions:', allSubs);
       }
       
     } catch(e){ 
@@ -1441,16 +1438,15 @@ function featuredQuests(state){
   if(state.isSubscribed || state.isAdmin) {
     console.log('✅ Пользователь имеет подписку или админ, возвращаем ВСЕ квесты');
     console.log('📊 Статус:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
-    console.log('📋 Возвращаем все квесты:', QUESTS.map(q => q.name));
     return QUESTS;
   }
   
-  // Для бесплатных пользователей показываем только доступные квесты
-  const availableQuests = QUESTS.filter(q => q.available);
-  console.log('❌ Бесплатный пользователь, доступных квестов:', availableQuests.length);
-  console.log('📋 Доступные квесты:', availableQuests.map(q => q.name));
-  console.log('🔒 Заблокированные квесты:', QUESTS.filter(q => !q.available).map(q => q.name));
-  return availableQuests;
+  // Для бесплатных пользователей показываем только первые 5 квестов
+  const freeQuests = QUESTS.slice(0, 5);
+  console.log('❌ Бесплатный пользователь, доступных квестов:', freeQuests.length);
+  console.log('📋 Доступные квесты:', freeQuests.map(q => q.name));
+  console.log('🔒 Заблокированные квесты:', QUESTS.slice(5).map(q => q.name));
+  return freeQuests;
 }
 
 /* ====== Cards ====== */
@@ -1461,8 +1457,6 @@ function buildCards(state){
   console.log('=== BUILD CARDS ===');
   console.log('Состояние пользователя:', state);
   console.log('Статус доступа:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
-  console.log('Тип isSubscribed:', typeof state.isSubscribed);
-  console.log('Тип isAdmin:', typeof state.isAdmin);
   
   const list = featuredQuests(state);
   console.log('📊 Квестов для отображения:', list.length);
@@ -1497,23 +1491,23 @@ function buildCards(state){
     container.appendChild(card);
   });
 
-  // Показываем заблокированные квесты для бесплатных пользователей
+  // Показываем заблокированные квесты для бесплатных пользователей (но не для админов)
   if(!state.isSubscribed && !state.isAdmin){
-    const others = QUESTS.filter(q => !q.available);
-    others.forEach((q, index) => {
+    const lockedQuests = QUESTS.slice(5); // Квесты с 6-го и далее
+    lockedQuests.forEach((q, index) => {
       const card = document.createElement("div");
       card.className = "card locked fade-in";
       card.setAttribute("data-style", q.style);
       card.style.animationDelay = `${(list.length + index) * 0.1}s`;
       
       card.innerHTML = `
-        <div class="lock">🔒 Заблокировано</div>
+        <div class="lock">🔒 Требуется подписка</div>
         <div class="label">${q.theme}</div>
         <h3>${q.name}</h3>
         <div class="description">${q.description}</div>
         <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
         <div class="cta">
-          <button class="btn ghost locked-access-btn">Получить доступ</button>
+          <button class="btn ghost locked-access-btn">Получить подписку</button>
         </div>
       `;
       
@@ -1524,19 +1518,6 @@ function buildCards(state){
     document.querySelectorAll('.locked-access-btn').forEach(btn => {
       btn.addEventListener('click', showSubscriptionPrompt);
     });
-  }
-  
-  // Добавляем индикатор подписки для пользователей с подпиской
-  if(state.isSubscribed && !state.isAdmin){
-    const subscriptionIndicator = document.createElement("div");
-    subscriptionIndicator.className = "subscription-indicator";
-    subscriptionIndicator.innerHTML = `
-      <div class="subscription-banner">
-        <span class="subscription-icon">👑</span>
-        <span class="subscription-text">Активна подписка - все квесты доступны</span>
-      </div>
-    `;
-    container.appendChild(subscriptionIndicator);
   }
 }
 
@@ -1663,13 +1644,15 @@ function startQuest(q, state) {
   }
   
   // Проверяем доступ к квесту
+  const questIndex = QUESTS.findIndex(q => q.id === questId);
   console.log('Проверка доступа:', { 
     isSubscribed: state.isSubscribed, 
     isAdmin: state.isAdmin, 
-    questAvailable: quest.available 
+    questIndex: questIndex,
+    questAvailable: questIndex < 5 || state.isSubscribed || state.isAdmin
   });
   
-  if (!state.isSubscribed && !state.isAdmin && !quest.available) {
+  if (!state.isSubscribed && !state.isAdmin && questIndex >= 5) {
     console.log('Доступ запрещен, показываем промпт подписки');
     showSubscriptionPrompt();
     return;
@@ -2046,9 +2029,6 @@ async function showHistory() {
     }
   }
   
-  // Проверяем статус подписки
-  const subscriptionStatus = await checkSubscriptionStatus();
-  
   modalBody.innerHTML = `
     <div style="text-align: center; padding: 20px;">
       <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
@@ -2132,24 +2112,18 @@ async function showHistory() {
         `}
       </div>
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Статус подписки</div>
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Техническая информация</div>
         <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Подписка:</span>
-            <span style="color: ${subscriptionStatus ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
-              ${subscriptionStatus ? '✅ Активна' : '❌ Не активна'}
+            <span>Supabase:</span>
+            <span style="color: ${supabase ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
+              ${supabase ? '✅ Подключен' : '❌ Не подключен'}
             </span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span>Telegram ID:</span>
             <span style="color: var(--text-muted); font-weight: 600;">
               ${userData.telegramId || 'Не получен'}
-            </span>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Supabase:</span>
-            <span style="color: ${supabase ? 'var(--success)' : 'var(--error)'}; font-weight: 600;">
-              ${supabase ? '✅ Подключен' : '❌ Не подключен'}
             </span>
           </div>
         </div>
@@ -2175,32 +2149,6 @@ function getPromoTypeText(type) {
     'frod_course': 'Курс Фрода'
   };
   return types[type] || type;
-}
-
-// Функция для проверки статуса подписки
-async function checkSubscriptionStatus() {
-  if (!supabase || !userData.telegramId) {
-    return false;
-  }
-  
-  try {
-    const { data: subData, error: subError } = await supabase
-      .from(SUBSCRIPTIONS_TABLE)
-      .select("*")
-      .eq('user_id', userData.telegramId)
-      .maybeSingle();
-    
-    if (!subError && subData) {
-      console.log('✅ Подписка найдена в checkSubscriptionStatus:', subData);
-      return true;
-    } else {
-      console.log('❌ Подписка не найдена в checkSubscriptionStatus для user_id:', userData.telegramId);
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ Ошибка при проверке статуса подписки:', error);
-    return false;
-  }
 }
 
 // Функция для отображения деталей промокода
