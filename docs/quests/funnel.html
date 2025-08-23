@@ -340,8 +340,8 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Воронка конверсий</h1>
-        <div class="badge">Продажи</div>
+        <h1>Схемы Понци Элиты</h1>
+        <div class="badge">Элита</div>
       </div>
       <div class="actions">
         <button id="btnBack" class="btn ghost">← Назад</button>
@@ -350,13 +350,13 @@
 
     <div class="quest-container">
       <div class="quest-header">
-        <h2>🔄 Воронка конверсий</h2>
-        <div class="theme">Продажи • Легкий уровень</div>
+        <h2>💰 Схемы Понци Элиты</h2>
+        <div class="theme">Элита • Легкий уровень</div>
       </div>
 
       <div class="quest-content">
         <div class="banner">
-          <strong>Задача:</strong> Исследуй воронку продаж и определи, где происходят основные потери клиентов.
+          <strong>Задача:</strong> Разоблачи пирамидальную схему элиты и укажи, где она ломается. Найди <b>слабое звено</b> в механике отмыва и перекачки капитала.
         </div>
 
         <div class="funnel-analyzer" id="funnelAnalyzer">
@@ -442,6 +442,7 @@
       stepsPerFunnel: 4,
       rewards: { fragments: 2, experience: 45 }
     };
+    const REWARDS = { mulacoin: 2, experience: 45 };
 
     // Состояние игры
     let gameState = {
@@ -548,8 +549,13 @@
     function generateFunnel() {
       gameState.currentFunnel = [];
       
-      const stepNames = ['Показы', 'Клики', 'Лиды', 'Оплаты'];
-      const stepIcons = ['👁️', '🖱️', '📝', '💳'];
+      const stepNames = [
+        'Рекрут через «фонды»',
+        'Юридические прокладки',
+        'Офшорные контуры',
+        'Снятие сливок/крах'
+      ];
+      const stepIcons = ['🎗️', '⚖️', '🏝️', '🧨'];
       
       let currentValue = 10000 + Math.floor(Math.random() * 5000); // 10k-15k
       
@@ -572,10 +578,10 @@
 
     function getStepDescription(stepName) {
       const descriptions = {
-        'Показы': 'Количество показов рекламы',
-        'Клики': 'Переходы по рекламе',
-        'Лиды': 'Заявки и регистрации',
-        'Оплаты': 'Успешные покупки'
+        'Рекрут через «фонды»': 'Вербовка и упаковка схемы через псевдо‑благотворительность и клубы',
+        'Юридические прокладки': 'Сеть юрлиц и «фасады», снимающие риски и заметающие следы',
+        'Офшорные контуры': 'Перенаправление потоков через офшоры и трасты для сокрытия бенефициаров',
+        'Снятие сливок/крах': 'Фаза вывода средств, фиктивные отчеты и контролируемый обвал'
       };
       return descriptions[stepName] || '';
     }
@@ -698,17 +704,18 @@
       if (type === 'correct') {
         resultIcon.textContent = '🎯';
         resultTitle.textContent = 'Правильно!';
-        resultDescription.textContent = `Узкое место: ${selectedStep.name} (конверсия ${(selectedStep.conversionRate * 100).toFixed(1)}%)`;
+        resultDescription.textContent = `Слабое звено схемы: ${selectedStep.name} (конверсия ${(selectedStep.conversionRate * 100).toFixed(1)}%). Именно здесь теряется больше всего потока.`;
       } else {
         resultIcon.textContent = '❌';
         resultTitle.textContent = 'Неверно';
-        resultDescription.textContent = `Вы выбрали ${selectedStep.name}. Узкое место: ${bottleneckStep.name} (конверсия ${(bottleneckStep.conversionRate * 100).toFixed(1)}%)`;
+        const diff = Math.abs((selectedStep.conversionRate - bottleneckStep.conversionRate) * 100).toFixed(1);
+        resultDescription.textContent = `Вы выбрали ${selectedStep.name}. Слабое звено: ${bottleneckStep.name} (конверсия ${(bottleneckStep.conversionRate * 100).toFixed(1)}%). Разница: ${diff} п.п.`;
       }
       
       resultPanel.classList.add('show');
     }
 
-    function endGame() {
+    async function endGame() {
       gameState.isRunning = false;
       startBtn.style.display = 'inline-block';
       nextBtn.style.display = 'none';
@@ -722,6 +729,35 @@
       } else {
         toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
       }
+
+      try {
+        const bonus = accuracy >= 80 ? 1 : 0;
+        if (window.addRewards) {
+          await window.addRewards(
+            REWARDS.mulacoin + bonus,
+            REWARDS.experience,
+            'funnel',
+            'Схемы Понци Элиты',
+            'easy'
+          );
+        }
+      } catch (e) { /* ignore */ }
+
+      // Итоговый экран
+      const summaryMulacoin = REWARDS.mulacoin + (accuracy >= 80 ? 1 : 0);
+      resultIcon.textContent = '🏁';
+      resultTitle.textContent = 'Сессия завершена';
+      resultDescription.innerHTML = `Точность: <b>${accuracy}%</b><br>Награда: <b>+${summaryMulacoin} MULACOIN</b> и <b>+${REWARDS.experience} XP</b>`;
+      resultPanel.classList.add('show');
+      const actions = document.createElement('div');
+      actions.style.marginTop = '12px';
+      actions.innerHTML = `
+        <button class="btn primary" id="playAgainBtn">Играть снова</button>
+        <button class="btn ghost" id="backToMenuBtn">В меню</button>
+      `;
+      resultPanel.appendChild(actions);
+      document.getElementById('playAgainBtn').onclick = () => { resetGame(); startBtn.click(); };
+      document.getElementById('backToMenuBtn').onclick = () => { window.location.href = '../quests.html'; };
     }
 
     function resetGame() {

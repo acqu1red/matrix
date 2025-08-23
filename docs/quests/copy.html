@@ -324,8 +324,8 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>A/B заголовки</h1>
-        <div class="badge">Контент</div>
+        <h1>Фабрика Лжи</h1>
+        <div class="badge">Пропаганда</div>
       </div>
       <div class="actions">
         <button id="btnBack" class="btn ghost">← Назад</button>
@@ -334,13 +334,13 @@
 
     <div class="quest-container">
       <div class="quest-header">
-        <h2>📝 A/B заголовки</h2>
-        <div class="theme">Контент • Легкий уровень</div>
+        <h2>📺 Фабрика Лжи</h2>
+        <div class="theme">Пропаганда • Легкий уровень</div>
       </div>
 
       <div class="quest-content">
         <div class="banner">
-          <strong>Задача:</strong> Сравни варианты заголовков и выбери тот, который показал лучшие результаты в A/B тесте.
+          <strong>Задача:</strong> Вычисли, какой из двух медианарративов <b>лучше промывает мозги</b>: сравни метрики и выбери победителя фабрики.
         </div>
 
         <div class="copy-analyzer" id="copyAnalyzer">
@@ -405,13 +405,14 @@
       roundsPerGame: 5,
       rewards: { fragments: 2, experience: 40 }
     };
+    const REWARDS = { mulacoin: 2, experience: 40 };
 
     // Шаблоны заголовков
     const HEADLINE_TEMPLATES = [
       {
         id: 1,
-        A: "Зарабатывай с телефона",
-        B: "Твой первый онлайн‑доход за 7 дней",
+        A: "Элита спасёт экономику — доверьтесь плану",
+        B: "Кризис неизбежен — отдайте контроль избранным",
         metrics: {
           A: { ctr: 2.8, cpc: 1.2, conv: 3.5 },
           B: { ctr: 3.2, cpc: 0.9, conv: 4.1 }
@@ -420,8 +421,8 @@
       },
       {
         id: 2,
-        A: "Как начать без вложений",
-        B: "0₽ старт: чек‑лист новичка",
+        A: "Вы ничего не потеряете — государство всё покроет",
+        B: "Налог ради мира — временная мера навсегда",
         metrics: {
           A: { ctr: 3.1, cpc: 1.1, conv: 3.8 },
           B: { ctr: 2.9, cpc: 1.3, conv: 3.2 }
@@ -430,8 +431,8 @@
       },
       {
         id: 3,
-        A: "Пассивный доход шаг‑за‑шагом",
-        B: "Спи — а деньги идут? Разбираем мифы",
+        A: "Свобода — это безопасность",
+        B: "Слежка — это забота",
         metrics: {
           A: { ctr: 2.5, cpc: 1.4, conv: 2.9 },
           B: { ctr: 3.4, cpc: 1.0, conv: 4.2 }
@@ -440,8 +441,8 @@
       },
       {
         id: 4,
-        A: "Инвестиции для начинающих",
-        B: "Как я заработал первый миллион",
+        A: "Новые ограничения ради общего блага",
+        B: "Сначала послушание — потом процветание",
         metrics: {
           A: { ctr: 2.7, cpc: 1.2, conv: 3.1 },
           B: { ctr: 3.6, cpc: 0.8, conv: 4.5 }
@@ -450,8 +451,8 @@
       },
       {
         id: 5,
-        A: "Бизнес с нуля за 30 дней",
-        B: "30 дней до первой прибыли",
+        A: "Частная жизнь — пережиток прошлого",
+        B: "Мы знаем лучше, что вам нужно",
         metrics: {
           A: { ctr: 3.0, cpc: 1.1, conv: 3.6 },
           B: { ctr: 2.8, cpc: 1.2, conv: 3.3 }
@@ -687,21 +688,24 @@
       const winnerVariant = test.winner;
       const winnerMetrics = test.metrics[winnerVariant];
       const selectedMetrics = test.metrics[selectedVariant];
+      const scoreA = calculateScore(test.metrics.A);
+      const scoreB = calculateScore(test.metrics.B);
+      const diff = Math.abs(scoreA - scoreB).toFixed(1);
       
       if (type === 'correct') {
         resultIcon.textContent = '🎯';
         resultTitle.textContent = 'Правильно!';
-        resultDescription.textContent = `Победитель: Вариант ${selectedVariant} (CTR: ${selectedMetrics.ctr}%, Конверсия: ${selectedMetrics.conv}%)`;
+        resultDescription.textContent = `Победитель: Вариант ${selectedVariant}. Разница по интегральному счёту: ${diff}`;
       } else {
         resultIcon.textContent = '❌';
         resultTitle.textContent = 'Неверно';
-        resultDescription.textContent = `Вы выбрали ${selectedVariant}. Победитель: ${winnerVariant} (CTR: ${winnerMetrics.ctr}%, Конверсия: ${winnerMetrics.conv}%)`;
+        resultDescription.textContent = `Вы выбрали ${selectedVariant}. Победитель: ${winnerVariant}. Разница по счёту: ${diff}`;
       }
       
       resultPanel.classList.add('show');
     }
 
-    function endGame() {
+    async function endGame() {
       gameState.isRunning = false;
       startBtn.style.display = 'inline-block';
       nextBtn.style.display = 'none';
@@ -715,6 +719,34 @@
       } else {
         toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
       }
+
+      try {
+        const bonus = accuracy >= 80 ? 1 : 0;
+        if (window.addRewards) {
+          await window.addRewards(
+            REWARDS.mulacoin + bonus,
+            REWARDS.experience,
+            'copy',
+            'Фабрика Лжи',
+            'easy'
+          );
+        }
+      } catch (e) { /* ignore */ }
+
+      const summaryMulacoin = REWARDS.mulacoin + (accuracy >= 80 ? 1 : 0);
+      resultIcon.textContent = '🏁';
+      resultTitle.textContent = 'Сессия завершена';
+      resultDescription.innerHTML = `Точность: <b>${accuracy}%</b><br>Награда: <b>+${summaryMulacoin} MULACOIN</b> и <b>+${REWARDS.experience} XP</b>`;
+      resultPanel.classList.add('show');
+      const actions = document.createElement('div');
+      actions.style.marginTop = '12px';
+      actions.innerHTML = `
+        <button class="btn primary" id="playAgainBtn">Играть снова</button>
+        <button class="btn ghost" id="backToMenuBtn">В меню</button>
+      `;
+      resultPanel.appendChild(actions);
+      document.getElementById('playAgainBtn').onclick = () => { resetGame(); startBtn.click(); };
+      document.getElementById('backToMenuBtn').onclick = () => { window.location.href = '../quests.html'; };
     }
 
     function resetGame() {
