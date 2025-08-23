@@ -1962,6 +1962,51 @@ async function showHistory() {
   const modal = $("#modal");
   const modalBody = $("#modalBody");
   
+  // Проверяем статус подписки
+  let subscriptionStatus = 'Не проверена';
+  let subscriptionDetails = null;
+  
+  if (supabase && userData.telegramId) {
+    try {
+      console.log('🔍 Проверяем подписку для истории...');
+      const { data: subscriptions, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userData.telegramId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.log('❌ Ошибка при проверке подписки:', error);
+        subscriptionStatus = 'Ошибка проверки';
+      } else if (subscriptions && subscriptions.length > 0) {
+        const subscription = subscriptions[0];
+        const endDate = new Date(subscription.end_date);
+        const now = new Date();
+        
+        if (endDate > now) {
+          subscriptionStatus = 'Активна';
+          subscriptionDetails = subscription;
+          console.log('✅ Активная подписка найдена:', subscription);
+        } else {
+          subscriptionStatus = 'Истекла';
+          subscriptionDetails = subscription;
+          console.log('❌ Подписка истекла:', subscription.end_date);
+        }
+      } else {
+        subscriptionStatus = 'Не найдена';
+        console.log('❌ Активная подписка не найдена');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка при проверке подписки:', error);
+      subscriptionStatus = 'Ошибка';
+    }
+  } else {
+    subscriptionStatus = 'Нет данных';
+    console.log('❌ Supabase недоступен или нет Telegram ID');
+  }
+  
   // Загружаем промокоды пользователя
   let promocodes = [];
   if (supabase && userData.telegramId) {
@@ -2086,6 +2131,37 @@ async function showHistory() {
             История рулетки пуста. Начните крутить рулетку!
           </p>
         `}
+      </div>
+      <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Статус подписки</div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Статус:</span>
+            <span style="color: ${subscriptionStatus === 'Активна' ? 'var(--success)' : subscriptionStatus === 'Истекла' ? 'var(--warning)' : 'var(--error)'}; font-weight: 600;">
+              ${subscriptionStatus === 'Активна' ? '✅ Активна' : subscriptionStatus === 'Истекла' ? '⚠️ Истекла' : subscriptionStatus === 'Не найдена' ? '❌ Не найдена' : subscriptionStatus === 'Ошибка проверки' ? '❌ Ошибка' : subscriptionStatus === 'Нет данных' ? '❌ Нет данных' : '❌ Не проверена'}
+            </span>
+          </div>
+          ${subscriptionDetails ? `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Тариф:</span>
+              <span style="color: var(--text-muted); font-weight: 600;">
+                ${subscriptionDetails.tariff || 'Не указан'}
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Дата окончания:</span>
+              <span style="color: var(--text-muted); font-weight: 600;">
+                ${new Date(subscriptionDetails.end_date).toLocaleDateString()}
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>User ID в БД:</span>
+              <span style="color: var(--text-muted); font-weight: 600;">
+                ${subscriptionDetails.user_id || 'Не указан'}
+              </span>
+            </div>
+          ` : ''}
+        </div>
       </div>
       <div style="background: var(--glass); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
         <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">Техническая информация</div>
