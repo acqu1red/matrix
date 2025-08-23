@@ -86,6 +86,8 @@ initTG();
       console.error('Supabase не инициализирован');
       toast('Ошибка инициализации базы данных', 'error');
     }
+    // Инициализация логики кейса после первичной загрузки
+    try { initMysteryCase(); } catch(e){ console.warn('initMysteryCase error', e); }
   }, 1000);
 });
 
@@ -1578,3 +1580,66 @@ window.questSystem = {
 
 // Делаем addRewards доступной глобально для квестов
 window.addRewards = addRewards;
+
+/* ====== Mystery Case (daily) ====== */
+function getCaseStateKey(){
+  const uid = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id : 'guest';
+  const day = Math.floor(Date.now() / (24*60*60*1000));
+  return `mystery_case_${uid}_${day}`;
+}
+
+function isCaseAvailable(){
+  return !localStorage.getItem(getCaseStateKey());
+}
+
+function markCaseUsed(){
+  localStorage.setItem(getCaseStateKey(), '1');
+}
+
+function nextMidnightMs(){
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(24,0,0,0);
+  return next - now;
+}
+
+function formatCountdown(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const h = String(Math.floor(total/3600)).padStart(2,'0');
+  const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
+  const s = String(total%60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+
+function initMysteryCase(){
+  const btn = document.getElementById('mysteryCaseBtn');
+  const imgOpen = document.getElementById('caseImageOpen');
+  const imgClosed = document.getElementById('caseImageClosed');
+  const caseModal = document.getElementById('caseModal');
+  const caseModalClose = document.getElementById('caseModalClose');
+  const countdown = document.getElementById('caseCountdown');
+
+  if(!btn || !imgOpen || !imgClosed) return;
+
+  const available = isCaseAvailable();
+  imgOpen.style.display = available ? 'block' : 'none';
+  imgClosed.style.display = available ? 'none' : 'block';
+
+  btn.addEventListener('click', ()=>{
+    if(isCaseAvailable()){
+      // Переход на страницу рулетки/кейса
+      window.location.href = './rulette.html';
+    } else {
+      // Показ модала с таймером
+      if(caseModal){ caseModal.classList.add('show'); }
+      const update = ()=>{ if(countdown){ countdown.textContent = formatCountdown(nextMidnightMs()); } };
+      update();
+      const interval = setInterval(update, 1000);
+      const onClose = ()=>{ caseModal.classList.remove('show'); clearInterval(interval); };
+      if(caseModalClose){ caseModalClose.onclick = onClose; }
+    }
+  });
+
+  // Делаем функцию доступной глобально для страницы рулетки
+  window.markCaseUsed = markCaseUsed;
+}

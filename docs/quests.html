@@ -49,46 +49,18 @@
       </div>
     </div>
 
-    <div class="roulette-section">
-      <h2>🎲 Рулетка призов</h2>
-      <p class="roulette-description">Крути рулетку и выигрывай призы! Подписки, скидки и бонусы ждут тебя.</p>
-      
-
-      
-      <div class="roulette-container">
-        <div class="roulette-display">
-          <div class="roulette-items" id="rouletteItems">
-            <!-- Иконки призов будут добавлены динамически -->
-          </div>
-          <div class="roulette-pointer">
-            <div class="pointer-arrow">▲</div>
-            <div class="pointer-glow"></div>
-          </div>
-        </div>
-        <div class="roulette-preview">
-          <div class="preview-header" id="previewHeader">
-            <img src="./assets/photovideo/prise.png" alt="Возможные призы" class="preview-image">
-            <div class="preview-toggle">▼</div>
-          </div>
-          <div class="preview-content" id="previewContent">
-            <div class="preview-items" id="previewItems">
-              <!-- Превью призов -->
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="roulette-controls">
-        <button id="spinRoulette" class="btn primary large">
-          <img src="./assets/photovideo/ruletka.png" alt="Крутить рулетку" class="button-image">
+    <div class="case-section">
+      <div class="case-overlay"></div>
+      <div class="case-frame">
+        <div class="case-aura"></div>
+        <button id="mysteryCaseBtn" class="case-button" aria-label="Открыть кейс">
+          <img id="caseImageOpen" class="case-image" src="./assets/rulette/case_open.png" alt="Кейс открыт" />
+          <img id="caseImageClosed" class="case-image" src="./assets/rulette/case_closed.png" alt="Кейс закрыт" />
         </button>
-        <button id="buySpin" class="btn ghost">
-          <img src="./assets/photovideo/mulacoin.png" alt="Крутить за mulacoin" class="button-image">
-        </button>
-      </div>
-      
-      <div class="roulette-balance">
-        <span>У вас: <strong id="userMulacoin">0</strong> mulacoin</span>
+        <div class="case-caption">
+          <h2>Тайный кейс</h2>
+          <p>Ежедневная попытка открыть портал к удаче</p>
+        </div>
       </div>
     </div>
 
@@ -117,6 +89,21 @@
     <div class="modalContent glass">
       <button class="close" id="modalClose" aria-label="Закрыть">×</button>
       <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Модал кейса (закрыт) -->
+  <div id="caseModal" class="modal">
+    <div class="modalContent glass">
+      <button class="close" id="caseModalClose" aria-label="Закрыть">×</button>
+      <div class="case-modal-body">
+        <div class="case-modal-icon">🔒</div>
+        <h3>Сегодняшний ритуал завершён</h3>
+        <p class="case-modal-text">Возвращайся завтра, чтобы снова попробовать открыть кейс.</p>
+        <div class="countdown">
+          До следующей попытки: <span id="caseCountdown">--:--:--</span>
+        </div>
+      </div>
     </div>
   </div>
 

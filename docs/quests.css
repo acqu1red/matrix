@@ -265,22 +265,95 @@ h3 { font-size: 1.25rem; }
   border-radius: 4px;
 }
 
-/* Roulette Section */
-.roulette-section {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.7) 100%), url('./assets/photovideo/wtf.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: var(--radius);
-  padding: 24px;
-  margin: 20px 0;
-  text-align: center;
-  border: 2px solid #ffffff;
+/* Case Section (Conspiracy style) */
+.case-section {
   position: relative;
+  border-radius: var(--radius);
   overflow: hidden;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
+  margin: 20px 12px;
+  height: 340px;
+  background: url('./assets/rulette/fon1.png') center/cover no-repeat;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 60px rgba(0,0,0,0.5);
 }
+
+.case-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.3), rgba(0,0,0,0.85));
+  pointer-events: none;
+}
+
+.case-frame {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.case-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 160px;
+  transform: translate(-50%, -50%);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 40%),
+              conic-gradient(from 0deg, rgba(255,255,255,.25), rgba(255,255,255,0) 20%, rgba(255,255,255,.25) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,.25) 80%, rgba(255,255,255,0));
+  filter: blur(10px) saturate(1.2);
+  animation: auraRotate 8s linear infinite;
+}
+
+@keyframes auraRotate {
+  0% { transform: translate(-50%, -50%) rotate(0); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(360deg); opacity: 0.6; }
+}
+
+.case-button {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.case-button:focus { outline: none; }
+
+.case-image {
+  width: 240px;
+  height: auto;
+  filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
+  transition: transform .25s ease, filter .25s ease;
+}
+
+.case-button:hover .case-image { transform: translateY(-4px); filter: drop-shadow(0 20px 35px rgba(0,0,0,0.7)); }
+
+.case-caption {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.case-caption h2 {
+  color: #fff;
+  text-shadow: 0 0 16px rgba(255,255,255,0.4);
+}
+
+.case-caption p {
+  color: #cccccc;
+  font-size: 13px;
+}
+
+.case-modal-body { text-align: center; }
+.case-modal-icon { font-size: 42px; margin-bottom: 8px; }
+.case-modal-text { color: var(--text-muted); margin-bottom: 12px; }
+.countdown { font-weight: 700; color: #fff; }
 
 /* Убираем стили для авторского дизайна */
 
