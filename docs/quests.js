@@ -1622,7 +1622,6 @@ function initMysteryCase(){
 
   const available = isCaseAvailable();
   img.src = available ? './assets/rulette/case_open.png' : './assets/rulette/case_closed.png';
-  img.style.display = 'block';
 
   btn.addEventListener('click', ()=>{
     if(isCaseAvailable()){
@@ -1642,40 +1641,5 @@ function initMysteryCase(){
   // Делаем функцию доступной глобально для страницы рулетки
   window.markCaseUsed = markCaseUsed;
   
-  // Инициализируем частицы для кейса
-  createCaseParticles();
-}
-
-function createCaseParticles() {
-  const particlesContainer = document.getElementById('caseParticles');
-  if (!particlesContainer) return;
-  
-  const symbols = ['👁', '🔺', '⚡', '🔮', '👑', '💎', '🌟', '🔥', '⭐', '💫', '🗲', '☯', '♦', '◊'];
-  
-  // Создаем частицы с интервалом
-  setInterval(() => {
-    if (particlesContainer.children.length < 8) {
-      const particle = document.createElement('div');
-      particle.className = 'case-particle';
-      particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-      
-      // Случайная позиция по горизонтали
-      particle.style.left = Math.random() * 100 + '%';
-      
-      // Случайная длительность анимации
-      particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
-      
-      // Случайная задержка
-      particle.style.animationDelay = Math.random() * 2 + 's';
-      
-      particlesContainer.appendChild(particle);
-      
-      // Удаляем частицу после анимации
-      setTimeout(() => {
-        if (particle.parentNode) {
-          particle.remove();
-        }
-      }, 10000);
-    }
-  }, 1200);
+  // Частицы убраны для упрощения
 }
