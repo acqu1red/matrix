@@ -23,6 +23,10 @@
   --shadow-gold: rgba(255, 215, 0, 0.3);
   --shadow-red: rgba(255, 68, 68, 0.4);
   --shadow-purple: rgba(138, 43, 226, 0.3);
+  --epstein-island: #0d4f8c;
+  --classified-red: #cc0000;
+  --masonic-bronze: #cd7f32;
+  --deep-state: #1a0d2e;
   --radius: 22px;
   --radius-sm: 12px;
   --shadow: 0 10px 22px rgba(0,0,0,.5), 0 0 24px var(--shadow-gold);
@@ -124,6 +128,27 @@ html {
     transform: translateY(0) rotate(360deg);
     opacity: 0.5;
   }
+}
+
+@keyframes illuminatiPulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px var(--conspiracy), 0 0 40px var(--conspiracy), 0 0 60px var(--conspiracy);
+  }
+  50% { 
+    box-shadow: 0 0 10px var(--conspiracy), 0 0 20px var(--conspiracy), 0 0 30px var(--conspiracy);
+  }
+}
+
+@keyframes secretGlow {
+  0% { text-shadow: 0 0 5px var(--conspiracy); }
+  50% { text-shadow: 0 0 20px var(--conspiracy), 0 0 30px var(--conspiracy); }
+  100% { text-shadow: 0 0 5px var(--conspiracy); }
+}
+
+@keyframes epsteinFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(1deg); }
+  66% { transform: translateY(-5px) rotate(-1deg); }
 }
 
 /* Typography */
@@ -361,7 +386,7 @@ h3 { font-size: 1.25rem; }
   height: 280px;
   object-fit: contain;
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.4));
-  animation: caseFloat 3s ease-in-out infinite;
+  animation: epsteinFloat 6s ease-in-out infinite;
   display: block;
   margin: 0 auto;
 }
