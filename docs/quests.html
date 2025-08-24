@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Квест‑Хаб</title>
+  <title>Квесты</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
@@ -26,11 +26,10 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Расширяй кругозор и получай призы</h1>
+        <h1>Квесты</h1>
       </div>
       <div class="actions">
-        <button id="btnHistory" class="btn ghost">📊</button>
-        <button id="btnSubscribe" class="btn primary">💳</button>
+        <button id="btnHistory" class="btn ghost" aria-label="История">📊</button>
       </div>
     </header>
 
@@ -49,24 +48,12 @@
       </div>
     </div>
 
-    <div class="case-section">
-      <div class="case-frame">
-        <div class="case-aura"></div>
-        <button id="mysteryCaseBtn" class="case-button" aria-label="Открыть кейс">
-          <img id="caseImage" class="case-image" alt="Кейс" />
-        </button>
-        <div class="case-caption">
-          <h2>💰 Кейс Финансового Успеха</h2>
-          <p>Откройте путь к богатству и процветанию</p>
-        </div>
-      </div>
-    </div>
+    <!-- Убран блок кейса для лаконичного B/W дизайна -->
 
     <section class="hero">
       <div class="heroCopy glass">
-        <h2>Проходи квесты, открывай вариации, копи бонусы</h2>
-        <p>Без подписки — ежедневно доступны <b>5 квестов</b>, набор меняется. Подписчики получают <b>все 10</b> сразу.</p>
-        <p class="note">Открой все квесты за 10 дней — получи <b>-50% на месяц</b> (промокод действует 60 дней).</p>
+        <h2>Добро пожаловать</h2>
+        <p>Выберите квест и начните. Все квесты доступны без ограничений.</p>
       </div>
     </section>
 
@@ -76,8 +63,7 @@
 
     <footer class="foot glass">
       <div class="hint">
-        <span>💡</span>
-        <span>Совет: возвращайся каждый день — мы добавляем новые вариации квестов.</span>
+        <span>Минималистичный чёрно‑белый интерфейс для концентрации на задачах.</span>
       </div>
     </footer>
   </div>
@@ -117,15 +103,7 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Аудио для рулетки -->
-  <audio id="rouletteMusic" preload="auto">
-    <source src="./assets/photovideo/kazik.mp3" type="audio/mpeg">
-  </audio>
-  
-  <!-- Аудио для рулетки за mulacoin -->
-  <audio id="rouletteMusicMulacoin" preload="auto">
-    <source src="./assets/photovideo/kazik.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Аудио рулетки не используется на этой странице -->
   
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./quests.js"></script>

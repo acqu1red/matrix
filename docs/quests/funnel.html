@@ -3,757 +3,271 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Воронка конверсий — Квест‑Хаб</title>
+  <title>Империя влияния — Квест‑Хаб</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="quests-black-white.css" />
-  <style>
-    .funnel-analyzer {
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      padding: 30px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .funnel-visualization {
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 30px;
-      margin: 24px 0;
-      position: relative;
-    }
-    
-    .funnel-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      align-items: center;
-    }
-    
-    .funnel-step {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      width: 100%;
-      max-width: 600px;
-      padding: 16px 20px;
-      background: var(--bg1);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    
-    .funnel-step:hover {
-      background: var(--glass-strong);
-      border-color: var(--glow1);
-      transform: translateX(4px);
-    }
-    
-    .funnel-step.selected {
-      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(166, 180, 255, 0.1));
-      border-color: var(--glow1);
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.2);
-    }
-    
-    .funnel-step.correct {
-      background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(34, 197, 94, 0.1));
-      border-color: var(--success);
-    }
-    
-    .funnel-step.wrong {
-      background: linear-gradient(135deg, rgba(248, 113, 113, 0.1), rgba(239, 68, 68, 0.1));
-      border-color: var(--error);
-    }
-    
-    .step-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--glass);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-    
-    .step-info {
-      flex: 1;
-    }
-    
-    .step-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    
-    .step-description {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-    
-    .step-metrics {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
-    
-    .metric {
-      text-align: center;
-      padding: 8px 12px;
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      min-width: 80px;
-    }
-    
-    .metric-value {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--glow1);
-      margin-bottom: 2px;
-    }
-    
-    .metric-label {
-      font-size: 10px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .conversion-rate {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--accent);
-    }
-    
-    .funnel-arrow {
-      width: 2px;
-      height: 20px;
-      background: var(--border);
-      margin: 0 auto;
-      position: relative;
-    }
-    
-    .funnel-arrow::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
-      border-top: 6px solid var(--border);
-    }
-    
-    .analysis-panel {
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin: 24px 0;
-      text-align: center;
-    }
-    
-    .analysis-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 12px;
-    }
-    
-    .analysis-description {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-    
-    .metrics-overview {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
-      margin: 20px 0;
-    }
-    
-    .overview-card {
-      background: var(--bg1);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      text-align: center;
-    }
-    
-    .overview-icon {
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-    
-    .overview-value {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--glow1);
-      margin-bottom: 4px;
-    }
-    
-    .overview-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .result-panel {
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 20px;
-      margin: 20px 0;
-      text-align: center;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s ease;
-    }
-    
-    .result-panel.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .result-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    
-    .result-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    
-    .result-description {
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-    
-    .stats-panel {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 12px;
-      margin: 20px 0;
-    }
-    
-    .stat-card {
-      background: var(--glass);
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      text-align: center;
-      border: 1px solid var(--border);
-    }
-    
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--glow1);
-      margin-bottom: 4px;
-    }
-    
-    .stat-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .bottleneck-indicator {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--warning);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
-      50% { opacity: 0.5; transform: translateY(-50%) scale(1.2); }
-    }
-    
-    .funnel-chart {
-      height: 300px;
-      background: var(--bg1);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      margin: 20px 0;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .chart-step {
-      position: relative;
-      margin: 0 10px;
-      text-align: center;
-    }
-    
-    .chart-bar {
-      width: 80px;
-      background: linear-gradient(to top, var(--glow1), var(--glow2));
-      border-radius: 4px 4px 0 0;
-      transition: all 0.5s ease;
-      position: relative;
-    }
-    
-    .chart-label {
-      margin-top: 8px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-    
-    .chart-value {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      color: var(--text);
-      font-weight: 600;
-    }
-  </style>
+  <link rel="stylesheet" href="influence-core.css" />
 </head>
 <body>
   <div id="app" class="app">
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Воронка конверсий</h1>
-        <div class="badge">Продажи</div>
+        <h1>👑 Империя влияния</h1>
+        <div class="badge">Мастер</div>
       </div>
       <div class="actions">
         <button id="btnBack" class="btn ghost">← Назад</button>
       </div>
     </header>
 
-    <div class="quest-container">
-      <div class="quest-header">
-        <h2>🔄 Воронка конверсий</h2>
-        <div class="theme">Продажи • Легкий уровень</div>
-      </div>
+    <!-- Информационное модальное окно -->
+    <div id="introModal" class="modal show">
+      <div class="modalContent glass">
+        <div class="modal-header">
+          <h3>🚀 Добро пожаловать в "Империю влияния"</h3>
+          <p>Создайте медиа-империю и управляйте массовым сознанием</p>
+        </div>
+        
+        <div class="intro-content">
+          <div class="intro-section">
+            <h4>🎯 Суть квеста</h4>
+            <p>Вы — начинающий медиа-магнат в эпоху цифровых технологий. Ваша цель — создать влиятельную медиа-империю, используя психологические триггеры, контент-стратегии и манипулятивные техники для привлечения миллионов подписчиков и монетизации влияния.</p>
+          </div>
 
-      <div class="quest-content">
-        <div class="banner">
-          <strong>Задача:</strong> Исследуй воронку продаж и определи, где происходят основные потери клиентов.
+          <div class="intro-section">
+            <h4>💪 Что вы прокачаете</h4>
+            <ul>
+              <li>Психологию влияния и манипулятивные техники</li>
+              <li>Контент-маркетинг и вирусную механику</li>
+              <li>Монетизацию аудитории и построение воронок продаж</li>
+              <li>Управление репутацией и кризис-менеджмент</li>
+              <li>Стратегическое мышление и масштабирование бизнеса</li>
+            </ul>
+          </div>
+
+          <div class="intro-section">
+            <h4>🎮 Как играть</h4>
+            <p>Квест состоит из 5 этапов развития империи:</p>
+            <ol>
+              <li><strong>Создание контента:</strong> Выбирайте темы и форматы для привлечения аудитории</li>
+              <li><strong>Психологические триггеры:</strong> Используйте техники влияния для роста</li>
+              <li><strong>Монетизация:</strong> Превращайте подписчиков в деньги</li>
+              <li><strong>Масштабирование:</strong> Расширяйте империю на новые платформы</li>
+              <li><strong>Кризис-менеджмент:</strong> Управляйте репутацией и скандалами</li>
+            </ol>
+            <p>📱 Используйте drag & drop для размещения контента и стратегий!</p>
+          </div>
+
+          <div class="intro-section disclaimer">
+            <h4>⚠️ Дисклеймер</h4>
+            <p>Это образовательная симуляция медиа-бизнеса. Все техники влияния, стратегии и сценарии представлены в учебных целях для понимания механизмов современного медиа-пространства. Используйте полученные знания этично и ответственно.</p>
+          </div>
+
+          <div class="rewards-section">
+            <h4>🏆 Награды за прохождение</h4>
+            <div class="rewards-grid">
+              <div class="reward-item">
+                <div class="reward-icon">🪙</div>
+                <div class="reward-amount">50 MULACOIN</div>
+              </div>
+              <div class="reward-item">
+                <div class="reward-icon">⭐</div>
+                <div class="reward-amount">200 опыта</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="funnel-analyzer" id="funnelAnalyzer">
-          <div class="analysis-panel">
-            <div class="analysis-title">Анализ воронки конверсий</div>
-            <div class="analysis-description">
-              Изучите данные воронки продаж и найдите самое узкое место, где теряется больше всего клиентов.
-            </div>
-            
-            <div class="metrics-overview">
-              <div class="overview-card">
-                <div class="overview-icon">👥</div>
-                <div class="overview-value" id="totalVisitors">0</div>
-                <div class="overview-label">Посетители</div>
-              </div>
-              <div class="overview-card">
-                <div class="overview-icon">💰</div>
-                <div class="overview-value" id="totalRevenue">$0</div>
-                <div class="overview-label">Доход</div>
-              </div>
-              <div class="overview-card">
-                <div class="overview-icon">📊</div>
-                <div class="overview-value" id="avgConversion">0%</div>
-                <div class="overview-label">Конверсия</div>
-              </div>
+        <div class="modal-actions">
+          <button id="startEmpire" class="btn primary large">👑 Создать империю</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Основной интерфейс квеста -->
+    <div id="empireInterface" class="empire-interface" style="display: none;">
+      <!-- Панель статуса империи -->
+      <div class="empire-status glass">
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-icon">📊</div>
+            <div class="status-info">
+              <div class="status-label">Этап</div>
+              <div class="status-value" id="currentStage">1/5</div>
             </div>
           </div>
-
-          <div class="stats-panel">
-            <div class="stat-card">
-              <div class="stat-value" id="roundsValue">0</div>
-              <div class="stat-label">Раунды</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="correctValue">0</div>
-              <div class="stat-label">Правильно</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="accuracyValue">0%</div>
-              <div class="stat-label">Точность</div>
+          <div class="status-item">
+            <div class="status-icon">👥</div>
+            <div class="status-info">
+              <div class="status-label">Подписчики</div>
+              <div class="status-value" id="followers">1K</div>
             </div>
           </div>
-
-          <div class="funnel-visualization">
-            <div class="funnel-steps" id="funnelSteps">
-              <!-- Шаги воронки будут добавлены динамически -->
+          <div class="status-item">
+            <div class="status-icon">💰</div>
+            <div class="status-info">
+              <div class="status-label">Доход/мес</div>
+              <div class="status-value" id="monthlyRevenue">$0</div>
             </div>
           </div>
-
-          <div class="funnel-chart" id="funnelChart">
-            <!-- График воронки будет добавлен динамически -->
-          </div>
-
-          <div class="result-panel" id="resultPanel">
-            <div class="result-icon" id="resultIcon">🔍</div>
-            <div class="result-title" id="resultTitle">Анализ завершен</div>
-            <div class="result-description" id="resultDescription">Результат анализа воронки</div>
-          </div>
-
-          <div class="questActions">
-            <button id="startBtn" class="btn primary">Начать анализ</button>
-            <button id="nextBtn" class="btn primary" style="display: none;">Следующий раунд</button>
-            <button id="resetBtn" class="btn ghost">Сбросить</button>
+          <div class="status-item">
+            <div class="status-icon">🔥</div>
+            <div class="status-info">
+              <div class="status-label">Влияние</div>
+              <div class="status-value" id="influenceScore">10</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="quest-footer">
-        <div class="banner">
-          <strong>Награды:</strong> Фрагменты +2, Опыт +45
+      <!-- Основная рабочая область -->
+      <div class="main-workspace">
+        <!-- Левая панель: Стратегии и инструменты -->
+        <div class="strategy-panel glass">
+          <div class="panel-header">
+            <h3 id="strategyTitle">🎯 Контент-стратегии</h3>
+            <div class="stage-progress" id="stageProgress">Этап 1: Создание контента</div>
+          </div>
+          
+          <div class="strategy-content" id="strategyContent">
+            <!-- Динамически заполняется стратегиями -->
+          </div>
+          
+          <div class="psychology-hints" id="psychologyHints">
+            <h4>🧠 Психологические инсайты</h4>
+            <div class="hint-content" id="hintContent">
+              <!-- Динамически заполняется подсказками -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Правая панель: Империя и результаты -->
+        <div class="empire-panel glass">
+          <div class="panel-header">
+            <h3>🏰 Ваша медиа-империя</h3>
+            <div class="empire-name" id="empireName">Выберите стратегию</div>
+          </div>
+
+          <!-- Игровое поле для drag & drop -->
+          <div class="game-field" id="gameField">
+            <div class="platform-slots">
+              <div class="platform-slot" data-platform="youtube">
+                <div class="platform-icon">📺</div>
+                <div class="platform-name">YouTube</div>
+                <div class="platform-stats">
+                  <div class="stat">Подписчики: <span id="youtube-subs">0</span></div>
+                  <div class="stat">Доход: <span id="youtube-revenue">$0</span></div>
+                </div>
+                <div class="drop-zone">Перетащите стратегию</div>
+                <div class="strategy-slot" id="youtube-strategy"></div>
+              </div>
+              
+              <div class="platform-slot" data-platform="instagram">
+                <div class="platform-icon">📸</div>
+                <div class="platform-name">Instagram</div>
+                <div class="platform-stats">
+                  <div class="stat">Подписчики: <span id="instagram-subs">0</span></div>
+                  <div class="stat">Доход: <span id="instagram-revenue">$0</span></div>
+                </div>
+                <div class="drop-zone">Перетащите стратегию</div>
+                <div class="strategy-slot" id="instagram-strategy"></div>
+              </div>
+              
+              <div class="platform-slot" data-platform="tiktok">
+                <div class="platform-icon">🎵</div>
+                <div class="platform-name">TikTok</div>
+                <div class="platform-stats">
+                  <div class="stat">Подписчики: <span id="tiktok-subs">0</span></div>
+                  <div class="stat">Доход: <span id="tiktok-revenue">$0</span></div>
+                </div>
+                <div class="drop-zone">Перетащите стратегию</div>
+                <div class="strategy-slot" id="tiktok-strategy"></div>
+              </div>
+              
+              <div class="platform-slot" data-platform="telegram">
+                <div class="platform-icon">✈️</div>
+                <div class="platform-name">Telegram</div>
+                <div class="platform-stats">
+                  <div class="stat">Подписчики: <span id="telegram-subs">0</span></div>
+                  <div class="stat">Доход: <span id="telegram-revenue">$0</span></div>
+                </div>
+                <div class="drop-zone">Перетащите стратегию</div>
+                <div class="strategy-slot" id="telegram-strategy"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Аналитическая панель -->
+          <div class="analytics-panel" id="analyticsPanel">
+            <h4>📊 Аналитика империи</h4>
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-label">Общий охват</div>
+                <div class="metric-value" id="totalReach">0</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Вовлеченность</div>
+                <div class="metric-value" id="engagement">0%</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Конверсия</div>
+                <div class="metric-value" id="conversion">0%</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Репутация</div>
+                <div class="metric-value" id="reputation">100%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Нижняя панель: События и действия -->
+      <div class="events-panel glass">
+        <div class="events-content">
+          <div class="current-event" id="currentEvent" style="display: none;">
+            <!-- Информация о текущем событии -->
+          </div>
+          
+          <div class="action-buttons" id="actionButtons">
+            <button id="nextStage" class="btn primary">Следующий этап</button>
+            <button id="generateEvent" class="btn secondary">Случайное событие</button>
+            <button id="resetEmpire" class="btn ghost">Начать заново</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно результатов -->
+    <div id="resultsModal" class="modal">
+      <div class="modalContent glass">
+        <div class="results-header">
+          <div class="results-icon" id="resultsIcon">👑</div>
+          <h3 id="resultsTitle">Империя создана!</h3>
+        </div>
+        
+        <div class="results-content" id="resultsContent">
+          <!-- Динамически заполняется -->
+        </div>
+
+        <div class="modal-actions">
+          <button id="restartEmpire" class="btn primary">🔄 Создать новую империю</button>
+          <button id="exitEmpire" class="btn secondary">← Выход</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast уведомления -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>
-    // Конфигурация
-    const QUEST_CONFIG = {
-      roundsPerGame: 5,
-      stepsPerFunnel: 4,
-      rewards: { fragments: 2, experience: 45 }
-    };
-
-    // Состояние игры
-    let gameState = {
-      isRunning: false,
-      currentRound: 0,
-      correctAnswers: 0,
-      currentFunnel: [],
-      selectedStep: null
-    };
-
-    // Элементы
-    const funnelSteps = document.getElementById('funnelSteps');
-    const funnelChart = document.getElementById('funnelChart');
-    const resultPanel = document.getElementById('resultPanel');
-    const resultIcon = document.getElementById('resultIcon');
-    const resultTitle = document.getElementById('resultTitle');
-    const resultDescription = document.getElementById('resultDescription');
-    const startBtn = document.getElementById('startBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const btnBack = document.getElementById('btnBack');
-    const roundsValue = document.getElementById('roundsValue');
-    const correctValue = document.getElementById('correctValue');
-    const accuracyValue = document.getElementById('accuracyValue');
-    const totalVisitors = document.getElementById('totalVisitors');
-    const totalRevenue = document.getElementById('totalRevenue');
-    const avgConversion = document.getElementById('avgConversion');
-
-    // Утилиты
-    const toast = (msg, type = 'info') => {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `toast ${type}`;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3000);
-    };
-
-    // Инициализация
-    function init() {
-      setupEventListeners();
-      updateStats();
-    }
-
-    function setupEventListeners() {
-      startBtn.addEventListener('click', startGame);
-      nextBtn.addEventListener('click', nextRound);
-      resetBtn.addEventListener('click', resetGame);
-      btnBack.addEventListener('click', () => {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = '../quests.html';
-        }
-      });
-    }
-
-    function startGame() {
-      if (gameState.isRunning) return;
-      
-      gameState.isRunning = true;
-      gameState.currentRound = 0;
-      gameState.correctAnswers = 0;
-      
-      updateStats();
-      startBtn.style.display = 'none';
-      nextBtn.style.display = 'inline-block';
-      
-      nextRound();
-      toast('🔄 Анализ воронки начат...', 'info');
-    }
-
-    function nextRound() {
-      if (gameState.currentRound >= QUEST_CONFIG.roundsPerGame) {
-        endGame();
-        return;
-      }
-      
-      gameState.currentRound++;
-      gameState.selectedStep = null;
-      
-      // Генерируем воронку
-      generateFunnel();
-      
-      // Обновляем интерфейс
-      updateFunnel();
-      updateChart();
-      updateMetrics();
-      
-      // Сбрасываем выбор
-      document.querySelectorAll('.funnel-step').forEach(step => {
-        step.className = 'funnel-step';
-      });
-      
-      // Скрываем результат
-      resultPanel.classList.remove('show');
-      
-      updateStats();
-      nextBtn.textContent = 'Следующий раунд';
-      nextBtn.disabled = true;
-      
-      toast(`Раунд ${gameState.currentRound}/${QUEST_CONFIG.roundsPerGame}`, 'info');
-    }
-
-    function generateFunnel() {
-      gameState.currentFunnel = [];
-      
-      const stepNames = ['Показы', 'Клики', 'Лиды', 'Оплаты'];
-      const stepIcons = ['👁️', '🖱️', '📝', '💳'];
-      
-      let currentValue = 10000 + Math.floor(Math.random() * 5000); // 10k-15k
-      
-      for (let i = 0; i < QUEST_CONFIG.stepsPerFunnel; i++) {
-        const conversionRate = 0.1 + Math.random() * 0.4; // 10%-50%
-        const nextValue = Math.round(currentValue * conversionRate);
-        
-        gameState.currentFunnel.push({
-          id: i,
-          name: stepNames[i],
-          icon: stepIcons[i],
-          value: currentValue,
-          conversionRate: conversionRate,
-          description: getStepDescription(stepNames[i])
-        });
-        
-        currentValue = nextValue;
-      }
-    }
-
-    function getStepDescription(stepName) {
-      const descriptions = {
-        'Показы': 'Количество показов рекламы',
-        'Клики': 'Переходы по рекламе',
-        'Лиды': 'Заявки и регистрации',
-        'Оплаты': 'Успешные покупки'
-      };
-      return descriptions[stepName] || '';
-    }
-
-    function updateFunnel() {
-      funnelSteps.innerHTML = '';
-      
-      gameState.currentFunnel.forEach((step, index) => {
-        const stepElement = document.createElement('div');
-        stepElement.className = 'funnel-step';
-        stepElement.dataset.stepId = step.id;
-        
-        const conversionPercent = (step.conversionRate * 100).toFixed(1);
-        
-        stepElement.innerHTML = `
-          <div class="step-icon">${step.icon}</div>
-          <div class="step-info">
-            <div class="step-name">${step.name}</div>
-            <div class="step-description">${step.description}</div>
-          </div>
-          <div class="step-metrics">
-            <div class="metric">
-              <div class="metric-value">${step.value.toLocaleString()}</div>
-              <div class="metric-label">Количество</div>
-            </div>
-            <div class="conversion-rate">${conversionPercent}%</div>
-          </div>
-        `;
-        
-        stepElement.addEventListener('click', () => selectStep(step));
-        funnelSteps.appendChild(stepElement);
-        
-        // Добавляем стрелку между шагами (кроме последнего)
-        if (index < gameState.currentFunnel.length - 1) {
-          const arrow = document.createElement('div');
-          arrow.className = 'funnel-arrow';
-          funnelSteps.appendChild(arrow);
-        }
-      });
-    }
-
-    function updateChart() {
-      funnelChart.innerHTML = '';
-      
-      const maxValue = Math.max(...gameState.currentFunnel.map(s => s.value));
-      
-      gameState.currentFunnel.forEach((step, index) => {
-        const chartStep = document.createElement('div');
-        chartStep.className = 'chart-step';
-        
-        const barHeight = (step.value / maxValue * 200) + 20;
-        
-        chartStep.innerHTML = `
-          <div class="chart-bar" style="height: ${barHeight}px;">
-            <div class="chart-value">${step.value.toLocaleString()}</div>
-          </div>
-          <div class="chart-label">${step.name}</div>
-        `;
-        
-        funnelChart.appendChild(chartStep);
-      });
-    }
-
-    function updateMetrics() {
-      const totalVisitorsValue = gameState.currentFunnel[0]?.value || 0;
-      const totalRevenueValue = gameState.currentFunnel[gameState.currentFunnel.length - 1]?.value || 0;
-      const avgConversionValue = totalVisitorsValue > 0 
-        ? ((totalRevenueValue / totalVisitorsValue) * 100).toFixed(2)
-        : 0;
-      
-      totalVisitors.textContent = totalVisitorsValue.toLocaleString();
-      totalRevenue.textContent = '$' + (totalRevenueValue * 10).toLocaleString(); // Примерная стоимость
-      avgConversion.textContent = avgConversionValue + '%';
-    }
-
-    function selectStep(step) {
-      if (!gameState.isRunning || gameState.selectedStep) return;
-      
-      gameState.selectedStep = step;
-      
-      // Подсвечиваем выбранный шаг
-      document.querySelectorAll('.funnel-step').forEach(stepElement => {
-        stepElement.className = 'funnel-step';
-        if (parseInt(stepElement.dataset.stepId) === step.id) {
-          stepElement.classList.add('selected');
-        }
-      });
-      
-      // Находим шаг с наименьшей конверсией (узкое место)
-      const bottleneckStep = gameState.currentFunnel.reduce((min, current) => 
-        current.conversionRate < min.conversionRate ? current : min
-      );
-      
-      const isCorrect = step.id === bottleneckStep.id;
-      
-      if (isCorrect) {
-        gameState.correctAnswers++;
-        showResult('correct', step);
-        toast('🎯 Правильно! Вы нашли узкое место!', 'success');
-      } else {
-        showResult('wrong', step, bottleneckStep);
-        toast('❌ Неверно. Изучите конверсии внимательнее.', 'warning');
-      }
-      
-      // Подсвечиваем правильный и неправильный ответы
-      document.querySelectorAll('.funnel-step').forEach(stepElement => {
-        const stepId = parseInt(stepElement.dataset.stepId);
-        if (stepId === bottleneckStep.id) {
-          stepElement.classList.add('correct');
-        } else if (stepId === step.id && !isCorrect) {
-          stepElement.classList.add('wrong');
-        }
-      });
-      
-      updateStats();
-      nextBtn.disabled = false;
-    }
-
-    function showResult(type, selectedStep, bottleneckStep = null) {
-      if (type === 'correct') {
-        resultIcon.textContent = '🎯';
-        resultTitle.textContent = 'Правильно!';
-        resultDescription.textContent = `Узкое место: ${selectedStep.name} (конверсия ${(selectedStep.conversionRate * 100).toFixed(1)}%)`;
-      } else {
-        resultIcon.textContent = '❌';
-        resultTitle.textContent = 'Неверно';
-        resultDescription.textContent = `Вы выбрали ${selectedStep.name}. Узкое место: ${bottleneckStep.name} (конверсия ${(bottleneckStep.conversionRate * 100).toFixed(1)}%)`;
-      }
-      
-      resultPanel.classList.add('show');
-    }
-
-    function endGame() {
-      gameState.isRunning = false;
-      startBtn.style.display = 'inline-block';
-      nextBtn.style.display = 'none';
-      
-      const accuracy = Math.round((gameState.correctAnswers / QUEST_CONFIG.roundsPerGame) * 100);
-      
-      if (accuracy >= 80) {
-        toast(`🎉 Отличная работа! Точность: ${accuracy}%`, 'success');
-      } else if (accuracy >= 60) {
-        toast(`👍 Хорошо! Точность: ${accuracy}%`, 'info');
-      } else {
-        toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
-      }
-    }
-
-    function resetGame() {
-      gameState = {
-        isRunning: false,
-        currentRound: 0,
-        correctAnswers: 0,
-        currentFunnel: [],
-        selectedStep: null
-      };
-      
-      funnelSteps.innerHTML = '';
-      funnelChart.innerHTML = '';
-      resultPanel.classList.remove('show');
-      startBtn.style.display = 'inline-block';
-      nextBtn.style.display = 'none';
-      
-      updateStats();
-    }
-
-    function updateStats() {
-      roundsValue.textContent = gameState.currentRound;
-      correctValue.textContent = gameState.correctAnswers;
-      
-      const accuracy = gameState.currentRound > 0 
-        ? Math.round((gameState.correctAnswers / gameState.currentRound) * 100)
-        : 0;
-      accuracyValue.textContent = accuracy + '%';
-    }
-
-    // Запуск
-    init();
-  </script>
+  <!-- Скрипты -->
+  <script src="influence-data.js"></script>
+  <script src="influence-engine.js"></script>
+  <script src="influence-ui.js"></script>
+  <script src="influence-main.js"></script>
 </body>
 </html>
