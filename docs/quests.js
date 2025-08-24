@@ -95,49 +95,7 @@ function openCaseWithTransition() {
   }, 1000);
 }
 
-// Инициализация после загрузки страницы
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM загружен, инициализация...');
-  initTG();
-  setupCaseNavigation();
-  
-  // Инициализируем Supabase и загружаем данные
-  setTimeout(async () => {
-    // Убеждаемся, что Supabase инициализирован
-    if (!supabase && window.supabase) {
-      await initSupabase();
-    }
-    
-    if (supabase) {
-      console.log('Supabase готов к использованию');
-      
-      // Тестируем подключение
-      try {
-        const { data, error } = await supabase.from('bot_user').select('count').limit(1);
-        if (error) {
-          console.error('Ошибка тестирования Supabase:', error);
-          toast('Ошибка подключения к базе данных', 'error');
-        } else {
-          console.log('Тест подключения к Supabase успешен');
-          toast('Подключение к базе данных установлено', 'success');
-        }
-      } catch (error) {
-        console.error('Ошибка тестирования Supabase:', error);
-      }
-      
-      // Загружаем данные пользователя если есть Telegram ID
-      if (userData.telegramId) {
-        console.log('Загружаем данные для Telegram ID:', userData.telegramId);
-        await loadUserData(userData.telegramId);
-      } else {
-        console.log('Telegram ID не получен, данные не загружены');
-      }
-    } else {
-      console.error('Supabase не инициализирован');
-      toast('Ошибка инициализации базы данных', 'error');
-    }
-  }, 1000);
-});
+// Старая инициализация заменена на новую систему ниже
 
 /* ====== Supabase ====== */
 let supabase = null;
@@ -1305,7 +1263,18 @@ function featuredQuests(state){
 
 /* ====== Cards ====== */
 function buildCards(state){
+  console.log('=== BUILD CARDS НАЧАЛО ===');
+  console.log('DOM готов?', document.readyState);
+  
   const container = $("#quests");
+  console.log('Контейнер #quests найден?', !!container);
+  
+  if (!container) {
+    console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Контейнер #quests не найден!');
+    console.log('Все элементы с id на странице:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+    return;
+  }
+  
   container.innerHTML = "";
   
   console.log('=== BUILD CARDS ===');
@@ -1343,7 +1312,11 @@ function buildCards(state){
     });
     
     container.appendChild(card);
+    console.log(`✅ Добавлена карточка квеста: ${q.name}`);
   });
+  
+  console.log(`🎯 ИТОГО: Добавлено ${list.length} карточек квестов в контейнер`);
+  console.log('Содержимое контейнера после добавления:', container.innerHTML.length > 0 ? 'НЕ ПУСТОЕ' : 'ПУСТОЕ');
 
   // Гейтинг отключен — блокированных карточек нет
 }
@@ -2201,7 +2174,38 @@ async function forceSaveData() {
 }
 
 /* ====== Init ====== */
-loadState().then(async state=>{
+console.log('🚀 ИНИЦИАЛИЗАЦИЯ НАЧАТА');
+console.log('DOM состояние:', document.readyState);
+
+// Ждем полной загрузки DOM
+if (document.readyState === 'loading') {
+  console.log('⏳ DOM еще загружается, ждем DOMContentLoaded');
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  console.log('✅ DOM уже загружен, запускаем инициализацию');
+  initializeApp();
+}
+
+async function initializeApp() {
+  console.log('🎯 ЗАПУСК ИНИЦИАЛИЗАЦИИ ПРИЛОЖЕНИЯ');
+  
+  // Инициализируем Telegram
+  initTG();
+  
+  // Инициализируем Supabase
+  if (!supabase && window.supabase) {
+    await initSupabase();
+  }
+  
+  if (supabase) {
+    console.log('✅ Supabase готов к использованию');
+  } else {
+    console.error('❌ Supabase не инициализирован');
+  }
+  
+  const state = await loadState();
+  console.log('📊 Состояние загружено:', state);
+  
   buildCards(state);
   maybeOfferPromo(state);
   
@@ -2226,7 +2230,12 @@ loadState().then(async state=>{
   
   // Инициализируем обработчики событий после создания рулетки
   initializeRouletteHandlers();
-});
+  
+  // Инициализируем навигацию кейса
+  setupCaseNavigation();
+  
+  console.log('🎉 ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА УСПЕШНО');
+}
 
 // Глобальные функции для доступа из других файлов
 window.questSystem = {
