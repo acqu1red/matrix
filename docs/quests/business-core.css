@@ -317,7 +317,11 @@
   cursor: grab;
   transition: all 0.3s ease;
   position: relative;
-  touch-action: manipulation;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .candidate-card:active {
@@ -335,6 +339,33 @@
   transform: rotate(5deg) scale(1.05);
   z-index: 1000;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Стили для кнопки-перетаскивания */
+.candidate-card.draggable-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.candidate-card.draggable-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.candidate-card.draggable-button:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(0);
 }
 
 .candidate-header {
@@ -811,6 +842,11 @@
 @media (hover: none) and (pointer: coarse) {
   .candidate-card {
     cursor: default;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
   
   .candidate-card:active {
@@ -868,5 +904,8 @@
   .candidate-card {
     touch-action: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 }

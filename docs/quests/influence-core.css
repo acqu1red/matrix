@@ -241,7 +241,11 @@
   cursor: grab;
   transition: all 0.3s ease;
   position: relative;
-  touch-action: manipulation;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .strategy-card:active {
@@ -255,11 +259,38 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
+/* Стили для кнопки-перетаскивания */
+.strategy-card.draggable-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.strategy-card.draggable-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.strategy-card.draggable-button:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(0);
+}
+
 .strategy-card.dragging {
   opacity: 0.8;
   transform: rotate(3deg) scale(1.05);
   z-index: 1000;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .strategy-header {
@@ -773,6 +804,11 @@
 @media (hover: none) and (pointer: coarse) {
   .strategy-card {
     cursor: default;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
   
   .strategy-card:active {
@@ -871,5 +907,8 @@
   .strategy-card {
     touch-action: none;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 }
