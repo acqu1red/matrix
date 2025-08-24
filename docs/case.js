@@ -422,7 +422,12 @@ function goBackToQuests() {
   transition.classList.remove('hidden');
   
   setTimeout(() => {
-    window.location.href = './quests.html';
+    const currentPath = window.location.pathname;
+    const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+    const questsUrl = basePath + '/quests.html';
+    
+    console.log('Возвращаемся к квестам:', questsUrl);
+    window.location.href = questsUrl;
   }, 500);
 }
 
@@ -431,7 +436,12 @@ function navigateToQuest(questId) {
   transition.classList.remove('hidden');
   
   setTimeout(() => {
-    window.location.href = `./quests/${questId}.html`;
+    const currentPath = window.location.pathname;
+    const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+    const questUrl = basePath + '/quests/' + questId + '.html';
+    
+    console.log('Переходим на квест:', questUrl);
+    window.location.href = questUrl;
   }, 500);
 }
 

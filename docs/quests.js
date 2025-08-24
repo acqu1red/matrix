@@ -1,4 +1,3 @@
-
 /* ====== CONFIG ====== */
 const SUPABASE_URL = window.SUPABASE_URL || "https://uhhsrtmmuwoxsdquimaa.supabase.co";
 const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
@@ -62,21 +61,38 @@ function initTG(){
 
 /* ====== Case Navigation ====== */
 function setupCaseNavigation() {
+  console.log('=== НАСТРОЙКА НАВИГАЦИИ КЕЙСА ===');
+  
   const caseButton = document.getElementById('mysteryCaseBtn');
   const caseImage = document.getElementById('caseImage');
   
+  console.log('Кнопка кейса найдена:', !!caseButton);
+  console.log('Изображение кейса найдено:', !!caseImage);
+  
   if (caseButton && caseImage) {
     // Set initial image (closed case)
-    caseImage.src = './assets/rulette/case_open.png';
+    const currentPath = window.location.pathname;
+    const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+    caseImage.src = basePath + '/assets/rulette/case_open.png';
     
     // Add click handler for case transition
-    caseButton.addEventListener('click', () => {
+    caseButton.addEventListener('click', (e) => {
+      console.log('Клик по кейсу!');
+      e.preventDefault();
+      e.stopPropagation();
       openCaseWithTransition();
     });
+    
+    console.log('✅ Обработчик клика для кейса добавлен');
+  } else {
+    console.error('❌ Элементы кейса не найдены');
+    console.log('Доступные элементы с id:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
   }
 }
 
 function openCaseWithTransition() {
+  console.log('=== ОТКРЫТИЕ КЕЙСА ===');
+  
   // Create transition overlay
   const transition = document.createElement('div');
   transition.className = 'page-transition active';
@@ -89,9 +105,27 @@ function openCaseWithTransition() {
   
   document.body.appendChild(transition);
   
+  console.log('Переход создан, ожидаем 1 секунду...');
+  
   // Navigate to case page after transition
   setTimeout(() => {
-    window.location.href = './case.html';
+    console.log('Переходим на страницу case.html...');
+    try {
+      // Используем правильный относительный путь для корректной навигации
+      const currentPath = window.location.pathname;
+      const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+      const caseUrl = basePath + '/case.html';
+      
+      console.log('Текущий путь:', currentPath);
+      console.log('Базовый путь:', basePath);
+      console.log('URL кейса:', caseUrl);
+      
+      window.location.href = caseUrl;
+    } catch (error) {
+      console.error('Ошибка перехода:', error);
+      // Fallback - попробуем другой способ
+      window.location.replace('case.html');
+    }
   }, 1000);
 }
 
@@ -1253,72 +1287,160 @@ async function loadState(){
   } catch(e) { /* ignore */ }
   const isAdmin = (username && ADMIN_IDS.includes(username)) || (userId && ADMIN_IDS.includes(userId));
   const isSubscribed = true; // Доступ открыт всем
+  console.log('loadState: доступ открыт для всех пользователей');
   return { userId, username, isSubscribed, isAdmin };
 }
 
 /* ====== Rotation + gating ====== */
 function featuredQuests(state){
-  return QUESTS;
+  // Возвращаем все квесты без ограничений
+  console.log('featuredQuests: возвращаем все квесты:', QUESTS.length);
+  console.log('Список квестов:', QUESTS.map(q => ({ id: q.id, name: q.name, available: q.available })));
+  
+  // Фильтруем только доступные квесты
+  const availableQuests = QUESTS.filter(q => q.available !== false);
+  console.log('Доступных квестов:', availableQuests.length);
+  
+  return availableQuests;
 }
 
 /* ====== Cards ====== */
 function buildCards(state){
   console.log('=== BUILD CARDS НАЧАЛО ===');
   console.log('DOM готов?', document.readyState);
+  console.log('Состояние пользователя:', state);
   
-  const container = $("#quests");
+  // Проверяем все возможные селекторы
+  const container = document.getElementById('quests');
+  
   console.log('Контейнер #quests найден?', !!container);
   
   if (!container) {
     console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Контейнер #quests не найден!');
     console.log('Все элементы с id на странице:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+    
+    // Попробуем найти контейнер по другому селектору
+    const alternativeContainer = document.querySelector('.quests') || document.querySelector('[data-quests]');
+    if (alternativeContainer) {
+      console.log('Найден альтернативный контейнер:', alternativeContainer);
+      // Используем альтернативный контейнер
+      buildCardsInContainer(alternativeContainer, state);
+      return;
+    }
+    
+    // Если контейнер все еще не найден, создаем его
+    console.log('Создаем контейнер для квестов...');
+    const appContainer = document.querySelector('.app');
+    if (appContainer) {
+      const questsSection = document.createElement('section');
+      questsSection.className = 'quests';
+      questsSection.id = 'quests';
+      questsSection.setAttribute('data-quests', 'true');
+      
+      // Вставляем после hero секции
+      const heroSection = document.querySelector('.hero');
+      if (heroSection && heroSection.nextSibling) {
+        heroSection.parentNode.insertBefore(questsSection, heroSection.nextSibling);
+      } else {
+        appContainer.appendChild(questsSection);
+      }
+      
+      console.log('✅ Контейнер квестов создан');
+      buildCardsInContainer(questsSection, state);
+      return;
+    }
+    
+    // Если ничего не получилось, выводим ошибку
+    console.error('❌ Не удалось создать или найти контейнер для квестов');
     return;
   }
   
-  container.innerHTML = "";
-  
-  console.log('=== BUILD CARDS ===');
+  buildCardsInContainer(container, state);
+}
+
+function buildCardsInContainer(container, state) {
+  console.log('=== BUILD CARDS В КОНТЕЙНЕРЕ ===');
+  console.log('Контейнер:', container);
   console.log('Состояние пользователя:', state);
-  console.log('Статус доступа:', { isSubscribed: state.isSubscribed, isAdmin: state.isAdmin });
   
-  const list = featuredQuests(state);
-  console.log('📊 Квестов для отображения:', list.length);
-  console.log('📋 Список квестов:', list.map(q => q.name));
+  if (!container) {
+    console.error('❌ Контейнер не передан в buildCardsInContainer');
+    return;
+  }
   
-  list.forEach((q, index) => {
-    const card = document.createElement("div");
-    card.className = "card fade-in";
-    card.setAttribute("data-style", q.style);
-    card.style.animationDelay = `${index * 0.1}s`;
+  try {
+    // Очищаем контейнер и убираем loading
+    container.innerHTML = "";
     
-    card.innerHTML = `
-      ${state.isAdmin ? '<div class="premium-indicator">👑 Админ доступ</div>' : ''}
-      <div class="label">${q.theme}</div>
-      <h3>${q.name}</h3>
-      <div class="description">${q.description}</div>
-      <div class="meta">
-        <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
-      <div class="tag">Вариация #${variationIndex()+1}/10</div>
-      </div>
-      <div class="cta">
-        <button class="btn primary start">Начать квест</button>
-        <button class="btn ghost details">Подробнее</button>
-      </div>
+    const list = featuredQuests(state);
+    console.log('📊 Квестов для отображения:', list.length);
+    console.log('📋 Список квестов:', list.map(q => q.name));
+    
+    if (!list || list.length === 0) {
+      console.error('❌ Список квестов пуст');
+      container.innerHTML = '<div class="error-message">Квесты не загружены</div>';
+      return;
+    }
+    
+    // Создаем сетку квестов
+    const questsGrid = document.createElement("div");
+    questsGrid.className = "quests-grid";
+    questsGrid.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px;
     `;
     
-    card.querySelector(".start").addEventListener("click", ()=>startQuest(q, state));
-    card.querySelector(".details").addEventListener("click", ()=>{
-      showQuestDetails(q, state);
+    list.forEach((q, index) => {
+      try {
+        const card = document.createElement("div");
+        card.className = "card fade-in";
+        card.setAttribute("data-style", q.style);
+        card.style.setProperty('--animation-delay', index);
+        
+        card.innerHTML = `
+          ${state.isAdmin ? '<div class="premium-indicator">👑 Админ доступ</div>' : ''}
+          <div class="label">${q.theme}</div>
+          <h3>${q.name}</h3>
+          <div class="description">${q.description}</div>
+          <div class="meta">
+            <div class="tag ${q.difficulty}">${getDifficultyText(q.difficulty)}</div>
+            <div class="tag">Вариация #${variationIndex()+1}/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
+          </div>
+        `;
+        
+        const startBtn = card.querySelector(".start");
+        const detailsBtn = card.querySelector(".details");
+        
+        if (startBtn) {
+          startBtn.addEventListener("click", ()=>startQuest(q, state));
+        }
+        
+        if (detailsBtn) {
+          detailsBtn.addEventListener("click", ()=>{
+            showQuestDetails(q, state);
+          });
+        }
+        
+        questsGrid.appendChild(card);
+        console.log(`✅ Добавлена карточка квеста: ${q.name}`);
+      } catch (cardError) {
+        console.error(`❌ Ошибка создания карточки квеста ${q.name}:`, cardError);
+      }
     });
     
-    container.appendChild(card);
-    console.log(`✅ Добавлена карточка квеста: ${q.name}`);
-  });
-  
-  console.log(`🎯 ИТОГО: Добавлено ${list.length} карточек квестов в контейнер`);
-  console.log('Содержимое контейнера после добавления:', container.innerHTML.length > 0 ? 'НЕ ПУСТОЕ' : 'ПУСТОЕ');
-
-  // Гейтинг отключен — блокированных карточек нет
+    container.appendChild(questsGrid);
+    console.log(`🎯 ИТОГО: Добавлено ${list.length} карточек квестов в контейнер`);
+    console.log('Содержимое контейнера после добавления:', container.innerHTML.length > 0 ? 'НЕ ПУСТОЕ' : 'ПУСТОЕ');
+  } catch (error) {
+    console.error('❌ Ошибка в buildCardsInContainer:', error);
+    container.innerHTML = '<div class="error-message">Ошибка загрузки квестов</div>';
+  }
 }
 
 function getDifficultyText(difficulty) {
@@ -1357,11 +1479,9 @@ function showQuestDetails(q, state) {
           <div style="font-weight: 600; color: var(--glow2);">+${q.rewards.experience}</div>
         </div>
       </div>
-      ${!state.isSubscribed && !state.isAdmin ? `
-        <div class="banner warning">
-          <strong>💡 Подсказка:</strong> Подписчики получают доступ ко всем квестам и дополнительные награды!
-        </div>
-      ` : ''}
+      <div class="banner success">
+        <strong>🎉 Доступ открыт!</strong> Все квесты доступны без ограничений!
+      </div>
     </div>
     <div class="questActions">
       <button class="btn primary" id="startQuestBtn">Начать квест</button>
@@ -1385,50 +1505,15 @@ function showQuestDetails(q, state) {
 }
 
 function showSubscriptionPrompt() {
-  const modal = $("#modal");
-  const modalBody = $("#modalBody");
-  
-  modalBody.innerHTML = `
-    <div class="questIntro">
-      <h3>🔒 Доступ ограничен</h3>
-      <p>Этот квест доступен только для подписчиков</p>
-      </div>
-    <div class="questBody">
-      <div class="banner success">
-        <strong>Преимущества подписки:</strong>
-        <ul style="margin: 8px 0; padding-left: 20px;">
-          <li>Доступ ко всем 10 квестам</li>
-          <li>Дополнительные награды</li>
-          <li>Новые вариации каждый день</li>
-          <li>Приоритетная поддержка</li>
-        </ul>
-      </div>
-    </div>
-    <div class="questActions">
-      <button class="btn primary" id="openSubscriptionBtn">Оформить подписку</button>
-      <button class="btn ghost" id="closeSubscriptionBtn">Позже</button>
-    </div>
-  `;
-  
-  modal.classList.add("show");
-  
-  // Добавляем обработчики событий для кнопок подписки
-  const openSubscriptionBtn = modal.querySelector("#openSubscriptionBtn");
-  const closeSubscriptionBtn = modal.querySelector("#closeSubscriptionBtn");
-  
-  if (openSubscriptionBtn) {
-    openSubscriptionBtn.addEventListener("click", openSubscription);
-  }
-  
-  if (closeSubscriptionBtn) {
-    closeSubscriptionBtn.addEventListener("click", closeModal);
-  }
+  // Подписка не требуется - все квесты доступны
+  console.log('showSubscriptionPrompt: подписка не требуется');
+  toast('Все квесты доступны без подписки!', 'success');
 }
 
 function openSubscription() {
-  // Используем window.location.href вместо tg.openLink для открытия внутри Mini App
-  window.location.href = PAYMENT_URL;
-  closeModal();
+  // Подписка не требуется
+  console.log('openSubscription: подписка не требуется');
+  toast('Все квесты доступны без подписки!', 'success');
 }
 
 /* ====== Start quest ====== */
@@ -1452,21 +1537,26 @@ function startQuest(q, state) {
     questAvailable: quest.available 
   });
   
-  // Для бесплатных пользователей доступны только первые 5 квестов (индексы 0-4)
-  if (!state.isSubscribed && !state.isAdmin && questIndex >= 5) {
-    console.log('Доступ запрещен, показываем промпт подписки');
-    showSubscriptionPrompt();
-    return;
-  }
-  
+  // Гейтинг отключен - все квесты доступны
   console.log('Доступ разрешен, открываем квест');
   
   // Открываем квест внутри Mini App
-  const questUrl = `./quests/${questId}.html`;
+  const currentPath = window.location.pathname;
+  const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+  const questUrl = basePath + '/quests/' + questId + '.html';
+  
+  console.log('Текущий путь:', currentPath);
+  console.log('Базовый путь:', basePath);
+  console.log('URL квеста:', questUrl);
   
   // Используем window.location.href для навигации внутри Mini App
-  // tg.openLink открывает в браузере, а нам нужно остаться в Mini App
-  window.location.href = questUrl;
+  try {
+    window.location.href = questUrl;
+  } catch (error) {
+    console.error('Ошибка перехода на квест:', error);
+    // Fallback
+    window.location.replace(questUrl);
+  }
 }
 
 /* ====== Modal functions ====== */
@@ -1495,6 +1585,10 @@ function recordDayVisit(){
 }
 
 async function maybeOfferPromo(state){
+  // Промо отключено для всех пользователей
+  console.log('maybeOfferPromo: промо отключено');
+  return;
+  
   if(state.isSubscribed || state.isAdmin) return;
   const days = recordDayVisit();
   if(days>=10){
@@ -2206,9 +2300,6 @@ async function initializeApp() {
   const state = await loadState();
   console.log('📊 Состояние загружено:', state);
   
-  buildCards(state);
-  maybeOfferPromo(state);
-  
   // Загружаем данные пользователя
   await loadUserData(state.userId);
   
@@ -2233,6 +2324,22 @@ async function initializeApp() {
   
   // Инициализируем навигацию кейса
   setupCaseNavigation();
+  
+  // Строим карточки квестов
+  buildCards(state);
+  maybeOfferPromo(state);
+  
+  // Принудительно обновляем отображение квестов
+  setTimeout(() => {
+    console.log('Принудительное обновление квестов...');
+    buildCards(state);
+  }, 100);
+  
+  // Дополнительное обновление через 500ms для надежности
+  setTimeout(() => {
+    console.log('Дополнительное обновление квестов...');
+    buildCards(state);
+  }, 500);
   
   console.log('🎉 ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА УСПЕШНО');
 }
