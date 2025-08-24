@@ -93,7 +93,7 @@
 }
 
 .modal-actions {
-  margin-top: 24px;
+  margin-top: 16px;
   display: flex;
   justify-content: center;
 }
@@ -362,7 +362,7 @@
 .platform-slots {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
   height: 100%;
 }
 
@@ -370,12 +370,12 @@
   background: rgba(255, 255, 255, 0.05);
   border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 180px;
+  min-height: 140px;
   transition: all 0.3s ease;
   position: relative;
 }
@@ -388,10 +388,27 @@
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
+.platform-slot.drag-over-highlight {
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.8) !important;
+  border-color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
 .platform-slot.has-strategy {
   border-color: #00ff88;
   background: rgba(0, 255, 136, 0.1);
   border-style: solid;
+}
+
+.platform-slot.available {
+  background: rgba(0, 255, 136, 0.05);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.platform-slot.available:hover {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.5);
 }
 
 .platform-icon {
@@ -737,8 +754,8 @@
   }
   
   .platform-slot {
-    min-height: 150px;
-    padding: 12px;
+    min-height: 120px;
+    padding: 10px;
   }
   
   .panel-header {
@@ -764,8 +781,22 @@
   }
   
   .platform-slot {
-    min-height: 200px;
+    min-height: 150px;
   }
+}
+
+/* Стили для перетаскиваемого элемента */
+.strategy-card.dragging {
+  opacity: 0.8;
+  transform: rotate(5deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Стили для drag & drop */
+.dragging {
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Дополнительные эффекты */
@@ -793,4 +824,52 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+
+/* Стили для автоматического скролла */
+.scroll-to-empire-fields {
+  scroll-behavior: smooth;
+}
+
+.platform-slot.highlighted {
+  animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
+}
+
+/* Улучшенные стили для drag & drop на мобильных устройствах */
+@media (max-width: 768px) {
+  .platform-slot {
+    min-height: 120px;
+    padding: 10px;
+  }
+  
+  .platform-slot.drag-over {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+  }
+  
+  .strategy-card {
+    touch-action: none;
+    user-select: none;
+  }
 }

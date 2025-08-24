@@ -212,6 +212,9 @@ class InfluenceEmpireUI {
     
     // Показываем drop zones
     this.showDropZones();
+    
+    // Автоматически скроллим к полям "Ваша медиа-империя"
+    this.scrollToEmpireFields();
   }
 
   // Обновление позиции
@@ -231,6 +234,13 @@ class InfluenceEmpireUI {
       const isOver = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
       
       zone.classList.toggle('drag-over', isOver);
+      
+      // Если курсор над зоной, добавляем дополнительную подсветку
+      if (isOver) {
+        zone.classList.add('drag-over-highlight');
+      } else {
+        zone.classList.remove('drag-over-highlight');
+      }
     });
   }
 
@@ -238,8 +248,7 @@ class InfluenceEmpireUI {
   showDropZones() {
     const dropZones = document.querySelectorAll('.platform-slot:not(.has-strategy)');
     dropZones.forEach(zone => {
-      zone.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-      zone.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+      zone.classList.add('available');
     });
   }
 
@@ -247,10 +256,42 @@ class InfluenceEmpireUI {
   hideDropZones() {
     const dropZones = document.querySelectorAll('.platform-slot');
     dropZones.forEach(zone => {
-      zone.classList.remove('drag-over');
-      zone.style.borderColor = '';
-      zone.style.backgroundColor = '';
+      zone.classList.remove('drag-over', 'drag-over-highlight', 'available');
     });
+  }
+
+  // Автоматический скролл к полям "Ваша медиа-империя"
+  scrollToEmpireFields() {
+    const empireFields = document.querySelectorAll('.platform-slot:not(.has-strategy)');
+    if (empireFields.length === 0) return;
+    
+    // Находим первую доступную позицию
+    const firstAvailableField = empireFields[0];
+    if (firstAvailableField) {
+      // Добавляем класс для плавного скролла
+      document.body.classList.add('scroll-to-empire-fields');
+      
+      // Плавно скроллим к позиции
+      firstAvailableField.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
+      });
+      
+      // Добавляем подсветку для привлечения внимания
+      firstAvailableField.classList.add('highlighted');
+      
+      // Убираем подсветку через 2 секунды
+      setTimeout(() => {
+        if (firstAvailableField) {
+          firstAvailableField.classList.remove('highlighted');
+        }
+        document.body.classList.remove('scroll-to-empire-fields');
+      }, 2000);
+      
+      // Показываем toast уведомление
+      this.showToast('📱 Камера автоматически перемещена к полям медиа-империи!', 'info');
+    }
   }
 
   // Окончание перетаскивания
