@@ -1200,7 +1200,7 @@ const QUESTS = [
     type: "analysis", 
     difficulty: "hard",
     rewards: { fragments: 4, experience: 100 },
-    available: false,
+    available: true,
     url: "quests/profiling.html"
   },
   { 
@@ -1213,33 +1213,33 @@ const QUESTS = [
     type: "puzzle", 
     difficulty: "medium",
     rewards: { fragments: 3, experience: 80 },
-    available: false,
+    available: true,
     url: "quests/roi.html"
   },
   { 
     id: "funnel", 
-    theme: "Продажи", 
+    theme: "Влияние", 
     style: "neo", 
-    name: "Воронка конверсий", 
-    intro: "Найди самое узкое место.", 
-    description: "Исследуй воронку продаж и определи, где происходят основные потери клиентов.",
-    type: "puzzle", 
-    difficulty: "easy",
-    rewards: { fragments: 2, experience: 45 },
-    available: false,
+    name: "👑 Империя влияния", 
+    intro: "Создай медиа-империю и управляй массовым сознанием.", 
+    description: "Пройди 5 этапов развития: от создания контента до кризис-менеджмента. Используй психологические триггеры, монетизируй аудиторию и строй влиятельную империю.",
+    type: "simulator", 
+    difficulty: "hard",
+    rewards: { fragments: 5, experience: 200 },
+    available: true,
     url: "quests/funnel.html"
   },
   { 
     id: "copy", 
-    theme: "Контент", 
+    theme: "Бизнес", 
     style: "neo", 
-    name: "A/B заголовки", 
-    intro: "Выбери выигравший заголовок по метрикам.", 
-    description: "Сравни варианты заголовков и выбери тот, который показал лучшие результаты в A/B тесте.",
-    type: "quiz", 
-    difficulty: "easy",
-    rewards: { fragments: 2, experience: 40 },
-    available: false,
+    name: "🏢 Твой первый бизнес", 
+    intro: "Создай и управляй своим бизнесом с нуля.", 
+    description: "Выбери бизнес-нишу, наймите до 10 работников из 50+ вариантов, управляй финансами и принимай стратегические решения для роста компании.",
+    type: "simulator", 
+    difficulty: "medium",
+    rewards: { fragments: 3, experience: 200 },
+    available: true,
     url: "quests/copy.html"
   },
   { 
@@ -1252,7 +1252,7 @@ const QUESTS = [
     type: "analysis", 
     difficulty: "medium",
     rewards: { fragments: 3, experience: 70 },
-    available: false,
+    available: true,
     url: "quests/audience.html"
   },
   { 
@@ -1265,20 +1265,20 @@ const QUESTS = [
     type: "analysis", 
     difficulty: "hard",
     rewards: { fragments: 5, experience: 120 },
-    available: false,
+    available: true,
     url: "quests/competitors.html"
   },
   { 
     id: "trends", 
-    theme: "Рынок", 
+    theme: "Аналитика", 
     style: "neo", 
-    name: "Анализ трендов", 
-    intro: "Изучи рыночные тренды.", 
-    description: "Изучи рыночные тренды и выбери наиболее перспективное направление для инвестиций.",
-    type: "analysis", 
+    name: "📊 Анализ трендов", 
+    intro: "Стань мастером рыночной аналитики и трендов.", 
+    description: "Многоэтапный симулятор анализа рыночных трендов с системой репутации, динамическими событиями и сложными аналитическими задачами.",
+    type: "simulator", 
     difficulty: "hard",
-    rewards: { fragments: 4, experience: 90 },
-    available: false,
+    rewards: { fragments: 4, experience: 200 },
+    available: true,
     url: "quests/trends.html"
   }
 ];
