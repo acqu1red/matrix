@@ -12,7 +12,6 @@ MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
 SUBSCRIPTION_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/subscription.html"
 QUESTS_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/quests.html"
-DAILY_REWARDS_URL = "https://acqu1red.github.io/formulaprivate/case.html?daily=true"
 
 # Supabase configuration
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
@@ -30,171 +29,6 @@ ADMIN_IDS = [
     708907063,  # Замените на реальные ID администраторов
     7365307696,
 ]
-
-# ---------- MULACOIN functions ----------
-
-async def add_mulacoin_to_user(user_id: int, amount: int):
-    """Добавляет MULACOIN пользователю"""
-    try:
-        # Проверяем существующий баланс
-        result = supabase.table('bot_user').select('mulacoin').eq('telegram_id', str(user_id)).execute()
-        
-        if not result.data:
-            # Пользователь не найден, создаем новую запись
-            new_user_data = {
-                'telegram_id': str(user_id),
-                'mulacoin': amount,
-                'experience': 0,
-                'level': 1,
-                'created_at': 'now()'
-            }
-            supabase.table('bot_user').insert(new_user_data).execute()
-        else:
-            # Пользователь найден, обновляем баланс
-            current_balance = result.data[0].get('mulacoin', 0)
-            new_balance = current_balance + amount
-            supabase.table('bot_user').update({'mulacoin': new_balance}).eq('telegram_id', str(user_id)).execute()
-        
-        return True
-    except Exception as e:
-        print(f"Ошибка при добавлении MULACOIN: {e}")
-        return False
-
-# ---------- Daily rewards functions ----------
-
-DAILY_REWARDS = [10, 15, 15, 20, 20, 25, 50]  # Награды по дням
-
-async def check_daily_reward_status(user_id: int) -> dict:
-    """Проверяет статус ежедневных наград пользователя"""
-    try:
-        from datetime import datetime, timedelta
-        
-        result = supabase.table('daily_rewards').select('*').eq('user_id', str(user_id)).execute()
-        
-        if not result.data:
-            # Создаем новую запись
-            new_record = {
-                'user_id': str(user_id),
-                'current_day': 1,
-                'last_claimed': None,
-                'streak_active': True
-            }
-            supabase.table('daily_rewards').insert(new_record).execute()
-            return new_record
-        
-        record = result.data[0]
-        now = datetime.now()
-        
-        # Если есть последнее получение, проверяем прошло ли больше суток
-        if record.get('last_claimed'):
-            last_claimed = datetime.fromisoformat(record['last_claimed'].replace('Z', '+00:00'))
-            time_diff = now - last_claimed.replace(tzinfo=None)
-            
-            # Если прошло больше 48 часов - сбрасываем стрик
-            if time_diff.total_seconds() > 48 * 3600:
-                supabase.table('daily_rewards').update({
-                    'current_day': 1,
-                    'streak_active': True
-                }).eq('user_id', str(user_id)).execute()
-                record['current_day'] = 1
-                record['streak_active'] = True
-            
-            # Если прошло менее 24 часов - награда недоступна
-            elif time_diff.total_seconds() < 24 * 3600:
-                record['can_claim'] = False
-                record['next_claim_in'] = 24 * 3600 - time_diff.total_seconds()
-                return record
-        
-        record['can_claim'] = True
-        return record
-        
-    except Exception as e:
-        print(f"Error checking daily reward status: {e}")
-        return {'current_day': 1, 'can_claim': True, 'streak_active': True}
-
-async def claim_daily_reward(user_id: int) -> dict:
-    """Выдает ежедневную награду пользователю"""
-    try:
-        from datetime import datetime
-        
-        status = await check_daily_reward_status(user_id)
-        
-        if not status.get('can_claim', False):
-            return {'success': False, 'message': 'Награда еще недоступна'}
-        
-        current_day = status['current_day']
-        reward_amount = DAILY_REWARDS[min(current_day - 1, len(DAILY_REWARDS) - 1)]
-        
-        # Обновляем баланс пользователя
-        await add_mulacoin_to_user(user_id, reward_amount)
-        
-        # Обновляем статус ежедневной награды
-        next_day = current_day + 1 if current_day < 7 else 1
-        
-        supabase.table('daily_rewards').update({
-            'current_day': next_day,
-            'last_claimed': datetime.now().isoformat(),
-            'streak_active': True
-        }).eq('user_id', str(user_id)).execute()
-        
-        return {
-            'success': True,
-            'reward_amount': reward_amount,
-            'current_day': current_day,
-            'next_day': next_day
-        }
-        
-    except Exception as e:
-        print(f"Error claiming daily reward: {e}")
-        return {'success': False, 'message': 'Ошибка при получении награды'}
-
-async def send_daily_reward_notification(context: CallbackContext):
-    """Отправляет уведомление о ежедневной награде всем пользователям"""
-    try:
-        # Получаем всех пользователей
-        result = supabase.table('users').select('user_id').execute()
-        
-        keyboard = [[
-            InlineKeyboardButton(
-                "💰 Получить MULACOIN", 
-                web_app=WebAppInfo(url=DAILY_REWARDS_URL)
-            )
-        ]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        message_text = """
-🏝️ **Ежедневные награды острова Эпштейна**
-
-💰 Вас ждут эксклюзивные MULACOIN за ежедневное посещение тайной академии!
-
-🔥 **Прогрессивная система наград:**
-• День 1: 10 MULACOIN
-• День 2: 15 MULACOIN  
-• День 3: 15 MULACOIN
-• День 4: 20 MULACOIN
-• День 5: 20 MULACOIN
-• День 6: 25 MULACOIN
-• День 7: 50 MULACOIN
-
-⚠️ **Важно:** пропустите хотя бы один день - и стрик сбросится!
-
-Нажмите кнопку ниже, чтобы получить свою ежедневную награду.
-        """
-        
-        for user_data in result.data:
-            try:
-                user_id = int(user_data['user_id'])
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=message_text,
-                    reply_markup=reply_markup,
-                    parse_mode='Markdown'
-                )
-            except Exception as e:
-                print(f"Failed to send daily reward notification to {user_id}: {e}")
-                
-    except Exception as e:
-        print(f"Error sending daily reward notifications: {e}")
 
 # ---------- Subscription management functions ----------
 
@@ -669,24 +503,6 @@ def build_more_info_content():
 
 
 # ---------- Command handlers (send new messages) ----------
-
-async def daily_rewards_command(update: Update, context: CallbackContext):
-    """Команда /daily для ручной отправки уведомлений о ежедневных наградах"""
-    user_id = update.effective_user.id
-    username = update.effective_user.username
-    
-    # Проверяем права администратора
-    if user_id not in ADMIN_IDS and username not in ADMIN_USERNAMES:
-        await update.message.reply_text("❌ У вас нет прав для выполнения этой команды.")
-        return
-    
-    await update.message.reply_text("📤 Отправляем уведомления о ежедневных наградах...")
-    
-    try:
-        await send_daily_reward_notification(context)
-        await update.message.reply_text("✅ Уведомления отправлены всем пользователям!")
-    except Exception as e:
-        await update.message.reply_text(f"❌ Ошибка при отправке уведомлений: {e}")
 
 # Define the start command handler
 async def start(update: Update, context: CallbackContext) -> None:
@@ -1268,7 +1084,6 @@ def main() -> None:
     application.add_handler(CommandHandler("check", check_subscription_command))
     application.add_handler(CommandHandler("checkpromo", checkpromo_command))
     application.add_handler(CommandHandler("setmula", setmula_command))
-    application.add_handler(CommandHandler("daily", daily_rewards_command))
     
     application.add_handler(CallbackQueryHandler(button))
     

@@ -4,17 +4,17 @@ const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5c
 
 const SPIN_COST = 13;
 
-// Epstein Case Prizes with conspiracy theme
+// Success & Wealth Case Prizes
 const CASE_PRIZES = [
-  { id: "classified_docs", name: "Засекреченные Документы", icon: "📄", probability: 0.25 },
-  { id: "island_map", name: "Карта Острова", icon: "🗺️", probability: 0.20 },
-  { id: "golden_key", name: "Золотой Ключ", icon: "🗝️", probability: 0.15 },
-  { id: "surveillance_footage", name: "Записи Наблюдения", icon: "📹", probability: 0.12 },
-  { id: "secret_contacts", name: "Тайные Контакты", icon: "📱", probability: 0.10 },
-  { id: "illuminati_symbol", name: "Символ Иллюминатов", icon: "🔺", probability: 0.08 },
-  { id: "flight_logs", name: "Журналы Полетов", icon: "✈️", probability: 0.06 },
-  { id: "blackmail_evidence", name: "Компромат", icon: "💾", probability: 0.03 },
-  { id: "epstein_diary", name: "Дневник Эпштейна", icon: "📖", probability: 0.01 }
+  { id: "financial_plan", name: "Финансовый План", icon: "📊", probability: 0.25 },
+  { id: "investment_strategy", name: "Инвестиционная Стратегия", icon: "📈", probability: 0.20 },
+  { id: "golden_opportunity", name: "Золотая Возможность", icon: "💎", probability: 0.15 },
+  { id: "business_secrets", name: "Секреты Бизнеса", icon: "🔐", probability: 0.12 },
+  { id: "success_mindset", name: "Мышление Успеха", icon: "🧠", probability: 0.10 },
+  { id: "wealth_blueprint", name: "Чертеж Богатства", icon: "🗞️", probability: 0.08 },
+  { id: "elite_network", name: "Элитная Сеть", icon: "🤝", probability: 0.06 },
+  { id: "millionaire_habits", name: "Привычки Миллионера", icon: "⭐", probability: 0.03 },
+  { id: "ultimate_formula", name: "Формула Успеха", icon: "🏆", probability: 0.01 }
 ];
 
 /* ====== Global Variables ====== */
@@ -60,11 +60,11 @@ function initTG() {
       
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userData.telegramId = tg.initDataUnsafe.user.id;
-        // console.log('Telegram ID получен:', userData.telegramId);
+        console.log('Telegram ID получен:', userData.telegramId);
       }
     }
   } catch (e) {
-    // console.log("TG init fail", e);
+    console.log("TG init fail", e);
   }
 }
 
@@ -72,10 +72,10 @@ function initTG() {
 async function initSupabase() {
   try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // console.log('Supabase инициализирован');
+    console.log('Supabase инициализирован');
     return true;
   } catch (error) {
-    // console.error('Ошибка инициализации Supabase:', error);
+    console.error('Ошибка инициализации Supabase:', error);
     return false;
   }
 }
@@ -95,10 +95,10 @@ async function loadUserData(telegramId) {
       userData.level = data.level || 1;
       userData.experience = data.experience || 0;
       updateUI();
-      // console.log('Данные пользователя загружены:', userData);
+      console.log('Данные пользователя загружены:', userData);
     }
   } catch (error) {
-    // console.error('Ошибка загрузки данных пользователя:', error);
+    console.error('Ошибка загрузки данных пользователя:', error);
   }
 }
 
@@ -112,13 +112,13 @@ async function updateUserData(updates) {
       .eq('telegram_id', String(userData.telegramId));
     
     if (error) {
-      // console.error('Ошибка обновления данных:', error);
+      console.error('Ошибка обновления данных:', error);
     } else {
       Object.assign(userData, updates);
       updateUI();
     }
   } catch (error) {
-    // console.error('Ошибка обновления данных пользователя:', error);
+    console.error('Ошибка обновления данных пользователя:', error);
   }
 }
 
@@ -137,13 +137,13 @@ function createCaseRoulette() {
   
   container.innerHTML = '';
   
-  // Create multiple sets of prizes for smooth scrolling
-  const totalItems = 50;
+  // Create multiple sets of prizes for infinite scrolling (увеличиваем для зацикливания)
+  const totalItems = 150; // Увеличено для лучшего зацикливания
   const prizeSet = [];
   
   // Fill prize set based on probabilities
   CASE_PRIZES.forEach(prize => {
-    const count = Math.max(1, Math.floor(prize.probability * totalItems));
+    const count = Math.max(2, Math.floor(prize.probability * totalItems));
     for (let i = 0; i < count; i++) {
       prizeSet.push(prize);
     }
@@ -155,17 +155,20 @@ function createCaseRoulette() {
     [prizeSet[i], prizeSet[j]] = [prizeSet[j], prizeSet[i]];
   }
   
+  // Create 3 copies for infinite scroll effect
+  const tripleSet = [...prizeSet, ...prizeSet, ...prizeSet];
+  
   // Create roulette items
-  prizeSet.forEach((prize, index) => {
+  tripleSet.forEach((prize, index) => {
     const item = document.createElement('div');
     item.className = 'roulette-item';
     item.dataset.prize = prize.id;
-    item.innerHTML = `<div class="roulette-icon">${prize.icon}</div>`;
+    item.innerHTML = prize.icon;
     item.title = prize.name;
     container.appendChild(item);
   });
   
-  // console.log('Кейс рулетка создана с', prizeSet.length, 'призами');
+  console.log('Кейс рулетка создана с', tripleSet.length, 'призами');
 }
 
 function spinCaseRoulette(isFree = false) {
@@ -194,7 +197,7 @@ function spinCaseRoulette(isFree = false) {
   const music = $('#caseSpinMusic');
   if (music) {
     music.currentTime = 0;
-    music.play().catch(e => { /* Audio play failed */ });
+    music.play().catch(e => console.log('Audio play failed:', e));
   }
   
   // Calculate spin distance
@@ -203,12 +206,12 @@ function spinCaseRoulette(isFree = false) {
   
   const itemWidth = 100; // width + gap
   const visibleWidth = 400;
-  const centerOffset = visibleWidth / 2;
   
-  // Random spin (3-8 full rotations + random position)
-  const rotations = 3 + Math.random() * 5;
-  const finalPosition = Math.random() * items.length;
-  const spinDistance = (rotations * items.length + finalPosition) * itemWidth;
+  // Random spin - много оборотов для 15 секунд
+  const rotations = 8 + Math.random() * 4; // 8-12 оборотов
+  const prizesInSet = Math.floor(items.length / 3); // Оригинальный набор призов
+  const finalPosition = Math.random() * prizesInSet; // Позиция в первом наборе
+  const spinDistance = (rotations * prizesInSet + finalPosition) * itemWidth;
   
   currentRoulettePosition -= spinDistance;
   
@@ -216,7 +219,7 @@ function spinCaseRoulette(isFree = false) {
   rouletteItems.classList.add('spinning');
   rouletteItems.style.transform = `translateX(${currentRoulettePosition}px)`;
   
-  // Determine winner after spin (15 seconds)
+  // Determine winner after 15 second spin
   setTimeout(() => {
     const winningPrize = selectPrizeByPosition(finalPosition, items);
     showCasePrize(winningPrize);
@@ -228,7 +231,7 @@ function spinCaseRoulette(isFree = false) {
     spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутить Кейс</span>';
     
     rouletteItems.classList.remove('spinning');
-  }, 15000);
+  }, 15000); // 15 секунд
 }
 
 function selectPrizeByPosition(position, items) {
@@ -245,26 +248,26 @@ function showCasePrize(prize) {
   const details = $('#prizeDetails');
   
   icon.textContent = prize.icon;
-  title.textContent = 'Тайный Артефакт Найден!';
-  description.textContent = `Вы обнаружили: ${prize.name}`;
+  title.textContent = 'Ключ к Успеху Найден!';
+  description.textContent = `Вы получили: ${prize.name}`;
   
-  // Create conspiracy-themed description
+  // Create success-themed description
   const descriptions = {
-    classified_docs: "Секретные документы, раскрывающие связи между мировыми лидерами и теневыми организациями.",
-    island_map: "Детальная карта острова с отмеченными секретными помещениями и подземными туннелями.",
-    golden_key: "Золотой ключ от сейфа с компрометирующими материалами на влиятельных персон.",
-    surveillance_footage: "Записи скрытых камер с доказательствами тайных встреч и сделок.",
-    secret_contacts: "Зашифрованные контакты агентов влияния в правительствах разных стран.",
-    illuminati_symbol: "Древний символ тайного общества, дающий доступ к эксклюзивной информации.",
-    flight_logs: "Полные журналы частных перелетов с именами пассажеров и секретными маршрутами.",
-    blackmail_evidence: "Компрометирующие материалы на высокопоставленных чиновников и бизнесменов.",
-    epstein_diary: "Личный дневник с записями о встречах и планах мирового правительства."
+    financial_plan: "Персональный финансовый план, который поможет вам достичь финансовой независимости и создать пассивный доход.",
+    investment_strategy: "Проверенная инвестиционная стратегия от топ-менеджеров, которая приносит стабильный доход на протяжении лет.",
+    golden_opportunity: "Эксклюзивная возможность для инвестирования, доступная только узкому кругу успешных предпринимателей.",
+    business_secrets: "Секретные техники ведения бизнеса от миллионеров, которые помогут вам масштабировать ваше дело.",
+    success_mindset: "Уникальная методика развития мышления успеха, используемая самыми богатыми людьми планеты.",
+    wealth_blueprint: "Пошаговый план создания богатства, разработанный топ-финансовыми консультантами мира.",
+    elite_network: "Доступ к элитной сети успешных предпринимателей и инвесторов для совместных проектов.",
+    millionaire_habits: "Ежедневные привычки и ритуалы миллионеров, которые приведут вас к финансовому успеху.",
+    ultimate_formula: "Легендарная формула успеха, которая помогла сотням людей стать миллионерами."
   };
   
   details.innerHTML = `
     <div style="background: rgba(255, 215, 0, 0.1); padding: 16px; border-radius: 12px; margin: 16px 0; border: 1px solid var(--conspiracy);">
       <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">
-        ${descriptions[prize.id] || "Таинственный артефакт из коллекции Эпштейна."}
+        ${descriptions[prize.id] || "Ценный ресурс для достижения финансового успеха."}
       </p>
     </div>
     <div style="color: var(--conspiracy); font-weight: 600; margin-top: 16px;">
@@ -284,15 +287,30 @@ async function saveCasePrize(prize) {
   
   try {
     await supabase
-      .from('roulette_history')
+      .from('case_history')
       .insert({
-        user_id: String(userData.telegramId),
+        user_id: userData.telegramId,
         prize_id: prize.id,
         prize_name: prize.name,
-        won_at: new Date().toISOString()
+        won_at: new Date().toISOString(),
+        source: 'success_case'
       });
   } catch (error) {
-    // console.error('Ошибка сохранения приза:', error);
+    console.error('Ошибка сохранения приза:', error);
+    // Fallback to roulette_history table if case_history doesn't exist
+    try {
+      await supabase
+        .from('roulette_history')
+        .insert({
+          user_id: userData.telegramId,
+          prize_id: prize.id,
+          prize_name: prize.name,
+          won_at: new Date().toISOString(),
+          source: 'success_case'
+        });
+    } catch (fallbackError) {
+      console.error('Fallback ошибка сохранения приза:', fallbackError);
+    }
   }
 }
 
@@ -327,12 +345,31 @@ async function showHistoryModal() {
   }
   
   try {
-    const { data, error } = await supabase
-      .from('roulette_history')
-      .select('*')
-      .eq('user_id', String(userData.telegramId))
-      .order('won_at', { ascending: false })
-      .limit(20);
+    // Try case_history first, fallback to roulette_history
+    let data, error;
+    
+    try {
+      const result = await supabase
+        .from('case_history')
+        .select('*')
+        .eq('user_id', userData.telegramId)
+        .eq('source', 'epstein_case')
+        .order('won_at', { ascending: false })
+        .limit(20);
+      data = result.data;
+      error = result.error;
+    } catch (caseError) {
+      // Fallback to roulette_history
+      const result = await supabase
+        .from('roulette_history')
+        .select('*')
+        .eq('user_id', userData.telegramId)
+        .eq('source', 'epstein_case')
+        .order('won_at', { ascending: false })
+        .limit(20);
+      data = result.data;
+      error = result.error;
+    }
     
     if (error) {
       content.innerHTML = '<p style="text-align: center; color: var(--error);">Ошибка загрузки истории</p>';
@@ -358,7 +395,7 @@ async function showHistoryModal() {
       `;
     }
   } catch (error) {
-    // console.error('Ошибка загрузки истории:', error);
+    console.error('Ошибка загрузки истории:', error);
     content.innerHTML = '<p style="text-align: center; color: var(--error);">Ошибка загрузки истории</p>';
   }
   
@@ -398,245 +435,6 @@ function navigateToQuest(questId) {
   }, 500);
 }
 
-/* ====== Daily Rewards System ====== */
-
-const DAILY_REWARDS = [10, 15, 15, 20, 20, 25, 50];
-
-function checkDailyRewardModal() {
-  // Проверяем URL параметр для автоматического показа модала
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('daily') === 'true') {
-    setTimeout(() => {
-      showDailyRewardsModal();
-    }, 1000);
-  }
-}
-
-async function showDailyRewardsModal() {
-  const modal = $('#dailyRewardsModal');
-  if (!modal) return;
-
-  try {
-    // Загружаем статус ежедневных наград
-    const status = await getDailyRewardStatus();
-    updateDailyRewardsUI(status);
-    
-    modal.style.display = 'flex';
-    setTimeout(() => modal.classList.add('show'), 10);
-    
-  } catch (error) {
-    // console.error('Ошибка при показе модала ежедневных наград:', error);
-    showToast('Ошибка загрузки ежедневных наград', 'error');
-  }
-}
-
-function hideDailyRewardsModal() {
-  const modal = $('#dailyRewardsModal');
-  if (!modal) return;
-  
-  modal.classList.remove('show');
-  setTimeout(() => {
-    modal.style.display = 'none';
-  }, 300);
-}
-
-async function getDailyRewardStatus() {
-  try {
-    const userId = getUserId();
-    if (!userId) return getDefaultDailyStatus();
-
-    const { data, error } = await supabase
-      .from('daily_rewards')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      // console.error('Ошибка при загрузке статуса ежедневных наград:', error);
-      return getDefaultDailyStatus();
-    }
-
-    if (!data) {
-      // Создаем новую запись
-      const newRecord = {
-        user_id: userId,
-        current_day: 1,
-        last_claimed: null,
-        streak_active: true
-      };
-      
-      await supabase.from('daily_rewards').insert(newRecord);
-      return newRecord;
-    }
-
-    // Проверяем стрик и возможность получения награды
-    const now = new Date();
-    let canClaim = true;
-    let nextClaimTime = null;
-
-    if (data.last_claimed) {
-      const lastClaimed = new Date(data.last_claimed);
-      const timeDiff = now - lastClaimed;
-      const hoursSinceLastClaim = timeDiff / (1000 * 60 * 60);
-
-      // Если прошло менее 24 часов - награда недоступна
-      if (hoursSinceLastClaim < 24) {
-        canClaim = false;
-        nextClaimTime = new Date(lastClaimed.getTime() + 24 * 60 * 60 * 1000);
-      }
-      
-      // Если прошло более 48 часов - сбрасываем стрик
-      if (hoursSinceLastClaim > 48) {
-        await supabase
-          .from('daily_rewards')
-          .update({ current_day: 1, streak_active: true })
-          .eq('user_id', userId);
-        data.current_day = 1;
-      }
-    }
-
-    return {
-      ...data,
-      can_claim: canClaim,
-      next_claim_time: nextClaimTime
-    };
-
-  } catch (error) {
-    // console.error('Ошибка при получении статуса ежедневных наград:', error);
-    return getDefaultDailyStatus();
-  }
-}
-
-function getDefaultDailyStatus() {
-  return {
-    current_day: 1,
-    can_claim: true,
-    streak_active: true,
-    last_claimed: null,
-    next_claim_time: null
-  };
-}
-
-function updateDailyRewardsUI(status) {
-  const currentDay = status.current_day || 1;
-  const canClaim = status.can_claim !== false;
-  
-  // Обновляем состояние дней
-  for (let day = 1; day <= 7; day++) {
-    const dayElement = $(`.daily-item[data-day="${day}"]`);
-    if (!dayElement) continue;
-    
-    dayElement.classList.remove('current', 'completed', 'locked');
-    
-    if (day < currentDay) {
-      dayElement.classList.add('completed');
-    } else if (day === currentDay) {
-      dayElement.classList.add('current');
-    } else {
-      dayElement.classList.add('locked');
-    }
-  }
-  
-  // Обновляем кнопку получения
-  const claimButton = $('#claimDailyReward');
-  const timerDiv = $('#dailyTimer');
-  
-  if (canClaim) {
-    claimButton.disabled = false;
-    claimButton.querySelector('.btn-text').textContent = 'Получить';
-    timerDiv.style.display = 'none';
-  } else {
-    claimButton.disabled = true;
-    claimButton.querySelector('.btn-text').textContent = 'Получено';
-    
-    if (status.next_claim_time) {
-      timerDiv.style.display = 'block';
-      startCountdown(status.next_claim_time);
-    }
-  }
-}
-
-function startCountdown(targetTime) {
-  const timerText = $('#timerText');
-  if (!timerText) return;
-  
-  const updateTimer = () => {
-    const now = new Date();
-    const diff = targetTime - now;
-    
-    if (diff <= 0) {
-      timerText.textContent = '00:00:00';
-      // Обновляем статус наград
-      setTimeout(() => {
-        showDailyRewardsModal();
-      }, 1000);
-      return;
-    }
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    timerText.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-  
-  updateTimer();
-  setInterval(updateTimer, 1000);
-}
-
-async function claimDailyReward() {
-  try {
-    const userId = getUserId();
-    if (!userId) {
-      showToast('Ошибка: пользователь не найден', 'error');
-      return;
-    }
-
-    const status = await getDailyRewardStatus();
-    if (!status.can_claim) {
-      showToast('Награда еще недоступна', 'warning');
-      return;
-    }
-
-    const currentDay = status.current_day || 1;
-    const rewardAmount = DAILY_REWARDS[Math.min(currentDay - 1, DAILY_REWARDS.length - 1)];
-
-    // Обновляем баланс пользователя
-    await addMulacoin(rewardAmount);
-
-    // Обновляем статус ежедневной награды
-    const nextDay = currentDay >= 7 ? 1 : currentDay + 1;
-    
-    await supabase
-      .from('daily_rewards')
-      .update({
-        current_day: nextDay,
-        last_claimed: new Date().toISOString(),
-        streak_active: true
-      })
-      .eq('user_id', userId);
-
-    // Показываем успешное получение
-    showToast(`🎉 Получено ${rewardAmount} MULACOIN!`, 'success');
-    
-    // Обновляем UI
-    const newStatus = {
-      ...status,
-      current_day: nextDay,
-      can_claim: false,
-      last_claimed: new Date().toISOString(),
-      next_claim_time: new Date(Date.now() + 24 * 60 * 60 * 1000)
-    };
-    
-    updateDailyRewardsUI(newStatus);
-    loadBalance(); // Обновляем баланс на странице
-
-  } catch (error) {
-    // console.error('Ошибка при получении ежедневной награды:', error);
-    showToast('Ошибка при получении награды', 'error');
-  }
-}
-
 /* ====== Event Listeners ====== */
 function bindEvents() {
   // Back button
@@ -647,16 +445,6 @@ function bindEvents() {
   $('#buySpinCase')?.addEventListener('click', () => spinCaseRoulette(false));
   $('#showPrizes')?.addEventListener('click', showPrizesModal);
   $('#showHistory')?.addEventListener('click', showHistoryModal);
-  
-  // Lore navigation
-  $('#loreIsland')?.addEventListener('click', () => navigateToQuest('world-government'));
-  $('#loreSymbols')?.addEventListener('click', () => navigateToQuest('body-language'));
-  $('#loreData')?.addEventListener('click', () => navigateToQuest('control-archives'));
-  
-  // Daily rewards events
-  $('#dailyRewardsBtn')?.addEventListener('click', showDailyRewardsModal);
-  $('#claimDailyReward')?.addEventListener('click', claimDailyReward);
-  $('#closeDailyModal')?.addEventListener('click', hideDailyRewardsModal);
   
   // Modal controls
   $('#closePrizesModal')?.addEventListener('click', () => closeModal('#prizesModal'));
@@ -671,11 +459,20 @@ function bindEvents() {
       }
     });
   });
+  
+  // Lore card navigation
+  $('#islandSecretsCard')?.addEventListener('click', () => {
+    navigateToQuest('world-government');
+  });
+  
+  $('#powerSymbolsCard')?.addEventListener('click', () => {
+    navigateToQuest('bodylang');
+  });
 }
 
 /* ====== Initialization ====== */
 document.addEventListener('DOMContentLoaded', async function() {
-  // console.log('Кейс Эпштейна загружается...');
+  console.log('Кейс Финансового Успеха загружается...');
   
   // Initialize Telegram
   initTG();
@@ -694,15 +491,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Bind events
   bindEvents();
   
-  // Check for daily reward modal
-  checkDailyRewardModal();
-  
   // Hide page transition
   hidePageTransition();
   
   // Update UI
   updateUI();
   
-  // console.log('Кейс Эпштейна готов к использованию');
-  toast('Добро пожаловать в тайную лабораторию...', 'success');
+  console.log('Кейс Финансового Успеха готов к использованию');
+  toast('Добро пожаловать в академию успеха!', 'success');
 });

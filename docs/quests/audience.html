@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>👥 Профиль Жертв — Тайная Академия</title>
+  <title>Анализ аудитории — Квест‑Хаб</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
@@ -394,8 +394,8 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Профиль Жертв</h1>
-        <div class="badge">Манипуляции</div>
+        <h1>Анализ аудитории</h1>
+        <div class="badge">Демография</div>
       </div>
       <div class="actions">
         <button id="btnBack" class="btn ghost">← Назад</button>
@@ -404,13 +404,13 @@
 
     <div class="quest-container">
       <div class="quest-header">
-        <h2>🩸 Профиль Жертв</h2>
-        <div class="theme">Манипуляции • Средний уровень</div>
+        <h2>👥 Анализ аудитории</h2>
+        <div class="theme">Демография • Средний уровень</div>
       </div>
 
       <div class="quest-content">
         <div class="banner">
-          <strong>Задача:</strong> Составь психопрофиль групп, наиболее уязвимых к воздействию элиты. Отвечай на вопросы по данным и <b>выявляй слабые точки</b>.
+          <strong>Задача:</strong> Изучи демографические данные аудитории и ответь на вопросы о целевой группе.
         </div>
 
         <div class="audience-analyzer" id="audienceAnalyzer">
@@ -527,7 +527,6 @@
       questionsPerGame: 5,
       rewards: { fragments: 3, experience: 70 }
     };
-    const REWARDS = { mulacoin: 3, experience: 70 };
 
     // Шаблоны аудиторий
     const AUDIENCE_TEMPLATES = [
@@ -869,19 +868,17 @@
       if (type === 'correct') {
         resultIcon.textContent = '🎯';
         resultTitle.textContent = 'Правильно!';
-        resultDescription.textContent = 'Вы верно определили уязвимость профиля. Продолжайте.';
+        resultDescription.textContent = 'Вы верно проанализировали аудиторию.';
       } else {
         resultIcon.textContent = '❌';
         resultTitle.textContent = 'Неверно';
-        const correctIndex = gameState.currentQuestion.correct;
-        const correctText = gameState.currentQuestion.options[correctIndex];
-        resultDescription.textContent = `Верный ответ: ${correctText}`;
+        resultDescription.textContent = 'Попробуйте внимательнее изучить демографические данные.';
       }
       
       resultPanel.classList.add('show');
     }
 
-    async function endGame() {
+    function endGame() {
       gameState.isRunning = false;
       startBtn.style.display = 'inline-block';
       nextBtn.style.display = 'none';
@@ -895,34 +892,6 @@
       } else {
         toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
       }
-
-      try {
-        const bonus = accuracy >= 80 ? 1 : 0;
-        if (window.addRewards) {
-          await window.addRewards(
-            REWARDS.mulacoin + bonus,
-            REWARDS.experience,
-            'audience',
-            'Профиль Жертв',
-            'medium'
-          );
-        }
-      } catch (e) { /* ignore */ }
-
-      const summaryMulacoin = REWARDS.mulacoin + (accuracy >= 80 ? 1 : 0);
-      resultIcon.textContent = '🏁';
-      resultTitle.textContent = 'Сессия завершена';
-      resultDescription.innerHTML = `Точность: <b>${accuracy}%</b><br>Награда: <b>+${summaryMulacoin} MULACOIN</b> и <b>+${REWARDS.experience} XP</b>`;
-      resultPanel.classList.add('show');
-      const actions = document.createElement('div');
-      actions.style.marginTop = '12px';
-      actions.innerHTML = `
-        <button class=\"btn primary\" id=\"playAgainBtn\">Играть снова</button>
-        <button class=\"btn ghost\" id=\"backToMenuBtn\">В меню</button>
-      `;
-      resultPanel.appendChild(actions);
-      document.getElementById('playAgainBtn').onclick = () => { resetGame(); startBtn.click(); };
-      document.getElementById('backToMenuBtn').onclick = () => { window.location.href = '../quests.html'; };
     }
 
     function resetGame() {

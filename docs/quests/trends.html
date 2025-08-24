@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>🔮 Планы на Будущее — Тайная Академия</title>
+  <title>Анализ трендов — Квест‑Хаб</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
@@ -16,26 +16,6 @@
       padding: 30px;
       position: relative;
       overflow: hidden;
-    }
-    /* Prison visual overlay */
-    .prison-overlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 999; /* ниже модалов */
-      background-image: url('../assets/rulette/kletka.png');
-      background-repeat: repeat;
-      background-position: center;
-      background-size: 280px auto;
-      opacity: 0.5;
-      mix-blend-mode: normal;
-    }
-    .prison-vignette {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 998;
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%);
     }
     
     .trends-panel {
@@ -367,13 +347,11 @@
 </head>
 <body>
   <div id="app" class="app">
-    <div class="prison-vignette"></div>
-    <div class="prison-overlay"></div>
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Планы на Будущее</h1>
-        <div class="badge">Тюрьма</div>
+        <h1>Анализ трендов</h1>
+        <div class="badge">Рынок</div>
       </div>
       <div class="actions">
         <button id="btnBack" class="btn ghost">← Назад</button>
@@ -382,20 +360,20 @@
 
     <div class="quest-container">
       <div class="quest-header">
-        <h2>🧱 Камера 313: Анализ планов</h2>
-        <div class="theme">Тюрьма • Сложный уровень</div>
+        <h2>📈 Анализ трендов</h2>
+        <div class="theme">Рынок • Сложный уровень</div>
       </div>
 
       <div class="quest-content">
         <div class="banner">
-          <strong>Задача:</strong> Ты в изоляции. На стол попали обрывки планов элиты. Собери картину и выбери <b>наиболее вероятный следующий ход</b> теневого правительства.
+          <strong>Задача:</strong> Изучи рыночные тренды и выбери наиболее перспективное направление для инвестиций.
         </div>
 
         <div class="trends-analyzer" id="trendsAnalyzer">
           <div class="analysis-panel">
-            <div class="analysis-title">Сбор фрагментов плана</div>
+            <div class="analysis-title">Анализ рыночных трендов</div>
             <div class="analysis-description">
-              Вспомни допросы и перехваты. Сопоставь фрагменты — выбери наиболее вероятный ход элиты.
+              Изучите данные трендов и выберите наиболее перспективное направление.
             </div>
             
             <div class="market-overview">
@@ -433,7 +411,7 @@
           </div>
 
           <div class="trends-panel">
-            <div class="trends-title">Фрагменты «плана»</div>
+            <div class="trends-title">Рыночные тренды</div>
             <div class="trends-grid" id="trendsGrid">
               <!-- Тренды будут добавлены динамически -->
             </div>
@@ -475,16 +453,15 @@
       trendsPerRound: 4,
       rewards: { fragments: 4, experience: 90 }
     };
-    const REWARDS = { mulacoin: 4, experience: 90 };
 
     // Шаблоны трендов
     const TREND_TEMPLATES = [
       {
         id: 1,
-        name: 'Унификация цифровой идентичности',
-        category: 'Контроль',
+        name: 'Искусственный интеллект',
+        category: 'Технологии',
         icon: '🤖',
-        description: 'Единый идентификатор для граждан. Узлы доступа в руках корпораций.',
+        description: 'Машинное обучение и нейросети в бизнесе',
         marketSize: 150,
         growth: 25,
         investment: 45,
@@ -493,10 +470,10 @@
       },
       {
         id: 2,
-        name: 'Безналичный мир',
-        category: 'Финансы',
+        name: 'Электронная коммерция',
+        category: 'Розничная торговля',
         icon: '🛒',
-        description: 'Полный отказ от наличных. Транзакции прозрачно фильтруются.',
+        description: 'Онлайн-продажи и маркетплейсы',
         marketSize: 280,
         growth: 18,
         investment: 35,
@@ -505,10 +482,10 @@
       },
       {
         id: 3,
-        name: '«Зелёные» квоты поведения',
+        name: 'Зеленые технологии',
         category: 'Экология',
         icon: '🌱',
-        description: 'Персональные лимиты CO₂ превращают свободу в баллы послушания.',
+        description: 'Возобновляемая энергетика и экологичность',
         marketSize: 120,
         growth: 32,
         investment: 28,
@@ -517,10 +494,10 @@
       },
       {
         id: 4,
-        name: 'CBDC и умные санкции',
+        name: 'Финансовые технологии',
         category: 'Финансы',
         icon: '💳',
-        description: 'Цифровая валюта центробанков с функцией отключения «неугодных».',
+        description: 'Цифровые платежи и криптовалюты',
         marketSize: 200,
         growth: 22,
         investment: 55,
@@ -529,10 +506,10 @@
       },
       {
         id: 5,
-        name: 'Биометрический мониторинг',
+        name: 'Здоровье и велнес',
         category: 'Здравоохранение',
         icon: '🏥',
-        description: 'Браслеты и импланты: здоровье — предлог, данные — цель.',
+        description: 'Телемедицина и цифровое здоровье',
         marketSize: 180,
         growth: 20,
         investment: 40,
@@ -541,10 +518,10 @@
       },
       {
         id: 6,
-        name: 'Алгоритмическая цензура',
-        category: 'Медиа',
+        name: 'Образовательные технологии',
+        category: 'Образование',
         icon: '📚',
-        description: 'Рекомендательные системы гасят инакомыслие под видом заботы.',
+        description: 'Онлайн-обучение и EdTech',
         marketSize: 90,
         growth: 28,
         investment: 25,
@@ -553,10 +530,10 @@
       },
       {
         id: 7,
-        name: 'Глобальный периметр слежки',
+        name: 'Кибербезопасность',
         category: 'Безопасность',
         icon: '🔒',
-        description: 'Камеры, GSM‑ловушки, спутники. Без слепых зон.',
+        description: 'Защита данных и информационная безопасность',
         marketSize: 160,
         growth: 15,
         investment: 30,
@@ -565,10 +542,10 @@
       },
       {
         id: 8,
-        name: 'Робоконтроль общественного порядка',
+        name: 'Автоматизация',
         category: 'Промышленность',
         icon: '⚙️',
-        description: 'Дроны, автопатрули, ИИ‑надзор. Ошибка — не предусмотрена.',
+        description: 'Роботизация и промышленная автоматизация',
         marketSize: 110,
         growth: 12,
         investment: 20,
@@ -818,22 +795,20 @@
     }
 
     function showResult(type, selectedTrend, mostPromising = null) {
-      const selScore = calculatePotentialScore(selectedTrend).toFixed(1);
-      const bestScore = mostPromising ? calculatePotentialScore(mostPromising).toFixed(1) : selScore;
       if (type === 'correct') {
         resultIcon.textContent = '🎯';
-        resultTitle.textContent = 'Собрано!';
-        resultDescription.textContent = `Вероятный ход: ${selectedTrend.name}. Индекс потенциала: ${selScore}`;
+        resultTitle.textContent = 'Правильно!';
+        resultDescription.textContent = `Самый перспективный тренд: ${selectedTrend.name} (рост: +${selectedTrend.growth}%, инвестиции: $${selectedTrend.investment}M)`;
       } else {
         resultIcon.textContent = '❌';
-        resultTitle.textContent = 'Сбой анализа';
-        resultDescription.textContent = `Вы выбрали ${selectedTrend.name} (индекс ${selScore}). Более вероятно: ${mostPromising.name} (индекс ${bestScore}).`;
+        resultTitle.textContent = 'Неверно';
+        resultDescription.textContent = `Вы выбрали ${selectedTrend.name}. Самый перспективный: ${mostPromising.name} (рост: +${mostPromising.growth}%, инвестиции: $${mostPromising.investment}M)`;
       }
       
       resultPanel.classList.add('show');
     }
 
-    async function endGame() {
+    function endGame() {
       gameState.isRunning = false;
       startBtn.style.display = 'inline-block';
       nextBtn.style.display = 'none';
@@ -841,40 +816,12 @@
       const accuracy = Math.round((gameState.correctAnswers / QUEST_CONFIG.roundsPerGame) * 100);
       
       if (accuracy >= 80) {
-        toast(`🎉 Вы выжили в изоляции. Точность: ${accuracy}%`, 'success');
+        toast(`🎉 Отличная работа! Точность: ${accuracy}%`, 'success');
       } else if (accuracy >= 60) {
-        toast(`👍 Держитесь. Точность: ${accuracy}%`, 'info');
+        toast(`👍 Хорошо! Точность: ${accuracy}%`, 'info');
       } else {
-        toast(`😔 Недостаточно улик. Точность: ${accuracy}%`, 'warning');
+        toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
       }
-
-      try {
-        const bonus = accuracy >= 80 ? 2 : 0;
-        if (window.addRewards) {
-          await window.addRewards(
-            REWARDS.mulacoin + bonus,
-            REWARDS.experience,
-            'trends',
-            'Планы на Будущее (Камера)',
-            'hard'
-          );
-        }
-      } catch (e) { /* ignore */ }
-
-      const summaryMulacoin = REWARDS.mulacoin + (accuracy >= 80 ? 2 : 0);
-      resultIcon.textContent = '🏁';
-      resultTitle.textContent = 'Смена заключена';
-      resultDescription.innerHTML = `Точность: <b>${accuracy}%</b><br>Награда: <b>+${summaryMulacoin} MULACOIN</b> и <b>+${REWARDS.experience} XP</b>`;
-      resultPanel.classList.add('show');
-      const actions = document.createElement('div');
-      actions.style.marginTop = '12px';
-      actions.innerHTML = `
-        <button class="btn primary" id="playAgainBtn">Сыграть ещё</button>
-        <button class="btn ghost" id="backToMenuBtn">В меню</button>
-      `;
-      resultPanel.appendChild(actions);
-      document.getElementById('playAgainBtn').onclick = () => { resetGame(); startBtn.click(); };
-      document.getElementById('backToMenuBtn').onclick = () => { window.location.href = '../quests.html'; };
     }
 
     function resetGame() {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>👑 Борьба Династий — Тайная Академия</title>
+  <title>Анализ конкурентов — Квест‑Хаб</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
@@ -347,8 +347,8 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>Борьба Династий</h1>
-        <div class="badge">Кланы</div>
+        <h1>Анализ конкурентов</h1>
+        <div class="badge">Стратегия</div>
       </div>
       <div class="actions">
         <button id="btnBack" class="btn ghost">← Назад</button>
@@ -357,13 +357,13 @@
 
     <div class="quest-container">
       <div class="quest-header">
-        <h2>🩸 Борьба Династий</h2>
-        <div class="theme">Кланы • Сложный уровень</div>
+        <h2>🏆 Анализ конкурентов</h2>
+        <div class="theme">Стратегия • Сложный уровень</div>
       </div>
 
       <div class="quest-content">
         <div class="banner">
-          <strong>Задача:</strong> Отследи скрытую войну кланов и выбери <b>семью с максимальным влиянием</b> в текущем раунде.
+          <strong>Задача:</strong> Изучи конкурентную среду и выбери наиболее сильного конкурента в отрасли.
         </div>
 
         <div class="competitor-analyzer" id="competitorAnalyzer">
@@ -447,80 +447,79 @@
       competitorsPerRound: 4,
       rewards: { fragments: 5, experience: 120 }
     };
-    const REWARDS = { mulacoin: 5, experience: 120 };
 
     // Шаблоны конкурентов
     const COMPETITOR_TEMPLATES = [
       {
         id: 1,
-        name: 'Ротшильды',
-        category: 'Финансы',
-        avatar: 'R',
+        name: 'TechCorp',
+        category: 'Технологии',
+        avatar: 'T',
         revenue: 150,
         marketShare: 25,
         growth: 18,
         rating: 4.5,
-        features: ['Банки', 'Золото', 'Дипломатия'],
+        features: ['AI', 'Облако', 'Мобильность'],
         threatLevel: 'high'
       },
       {
         id: 2,
-        name: 'Рокфеллеры',
-        category: 'Энергетика',
-        avatar: 'F',
-        revenue: 180,
-        marketShare: 28,
-        growth: 16,
-        rating: 4.6,
-        features: ['Нефть', 'Фонды', 'Лобби'],
-        threatLevel: 'high'
+        name: 'InnovateLab',
+        category: 'Стартап',
+        avatar: 'I',
+        revenue: 45,
+        marketShare: 8,
+        growth: 35,
+        rating: 4.2,
+        features: ['Инновации', 'Быстрота', 'Гибкость'],
+        threatLevel: 'medium'
       },
       {
         id: 3,
-        name: 'Виндзоры',
-        category: 'Монархия',
-        avatar: 'W',
-        revenue: 140,
-        marketShare: 18,
-        growth: 8,
-        rating: 4.4,
-        features: ['Протокол', 'Сети влияния', 'Титулы'],
-        threatLevel: 'medium'
+        name: 'GlobalSoft',
+        category: 'Корпорация',
+        avatar: 'G',
+        revenue: 280,
+        marketShare: 40,
+        growth: 12,
+        rating: 4.8,
+        features: ['Глобальность', 'Стабильность', 'Ресурсы'],
+        threatLevel: 'very_high'
       },
       {
         id: 4,
-        name: 'Дюпоны',
-        category: 'Химия',
-        avatar: 'D',
-        revenue: 90,
-        marketShare: 12,
-        growth: 22,
-        rating: 4.1,
-        features: ['Материалы', 'Патенты', 'Технологии'],
-        threatLevel: 'medium'
+        name: 'StartUpX',
+        category: 'Стартап',
+        avatar: 'S',
+        revenue: 25,
+        marketShare: 5,
+        growth: 45,
+        rating: 3.9,
+        features: ['Скорость', 'Адаптация', 'Креативность'],
+        threatLevel: 'low'
       },
       {
         id: 5,
-        name: 'Соросы',
-        category: 'Фонды',
-        avatar: 'S',
-        revenue: 110,
-        marketShare: 14,
-        growth: 20,
-        rating: 4.2,
-        features: ['НКО', 'Капитал', 'Нарративы'],
+        name: 'EnterprisePro',
+        category: 'Корпорация',
+        avatar: 'E',
+        revenue: 200,
+        marketShare: 30,
+        growth: 15,
+        rating: 4.6,
+        features: ['Надежность', 'Поддержка', 'Интеграция'],
         threatLevel: 'high'
       },
       {
         id: 6,
-        name: 'Карнеги',
-        category: 'Промышленность',
-        avatar: 'C',
-        revenue: 95,
-        marketShare: 10,
-        growth: 12,
-        rating: 4.0,
-        features: ['Сталь', 'Инфраструктура', 'Фонды'],
+        name: 'AgileTech',
+        category: 'Средний бизнес',
+        avatar: 'A',
+        revenue: 80,
+        marketShare: 12,
+        growth: 22,
+        rating: 4.3,
+        features: ['Адаптивность', 'Качество', 'Сервис'],
         threatLevel: 'medium'
       }
     ];
@@ -748,7 +747,7 @@
       
       if (isCorrect) {
         gameState.correctAnswers++;
-        showResult('correct', competitor, mostThreatening);
+        showResult('correct', competitor);
         toast('🎯 Правильно! Отличный анализ!', 'success');
       } else {
         showResult('wrong', competitor, mostThreatening);
@@ -770,27 +769,25 @@
     }
 
     function calculateThreatScore(competitor) {
-      // Влияние клана: (Капитал * 0.3) + (Доля * 0.35) + (Рост сетей * 0.2) + (Репутация * 0.15)
-      return (competitor.revenue * 0.3) + (competitor.marketShare * 0.35) + (competitor.growth * 0.2) + (competitor.rating * 0.15);
+      // Формула оценки угрозы: (Доход * 0.3) + (Доля рынка * 0.4) + (Рост * 0.2) + (Рейтинг * 0.1)
+      return (competitor.revenue * 0.3) + (competitor.marketShare * 0.4) + (competitor.growth * 0.2) + (competitor.rating * 0.1);
     }
 
     function showResult(type, selectedCompetitor, mostThreatening = null) {
-      const selScore = calculateThreatScore(selectedCompetitor).toFixed(1);
-      const bestScore = mostThreatening ? calculateThreatScore(mostThreatening).toFixed(1) : selScore;
       if (type === 'correct') {
         resultIcon.textContent = '🎯';
         resultTitle.textContent = 'Правильно!';
-        resultDescription.textContent = `Самый влиятельный клан: ${selectedCompetitor.name}. Счёт влияния: ${selScore}`;
+        resultDescription.textContent = `Самый опасный конкурент: ${selectedCompetitor.name} (доход: $${selectedCompetitor.revenue}M, доля рынка: ${selectedCompetitor.marketShare}%)`;
       } else {
         resultIcon.textContent = '❌';
         resultTitle.textContent = 'Неверно';
-        resultDescription.textContent = `Вы выбрали ${selectedCompetitor.name} (счёт ${selScore}). Верный выбор: ${mostThreatening.name} (счёт ${bestScore}).`;
+        resultDescription.textContent = `Вы выбрали ${selectedCompetitor.name}. Самый опасный: ${mostThreatening.name} (доход: $${mostThreatening.revenue}M, доля рынка: ${mostThreatening.marketShare}%)`;
       }
       
       resultPanel.classList.add('show');
     }
 
-    async function endGame() {
+    function endGame() {
       gameState.isRunning = false;
       startBtn.style.display = 'inline-block';
       nextBtn.style.display = 'none';
@@ -804,34 +801,6 @@
       } else {
         toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
       }
-
-      try {
-        const bonus = accuracy >= 80 ? 2 : 0;
-        if (window.addRewards) {
-          await window.addRewards(
-            REWARDS.mulacoin + bonus,
-            REWARDS.experience,
-            'competitors',
-            'Борьба Династий',
-            'hard'
-          );
-        }
-      } catch (e) { /* ignore */ }
-
-      const summaryMulacoin = REWARDS.mulacoin + (accuracy >= 80 ? 2 : 0);
-      resultIcon.textContent = '🏁';
-      resultTitle.textContent = 'Сессия завершена';
-      resultDescription.innerHTML = `Точность: <b>${accuracy}%</b><br>Награда: <b>+${summaryMulacoin} MULACOIN</b> и <b>+${REWARDS.experience} XP</b>`;
-      resultPanel.classList.add('show');
-      const actions = document.createElement('div');
-      actions.style.marginTop = '12px';
-      actions.innerHTML = `
-        <button class="btn primary" id="playAgainBtn">Играть снова</button>
-        <button class="btn ghost" id="backToMenuBtn">В меню</button>
-      `;
-      resultPanel.appendChild(actions);
-      document.getElementById('playAgainBtn').onclick = () => { resetGame(); startBtn.click(); };
-      document.getElementById('backToMenuBtn').onclick = () => { window.location.href = '../quests.html'; };
     }
 
     function resetGame() {
