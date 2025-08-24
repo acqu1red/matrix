@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>🏝️ Эпштейн Академия</title>
+  <title>💰 Академия Миллионеров</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
@@ -22,11 +22,24 @@
 
 </head>
 <body>
+  <!-- Падающие монеты богатства -->
+  <div class="falling-coins" id="fallingCoins">
+    <div class="coin">🪙</div>
+    <div class="coin">💰</div>
+    <div class="coin">💵</div>
+    <div class="coin">🪙</div>
+    <div class="coin">💎</div>
+    <div class="coin">💳</div>
+    <div class="coin">🪙</div>
+    <div class="coin">💰</div>
+    <div class="coin">💵</div>
+  </div>
+
   <div id="app" class="app">
     <header class="glass topbar">
       <div class="brand">
-        <span class="logoGlow"></span>
-        <h1>💀 Тайная Академия Эпштейна</h1>
+        <span class="logoGlow wealth-animation"></span>
+        <h1 class="wealth-animation">💰 Академия Миллионеров</h1>
       </div>
       <div class="actions">
         <button id="btnHistory" class="btn ghost">📊</button>
@@ -36,10 +49,10 @@
 
     <div class="currency-bar glass">
       <div class="currency-info">
-        <div class="mulacoin-display">
-          <span class="currency-icon">🪙</span>
-          <span class="currency-amount" id="mulacoinAmount">0</span>
-          <span class="currency-label">mulacoin</span>
+        <div class="mulacoin-display money-pulse">
+          <span class="currency-icon diamond-sparkle">🪙</span>
+          <span class="currency-amount wealth-animation" id="mulacoinAmount">0</span>
+          <span class="currency-label">goldcoin</span>
         </div>
         <div class="level-display" id="levelDisplay">
           <span class="level-icon">⭐</span>
@@ -56,17 +69,17 @@
           <img id="caseImage" class="case-image" alt="Кейс" />
         </button>
         <div class="case-caption">
-          <h2>💀 Архивы Эпштейна</h2>
-          <p>Тайные документы с острова миллиардера раскрывают механизмы контроля элиты</p>
+          <h2 class="wealth-animation">💰 Казна Миллионера</h2>
+          <p>🎆 <strong>ОТКРОЙТЕ КЛАД ЗОЛОТЫХ ВОЗМОЖНОСТЕЙ!</strong> 💰 Каждый клик — это шаг к миллионам! Вы на пути к финансовой свободе уже сегодня!</p>
         </div>
       </div>
     </div>
 
     <section class="hero">
       <div class="heroCopy glass">
-        <h2>🔺 Добро пожаловать в тайные архивы острова</h2>
-        <p>Здесь элита обучала искусству <b>психологического контроля</b> и <b>манипуляций массами</b>. Изучай секретные методики влияния на мировые процессы.</p>
-        <p class="note">⚠️ Доступ к полному архиву требует <b>особого разрешения</b>. Неподготовленные умы могут не выдержать правды о мироустройстве.</p>
+        <h2 class="wealth-animation">🚀 Добро пожаловать в Академию Миллионеров!</h2>
+        <p>🚀 <strong>Здесь начинается ваш путь к финансовой независимости!</strong> Освойте <b>систему притягивания богатства</b> и <b>создания империи успеха</b>. Превратите свои мечты в реальные доходы!</p>
+        <p class="note">💰 <strong>СПЕЦПРЕДЛОЖЕНИЕ!</strong> Это ваш <b>бесплатный старт</b> в мир миллионов! 🎆 <em>Полная программа по созданию пассивного дохода ждёт в приватном канале!</em></p>
       </div>
     </section>
 
@@ -76,8 +89,8 @@
 
     <footer class="foot glass">
       <div class="hint">
-        <span>👁️</span>
-        <span>Помни: каждый день архивы пополняются новыми секретными материалами. Истина скрыта в деталях.</span>
+        <span>💰</span>
+        <span>🚀 <strong>КАЖДЫЙ ДЕНЬ — НОВАЯ ВОЗМОЖНОСТЬ СТАТЬ БОГАЧЕ!</strong> 💵 Вы на пути к финансовой империи! Миллионы создаются из правильных ежедневных решений!</span>
       </div>
     </footer>
   </div>

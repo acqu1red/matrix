@@ -3,28 +3,34 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>🔮 Тайная Рулетка Заговора</title>
+  <title>💰 Колесо Финансового Успеха</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Creepster&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0a0a; --text:#fff; --muted:#aaa; --accent:#e2e8f0;
-      --ring: rgba(255,255,255,.08); --ring-2: rgba(255,255,255,.2);
-      --radius: 18px; --primary: #ffffff; --secondary: #000000; --dark: #1a1a1a;
+      --bg: #0a0a0a; --text:#fff; --muted:#aaa; --accent:#FFD700;
+      --ring: rgba(255,215,0,.08); --ring-2: rgba(255,215,0,.2);
+      --radius: 18px; --primary: #FFD700; --secondary: #000000; --dark: #1a1a1a;
+      --success: #00FF88; --money-green: #4CAF50; --bitcoin: #F7931A;
     }
     *{ box-sizing:border-box; margin:0; padding:0; }
     
     body{
       font-family:'Inter', system-ui; 
-      background: url('./assets/photovideo/wtf.png') center/cover fixed no-repeat, 
-                  radial-gradient(ellipse at center, rgba(255,255,255,0.1), rgba(0,0,0,0.95)),
-                  linear-gradient(45deg, var(--dark) 25%, transparent 25%), 
-                  linear-gradient(-45deg, var(--dark) 25%, transparent 25%);
-      background-size: cover, 100% 100%, 20px 20px, 20px 20px;
-      background-position: center, center, 0 0, 10px 10px;
+      background: radial-gradient(circle at 20% 30%, rgba(255,215,0,0.2), transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(50,205,50,0.15), transparent 50%),
+                  radial-gradient(circle at 50% 50%, rgba(247,147,26,0.12), transparent 50%),
+                  radial-gradient(circle at 10% 80%, rgba(218,165,32,0.1), transparent 40%),
+                  linear-gradient(135deg, #000000 0%, #0a0a0a 30%, #1a1a1a 70%, #000000 100%);
       color:var(--text); min-height:100vh; overflow-x:hidden; overflow-y:auto;
       position: relative;
+      animation: wealthBg 10s ease-in-out infinite;
+    }
+
+    @keyframes wealthBg {
+      0%, 100% { filter: brightness(1) hue-rotate(0deg); }
+      50% { filter: brightness(1.1) hue-rotate(5deg); }
     }
     
     .overlay{ 
@@ -50,7 +56,11 @@
     .title{ 
       font-family: 'Inter', sans-serif; font-weight:700; font-size: 24px;
       text-shadow:0 0 20px var(--primary); 
-      color: var(--primary); letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--primary), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 3px;
       flex: 1; text-align: right; padding-right: 20px;
     }
 
@@ -261,6 +271,60 @@
       .title { font-size: 18px; padding-right: 10px; }
       .back { padding: 8px 16px; min-width: 100px; font-size: 14px; }
     }
+
+    /* Анимации богатства */
+    @keyframes goldGlow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      }
+    }
+
+    @keyframes wealthPulse {
+      0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+      50% {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+      }
+    }
+
+    @keyframes diamondSparkle {
+      0%, 100% {
+        transform: rotate(0deg) scale(1);
+        filter: brightness(1) hue-rotate(0deg);
+      }
+      25% {
+        transform: rotate(90deg) scale(1.1);
+        filter: brightness(1.3) hue-rotate(30deg);
+      }
+      50% {
+        transform: rotate(180deg) scale(0.9);
+        filter: brightness(1.5) hue-rotate(60deg);
+      }
+      75% {
+        transform: rotate(270deg) scale(1.2);
+        filter: brightness(1.2) hue-rotate(90deg);
+      }
+    }
+
+    .wealth-animation {
+      animation: goldGlow 2s ease-in-out infinite;
+    }
+
+    .money-pulse {
+      animation: wealthPulse 1.5s ease-in-out infinite;
+    }
+
+    .diamond-sparkle {
+      animation: diamondSparkle 3s ease-in-out infinite;
+    }
   </style>
 </head>
 <body>
@@ -268,19 +332,19 @@
   
   <div class="chrome">
     <button class="back" onclick="goHome()">⟵ На главную</button>
-    <div class="title">Рулетка Призов</div>
+            <div class="title wealth-animation">💎 Колесо Миллионера</div>
   </div>
 
   <div class="container">
     <div class="main-panel">
       <div class="roulette-container">
         <div class="roulette-items" id="rouletteItems"></div>
-        <div class="pointer">🔻</div>
+        <div class="pointer diamond-sparkle">💰</div>
       </div>
       
       <div class="actions">
-        <button class="btn primary" id="spinBtn">🎯 Запустить Рулетку</button>
-        <button class="btn secondary" id="prizesBtn">🎁 Возможные Призы</button>
+        <button class="btn primary money-pulse" id="spinBtn">🚀 Запустить Колесо Фортуны</button>
+        <button class="btn secondary wealth-animation" id="prizesBtn">💎 Возможные Призы</button>
       </div>
       
       <div class="prizes-dropdown" id="prizesDropdown">
@@ -289,17 +353,17 @@
       
       <div class="info-section">
         <div class="history-button-container">
-          <button class="history-btn" id="historyBtn">📚 История Кейса</button>
+          <button class="history-btn wealth-animation" id="historyBtn">💰 История Выигрышей</button>
         </div>
         
         <div class="info-cards">
           <div class="info-card">
-            <h3>🎯 Информация о Призах</h3>
-            <p>В рулетке представлены различные призы: скидки, подписки, игровая валюта и бонусные возможности. Каждое вращение — шанс получить что-то ценное.</p>
+            <h3>💎 О МИЛЛИОННЫХ ПРИЗАХ</h3>
+            <p>🚀 <strong>КАЖДОЕ ВРАЩЕНИЕ МОЖЕТ ИЗМЕНИТЬ ВАШУ ЖИЗНЬ!</strong> 💰 Зарабатывайте на мастер-курсах, получайте реальные деньги и GOLDCOIN! 🎆 Фортуна улыбается смелым!</p>
           </div>
           <div class="info-card">
-            <h3>⚡ Правила Игры</h3>
-            <p>Один бесплатный спин в день. Нажмите кнопку, дождитесь остановки рулетки и получите свой приз. Все выигрыши сохраняются в истории.</p>
+            <h3>🎯 СИСТЕМА МИЛЛИОННОГО МАЙНДСЕТА</h3>
+            <p>💰 <strong>ОДИН КЛИК МОЖЕТ ОТКРЫТЬ ДОРОГУ К МИЛЛИОНАМ!</strong> 🎆 Каждый день — новый шанс стать богаче! Удача любит смелых и настойчивых. Начинайте свой путь к финансовой свободе ПРЯМО СЕЙЧАС!</p>
           </div>
         </div>
       </div>
@@ -310,16 +374,16 @@
   <div class="modal" id="historyModal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeHistoryModal()">×</button>
-      <h3>📚 История Кейса</h3>
+      <h3>💰 ЛЕТОПИСЬ ВАШИХ ПОБЕД И МИЛЛИОНОВ</h3>
       <div style="max-height: 300px; overflow-y: auto;">
         <div id="historyList">
-          <p style="color: var(--muted); text-align: center; padding: 20px;">
-            История ваших вращений появится здесь...
-          </p>
+                      <p style="color: var(--muted); text-align: center; padding: 20px;">
+              🚀 Здесь будет летопись ваших побед на пути к миллионам! 💰
+            </p>
         </div>
       </div>
       <div style="margin-top: 20px; border-top: 1px solid var(--conspiracy); padding-top: 15px;">
-        <h4 style="color: var(--conspiracy); margin-bottom: 10px;">🎫 Промокоды</h4>
+        <h4 style="color: var(--primary); margin-bottom: 10px;">💳 Промокоды Успеха</h4>
         <div id="promocodesList">
           <p style="color: var(--muted); text-align: center;">
             Полученные промокоды будут показаны здесь...
@@ -336,15 +400,15 @@
     try{ window.markCaseUsed?.(); }catch(e){}
 
     const prizes = [
-      { img: './assets/ruletka/emoji1.png', name: 'Подписка 1 месяц', code: true },
-      { img: './assets/ruletka/emoji2.png', name: 'Скидка 500₽', code: true },
-      { img: './assets/ruletka/emoji3.png', name: 'Скидка 100₽', code: true },
-      { img: './assets/ruletka/emoji4.png', name: '100 MULACOIN', code: false },
-      { img: './assets/ruletka/emoji5.png', name: '50 MULACOIN', code: false },
-      { img: './assets/ruletka/emoji6.png', name: '+1 SPIN', code: false },
-      { img: './assets/ruletka/emoji7.png', name: '+1 Квест 24ч', code: false },
-      { img: './assets/ruletka/emoji8.png', name: 'Тайный приз', code: true },
-      { img: './assets/ruletka/emoji9.png', name: 'Бонус энергии', code: false }
+      { img: './assets/ruletka/emoji1.png', name: '💰 Мастер-курс заработка', code: true },
+      { img: './assets/ruletka/emoji2.png', name: '💳 Бонус 500₽', code: true },
+      { img: './assets/ruletka/emoji3.png', name: '💵 Деньги 100₽', code: true },
+      { img: './assets/ruletka/emoji4.png', name: '🪙 100 GOLDCOIN', code: false },
+      { img: './assets/ruletka/emoji5.png', name: '🪙 50 GOLDCOIN', code: false },
+      { img: './assets/ruletka/emoji6.png', name: '🎯 Доп. Шанс', code: false },
+      { img: './assets/ruletka/emoji7.png', name: '🚀 Бонус мотивация', code: false },
+      { img: './assets/ruletka/emoji8.png', name: '🎆 Суперприз!', code: true },
+      { img: './assets/ruletka/emoji9.png', name: '⚡ Энергия Успеха', code: false }
     ];
 
     const elements = {
@@ -468,7 +532,7 @@
 
     function spin() {
       elements.spinBtn.disabled = true;
-      elements.spinBtn.textContent = '🌀 Вращение...';
+              elements.spinBtn.textContent = '💫 Притягиваем удачу...';
       
       const baseDistance = 8000;
       const extraDistance = Math.random() * 4000 + 2000;
@@ -482,9 +546,9 @@
         
         // Показываем результат
         setTimeout(() => {
-          alert(`🎉 Поздравляем! Вы получили: ${prize.name}`);
+          alert(`🎉 Поздравляем! Вы притянули удачу: ${prize.name}`);
           elements.spinBtn.disabled = false;
-          elements.spinBtn.textContent = '🎰 Запустить Рулетку';
+          elements.spinBtn.textContent = '🚀 Запустить Колесо Фортуны';
         }, 500);
       }, 12000);
     }
@@ -500,8 +564,8 @@
 
     function togglePrizesDropdown() {
       elements.prizesDropdown.classList.toggle('open');
-      elements.prizesBtn.textContent = elements.prizesDropdown.classList.contains('open') ? 
-        '🔼 Скрыть Призы' : '🎁 Возможные Призы';
+              elements.prizesBtn.textContent = elements.prizesDropdown.classList.contains('open') ? 
+        '🔼 Скрыть Призы' : '💎 Возможные Призы';
     }
 
     function goHome() { 
