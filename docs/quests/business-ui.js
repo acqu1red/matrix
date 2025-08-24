@@ -210,6 +210,9 @@ class BusinessQuestUI {
     
     // Показываем drop zones
     this.showDropZones();
+    
+    // Автоматически скроллим к полям для вставки работника
+    this.scrollToDropZones();
   }
 
   // Обновление позиции перетаскиваемого элемента
@@ -229,6 +232,13 @@ class BusinessQuestUI {
       const isOver = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
       
       zone.classList.toggle('drag-over', isOver);
+      
+      // Если курсор над зоной, добавляем дополнительную подсветку
+      if (isOver) {
+        zone.classList.add('drag-over-highlight');
+      } else {
+        zone.classList.remove('drag-over-highlight');
+      }
     });
   }
 
@@ -236,8 +246,7 @@ class BusinessQuestUI {
   showDropZones() {
     const dropZones = document.querySelectorAll('.position-slot:not(.occupied)');
     dropZones.forEach(zone => {
-      zone.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-      zone.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+      zone.classList.add('available');
     });
   }
 
@@ -245,10 +254,42 @@ class BusinessQuestUI {
   hideDropZones() {
     const dropZones = document.querySelectorAll('.position-slot');
     dropZones.forEach(zone => {
-      zone.classList.remove('drag-over');
-      zone.style.borderColor = '';
-      zone.style.backgroundColor = '';
+      zone.classList.remove('drag-over', 'drag-over-highlight', 'available');
     });
+  }
+
+  // Автоматический скролл к полям для вставки работника
+  scrollToDropZones() {
+    const dropZones = document.querySelectorAll('.position-slot:not(.occupied)');
+    if (dropZones.length === 0) return;
+    
+    // Находим первую доступную позицию
+    const firstAvailableZone = dropZones[0];
+    if (firstAvailableZone) {
+      // Добавляем класс для плавного скролла
+      document.body.classList.add('scroll-to-drop-zone');
+      
+      // Плавно скроллим к позиции
+      firstAvailableZone.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
+      });
+      
+      // Добавляем подсветку для привлечения внимания
+      firstAvailableZone.classList.add('highlighted');
+      
+      // Убираем подсветку через 2 секунды
+      setTimeout(() => {
+        if (firstAvailableZone) {
+          firstAvailableZone.classList.remove('highlighted');
+        }
+        document.body.classList.remove('scroll-to-drop-zone');
+      }, 2000);
+      
+      // Показываем toast уведомление
+      this.showToast('📱 Камера автоматически перемещена к полям для найма!', 'info');
+    }
   }
 
   // Окончание перетаскивания

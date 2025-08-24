@@ -433,6 +433,12 @@
   flex-direction: column;
   transition: all 0.3s ease;
   position: relative;
+  cursor: pointer;
+}
+
+.position-slot:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .position-slot.drag-over {
@@ -440,6 +446,26 @@
   background: rgba(255, 255, 255, 0.15);
   border-style: solid;
   transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.position-slot.drag-over-highlight {
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.8) !important;
+  border-color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+  }
 }
 
 .position-slot.occupied {
@@ -512,6 +538,31 @@
   justify-content: center;
   margin: 0 auto 4px;
   font-size: 16px;
+}
+
+/* Стили для перетаскиваемого элемента */
+.candidate-card.dragging {
+  opacity: 0.8;
+  transform: rotate(5deg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Стили для drag & drop */
+.dragging {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Улучшенные стили для drop zones */
+.position-slot.available {
+  background: rgba(0, 255, 136, 0.05);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.position-slot.available:hover {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.5);
 }
 
 .employee-name {
@@ -769,5 +820,53 @@
   
   .position-slot {
     min-height: 140px;
+  }
+}
+
+/* Стили для автоматического скролла */
+.scroll-to-drop-zone {
+  scroll-behavior: smooth;
+}
+
+.position-slot.highlighted {
+  animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
+}
+
+/* Улучшенные стили для drag & drop на мобильных устройствах */
+@media (max-width: 768px) {
+  .position-slot {
+    min-height: 150px;
+    padding: 20px;
+  }
+  
+  .position-slot.drag-over {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+  }
+  
+  .candidate-card {
+    touch-action: none;
+    user-select: none;
   }
 }
