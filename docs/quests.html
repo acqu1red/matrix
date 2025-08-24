@@ -18,8 +18,6 @@
       }
     })();
   </script>
-  
-
 </head>
 <body>
   <div id="app" class="app">
@@ -52,8 +50,8 @@
     <section class="case-section" id="caseSection">
       <div class="case-aura"></div>
       <div class="case-frame">
-        <button class="case-button" id="mysteryCaseBtn">
-          <img src="./assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
+        <button class="case-button" id="mysteryCaseBtn" onclick="openCase()">
+          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
         </button>
         
         <div class="case-caption">
@@ -70,11 +68,158 @@
       </div>
     </section>
 
-    <section class="quests" id="quests" data-quests="true">
-      <!-- Квесты будут загружены динамически -->
-      <div class="loading-quests">
-        <div class="spinner"></div>
-        <p>Загружаем квесты...</p>
+    <!-- Квесты прямо в HTML -->
+    <section class="quests" id="quests">
+      <div class="quests-grid">
+        <!-- Психология -->
+        <div class="card" data-style="neo">
+          <div class="label">Психология</div>
+          <h3>Психология заработка</h3>
+          <div class="description">Используй психологические техники для успешных переговоров.</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #1/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('psychology')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('psychology')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Мировое правительство -->
+        <div class="card" data-style="conspiracy">
+          <div class="label">Стратегия</div>
+          <h3>Мировое тайное правительство</h3>
+          <div class="description">Создай мировое тайное правительство, распределяя персонажей по секторам.</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #2/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('world-government')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('world-government')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Язык тела -->
+        <div class="card" data-style="neo">
+          <div class="label">Психология</div>
+          <h3>Язык тела</h3>
+          <div class="description">Распознай невербальные сигналы 2D‑персонажа.</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #3/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('bodylang')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('bodylang')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Профайлинг -->
+        <div class="card" data-style="neo">
+          <div class="label">Соцсети</div>
+          <h3>Профайлинг аккаунта</h3>
+          <div class="description">Оцени профиль и выбери черты характера.</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #4/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('profiling')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('profiling')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- ROI -->
+        <div class="card" data-style="neo">
+          <div class="label">Маркетинг</div>
+          <h3>ROI‑калькулятор</h3>
+          <div class="description">Выбери кампанию с лучшей окупаемостью.</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #5/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('roi')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('roi')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Империя влияния -->
+        <div class="card" data-style="neo">
+          <div class="label">Влияние</div>
+          <h3>👑 Империя влияния</h3>
+          <div class="description">Создай медиа-империю и управляй массовым сознанием.</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #6/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('funnel')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('funnel')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Бизнес -->
+        <div class="card" data-style="neo">
+          <div class="label">Бизнес</div>
+          <h3>🏢 Твой первый бизнес</h3>
+          <div class="description">Создай и управляй своим бизнесом с нуля.</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #7/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('copy')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('copy')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Анализ аудитории -->
+        <div class="card" data-style="neo">
+          <div class="label">Демография</div>
+          <h3>Анализ аудитории</h3>
+          <div class="description">Изучи демографические данные аудитории.</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #8/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('audience')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('audience')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Анализ конкурентов -->
+        <div class="card" data-style="neo">
+          <div class="label">Стратегия</div>
+          <h3>Анализ конкурентов</h3>
+          <div class="description">Изучи конкурентную среду и выбери наиболее сильного конкурента.</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #9/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('competitors')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('competitors')">Подробнее</button>
+          </div>
+        </div>
+
+        <!-- Анализ трендов -->
+        <div class="card" data-style="neo">
+          <div class="label">Аналитика</div>
+          <h3>📊 Анализ трендов</h3>
+          <div class="description">Стань мастером рыночной аналитики и трендов.</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #10/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('trends')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('trends')">Подробнее</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -93,36 +238,79 @@
     </div>
   </div>
 
-  <!-- Модал кейса (закрыт) -->
-  <div id="caseModal" class="modal">
-    <div class="modalContent glass">
-      <button class="close" id="caseModalClose" aria-label="Закрыть">×</button>
-      <div class="case-modal-body">
-        <div class="case-modal-icon">🔮</div>
-        <h3>🚫 Тайная Энергия Исчерпана</h3>
-        <p class="case-modal-text">Квантовые поля перезаряжаются. Портал к тайным знаниям временно закрыт. Возвращайтесь, когда звезды вновь займут правильные позиции.</p>
-        <div class="countdown">
-          ⏳ Перезарядка энергии: <span id="caseCountdown">--:--:--</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Модал приза -->
-  <div id="prizeModal" class="prize-modal">
-    <div class="prize-icon" id="prizeIcon">🎁</div>
-    <h3 id="prizeTitle">Поздравляем!</h3>
-    <p id="prizeDescription">Вы выиграли приз!</p>
-    <div id="prizeContent"></div>
-    <button id="closePrize" class="btn primary">Закрыть</button>
-  </div>
-
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Аудио рулетки не используется на этой странице -->
-  
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="./quests.js"></script>
+  <!-- Простой JavaScript -->
+  <script>
+    // Простые функции для работы
+    function openCase() {
+      console.log('Открываем кейс...');
+      // Простой переход на страницу кейса
+      window.location.href = 'case.html';
+    }
+
+    function startQuest(questId) {
+      console.log('Начинаем квест:', questId);
+      // Простой переход на квест
+      window.location.href = 'quests/' + questId + '.html';
+    }
+
+    function showQuestDetails(questId) {
+      console.log('Показываем детали квеста:', questId);
+      // Простое модальное окно
+      const modal = document.getElementById('modal');
+      const modalBody = document.getElementById('modalBody');
+      
+      const questData = {
+        'psychology': { name: 'Психология заработка', description: 'Используй психологические техники для успешных переговоров.' },
+        'world-government': { name: 'Мировое тайное правительство', description: 'Создай мировое тайное правительство, распределяя персонажей по секторам.' },
+        'bodylang': { name: 'Язык тела', description: 'Распознай невербальные сигналы 2D‑персонажа.' },
+        'profiling': { name: 'Профайлинг аккаунта', description: 'Оцени профиль и выбери черты характера.' },
+        'roi': { name: 'ROI‑калькулятор', description: 'Выбери кампанию с лучшей окупаемостью.' },
+        'funnel': { name: 'Империя влияния', description: 'Создай медиа-империю и управляй массовым сознанием.' },
+        'copy': { name: 'Твой первый бизнес', description: 'Создай и управляй своим бизнесом с нуля.' },
+        'audience': { name: 'Анализ аудитории', description: 'Изучи демографические данные аудитории.' },
+        'competitors': { name: 'Анализ конкурентов', description: 'Изучи конкурентную среду и выбери наиболее сильного конкурента.' },
+        'trends': { name: 'Анализ трендов', description: 'Стань мастером рыночной аналитики и трендов.' }
+      };
+      
+      const quest = questData[questId];
+      if (quest) {
+        modalBody.innerHTML = `
+          <h3>${quest.name}</h3>
+          <p>${quest.description}</p>
+          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
+        `;
+        modal.classList.add('show');
+      }
+    }
+
+    // Закрытие модала
+    document.getElementById('modalClose').addEventListener('click', function() {
+      document.getElementById('modal').classList.remove('show');
+    });
+
+    // Закрытие по клику вне модала
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('show');
+      }
+    });
+
+    // Простая функция toast
+    function toast(message, type = 'info') {
+      const toastEl = document.getElementById('toast');
+      toastEl.textContent = message;
+      toastEl.className = `toast show ${type}`;
+      setTimeout(() => toastEl.classList.remove('show'), 3000);
+    }
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Квесты загружены!');
+      toast('Квесты загружены успешно!', 'success');
+    });
+  </script>
 </body>
 </html>
