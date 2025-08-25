@@ -2318,3 +2318,271 @@ window.questSystem = {
 
 // Делаем addRewards доступной глобально для квестов
 window.addRewards = addRewards;
+
+// Система управления темами и анимациями
+class ThemeManager {
+  constructor() {
+    this.currentTheme = 'conspiracy'; // conspiracy или modern
+    this.isTransitioning = false;
+    this.screenTransition = document.getElementById('screenTransition');
+    this.app = document.getElementById('app');
+    this.body = document.body;
+    
+    this.init();
+  }
+  
+  init() {
+    // Добавляем обработчик скролла для автоматического перехода
+    this.setupScrollTransition();
+    
+    // Добавляем кнопку для ручного переключения темы
+    this.addThemeToggleButton();
+    
+    // Инициализируем начальную тему
+    this.setTheme('conspiracy');
+  }
+  
+  setupScrollTransition() {
+    let scrollTimeout;
+    let lastScrollTop = 0;
+    
+    window.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollDirection = scrollTop > lastScrollTop ? 'down' : 'up';
+      const scrollPercentage = (scrollTop / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      
+      // Автоматический переход к современной теме при скролле вниз
+      if (scrollDirection === 'down' && scrollPercentage > 30 && this.currentTheme === 'conspiracy') {
+        this.transitionToModern();
+      }
+      
+      // Возврат к конспирологической теме при скролле вверх
+      if (scrollDirection === 'up' && scrollPercentage < 20 && this.currentTheme === 'modern') {
+        this.transitionToConspiracy();
+      }
+      
+      lastScrollTop = scrollTop;
+      
+      // Добавляем эффект стягивания при скролле
+      this.addScrollSqueezeEffect(scrollPercentage);
+    });
+  }
+  
+  addScrollSqueezeEffect(scrollPercentage) {
+    const containers = document.querySelectorAll('.smooth-transition');
+    
+    containers.forEach((container, index) => {
+      const delay = index * 50; // Задержка для каскадного эффекта
+      
+      setTimeout(() => {
+        if (scrollPercentage > 30 && this.currentTheme === 'conspiracy') {
+          container.classList.add('squeezing');
+        } else if (scrollPercentage > 50) {
+          container.classList.add('squeezed');
+        } else {
+          container.classList.remove('squeezing', 'squeezed');
+        }
+      }, delay);
+    });
+  }
+  
+  addThemeToggleButton() {
+    const header = document.querySelector('.topbar .actions');
+    if (header) {
+      const themeToggle = document.createElement('button');
+      themeToggle.id = 'themeToggle';
+      themeToggle.className = 'btn ghost theme-toggle';
+      themeToggle.innerHTML = '🎨';
+      themeToggle.title = 'Переключить тему';
+      themeToggle.addEventListener('click', () => {
+        if (this.currentTheme === 'conspiracy') {
+          this.transitionToModern();
+        } else {
+          this.transitionToConspiracy();
+        }
+      });
+      
+      header.appendChild(themeToggle);
+    }
+  }
+  
+  async transitionToModern() {
+    if (this.isTransitioning || this.currentTheme === 'modern') return;
+    
+    this.isTransitioning = true;
+    this.currentTheme = 'modern';
+    
+    // Начинаем анимацию стягивания экрана
+    await this.startScreenTransition();
+    
+    // Применяем современную тему
+    this.setTheme('modern');
+    
+    // Завершаем анимацию
+    await this.completeScreenTransition();
+    
+    this.isTransitioning = false;
+  }
+  
+  async transitionToConspiracy() {
+    if (this.isTransitioning || this.currentTheme === 'conspiracy') return;
+    
+    this.isTransitioning = true;
+    this.currentTheme = 'conspiracy';
+    
+    // Начинаем анимацию стягивания экрана
+    await this.startScreenTransition();
+    
+    // Применяем конспирологическую тему
+    this.setTheme('conspiracy');
+    
+    // Завершаем анимацию
+    await this.completeScreenTransition();
+    
+    this.isTransitioning = false;
+  }
+  
+  async startScreenTransition() {
+    return new Promise((resolve) => {
+      // Показываем элемент перехода
+      this.screenTransition.style.display = 'block';
+      
+      // Запускаем анимацию стягивания
+      setTimeout(() => {
+        this.screenTransition.classList.add('active');
+      }, 100);
+      
+      // Ждем завершения анимации
+      setTimeout(() => {
+        resolve();
+      }, 600);
+    });
+  }
+  
+  async completeScreenTransition() {
+    return new Promise((resolve) => {
+      // Завершаем анимацию стягивания
+      this.screenTransition.classList.add('complete');
+      
+      // Скрываем элемент перехода
+      setTimeout(() => {
+        this.screenTransition.classList.remove('active', 'complete');
+        this.screenTransition.style.display = 'none';
+        resolve();
+      }, 600);
+    });
+  }
+  
+  setTheme(theme) {
+    // Убираем все классы тем
+    this.app.classList.remove('conspiracy-theme', 'modern-theme');
+    this.body.classList.remove('conspiracy-theme', 'modern-theme');
+    
+    // Добавляем класс для новой темы
+    if (theme === 'modern') {
+      this.app.classList.add('modern-theme');
+      this.body.classList.add('modern-theme');
+    } else {
+      this.app.classList.add('conspiracy-theme');
+      this.body.classList.add('conspiracy-theme');
+    }
+    
+    // Обновляем переменные CSS
+    this.updateCSSVariables(theme);
+    
+    // Добавляем эффект перехода
+    this.addTransitionEffect();
+  }
+  
+  updateCSSVariables(theme) {
+    const root = document.documentElement;
+    
+    if (theme === 'modern') {
+      root.style.setProperty('--bg0', 'var(--modern-bg0)');
+      root.style.setProperty('--bg1', 'var(--modern-bg1)');
+      root.style.setProperty('--bg2', 'var(--modern-bg2)');
+      root.style.setProperty('--glass', 'var(--modern-glass)');
+      root.style.setProperty('--glass-strong', 'var(--modern-glass-strong)');
+      root.style.setProperty('--border', 'var(--modern-border)');
+      root.style.setProperty('--border-strong', 'var(--modern-border-strong)');
+      root.style.setProperty('--glow1', 'var(--modern-glow1)');
+      root.style.setProperty('--glow2', 'var(--modern-glow2)');
+      root.style.setProperty('--glow3', 'var(--modern-glow3)');
+      root.style.setProperty('--accent', 'var(--modern-accent)');
+      root.style.setProperty('--accent2', 'var(--modern-accent2)');
+      root.style.setProperty('--text', 'var(--modern-text)');
+      root.style.setProperty('--text-muted', 'var(--modern-text-muted)');
+      root.style.setProperty('--success', 'var(--modern-success)');
+      root.style.setProperty('--warning', 'var(--modern-warning)');
+      root.style.setProperty('--error', 'var(--modern-error)');
+    } else {
+      root.style.setProperty('--bg0', 'var(--conspiracy-bg0)');
+      root.style.setProperty('--bg1', 'var(--conspiracy-bg1)');
+      root.style.setProperty('--bg2', 'var(--conspiracy-bg2)');
+      root.style.setProperty('--glass', 'var(--conspiracy-glass)');
+      root.style.setProperty('--glass-strong', 'var(--conspiracy-glass-strong)');
+      root.style.setProperty('--border', 'var(--conspiracy-border)');
+      root.style.setProperty('--border-strong', 'var(--conspiracy-border-strong)');
+      root.style.setProperty('--glow1', 'var(--conspiracy-glow1)');
+      root.style.setProperty('--glow2', 'var(--conspiracy-glow2)');
+      root.style.setProperty('--glow3', 'var(--conspiracy-glow3)');
+      root.style.setProperty('--accent', 'var(--conspiracy-accent)');
+      root.style.setProperty('--accent2', 'var(--conspiracy-accent2)');
+      root.style.setProperty('--text', 'var(--conspiracy-text)');
+      root.style.setProperty('--text-muted', 'var(--conspiracy-text-muted)');
+      root.style.setProperty('--success', 'var(--conspiracy-success)');
+      root.style.setProperty('--warning', 'var(--conspiracy-warning)');
+      root.style.setProperty('--error', 'var(--conspiracy-error)');
+    }
+  }
+  
+  addTransitionEffect() {
+    // Добавляем класс для анимации перехода
+    this.app.classList.add('transitioning');
+    
+    // Убираем класс через время анимации
+    setTimeout(() => {
+      this.app.classList.remove('transitioning');
+    }, 800);
+  }
+}
+
+// Инициализация системы тем
+let themeManager;
+
+// Ждем загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+  // Инициализируем систему тем
+  themeManager = new ThemeManager();
+  
+  // Добавляем глобальные функции для переключения тем
+  window.switchToModernTheme = () => themeManager.transitionToModern();
+  window.switchToConspiracyTheme = () => themeManager.transitionToConspiracy();
+  
+  // Добавляем обработчик для автоматического перехода при скролле
+  let lastScrollTop = 0;
+  let scrollDirection = 'none';
+  
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (scrollTop > lastScrollTop) {
+      scrollDirection = 'down';
+    } else if (scrollTop < lastScrollTop) {
+      scrollDirection = 'up';
+    }
+    
+    lastScrollTop = scrollTop;
+    
+    // Автоматический переход при достижении определенной точки
+    const scrollPercentage = (scrollTop / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+    
+    if (scrollPercentage > 40 && themeManager.currentTheme === 'conspiracy') {
+      themeManager.transitionToModern();
+    } else if (scrollPercentage < 20 && themeManager.currentTheme === 'modern') {
+      themeManager.transitionToConspiracy();
+    }
+  });
+});
