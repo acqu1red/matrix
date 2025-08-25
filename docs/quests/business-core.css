@@ -167,10 +167,11 @@
 }
 
 .selection-panel, .business-panel {
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  min-height: 500px;
+  min-height: 350px;
+  max-height: 70vh;
 }
 
 .panel-header {
@@ -304,8 +305,8 @@
 .candidates-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 400px;
+  gap: 10px;
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -450,16 +451,16 @@
 
 .positions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
 }
 
 .position-slot {
   background: rgba(255, 255, 255, 0.05);
   border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
-  padding: 16px;
-  min-height: 120px;
+  padding: 12px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
@@ -804,8 +805,9 @@
   }
   
   .selection-panel, .business-panel {
-    padding: 16px;
-    min-height: 400px;
+    padding: 12px;
+    min-height: 300px;
+    max-height: 60vh;
   }
   
   .actions-content {
@@ -838,15 +840,17 @@
   }
 }
 
-/* Touch устройства */
+/* Touch устройства - улучшенный интерфейс */
 @media (hover: none) and (pointer: coarse) {
   .candidate-card {
-    cursor: default;
-    touch-action: none;
+    cursor: pointer;
+    touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
   }
   
   .candidate-card:active {
@@ -854,8 +858,89 @@
     transform: scale(0.98);
   }
   
+  .candidate-card.selected {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Кнопка найма для мобильных */
+  .candidate-card::after {
+    content: '👆 Выбрать';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000000;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .candidate-card.selected::after {
+    content: '✅ Выбран';
+    background: rgba(0, 255, 136, 0.9);
+    color: #000000;
+    opacity: 1;
+  }
+  
   .position-slot {
-    min-height: 140px;
+    min-height: 120px;
+    position: relative;
+  }
+  
+  .position-slot.selectable {
+    border-color: rgba(0, 255, 136, 0.5);
+    background: rgba(0, 255, 136, 0.1);
+    animation: mobileHighlight 2s ease-in-out infinite;
+  }
+  
+  @keyframes mobileHighlight {
+    0%, 100% { 
+      border-color: rgba(0, 255, 136, 0.5);
+      background: rgba(0, 255, 136, 0.1);
+    }
+    50% { 
+      border-color: rgba(0, 255, 136, 0.8);
+      background: rgba(0, 255, 136, 0.2);
+    }
+  }
+  
+  /* Кнопки действий для мобильных */
+  .mobile-hire-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: center;
+  }
+  
+  .mobile-hire-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .mobile-hire-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.95);
+  }
+  
+  .mobile-hire-btn.primary {
+    background: rgba(0, 255, 136, 0.8);
+    border-color: rgba(0, 255, 136, 1);
+    color: #000000;
   }
 }
 

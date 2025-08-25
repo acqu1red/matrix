@@ -36,9 +36,16 @@
     
     .demographics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin: 20px 0;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    
+    @media (max-width: 768px) {
+      .demographics-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
     }
     
     .demographic-card {
@@ -285,9 +292,16 @@
     
     .answer-options {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin: 20px 0;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    
+    @media (max-width: 768px) {
+      .answer-options {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
     }
     
     .answer-option {
@@ -299,6 +313,21 @@
       transition: all 0.3s ease;
       text-align: center;
       font-weight: 500;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    @media (max-width: 768px) {
+      .answer-option {
+        min-height: 60px;
+        padding: 20px 16px;
+        font-size: 16px;
+      }
     }
     
     .answer-option:hover {
