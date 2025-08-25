@@ -1,0 +1,186 @@
+/* Layout System */
+.container {
+  width: min(960px, 100% - 24px);
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+.container--wide {
+  width: min(1200px, 100% - 24px);
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+.container--narrow {
+  width: min(640px, 100% - 24px);
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+/* Stack - вертикальные отступы */
+.stack > * + * {
+  margin-top: 12px;
+}
+
+.stack--sm > * + * {
+  margin-top: 8px;
+}
+
+.stack--md > * + * {
+  margin-top: 16px;
+}
+
+.stack--lg > * + * {
+  margin-top: 24px;
+}
+
+.stack--xl > * + * {
+  margin-top: 32px;
+}
+
+/* Cluster - горизонтальные отступы */
+.cluster {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cluster--sm {
+  gap: 8px;
+}
+
+.cluster--md {
+  gap: 16px;
+}
+
+.cluster--lg {
+  gap: 24px;
+}
+
+.cluster--xl {
+  gap: 32px;
+}
+
+/* Grid системы */
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.grid--4 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Flexbox утилиты */
+.flex {
+  display: flex;
+}
+
+.flex--col {
+  flex-direction: column;
+}
+
+.flex--center {
+  align-items: center;
+  justify-content: center;
+}
+
+.flex--between {
+  justify-content: space-between;
+}
+
+.flex--around {
+  justify-content: space-around;
+}
+
+.flex--1 {
+  flex: 1;
+}
+
+.flex--auto {
+  flex: auto;
+}
+
+/* Отступы */
+.padding {
+  padding: 16px;
+}
+
+.padding--sm {
+  padding: 12px;
+}
+
+.padding--md {
+  padding: 20px;
+}
+
+.padding--lg {
+  padding: 28px;
+}
+
+.padding--xl {
+  padding: 36px;
+}
+
+/* Margin утилиты */
+.margin {
+  margin: 16px;
+}
+
+.margin--sm {
+  margin: 12px;
+}
+
+.margin--md {
+  margin: 20px;
+}
+
+.margin--lg {
+  margin: 28px;
+}
+
+.margin--xl {
+  margin: 36px;
+}
+
+/* Позиционирование */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+}
+
+/* Z-index утилиты */
+.z-1 { z-index: 1; }
+.z-10 { z-index: 10; }
+.z-100 { z-index: 100; }
+.z-1000 { z-index: 1000; }
+
+/* Размеры */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+/* Overflow */
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-scroll { overflow: scroll; }

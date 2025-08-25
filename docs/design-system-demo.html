@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="modern">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Design System Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="./assets/brand/favicon-64.png" />
+  <link rel="apple-touch-icon" href="./assets/brand/app-icon-1024.png" />
+  <link rel="stylesheet" href="./styles/tokens.css" />
+  <link rel="stylesheet" href="./styles/typography.css" />
+  <link rel="stylesheet" href="./styles/layout.css" />
+  <link rel="stylesheet" href="./styles/components.css" />
+  <link rel="stylesheet" href="./styles/skeleton.css" />
+  <link rel="stylesheet" href="./styles/telegram.css" />
+  <script>
+    // Telegram WebApp SDK
+    (function(){
+      if (!window.Telegram || !window.Telegram.WebApp) {
+        var s = document.createElement('script');
+        s.src = "https://telegram.org/js/telegram-web-app.js";
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <header class="container cluster" style="justify-content:space-between; padding:12px 0;">
+    <div class="cluster">
+      <img src="./assets/brand/logo-psy-earn-256.png" alt="logo" width="28" height="28" style="border-radius:8px;" />
+      <div class="h3">Design System</div>
+    </div>
+    <div class="cluster">
+      <button class="btn btn--ghost" id="themeToggle">🎨</button>
+      <button class="btn btn--primary" id="ctaButton">Демо</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Typography Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h1 class="h1">Typography System</h1>
+        <h2 class="h2">Заголовок 2</h2>
+        <h3 class="h3">Заголовок 3</h3>
+        <h4 class="h4">Заголовок 4</h4>
+        <p class="body">Основной текст для чтения. Это пример обычного параграфа с достаточным количеством текста для демонстрации типографики.</p>
+        <p class="subtle">Второстепенный текст для дополнительной информации и подсказок.</p>
+        <p class="caption">Подпись или мелкий текст для мета-информации.</p>
+        <span class="num">123,456,789</span>
+      </div>
+    </section>
+
+    <!-- Buttons Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Buttons</h2>
+        <div class="cluster" style="flex-wrap: wrap;">
+          <button class="btn btn--primary">Primary</button>
+          <button class="btn btn--ghost">Ghost</button>
+          <button class="btn btn--danger">Danger</button>
+          <button class="btn btn--primary btn--sm">Small</button>
+          <button class="btn btn--primary btn--lg">Large</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Cards</h2>
+        <div class="grid grid--2">
+          <div class="card padding">
+            <div class="stack">
+              <h3 class="h3">Card 1</h3>
+              <p class="body">Это пример карточки с содержимым.</p>
+              <button class="btn btn--primary">Action</button>
+            </div>
+          </div>
+          <div class="card padding">
+            <div class="stack">
+              <h3 class="h3">Card 2</h3>
+              <p class="body">Еще одна карточка для демонстрации.</p>
+              <button class="btn btn--ghost">Action</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chips Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Chips</h2>
+        <div class="cluster" style="flex-wrap: wrap;">
+          <span class="chip">Default</span>
+          <span class="chip chip--success">Success</span>
+          <span class="chip chip--warn">Warning</span>
+          <span class="chip chip--error">Error</span>
+          <span class="chip chip--accent">Accent</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Progress Bars</h2>
+        <div class="stack">
+          <div class="progress">
+            <div class="progress__bar" style="width: 25%;"></div>
+          </div>
+          <div class="progress progress--sm">
+            <div class="progress__bar" style="width: 50%;"></div>
+          </div>
+          <div class="progress progress--lg">
+            <div class="progress__bar" style="width: 75%;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skeleton Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Skeletons</h2>
+        <div class="grid grid--2">
+          <div class="skeleton skeleton--card"></div>
+          <div class="skeleton skeleton--card"></div>
+        </div>
+        <div class="cluster" style="flex-wrap: wrap;">
+          <div class="skeleton skeleton--text"></div>
+          <div class="skeleton skeleton--text"></div>
+          <div class="skeleton skeleton--text"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Layout Utilities Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Layout Utilities</h2>
+        <div class="cluster" style="justify-content: space-between;">
+          <div class="stack">
+            <h4 class="h4">Stack Example</h4>
+            <div class="skeleton skeleton--text"></div>
+            <div class="skeleton skeleton--text"></div>
+            <div class="skeleton skeleton--text"></div>
+          </div>
+          <div class="cluster">
+            <span class="chip">Item 1</span>
+            <span class="chip">Item 2</span>
+            <span class="chip">Item 3</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Theme Demo Section -->
+    <section class="card padding" style="margin-bottom: 24px;">
+      <div class="stack">
+        <h2 class="h2">Theme Demo</h2>
+        <div class="cluster">
+          <button class="btn btn--primary" onclick="setTheme('modern')">Modern</button>
+          <button class="btn btn--primary" onclick="setTheme('conspiracy')">Conspiracy</button>
+        </div>
+        <p class="subtle">Нажмите на кнопки выше, чтобы переключить темы и увидеть изменения в реальном времени.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Demo -->
+  <div id="demoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="demoModalTitle">
+    <div class="modal__overlay" data-close></div>
+    <div class="modal__dialog">
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2 class="modal__title" id="demoModalTitle">Demo Modal</h2>
+          <button class="modal__close" data-close aria-label="Закрыть">×</button>
+        </div>
+        <div class="stack">
+          <p class="body">Это демонстрация модального окна дизайн-системы.</p>
+          <div class="cluster" style="justify-content: flex-end;">
+            <button class="btn btn--ghost" data-close>Отмена</button>
+            <button class="btn btn--primary" data-close>OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Demo -->
+  <div id="toast" class="toast toast--tg" role="status" aria-live="polite"></div>
+
+  <script src="./js/telegram.js"></script>
+  <script src="./js/theme-switcher.js"></script>
+  <script>
+    // Theme switching
+    function setTheme(themeName) {
+      document.documentElement.setAttribute('data-theme', themeName);
+      if (window.telegramApp?.haptic) {
+        window.telegramApp.haptic.light();
+      }
+    }
+
+    // Modal functionality
+    const demoModal = document.getElementById('demoModal');
+    const ctaButton = document.getElementById('ctaButton');
+
+    ctaButton.addEventListener('click', () => {
+      demoModal.setAttribute('data-open', 'true');
+      if (window.telegramApp?.haptic) {
+        window.telegramApp.haptic.medium();
+      }
+    });
+
+    // Close modal
+    demoModal.addEventListener('click', (e) => {
+      if (e.target === demoModal || e.target.hasAttribute('data-close')) {
+        demoModal.removeAttribute('data-open');
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        demoModal.removeAttribute('data-open');
+      }
+    });
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'modern' ? 'conspiracy' : 'modern';
+      setTheme(newTheme);
+      
+      // Update toggle icon
+      themeToggle.innerHTML = newTheme === 'modern' ? '🎨' : '🔮';
+    });
+
+    // Toast function
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast toast--tg show ${type}`;
+      
+      if (window.telegramApp?.haptic) {
+        window.telegramApp.haptic.light();
+      }
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Show welcome toast
+    document.addEventListener('DOMContentLoaded', () => {
+      showToast('Добро пожаловать в демо дизайн-системы!', 'success');
+    });
+
+    // Add haptic feedback to all buttons
+    document.addEventListener('click', (e) => {
+      const button = e.target.closest('.btn');
+      if (button && window.telegramApp?.haptic) {
+        window.telegramApp.haptic.light();
+      }
+    });
+  </script>
+</body>
+</html>

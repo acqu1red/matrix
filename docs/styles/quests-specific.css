@@ -1,0 +1,163 @@
+/* Quest-specific styles */
+
+/* Toast notifications */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  color: var(--text);
+  font-size: 14px;
+  box-shadow: var(--shadow-md);
+  z-index: 10000;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all var(--dur-base) var(--ease-out);
+  max-width: 300px;
+}
+
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast--success {
+  border-color: var(--success);
+  background: color-mix(in hsl, var(--success) 10%, var(--surface));
+}
+
+.toast--error {
+  border-color: var(--error);
+  background: color-mix(in hsl, var(--error) 10%, var(--surface));
+}
+
+.toast--warning {
+  border-color: var(--warn);
+  background: color-mix(in hsl, var(--warn) 10%, var(--surface));
+}
+
+/* Quest grid */
+.quests-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin-top: 24px;
+}
+
+/* Special quest styling */
+[data-theme="conspiracy"] .card {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, 
+              color-mix(in hsl, var(--accent) 5%, var(--surface)), 
+              var(--surface));
+}
+
+[data-theme="conspiracy"] .card::before {
+  opacity: 0.3;
+}
+
+/* Screen transition */
+.screen-transition {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+.screen-transition.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .quests-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .container {
+    padding: 0 16px;
+  }
+  
+  .card.padding {
+    padding: 16px;
+  }
+  
+  .cluster {
+    gap: 8px;
+  }
+  
+  .stack > * + * {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .h1 {
+    font-size: 24px;
+  }
+  
+  .h2 {
+    font-size: 20px;
+  }
+  
+  .h3 {
+    font-size: 16px;
+  }
+  
+  .btn {
+    height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+  
+  .card.padding {
+    padding: 12px;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .card::before {
+    opacity: 0.15;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+  }
+  
+  .chip {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .card:hover {
+    transform: none;
+  }
+  
+  .btn:hover {
+    transform: none;
+  }
+  
+  .toast {
+    transition: none;
+  }
+}
