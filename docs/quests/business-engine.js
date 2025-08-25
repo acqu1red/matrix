@@ -180,11 +180,22 @@ class BusinessQuestEngine {
   }
 
   selectNiche(nicheId) {
+    console.log('Выбрана ниша:', nicheId);
+    
     this.selectedNiche = BusinessDataService.getNicheById(nicheId);
+    if (!this.selectedNiche) {
+      console.error('Ниша не найдена:', nicheId);
+      return;
+    }
+    
+    console.log('Найдена ниша:', this.selectedNiche);
     
     // Скрываем выбор ниши и показываем выбор кандидатов
-    document.getElementById('nicheSelection').style.display = 'none';
-    document.getElementById('candidateSelection').style.display = 'block';
+    const nicheSelection = document.getElementById('nicheSelection');
+    const candidateSelection = document.getElementById('candidateSelection');
+    
+    if (nicheSelection) nicheSelection.style.display = 'none';
+    if (candidateSelection) candidateSelection.style.display = 'block';
     
     // Инициализируем шкалу успешности
     this.businessSuccessRate = 0;
@@ -192,20 +203,27 @@ class BusinessQuestEngine {
     
     // Показываем заголовок с выбранной нишей
     const title = document.querySelector('#candidateSelection h2');
-    title.textContent = `Выберите кандидатов для: ${this.selectedNiche.name}`;
+    if (title && this.selectedNiche) {
+      title.textContent = `Выберите кандидатов для: ${this.selectedNiche.name}`;
+    }
     
     // Генерируем случайных кандидатов для показа
     this.generateRandomCandidates();
   }
 
   generateRandomCandidates() {
+    console.log('Генерируем кандидатов...');
     // Показываем только одного случайного кандидата
     this.showNextCandidate();
   }
 
   showNextCandidate() {
+    console.log('Показываем следующего кандидата...');
+    
     // Проверяем, есть ли свободные слоты
     const filledSlots = document.querySelectorAll('.candidate-slot[data-assigned]').length;
+    console.log('Заполненных слотов:', filledSlots);
+    
     if (filledSlots >= 9) {
       // Все слоты заполнены, не показываем новых кандидатов
       const currentCandidate = document.getElementById('currentCandidate');
@@ -217,49 +235,78 @@ class BusinessQuestEngine {
     
     const roles = ['marketing', 'sales', 'tech', 'finance', 'operations'];
     const randomRole = roles[Math.floor(Math.random() * roles.length)];
+    console.log('Выбрана роль:', randomRole);
     
     const candidate = BusinessDataService.getRandomCandidate(randomRole);
+    console.log('Получен кандидат:', candidate);
     
     if (candidate) {
       this.displaySingleCandidate(candidate);
+    } else {
+      console.error('Не удалось получить кандидата для роли:', randomRole);
+      // Пробуем другую роль
+      const fallbackRole = roles.find(role => role !== randomRole);
+      if (fallbackRole) {
+        const fallbackCandidate = BusinessDataService.getRandomCandidate(fallbackRole);
+        if (fallbackCandidate) {
+          this.displaySingleCandidate(fallbackCandidate);
+        }
+      }
     }
   }
 
   displaySingleCandidate(candidate) {
+    console.log('Отображаем кандидата:', candidate);
+    
     const currentCandidate = document.getElementById('currentCandidate');
-    if (!currentCandidate) return;
+    if (!currentCandidate) {
+      console.error('Элемент currentCandidate не найден');
+      return;
+    }
     
     // Очищаем список и показываем только одного кандидата
     currentCandidate.innerHTML = '';
     
     const candidateButton = this.createCandidateButton(candidate);
-    currentCandidate.appendChild(candidateButton);
+    if (candidateButton) {
+      currentCandidate.appendChild(candidateButton);
+      console.log('Кандидат успешно добавлен в DOM');
+    } else {
+      console.error('Не удалось создать кнопку кандидата');
+    }
   }
 
   createCandidateButton(candidate) {
+    console.log('Создаем кнопку для кандидата:', candidate);
+    
+    if (!candidate || !candidate.id) {
+      console.error('Некорректные данные кандидата:', candidate);
+      return null;
+    }
+    
     const button = document.createElement('div');
     button.className = 'candidate-button';
     button.dataset.candidateId = candidate.id;
     
     button.innerHTML = `
       <div class="candidate-header">
-        <div class="candidate-avatar">${candidate.avatar}</div>
+        <div class="candidate-avatar">${candidate.avatar || '👤'}</div>
         <div class="candidate-info">
-          <div class="candidate-name">${candidate.name}</div>
-          <div class="candidate-role">${this.getRoleDisplayName(candidate.role)}</div>
+          <div class="candidate-name">${candidate.name || 'Неизвестный'}</div>
+          <div class="candidate-role">${this.getRoleDisplayName(candidate.role || 'unknown')}</div>
         </div>
       </div>
       <div class="candidate-stats">
         <div class="stat-item">
-          <span class="stat-value">${candidate.stats.efficiency}</span>
+          <span class="stat-value">${candidate.stats?.efficiency || 0}</span>
           <span class="stat-label">Эффективность</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">${candidate.stats.creativity}</span>
+          <span class="stat-value">${candidate.stats?.creativity || 0}</span>
           <span class="stat-label">Креативность</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">${candidate.stats.leadership}</span>
+          <span class="stat-value">${candidate.stats?.leadership || 0}</span>
           <span class="stat-label">Лидерство</span>
         </div>
       </div>
@@ -268,6 +315,7 @@ class BusinessQuestEngine {
     // Добавляем обработчики для drag & drop
     this.addDragAndDropHandlers(button, candidate);
     
+    console.log('Кнопка кандидата создана успешно');
     return button;
   }
 
@@ -945,6 +993,7 @@ class BusinessQuestEngine {
         <div style="font-size: 12px; color: #155724;">
           ${worker.name} отлично справился с задачей! +3% к успешности
         </div>
+        <button class="btn-close-result" style="margin-top: 15px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">Закрыть</button>
       `;
       
       this.showToast(`🎉 ${worker.name} успешно справился с задачей! +3%`, 'success');
@@ -959,6 +1008,7 @@ class BusinessQuestEngine {
         <div style="font-size: 12px; color: #721c24;">
           ${worker.name} не справился с задачей. -2% к успешности
         </div>
+        <button class="btn-close-result" style="margin-top: 15px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">Закрыть</button>
       `;
       
       this.showToast(`💸 ${worker.name} не справился с задачей. -2%`, 'error');
@@ -969,8 +1019,15 @@ class BusinessQuestEngine {
     this.completedScenarios++;
     this.updateProgress(this.completedScenarios, this.totalScenarios);
     
-    // Показываем кнопку "Следующая задача" или переходим к финалу
-    this.showNextTaskButton();
+    // Добавляем обработчик для кнопки "Закрыть"
+    const closeBtn = resultDiv.querySelector('.btn-close-result');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        resultDiv.style.display = 'none';
+        // Показываем кнопку "Следующая задача" или переходим к финалу
+        this.showNextTaskButton();
+      });
+    }
   }
 
   calculateTaskSuccess(worker, scenario) {
@@ -1009,10 +1066,16 @@ class BusinessQuestEngine {
     const container = document.getElementById('scenariosContainer');
     if (!container) return;
     
+    // Удаляем существующую кнопку "Следующая задача" если она есть
+    const existingButton = container.querySelector('.btn-next-task');
+    if (existingButton) {
+      existingButton.remove();
+    }
+    
     if (this.currentScenarioIndex < this.scenarios.length - 1) {
       // Показываем кнопку "Следующая задача"
       const nextButton = document.createElement('button');
-      nextButton.className = 'btn primary large';
+      nextButton.className = 'btn-primary btn-next-task';
       nextButton.style.cssText = `
         margin: 20px auto;
         display: block;
@@ -1340,14 +1403,15 @@ class BusinessQuestEngine {
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
       padding: 15px 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
       z-index: 1000;
       max-width: 400px;
       width: 90%;
+      color: #ffffff;
     `;
     
     document.body.appendChild(notification);
@@ -1389,7 +1453,7 @@ class BusinessQuestEngine {
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.8);
       display: flex;
       align-items: center;
       justify-content: center;

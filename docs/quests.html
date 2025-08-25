@@ -1,297 +1,787 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Квесты</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./quests.css" />
-  <script>
-    // Telegram WebApp SDK
-    (function(){
-      if (!window.Telegram || !window.Telegram.WebApp) {
-        var s = document.createElement('script');
-        s.src = "https://telegram.org/js/telegram-web-app.js";
-        document.head.appendChild(s);
-      }
-    })();
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квесты - Формула Приватности</title>
+    <link rel="stylesheet" href="quests.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Анимированный фон с плавным переходом */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                #667eea 0%, 
+                #764ba2 25%, 
+                #f093fb 50%, 
+                #f5576c 75%, 
+                #4facfe 100%
+            );
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease-in-out infinite;
+            z-index: -2;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Плавный переход к черно-белому стилю */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                rgba(0, 0, 0, 0) 0%, 
+                rgba(0, 0, 0, 0) 40%, 
+                rgba(0, 0, 0, 0.3) 60%, 
+                rgba(0, 0, 0, 0.8) 80%, 
+                rgba(0, 0, 0, 1) 100%
+            );
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* Заголовок с анимацией стягивания */
+        header {
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.9) 0%, 
+                rgba(118, 75, 162, 0.9) 100%
+            );
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent
+            );
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes titleGlow {
+            from { 
+                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
+                transform: scale(1);
+            }
+            to { 
+                filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.6));
+                transform: scale(1.02);
+            }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+            font-weight: 400;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .hero-stat {
+            text-align: center;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+        }
+        
+        .hero-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent
+            );
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hero-stat:hover::before {
+            left: 100%;
+        }
+        
+        .hero-stat:hover {
+            transform: translateY(-8px) scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .hero-stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hero-stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        /* Секция квестов с плавным переходом */
+        .quests {
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        /* Особый квест - стиль мини-приложения */
+        .special-quest-section {
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .special-quest-card {
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.95) 0%, 
+                rgba(118, 75, 162, 0.95) 50%,
+                rgba(240, 147, 251, 0.95) 100%
+            );
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: perspective(1000px) rotateX(0deg);
+        }
+        
+        .special-quest-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                transparent 70%
+            );
+            animation: specialGlow 4s ease-in-out infinite;
+        }
+        
+        @keyframes specialGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        
+        .special-quest-card:hover {
+            transform: perspective(1000px) rotateX(5deg) translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+        
+        .special-quest-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .special-quest-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .special-quest-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .special-quest-button {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            color: #667eea;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .special-quest-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(102, 126, 234, 0.1), 
+                transparent
+            );
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .special-quest-button:hover::before {
+            left: 100%;
+        }
+        
+        .special-quest-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Плавный переход к черно-белому стилю */
+        .transition-section {
+            height: 100px;
+            background: linear-gradient(180deg, 
+                rgba(102, 126, 234, 0.8) 0%, 
+                rgba(118, 75, 162, 0.6) 25%,
+                rgba(240, 147, 251, 0.4) 50%,
+                rgba(245, 87, 108, 0.2) 75%,
+                rgba(0, 0, 0, 0) 100%
+            );
+            margin: 0 -20px 40px -20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .transition-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                transparent 70%
+            );
+            animation: transitionShimmer 6s ease-in-out infinite;
+        }
+        
+        @keyframes transitionShimmer {
+            0%, 100% { opacity: 0.3; transform: translateX(-100%); }
+            50% { opacity: 0.8; transform: translateX(100%); }
+        }
+        
+        /* Обычные квесты в черно-белом стиле */
+        .quests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .quest-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.03) 0%, 
+                rgba(255, 255, 255, 0.08) 100%
+            );
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .quest-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(255, 255, 255, 0.02) 50%, 
+                transparent 70%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .quest-card:hover::before {
+            opacity: 1;
+        }
+        
+        .quest-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+        
+        .quest-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 15px rgba(255, 255, 255, 0.2));
+        }
+        
+        .quest-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .quest-description {
+            color: #cccccc;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .quest-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: #ffffff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .quest-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent
+            );
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .quest-button:hover::before {
+            left: 100%;
+        }
+        
+        .quest-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(40, 167, 69, 0.4);
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .special-quest-card {
+                padding: 30px 20px;
+            }
+            
+            .special-quest-title {
+                font-size: 2rem;
+            }
+            
+            .quests-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
+        /* Анимации появления */
+        .fadeInUp {
+            animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slideInLeft {
+            animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .scaleIn {
+            animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="glass topbar">
-      <div class="brand">
-        <span class="logoGlow"></span>
-        <h1>Квесты</h1>
-      </div>
-      <div class="actions">
-        <button id="btnHistory" class="btn ghost" aria-label="История">📊</button>
-      </div>
-    </header>
-
-    <div class="currency-bar glass">
-      <div class="currency-info">
-        <div class="mulacoin-display">
-          <span class="currency-icon">🪙</span>
-          <span class="currency-amount" id="mulacoinAmount">0</span>
-          <span class="currency-label">mulacoin</span>
-        </div>
-        <div class="level-display" id="levelDisplay">
-          <span class="level-icon">⭐</span>
-          <span class="level-text">Уровень <span id="currentLevel">1</span></span>
-          <span class="level-progress" id="levelProgress">0/100</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Кейс секция -->
-    <section class="case-section" id="caseSection">
-      <div class="case-aura"></div>
-      <div class="case-frame">
-        <button class="case-button" id="mysteryCaseBtn" onclick="openCase()">
-          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
-        </button>
+    <header>
+        <h1 class="hero-title">Квесты</h1>
+        <p class="hero-subtitle">Погрузись в мир увлекательных заданий и испытаний</p>
         
-        <div class="case-caption">
-          <h2>🔮 Тайный кейс</h2>
-          <p>🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="hero">
-      <div class="heroCopy glass">
-        <h2>Добро пожаловать в мир возможностей!</h2>
-        <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
-          <div class="hero-stat">
-            <div class="stat-number">7</div>
-            <div class="stat-label">Квестов</div>
-          </div>
-          <div class="hero-stat">
-            <div class="stat-number">∞</div>
-            <div class="stat-label">Возможностей</div>
-          </div>
-          <div class="hero-stat">
-            <div class="stat-number">100%</div>
-            <div class="stat-label">Успеха</div>
-          </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number">7</div>
+                <div class="hero-stat-label">Квестов</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number">∞</div>
+                <div class="hero-stat-label">Возможностей</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-number">100%</div>
+                <div class="hero-stat-label">Удовольствия</div>
+            </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Квесты прямо в HTML -->
+    </header>
+    
     <section class="quests" id="quests">
-      <!-- Специальный квест - Тайное мировое правительство -->
-      <div class="special-quest-section" style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.1)); border: 2px solid rgba(139, 69, 19, 0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(139, 69, 19, 0.2);">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="color: #8B4513; font-size: 32px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🏛️ ОСОБЫЙ КВЕСТ</h2>
-          <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #8B4513, #A0522D); margin: 0 auto; border-radius: 2px;"></div>
+        <!-- Особый квест в стиле мини-приложения -->
+        <div class="special-quest-section">
+            <div class="special-quest-card">
+                <div class="special-quest-badge">ОСОБЫЙ КВЕСТ</div>
+                <div class="quest-icon">🌍</div>
+                <h2 class="special-quest-title">Тайное мировое правительство</h2>
+                <p class="special-quest-description">
+                    Раскрой тайны мировой политики и стань частью скрытых механизмов управления. 
+                    Этот эксклюзивный квест откроет тебе двери в мир закулисных интриг и глобальных решений.
+                </p>
+                <button class="special-quest-button" onclick="window.location.href='quests/world-government.html'">
+                    Начать квест
+                </button>
+            </div>
         </div>
         
-        <div class="card" data-style="conspiracy" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.15), rgba(160, 82, 45, 0.15)); border: 2px solid rgba(139, 69, 19, 0.4); box-shadow: 0 15px 40px rgba(139, 69, 19, 0.3); transform: scale(1.05); margin: 20px auto; max-width: 600px;">
-          <div class="label" style="background: #8B4513; color: white; font-weight: bold;">Стратегия</div>
-          <h3 style="color: #8B4513; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">🏛️ Мировое тайное правительство</h3>
-          <div class="description" style="font-size: 18px; line-height: 1.6; color: #5D4037;">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени. Распредели персонажей по секторам власти и построй империю влияния.</div>
-          <div class="meta">
-            <div class="tag hard" style="background: #8B4513; color: white; font-weight: bold;">Сложный</div>
-            <div class="tag" style="background: rgba(139, 69, 19, 0.2); color: #8B4513; font-weight: bold;">Эксклюзивный</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('world-government')" style="background: linear-gradient(135deg, #8B4513, #A0522D); border: none; font-weight: bold; font-size: 18px; padding: 15px 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🚀 Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('world-government')" style="border: 2px solid #8B4513; color: #8B4513; font-weight: bold;">Подробнее</button>
-          </div>
+        <!-- Плавный переход к черно-белому стилю -->
+        <div class="transition-section"></div>
+        
+        <!-- Обычные квесты в черно-белом стиле -->
+        <div class="quests-grid">
+            <div class="quest-card fadeInUp">
+                <div class="quest-icon">💼</div>
+                <h3 class="quest-title">Твой первый бизнес</h3>
+                <p class="quest-description">
+                    Создай успешную компанию с нуля! Найми лучших работников, развивай бизнес и стань предпринимателем.
+                </p>
+                <button class="quest-button" onclick="window.location.href='quests/copy.html'">
+                    Начать квест
+                </button>
+            </div>
+            
+            <div class="quest-card fadeInUp" style="animation-delay: 0.1s;">
+                <div class="quest-icon">🎯</div>
+                <h3 class="quest-title">Психология влияния</h3>
+                <p class="quest-description">
+                    Изучи техники манипуляции и убеждения. Стань мастером психологического воздействия.
+                </p>
+                <button class="quest-button" onclick="window.location.href='quests/psychology.html'">
+                    Начать квест
+                </button>
+            </div>
+            
+            <div class="quest-card fadeInUp" style="animation-delay: 0.2s;">
+                <div class="quest-icon">📈</div>
+                <h3 class="quest-title">Анализ трендов</h3>
+                <p class="quest-description">
+                    Предсказывай будущее и находи новые возможности. Стань экспертом по анализу трендов.
+                </p>
+                <button class="quest-button" onclick="window.location.href='quests/trends.html'">
+                    Начать квест
+                </button>
+            </div>
+            
+            <div class="quest-card fadeInUp" style="animation-delay: 0.3s;">
+                <div class="quest-icon">🎲</div>
+                <h3 class="quest-title">Рулетка удачи</h3>
+                <p class="quest-description">
+                    Испытай свою удачу в захватывающей игре! Крути рулетку и выигрывай призы.
+                </p>
+                <button class="quest-button" onclick="window.location.href='rulette.html'">
+                    Начать квест
+                </button>
+            </div>
+            
+            <div class="quest-card fadeInUp" style="animation-delay: 0.4s;">
+                <div class="quest-icon">🎭</div>
+                <h3 class="quest-title">Язык тела</h3>
+                <p class="quest-description">
+                    Научись читать мысли людей по их движениям. Стань экспертом по невербальной коммуникации.
+                </p>
+                <button class="quest-button" onclick="window.location.href='quests/bodylang.html'">
+                    Начать квест
+                </button>
+            </div>
+            
+            <div class="quest-card fadeInUp" style="animation-delay: 0.5s;">
+                <div class="quest-icon">📝</div>
+                <h3 class="quest-title">Копирайтинг</h3>
+                <p class="quest-description">
+                    Создавай продающие тексты и убеждай аудиторию. Стань мастером слова.
+                </p>
+                <button class="quest-button" onclick="window.location.href='quests/copy.html'">
+                    Начать квест
+                </button>
+            </div>
+            
+            <div class="quest-card fadeInUp" style="animation-delay: 0.6s;">
+                <div class="quest-icon">🎨</div>
+                <h3 class="quest-title">Конкурентный анализ</h3>
+                <p class="quest-description">
+                    Изучай конкурентов и находи их слабые места. Стань стратегом бизнеса.
+                </p>
+                <button class="quest-button" onclick="window.location.href='quests/competitors.html'">
+                    Начать квест
+                </button>
+            </div>
         </div>
-      </div>
-      
-      <div class="quests-grid">
-        <!-- Первый бизнес -->
-        <div class="card" data-style="neo">
-          <div class="label">Бизнес</div>
-          <h3>Твой первый бизнес</h3>
-          <div class="description">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
-          <div class="meta">
-            <div class="tag medium">Средний</div>
-            <div class="tag">Вариация #1/10</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('copy')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('copy')">Подробнее</button>
-          </div>
-        </div>
-
-
-
-        <!-- Язык тела -->
-        <div class="card" data-style="neo">
-          <div class="label">Психология</div>
-          <h3>Язык тела</h3>
-          <div class="description">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
-          <div class="meta">
-            <div class="tag medium">Средний</div>
-            <div class="tag">Вариация #3/10</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('bodylang')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('bodylang')">Подробнее</button>
-          </div>
-        </div>
-
-
-
-
-
-        <!-- Империя влияния -->
-        <div class="card" data-style="neo">
-          <div class="label">Влияние</div>
-          <h3>Империя влияния</h3>
-          <div class="description">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
-          <div class="meta">
-            <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #6/10</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('funnel')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('funnel')">Подробнее</button>
-          </div>
-        </div>
-
-        <!-- Психология -->
-        <div class="card" data-style="neo">
-          <div class="label">Психология</div>
-          <h3>Психология заработка</h3>
-          <div class="description">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
-          <div class="meta">
-            <div class="tag medium">Средний</div>
-            <div class="tag">Вариация #7/10</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('psychology')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('psychology')">Подробнее</button>
-          </div>
-        </div>
-
-
-
-        <!-- Анализ конкурентов -->
-        <div class="card" data-style="neo">
-          <div class="label">Стратегия</div>
-          <h3>Анализ конкурентов</h3>
-          <div class="description">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
-          <div class="meta">
-            <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #9/10</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('competitors')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('competitors')">Подробнее</button>
-          </div>
-        </div>
-
-        <!-- Анализ трендов -->
-        <div class="card" data-style="neo">
-          <div class="label">Аналитика</div>
-          <h3>Анализ трендов</h3>
-          <div class="description">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
-          <div class="meta">
-            <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #10/10</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('trends')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('trends')">Подробнее</button>
-          </div>
-        </div>
-      </div>
     </section>
-
-    <footer class="foot glass">
-      <div class="hint">
-        <span>Минималистичный чёрно‑белый интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
-      </div>
-    </footer>
-  </div>
-
-  <!-- Модал -->
-  <div id="modal" class="modal">
-    <div class="modalContent glass">
-      <button class="close" id="modalClose" aria-label="Закрыть">×</button>
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <!-- Простой JavaScript -->
-  <script>
-    // Простые функции для работы
-    function openCase() {
-      console.log('Открываем кейс...');
-      // Простой переход на страницу кейса
-      window.location.href = 'case.html';
-    }
-
-    function startQuest(questId) {
-      console.log('Начинаем квест:', questId);
-      // Простой переход на квест
-      window.location.href = 'quests/' + questId + '.html';
-    }
-
-    function showQuestDetails(questId) {
-      console.log('Показываем детали квеста:', questId);
-      // Простое модальное окно
-      const modal = document.getElementById('modal');
-      const modalBody = document.getElementById('modalBody');
-      
-      const questData = {
-        'copy': { name: '🏢 Твой первый бизнес', description: 'Создай и управляй своим бизнесом с нуля.' },
-        'world-government': { name: '🏛️ Мировое тайное правительство', description: 'Создай мировое тайное правительство, распределяя персонажей по секторам власти.' },
-        'bodylang': { name: 'Язык тела', description: 'Распознай невербальные сигналы 2D‑персонажа.' },
-        'funnel': { name: 'Империя влияния', description: 'Создай медиа-империю и управляй массовым сознанием.' },
-        'psychology': { name: 'Психология заработка', description: 'Используй психологические техники для успешных переговоров.' },
-        'competitors': { name: 'Анализ конкурентов', description: 'Изучи конкурентную среду и выбери наиболее сильного конкурента.' },
-        'trends': { name: 'Анализ трендов', description: 'Стань мастером рыночной аналитики и трендов.' }
-      };
-      
-      const quest = questData[questId];
-      if (quest) {
-        modalBody.innerHTML = `
-          <h3>${quest.name}</h3>
-          <p>${quest.description}</p>
-          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
-        `;
-        modal.classList.add('show');
-      }
-    }
-
-    // Закрытие модала
-    document.getElementById('modalClose').addEventListener('click', function() {
-      document.getElementById('modal').classList.remove('show');
-    });
-
-    // Закрытие по клику вне модала
-    document.getElementById('modal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.classList.remove('show');
-      }
-    });
-
-    // Простая функция toast
-    function toast(message, type = 'info') {
-      const toastEl = document.getElementById('toast');
-      toastEl.textContent = message;
-      toastEl.className = `toast show ${type}`;
-      setTimeout(() => toastEl.classList.remove('show'), 3000);
-    }
-
-    // Инициализация при загрузке
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Квесты загружены!');
-      toast('Квесты загружены успешно!', 'success');
-    });
-  </script>
+    
+    <script src="quests.js"></script>
+    <script>
+        // Анимации появления элементов
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Наблюдаем за карточками квестов
+        document.querySelectorAll('.quest-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(card);
+        });
+        
+        // Плавная прокрутка для кнопок
+        document.querySelectorAll('button[onclick*="href"]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const href = button.getAttribute('onclick').match(/href='([^']+)'/)[1];
+                
+                // Анимация перехода
+                document.body.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                document.body.style.transform = 'scale(0.95)';
+                document.body.style.opacity = '0.8';
+                
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
+            });
+        });
+        
+        // Анимация при скролле
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        
+        function updateScrollAnimation() {
+            const scrolled = window.scrollY;
+            const rate = scrolled * -0.5;
+            
+            // Параллакс эффект для фона
+            document.body.style.transform = `translateY(${rate}px)`;
+            
+            // Плавное изменение прозрачности переходной секции
+            const transitionSection = document.querySelector('.transition-section');
+            if (transitionSection) {
+                const opacity = Math.min(scrolled / 500, 1);
+                transitionSection.style.opacity = opacity;
+            }
+            
+            ticking = false;
+        }
+        
+        function requestTick() {
+            if (!ticking) {
+                requestAnimationFrame(updateScrollAnimation);
+                ticking = true;
+            }
+        }
+        
+        window.addEventListener('scroll', requestTick);
+        
+        // Инициализация анимаций
+        document.addEventListener('DOMContentLoaded', () => {
+            // Анимация появления заголовка
+            const heroTitle = document.querySelector('.hero-title');
+            if (heroTitle) {
+                heroTitle.style.opacity = '0';
+                heroTitle.style.transform = 'translateY(-30px)';
+                
+                setTimeout(() => {
+                    heroTitle.style.transition = 'all 1s cubic-bezier(0.4, 0, 0.2, 1)';
+                    heroTitle.style.opacity = '1';
+                    heroTitle.style.transform = 'translateY(0)';
+                }, 300);
+            }
+            
+            // Анимация появления статистики
+            const heroStats = document.querySelectorAll('.hero-stat');
+            heroStats.forEach((stat, index) => {
+                stat.style.opacity = '0';
+                stat.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    stat.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    stat.style.opacity = '1';
+                    stat.style.transform = 'translateY(0)';
+                }, 600 + index * 100);
+            });
+            
+            // Анимация появления особого квеста
+            const specialQuest = document.querySelector('.special-quest-card');
+            if (specialQuest) {
+                specialQuest.style.opacity = '0';
+                specialQuest.style.transform = 'scale(0.9) rotateX(10deg)';
+                
+                setTimeout(() => {
+                    specialQuest.style.transition = 'all 1s cubic-bezier(0.4, 0, 0.2, 1)';
+                    specialQuest.style.opacity = '1';
+                    specialQuest.style.transform = 'scale(1) rotateX(0deg)';
+                }, 1000);
+            }
+        });
+    </script>
 </body>
 </html>
