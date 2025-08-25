@@ -29,16 +29,16 @@ class BusinessQuestEngine {
     });
 
     // Продолжить к бизнесу
-    document.getElementById('continueToBusiness').addEventListener('click', () => {
+    document.getElementById('continueBtn')?.addEventListener('click', () => {
       this.startBusinessScenarios();
     });
 
     // Финальные опции
-    document.getElementById('sellBusiness').addEventListener('click', () => {
+    document.getElementById('sellBusiness')?.addEventListener('click', () => {
       this.sellBusiness();
     });
 
-    document.getElementById('keepBusiness').addEventListener('click', () => {
+    document.getElementById('keepBusiness')?.addEventListener('click', () => {
       this.keepBusiness();
     });
 
@@ -140,7 +140,7 @@ class BusinessQuestEngine {
   }
 
   highlightDropZones(x, y) {
-    const dropZones = document.querySelectorAll('.candidate-slot:not(.filled)');
+    const dropZones = document.querySelectorAll('.candidate-slot:not([data-assigned])');
     
     dropZones.forEach(zone => {
       const rect = zone.getBoundingClientRect();
@@ -167,7 +167,7 @@ class BusinessQuestEngine {
   }
 
   getDropZoneAt(x, y) {
-    const dropZones = document.querySelectorAll('.candidate-slot:not(.filled)');
+    const dropZones = document.querySelectorAll('.candidate-slot:not([data-assigned])');
     
     for (let zone of dropZones) {
       const rect = zone.getBoundingClientRect();
@@ -205,12 +205,12 @@ class BusinessQuestEngine {
 
   showNextCandidate() {
     // Проверяем, есть ли свободные слоты
-    const filledSlots = document.querySelectorAll('.candidate-slot.filled').length;
+    const filledSlots = document.querySelectorAll('.candidate-slot[data-assigned]').length;
     if (filledSlots >= 9) {
       // Все слоты заполнены, не показываем новых кандидатов
-      const candidatesList = document.getElementById('candidatesList');
-      if (candidatesList) {
-        candidatesList.innerHTML = '<div style="text-align: center; padding: 20px; color: #28a745; font-weight: 600;">🎉 Все позиции заполнены!</div>';
+      const currentCandidate = document.getElementById('currentCandidate');
+      if (currentCandidate) {
+        currentCandidate.innerHTML = '<div style="text-align: center; padding: 20px; color: #28a745; font-weight: 600;">🎉 Все позиции заполнены!</div>';
       }
       return;
     }
@@ -226,14 +226,14 @@ class BusinessQuestEngine {
   }
 
   displaySingleCandidate(candidate) {
-    const candidatesList = document.getElementById('candidatesList');
-    if (!candidatesList) return;
+    const currentCandidate = document.getElementById('currentCandidate');
+    if (!currentCandidate) return;
     
     // Очищаем список и показываем только одного кандидата
-    candidatesList.innerHTML = '';
+    currentCandidate.innerHTML = '';
     
     const candidateButton = this.createCandidateButton(candidate);
-    candidatesList.appendChild(candidateButton);
+    currentCandidate.appendChild(candidateButton);
   }
 
   createCandidateButton(candidate) {
@@ -428,8 +428,8 @@ class BusinessQuestEngine {
       
       const targetSlot = this.getDropZoneAt(clientX, clientY);
       
-      if (targetSlot && !targetSlot.classList.contains('filled')) {
-        this.assignCandidateToSlot(candidate, targetSlot.dataset.slot);
+      if (targetSlot && !targetSlot.dataset.assigned) {
+        this.assignCandidateToSlot(candidate, targetSlot);
         this.showToast(`✅ ${candidate.name} назначен на позицию ${parseInt(targetSlot.dataset.slot) + 1}!`, 'success');
       }
       
@@ -488,6 +488,12 @@ class BusinessQuestEngine {
   }
 
   assignCandidateToSlot(candidate, slot) {
+    // Проверяем, что slot - это DOM элемент
+    if (typeof slot === 'string') {
+      slot = document.querySelector(`[data-slot="${slot}"]`);
+      if (!slot) return;
+    }
+    
     if (slot.dataset.assigned) {
       // Слот уже занят, добавляем второго работника
       const firstWorker = this.hiredCandidates.find(w => w.id === slot.dataset.assigned);
