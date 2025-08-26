@@ -219,6 +219,14 @@ class BusinessQuestEngine {
   generateRandomCandidates() {
     // Показываем только одного случайного кандидата
     this.showNextCandidate();
+    
+    // Добавляем дополнительную проверку через небольшую задержку
+    setTimeout(() => {
+      const currentCandidate = document.getElementById('currentCandidate');
+      if (currentCandidate && currentCandidate.children.length === 0) {
+        this.showNextCandidate();
+      }
+    }, 100);
   }
 
   showNextCandidate() {
@@ -240,28 +248,49 @@ class BusinessQuestEngine {
     
     if (candidate) {
       this.displaySingleCandidate(candidate);
+    } else {
+      // Если кандидат не найден, пробуем другую роль
+      console.log('Кандидат не найден для роли:', randomRole);
+      this.showNextCandidate();
     }
   }
 
   displaySingleCandidate(candidate) {
     const currentCandidate = document.getElementById('currentCandidate');
-    if (!currentCandidate) return;
+    if (!currentCandidate) {
+      console.error('Элемент currentCandidate не найден');
+      return;
+    }
+    
+    if (!candidate) {
+      console.error('Кандидат не передан в displaySingleCandidate');
+      return;
+    }
     
     // Очищаем список и показываем только одного кандидата
     currentCandidate.innerHTML = '';
     
     const candidateButton = this.createCandidateButton(candidate);
-    currentCandidate.appendChild(candidateButton);
+    if (candidateButton) {
+      currentCandidate.appendChild(candidateButton);
+    } else {
+      console.error('Не удалось создать кнопку кандидата');
+    }
   }
 
   createCandidateButton(candidate) {
+    if (!candidate || !candidate.id || !candidate.name || !candidate.role || !candidate.stats) {
+      console.error('Некорректные данные кандидата:', candidate);
+      return null;
+    }
+    
     const button = document.createElement('div');
     button.className = 'candidate-button';
     button.dataset.candidateId = candidate.id;
     
     button.innerHTML = `
       <div class="candidate-header">
-        <div class="candidate-avatar">${candidate.avatar}</div>
+        <div class="candidate-avatar">${candidate.avatar || '👤'}</div>
         <div class="candidate-info">
           <div class="candidate-name">${candidate.name}</div>
           <div class="candidate-role">${this.getRoleDisplayName(candidate.role)}</div>
@@ -269,15 +298,15 @@ class BusinessQuestEngine {
       </div>
       <div class="candidate-stats">
         <div class="stat-item">
-          <span class="stat-value">${candidate.stats.efficiency}</span>
+          <span class="stat-value">${candidate.stats.efficiency || 0}</span>
           <span class="stat-label">Эффективность</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">${candidate.stats.creativity}</span>
+          <span class="stat-value">${candidate.stats.creativity || 0}</span>
           <span class="stat-label">Креативность</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">${candidate.stats.leadership}</span>
+          <span class="stat-value">${candidate.stats.leadership || 0}</span>
           <span class="stat-label">Лидерство</span>
         </div>
       </div>
@@ -290,6 +319,11 @@ class BusinessQuestEngine {
   }
 
   addDragAndDropHandlers(button, candidate) {
+    if (!button || !candidate) {
+      console.error('Некорректные параметры для addDragAndDropHandlers:', { button, candidate });
+      return;
+    }
+    
     let isDragging = false;
     let startX, startY;
     let originalTransform;
@@ -385,6 +419,11 @@ class BusinessQuestEngine {
   }
 
   startDrag(button, candidate, x, y) {
+    if (!button || !candidate || typeof x !== 'number' || typeof y !== 'number') {
+      console.error('Некорректные параметры для startDrag:', { button, candidate, x, y });
+      return;
+    }
+    
     // Создаем плавающий элемент для drag с упрощенной информацией
     const floatingElement = document.createElement('div');
     floatingElement.className = 'floating-candidate';
@@ -392,9 +431,9 @@ class BusinessQuestEngine {
     // Упрощенная информация без характеристик
     floatingElement.innerHTML = `
       <div style="text-align: center; padding: 10px;">
-        <div style="font-size: 32px; margin-bottom: 8px;">${candidate.avatar}</div>
-        <div style="font-size: 14px; font-weight: 600; color: #333;">${candidate.name}</div>
-        <div style="font-size: 12px; color: #666;">${this.getRoleDisplayName(candidate.role)}</div>
+        <div style="font-size: 32px; margin-bottom: 8px; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));">${candidate.avatar}</div>
+        <div style="font-size: 14px; font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${candidate.name}</div>
+        <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${this.getRoleDisplayName(candidate.role)}</div>
       </div>
     `;
     
@@ -403,14 +442,14 @@ class BusinessQuestEngine {
       top: ${y - 40}px;
       left: ${x - 100}px;
       width: 150px;
-      background: white;
-      border: 2px solid #007bff;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border: 2px solid rgba(255, 255, 255, 0.4);
       border-radius: 12px;
       padding: 15px;
-      box-shadow: 0 10px 30px rgba(0,123,255,0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.2);
       z-index: 1000;
       pointer-events: none;
-      opacity: 0.9;
+      opacity: 0.95;
     `;
     
     document.body.appendChild(floatingElement);
@@ -732,8 +771,28 @@ class BusinessQuestEngine {
       return;
     }
 
+    // Сбрасываем состояние для нового сценария
+    this.resetScenarioState();
+    
     const scenario = this.scenarios[this.currentScenarioIndex];
     this.displaySingleScenario(scenario);
+  }
+  
+  resetScenarioState() {
+    // Скрываем все результаты предыдущих задач
+    const container = document.getElementById('scenariosContainer');
+    if (container) {
+      const results = container.querySelectorAll('.scenario-result');
+      results.forEach(result => {
+        result.style.display = 'none';
+      });
+    }
+    
+    // Удаляем кнопку "Следующая задача" если она есть
+    const nextButton = container?.querySelector('.next-task-button');
+    if (nextButton) {
+      nextButton.remove();
+    }
   }
 
   showFinalResults() {
@@ -840,6 +899,7 @@ class BusinessQuestEngine {
 
     // Создаем простое модальное окно
     const modal = document.createElement('div');
+    modal.className = 'worker-selection-modal';
     modal.style.cssText = `
       position: fixed;
       top: 0;
@@ -855,33 +915,38 @@ class BusinessQuestEngine {
 
     const modalContent = document.createElement('div');
     modalContent.style.cssText = `
-      background: white;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
       padding: 20px;
       border-radius: 12px;
       max-width: 400px;
       max-height: 80vh;
       overflow-y: auto;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
     `;
 
     modalContent.innerHTML = `
-      <h3>Выберите работника для задачи</h3>
+      <h3 style="color: #ffffff; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Выберите работника для задачи</h3>
       <div style="margin: 20px 0;">
         ${availableWorkers.map(worker => `
           <div style="
             padding: 15px;
-            border: 1px solid #ddd;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
             margin-bottom: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 15px;
-          " onclick="window.businessEngine.assignWorkerToScenario('${scenarioId}', ${worker.id})">
-            <div style="font-size: 24px;">${worker.avatar}</div>
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.6)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.4)'" onclick="window.businessEngine.assignWorkerToScenario('${scenarioId}', ${worker.id})">
+            <div style="font-size: 24px; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));">${worker.avatar}</div>
             <div>
-              <div style="font-weight: 600;">${worker.name}</div>
-              <div style="color: #666;">${this.getRoleDisplayName(worker.role)}</div>
-              <div style="font-size: 12px; color: #007bff;">
+              <div style="font-weight: 600; color: #ffffff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${worker.name}</div>
+              <div style="color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${this.getRoleDisplayName(worker.role)}</div>
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
                 Эфф: ${worker.stats.efficiency} | Креатив: ${worker.stats.creativity} | Лидер: ${worker.stats.leadership}
               </div>
             </div>
@@ -889,13 +954,15 @@ class BusinessQuestEngine {
         `).join('')}
       </div>
       <button onclick="this.parentElement.parentElement.remove()" style="
-        background: #6c757d;
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
         color: white;
         border: none;
         padding: 10px 20px;
         border-radius: 6px;
         cursor: pointer;
-      ">Отмена</button>
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Отмена</button>
     `;
 
     modal.appendChild(modalContent);
@@ -922,8 +989,11 @@ class BusinessQuestEngine {
       // Проверяем результат выполнения задачи
       this.checkScenarioResult(scenarioId, worker, scenario);
       
-      // Закрываем модальное окно
-      document.querySelector('[style*="position: fixed"]')?.remove();
+      // Закрываем модальное окно выбора работника
+      const modal = document.querySelector('.worker-selection-modal, [style*="position: fixed"]');
+      if (modal) {
+        modal.remove();
+      }
       
       // Проверяем, завершены ли все сценарии
       this.checkAllScenariosCompleted();
@@ -958,11 +1028,22 @@ class BusinessQuestEngine {
       resultDiv.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
           <span style="font-size: 20px;">✅</span>
-          <span style="font-weight: 600;">Задача выполнена успешно!</span>
+          <span style="font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Задача выполнена успешно!</span>
         </div>
-        <div style="font-size: 12px; color: #155724;">
+        <div style="font-size: 12px; color: #28a745; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
           ${worker.name} отлично справился с задачей! +3% к успешности
         </div>
+        <button class="btn-close-result" style="
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Закрыть</button>
       `;
       
       this.showToast(`🎉 ${worker.name} успешно справился с задачей! +3%`, 'success');
@@ -972,11 +1053,22 @@ class BusinessQuestEngine {
       resultDiv.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
           <span style="font-size: 20px;">❌</span>
-          <span style="font-weight: 600;">Задача провалена. Бизнес несет убытки.</span>
+          <span style="font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Задача провалена. Бизнес несет убытки.</span>
         </div>
-        <div style="font-size: 12px; color: #721c24;">
+        <div style="font-size: 12px; color: #dc3545; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
           ${worker.name} не справился с задачей. -2% к успешности
         </div>
+        <button class="btn-close-result" style="
+          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Закрыть</button>
       `;
       
       this.showToast(`💸 ${worker.name} не справился с задачей. -2%`, 'error');
@@ -987,8 +1079,17 @@ class BusinessQuestEngine {
     this.completedScenarios++;
     this.updateProgress(this.completedScenarios, this.totalScenarios);
     
-    // Показываем кнопку "Следующая задача" или переходим к финалу
-    this.showNextTaskButton();
+    // Добавляем обработчик для кнопки "Закрыть"
+    setTimeout(() => {
+      const closeBtn = resultDiv.querySelector('.btn-close-result');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          resultDiv.style.display = 'none';
+          // Показываем кнопку "Следующая задача" или переходим к финалу
+          this.showNextTaskButton();
+        });
+      }
+    }, 100);
   }
 
   calculateTaskSuccess(worker, scenario) {
@@ -1027,10 +1128,23 @@ class BusinessQuestEngine {
     const container = document.getElementById('scenariosContainer');
     if (!container) return;
     
+    // Удаляем существующую кнопку, если она есть
+    const existingButton = container.querySelector('.next-task-button');
+    if (existingButton) {
+      existingButton.remove();
+    }
+    
+    // Проверяем, есть ли открытые результаты задач
+    const openResults = container.querySelectorAll('.scenario-result[style*="display: block"]');
+    if (openResults.length > 0) {
+      // Есть открытые результаты, не показываем кнопку
+      return;
+    }
+    
     if (this.currentScenarioIndex < this.scenarios.length - 1) {
       // Показываем кнопку "Следующая задача"
       const nextButton = document.createElement('button');
-      nextButton.className = 'btn primary large';
+      nextButton.className = 'btn primary large next-task-button';
       nextButton.style.cssText = `
         margin: 20px auto;
         display: block;
@@ -1068,36 +1182,106 @@ class BusinessQuestEngine {
   }
 
   showFinalOptions() {
-    document.getElementById('businessScenarios').style.display = 'none';
-    document.getElementById('finalOptions').style.display = 'block';
+    // Скрываем сценарии и показываем финальные опции
+    const scenariosContainer = document.getElementById('businessScenarios');
+    const finalOptionsContainer = document.getElementById('finalOptions');
     
-    const container = document.getElementById('finalOptions');
+    if (scenariosContainer) scenariosContainer.style.display = 'none';
+    if (finalOptionsContainer) finalOptionsContainer.style.display = 'block';
+    
+    if (!finalOptionsContainer) return;
     
     if (this.businessSuccessRate >= 350) {
       // Максимальный успех
-      container.innerHTML = `
-        <div class="max-success">
-          <h2>🏆 МАКСИМАЛЬНЫЙ УСПЕХ!</h2>
-          <div class="success-rate-display">
-            <div class="success-rate-bar">
-              <div class="success-rate-fill" style="width: 100%"></div>
+      finalOptionsContainer.innerHTML = `
+        <div class="max-success" style="
+          background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+          border: 2px solid rgba(255, 215, 0, 0.5);
+          border-radius: 20px;
+          padding: 40px;
+          text-align: center;
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        ">
+          <h2 style="color: #ffd700; font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);">🏆 МАКСИМАЛЬНЫЙ УСПЕХ!</h2>
+          <div class="success-rate-display" style="margin-bottom: 30px;">
+            <div class="success-rate-bar" style="
+              width: 100%;
+              height: 20px;
+              background: rgba(0, 0, 0, 0.3);
+              border-radius: 10px;
+              overflow: hidden;
+              border: 2px solid rgba(255, 215, 0, 0.3);
+            ">
+              <div class="success-rate-fill" style="
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, #ffd700, #ffed4e);
+                border-radius: 8px;
+              "></div>
             </div>
-            <div class="success-rate-text">350% успешности!</div>
+            <div class="success-rate-text" style="
+              color: #ffd700;
+              font-size: 1.5rem;
+              font-weight: 600;
+              margin-top: 15px;
+              text-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+            ">350% успешности!</div>
           </div>
-          <div class="rewards">
-            <h3>Максимальные награды:</h3>
-            <div class="reward-item">
-              <span class="reward-icon">💰</span>
-              <span class="reward-text">500 MULACOIN в день</span>
+          <div class="rewards" style="margin-bottom: 40px;">
+            <h3 style="color: #ffffff; font-size: 1.8rem; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Максимальные награды:</h3>
+            <div class="reward-item" style="
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+              border: 1px solid rgba(255, 215, 0, 0.3);
+              border-radius: 15px;
+              padding: 20px;
+              margin-bottom: 15px;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            ">
+              <span class="reward-icon" style="font-size: 2rem;">💰</span>
+              <span class="reward-text" style="color: #ffffff; font-size: 1.2rem; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">500 MULACOIN в день</span>
             </div>
-            <div class="reward-item">
-              <span class="reward-icon">⭐</span>
-              <span class="reward-text">500 опыта в день</span>
+            <div class="reward-item" style="
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+              border: 1px solid rgba(255, 215, 0, 0.3);
+              border-radius: 15px;
+              padding: 20px;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            ">
+              <span class="reward-icon" style="font-size: 2rem;">⭐</span>
+              <span class="reward-text" style="color: #ffffff; font-size: 1.2rem; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">500 опыта в день</span>
             </div>
           </div>
-          <div class="final-actions">
-            <button class="btn-primary" onclick="businessEngine.sellBusiness()">Продать бизнес</button>
-            <button class="btn-secondary" onclick="businessEngine.keepBusiness()">Оставить бизнес</button>
+          <div class="final-actions" style="display: flex; gap: 20px; justify-content: center;">
+            <button class="btn-primary" onclick="businessEngine.sellBusiness()" style="
+              background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              border-radius: 25px;
+              font-size: 1.1rem;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">Продать бизнес</button>
+            <button class="btn-secondary" onclick="businessEngine.keepBusiness()" style="
+              background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+              color: white;
+              border: none;
+              padding: 15px 30px;
+              border-radius: 25px;
+              font-size: 1.1rem;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">Оставить бизнес</button>
           </div>
         </div>
       `;
@@ -1349,7 +1533,7 @@ class BusinessQuestEngine {
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 20px;">${event.icon}</span>
         <span>${worker.name} ${event.text}!</span>
-        <button class="btn-replace" style="margin-left: auto; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Заменить</button>
+        <button class="btn-replace" style="margin-left: auto; padding: 5px 10px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Заменить</button>
       </div>
     `;
     
@@ -1358,24 +1542,27 @@ class BusinessQuestEngine {
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 8px;
       padding: 15px 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
       z-index: 1000;
       max-width: 400px;
       width: 90%;
+      color: #ffffff;
     `;
     
     document.body.appendChild(notification);
     
     // Обработчик кнопки "Заменить"
     const replaceBtn = notification.querySelector('.btn-replace');
-    replaceBtn.addEventListener('click', () => {
-      this.showWorkerReplacement(worker, event);
-      notification.remove();
-    });
+    if (replaceBtn) {
+      replaceBtn.addEventListener('click', () => {
+        this.showWorkerReplacement(worker, event);
+        notification.remove();
+      });
+    }
     
     // Автоматически убираем через 10 секунд
     setTimeout(() => {
@@ -1390,13 +1577,44 @@ class BusinessQuestEngine {
     const modal = document.createElement('div');
     modal.className = 'worker-replacement-modal';
     modal.innerHTML = `
-      <div class="modal-content">
-        <h3>${event.icon} ${oldWorker.name} ${event.text}!</h3>
-        <p>Выберите нового работника на замену:</p>
+      <div class="modal-content" style="
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        padding: 25px;
+        border-radius: 15px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        max-width: 500px;
+        width: 90%;
+        color: #ffffff;
+      ">
+        <h3 style="color: #ffffff; margin-bottom: 15px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${event.icon} ${oldWorker.name} ${event.text}!</h3>
+        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 20px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">Выберите нового работника на замену:</p>
         <div id="replacementCandidates"></div>
-        <div class="modal-actions">
-          <button class="btn-skip">Пропустить</button>
-          <button class="btn-close">Закрыть</button>
+        <div class="modal-actions" style="display: flex; gap: 15px; margin-top: 20px;">
+          <button class="btn-skip" style="
+            flex: 1;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            color: #212529;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+          " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Пропустить</button>
+          <button class="btn-close" style="
+            flex: 1;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+          " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Закрыть</button>
         </div>
       </div>
     `;
@@ -1422,13 +1640,23 @@ class BusinessQuestEngine {
     const skipBtn = modal.querySelector('.btn-skip');
     const closeBtn = modal.querySelector('.btn-close');
     
-    skipBtn.addEventListener('click', () => {
-      this.showNextReplacementCandidate(modal, oldWorker);
-    });
+    if (skipBtn) {
+      skipBtn.addEventListener('click', () => {
+        this.showNextReplacementCandidate(modal, oldWorker);
+      });
+    }
     
-    closeBtn.addEventListener('click', () => {
-      modal.remove();
-    });
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
+  }
+
+  generateRandomCandidate() {
+    const roles = ['marketing', 'sales', 'tech', 'finance', 'operations'];
+    const randomRole = roles[Math.floor(Math.random() * roles.length)];
+    return BusinessDataService.getRandomCandidate(randomRole);
   }
 
   showNextReplacementCandidate(modal, oldWorker) {
@@ -1436,35 +1664,55 @@ class BusinessQuestEngine {
     const newCandidate = this.generateRandomCandidate();
     
     container.innerHTML = `
-      <div class="replacement-candidate">
-        <div style="font-size: 48px; text-align: center; margin-bottom: 15px;">${newCandidate.avatar}</div>
+      <div class="replacement-candidate" style="
+        background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      ">
+        <div style="font-size: 48px; text-align: center; margin-bottom: 15px; filter: drop-shadow(0 4px 15px rgba(255, 255, 255, 0.2));">${newCandidate.avatar}</div>
         <div style="text-align: center; margin-bottom: 20px;">
-          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${newCandidate.name}</div>
-          <div style="font-size: 14px; color: #666; margin-bottom: 15px;">${this.getRoleDisplayName(newCandidate.role)}</div>
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${newCandidate.name}</div>
+          <div style="font-size: 14px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${this.getRoleDisplayName(newCandidate.role)}</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
             <div style="text-align: center;">
-              <div style="font-size: 12px; color: #666;">Эффективность</div>
-              <div style="font-size: 16px; font-weight: 600;">${newCandidate.stats.efficiency}</div>
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">Эффективность</div>
+              <div style="font-size: 16px; font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${newCandidate.stats.efficiency}</div>
             </div>
             <div style="text-align: center;">
-              <div style="font-size: 12px; color: #666;">Креативность</div>
-              <div style="font-size: 16px; font-weight: 600;">${newCandidate.stats.creativity}</div>
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">Креативность</div>
+              <div style="font-size: 16px; font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${newCandidate.stats.creativity}</div>
             </div>
             <div style="text-align: center;">
-              <div style="font-size: 12px; color: #666;">Лидерство</div>
-              <div style="font-size: 16px; font-weight: 600;">${newCandidate.stats.leadership}</div>
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">Лидерство</div>
+              <div style="font-size: 16px; font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${newCandidate.stats.leadership}</div>
             </div>
           </div>
         </div>
-        <button class="btn-hire" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">Нанять</button>
+        <button class="btn-hire" style="
+          width: 100%; 
+          padding: 12px; 
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+          color: white; 
+          border: none; 
+          border-radius: 8px; 
+          font-size: 16px; 
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Нанять</button>
       </div>
     `;
     
     const hireBtn = container.querySelector('.btn-hire');
-    hireBtn.addEventListener('click', () => {
-      this.replaceWorker(oldWorker, newCandidate);
-      modal.remove();
-    });
+    if (hireBtn) {
+      hireBtn.addEventListener('click', () => {
+        this.replaceWorker(oldWorker, newCandidate);
+        modal.remove();
+      });
+    }
   }
 
   replaceWorker(oldWorker, newWorker) {
