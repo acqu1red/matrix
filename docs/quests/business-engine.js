@@ -63,10 +63,10 @@ class BusinessQuestEngine {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100px;
-      height: 60px;
-      background: rgba(0, 123, 255, 0.9);
-      border-radius: 8px;
+      width: 90px;
+      height: 55px;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border-radius: 12px;
       display: none;
       align-items: center;
       justify-content: center;
@@ -74,8 +74,10 @@ class BusinessQuestEngine {
       font-weight: 600;
       z-index: 1000;
       pointer-events: none;
-      box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      transition: all 0.1s ease-out;
+      backdrop-filter: blur(10px);
     `;
     document.body.appendChild(floatingCandidate);
 
@@ -93,9 +95,10 @@ class BusinessQuestEngine {
         floatingCandidate.style.left = (rect.left + rect.width / 2 - 50) + 'px';
         floatingCandidate.style.top = (rect.top + rect.height / 2 - 30) + 'px';
         
-        // Добавляем визуальный эффект
-        e.target.style.opacity = '0.5';
-        e.target.style.transform = 'scale(0.95)';
+        // Добавляем визуальный эффект с плавной анимацией
+        e.target.style.transition = 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        e.target.style.opacity = '0.6';
+        e.target.style.transform = 'scale(0.92)';
         
         // Показываем подсказку
         this.showToast('📱 Перетащите работника в нужный слот', 'info');
@@ -106,8 +109,16 @@ class BusinessQuestEngine {
       if (draggedElement) {
         e.preventDefault();
         const touch = e.touches[0];
-        floatingCandidate.style.left = (touch.clientX - 50) + 'px';
-        floatingCandidate.style.top = (touch.clientY - 30) + 'px';
+        
+        // Плавное перемещение плавающего элемента
+        const targetX = touch.clientX - 45;
+        const targetY = touch.clientY - 27.5;
+        
+        // Используем requestAnimationFrame для плавной анимации
+        requestAnimationFrame(() => {
+          floatingCandidate.style.left = targetX + 'px';
+          floatingCandidate.style.top = targetY + 'px';
+        });
         
         // Подсвечиваем возможные слоты назначения
         this.highlightDropZones(touch.clientX, touch.clientY);
@@ -124,10 +135,18 @@ class BusinessQuestEngine {
           this.showToast('✅ Работник перемещен!', 'success');
         }
         
-        // Восстанавливаем оригинальный слот
+        // Восстанавливаем оригинальный слот с плавной анимацией
         if (originalSlot) {
+          originalSlot.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
           originalSlot.style.opacity = '';
           originalSlot.style.transform = '';
+          
+          // Убираем transition после анимации
+          setTimeout(() => {
+            if (originalSlot) {
+              originalSlot.style.transition = '';
+            }
+          }, 400);
         }
         
         // Очистка
@@ -147,10 +166,11 @@ class BusinessQuestEngine {
       const isOver = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
       
       if (isOver) {
-        zone.style.borderColor = '#28a745';
-        zone.style.backgroundColor = '#d4edda';
-        zone.style.transform = 'scale(1.1)';
-        zone.style.boxShadow = '0 8px 25px rgba(40, 167, 69, 0.4)';
+        // Добавляем класс для CSS анимации
+        zone.classList.add('drag-over');
+      } else {
+        // Убираем класс для плавного возврата к исходному состоянию
+        zone.classList.remove('drag-over');
       }
     });
   }
@@ -159,10 +179,8 @@ class BusinessQuestEngine {
     const dropZones = document.querySelectorAll('.candidate-slot');
     
     dropZones.forEach(zone => {
-      zone.style.borderColor = '';
-      zone.style.backgroundColor = '';
-      zone.style.transform = '';
-      zone.style.boxShadow = '';
+      // Убираем класс для плавного возврата к исходному состоянию
+      zone.classList.remove('drag-over');
     });
   }
 

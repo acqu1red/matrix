@@ -1,21 +1,12 @@
 <!doctype html>
-<html lang="ru" data-theme="modern">
+<html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Квесты</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="./assets/brand/favicon-64.png" />
-  <link rel="apple-touch-icon" href="./assets/brand/app-icon-1024.png" />
-  <link rel="stylesheet" href="./styles/tokens.css" />
-  <link rel="stylesheet" href="./styles/typography.css" />
-  <link rel="stylesheet" href="./styles/layout.css" />
-  <link rel="stylesheet" href="./styles/components.css" />
-  <link rel="stylesheet" href="./styles/skeleton.css" />
-  <link rel="stylesheet" href="./styles/telegram.css" />
-  <link rel="stylesheet" href="./styles/quests-specific.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./quests.css" />
   <script>
     // Telegram WebApp SDK
@@ -33,77 +24,62 @@
     <!-- Элемент для анимации стягивания экрана -->
     <div class="screen-transition" id="screenTransition"></div>
     
-    <header class="container cluster" style="justify-content:space-between; padding:12px 0;">
-      <div class="cluster">
-        <img src="./assets/brand/logo-psy-earn-256.png" alt="logo" width="28" height="28" style="border-radius:8px;" />
-        <div class="h3">Quests</div>
+    <header class="glass topbar smooth-transition">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>Квесты</h1>
       </div>
-      <div class="cluster">
-        <button id="btnHistory" class="btn btn--ghost" aria-label="История">📊</button>
-        <button class="btn btn--primary" id="ctaStart">Старт</button>
+      <div class="actions">
+        <button id="btnHistory" class="btn ghost" aria-label="История">📊</button>
       </div>
     </header>
 
-    <div class="container">
-      <div class="card padding" style="margin-bottom: 16px;">
-        <div class="cluster" style="justify-content:space-between;">
-          <div class="cluster">
-            <span style="font-size: 24px;">🪙</span>
-            <div>
-              <div class="num" id="mulacoinAmount">0</div>
-              <div class="caption">mulacoin</div>
-            </div>
-          </div>
-          <div class="cluster">
-            <span style="font-size: 24px;">⭐</span>
-            <div>
-              <div class="cluster">
-                <span class="body">Уровень</span>
-                <span class="num" id="currentLevel">1</span>
-              </div>
-              <div class="progress" style="width: 120px; margin-top: 4px;">
-                <div class="progress__bar" id="levelProgressBar" style="width: 0%;"></div>
-              </div>
-            </div>
-          </div>
+    <div class="currency-bar glass smooth-transition">
+      <div class="currency-info">
+        <div class="mulacoin-display">
+          <span class="currency-icon">🪙</span>
+          <span class="currency-amount" id="mulacoinAmount">0</span>
+          <span class="currency-label">mulacoin</span>
+        </div>
+        <div class="level-display" id="levelDisplay">
+          <span class="level-icon">⭐</span>
+          <span class="level-text">Уровень <span id="currentLevel">1</span></span>
+          <span class="level-progress" id="levelProgress">0/100</span>
         </div>
       </div>
     </div>
 
     <!-- Кейс секция -->
-    <section class="container" id="caseSection" style="margin-bottom: 24px;">
-      <div class="card padding" style="text-align: center;">
-        <div class="stack" style="align-items: center;">
-          <button class="btn btn--primary" id="mysteryCaseBtn" onclick="openCase()" style="width: 120px; height: 120px; border-radius: 50%; padding: 0; margin-bottom: 16px;">
-            <img src="assets/rulette/case_open.png" alt="Тайный кейс" width="80" height="80" />
-          </button>
-          
-          <div class="stack">
-            <h2 class="h2">🔮 Тайный кейс</h2>
-            <p class="subtle">🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
-          </div>
+    <section class="case-section smooth-transition" id="caseSection">
+      <div class="case-aura"></div>
+      <div class="case-frame">
+        <button class="case-button" id="mysteryCaseBtn" onclick="openCase()">
+          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
+        </button>
+        
+        <div class="case-caption">
+          <h2>🔮 Тайный кейс</h2>
+          <p>🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
         </div>
       </div>
     </section>
 
-    <section class="container" style="margin-bottom: 24px;">
-      <div class="card padding">
-        <div class="stack">
-          <h2 class="h2">Добро пожаловать в мир возможностей!</h2>
-          <p class="body">Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
-          <div class="cluster" style="justify-content: space-around; margin-top: 16px;">
-            <div class="stack" style="text-align: center;">
-              <div class="num" style="font-size: 24px;">7</div>
-              <div class="caption">Квестов</div>
-            </div>
-            <div class="stack" style="text-align: center;">
-              <div class="num" style="font-size: 24px;">∞</div>
-              <div class="caption">Возможностей</div>
-            </div>
-            <div class="stack" style="text-align: center;">
-              <div class="num" style="font-size: 24px;">100%</div>
-              <div class="caption">Успеха</div>
-            </div>
+    <section class="hero smooth-transition">
+      <div class="heroCopy glass">
+        <h2>Добро пожаловать в мир возможностей!</h2>
+        <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="stat-number">7</div>
+            <div class="stat-label">Квестов</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Возможностей</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Успеха</div>
           </div>
         </div>
       </div>
@@ -112,69 +88,57 @@
     <!-- Квесты прямо в HTML -->
     <section class="quests smooth-transition" id="quests">
       <!-- Специальный квест - Тайное мировое правительство -->
-      <div class="container" style="margin-bottom: 32px;">
-        <div class="card padding" data-theme="conspiracy" style="text-align: center; border: 2px solid var(--accent);">
-          <div class="stack" style="align-items: center;">
-            <h2 class="h1" style="color: var(--accent);">🏛️ ОСОБЫЙ КВЕСТ</h2>
-            <div style="width: 100px; height: 3px; background: var(--accent); margin: 0 auto; border-radius: 2px;"></div>
+      <div class="special-quest-section" style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.1)); border: 2px solid rgba(139, 69, 19, 0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(139, 69, 19, 0.2);">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #8B4513; font-size: 32px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🏛️ ОСОБЫЙ КВЕСТ</h2>
+          <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #8B4513, #A0522D); margin: 0 auto; border-radius: 2px;"></div>
+        </div>
+        
+        <div class="card" data-style="conspiracy" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.15), rgba(160, 82, 45, 0.15)); border: 2px solid rgba(139, 69, 19, 0.4); box-shadow: 0 15px 40px rgba(139, 69, 19, 0.3); transform: scale(1.05); margin: 20px auto; max-width: 600px;">
+          <div class="label" style="background: #8B4513; color: white; font-weight: bold;">Стратегия</div>
+          <h3 style="color: #8B4513; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">🏛️ Мировое тайное правительство</h3>
+          <div class="description" style="font-size: 18px; line-height: 1.6; color: #5D4037;">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени. Распредели персонажей по секторам власти и построй империю влияния.</div>
+          <div class="meta">
+            <div class="tag hard" style="background: #8B4513; color: white; font-weight: bold;">Сложный</div>
+            <div class="tag" style="background: rgba(139, 69, 19, 0.2); color: #8B4513; font-weight: bold;">Эксклюзивный</div>
           </div>
-          
-          <div class="card padding" style="margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
-            <div class="stack">
-              <div class="chip chip--accent" style="width: fit-content; margin: 0 auto;">Стратегия</div>
-              <h3 class="h2">🏛️ Мировое тайное правительство</h3>
-              <p class="body">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени. Распредели персонажей по секторам власти и построй империю влияния.</p>
-              <div class="cluster" style="justify-content: center; margin-top: 16px;">
-                <span class="chip chip--warn">Сложный</span>
-                <span class="chip">Эксклюзивный</span>
-              </div>
-              <div class="cluster" style="justify-content: center; margin-top: 16px;">
-                <button class="btn btn--primary" onclick="startQuest('world-government')">🚀 Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('world-government')">Подробнее</button>
-              </div>
-            </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('world-government')" style="background: linear-gradient(135deg, #8B4513, #A0522D); border: none; font-weight: bold; font-size: 18px; padding: 15px 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🚀 Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('world-government')" style="border: 2px solid #8B4513; color: #8B4513; font-weight: bold;">Подробнее</button>
           </div>
         </div>
       </div>
       
       <div class="quests-grid">
         <!-- Первый бизнес -->
-        <div class="card padding">
-          <div class="stack">
-            <div class="chip chip--accent" style="width: fit-content;">Бизнес</div>
-            <h3 class="h3">Твой первый бизнес</h3>
-            <p class="body">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</p>
-            <div class="cluster" style="justify-content: space-between; margin-top: 16px;">
-              <div class="cluster">
-                <span class="chip chip--warn">Средний</span>
-                <span class="chip">Вариация #1/10</span>
-              </div>
-              <div class="cluster">
-                <button class="btn btn--primary" onclick="startQuest('copy')">Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('copy')">Подробнее</button>
-              </div>
-            </div>
+        <div class="card" data-style="neo">
+          <div class="label">Бизнес</div>
+          <h3>Твой первый бизнес</h3>
+          <div class="description">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #1/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('copy')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('copy')">Подробнее</button>
           </div>
         </div>
 
 
 
         <!-- Язык тела -->
-        <div class="card padding">
-          <div class="stack">
-            <div class="chip chip--accent" style="width: fit-content;">Психология</div>
-            <h3 class="h3">Язык тела</h3>
-            <p class="body">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</p>
-            <div class="cluster" style="justify-content: space-between; margin-top: 16px;">
-              <div class="cluster">
-                <span class="chip chip--warn">Средний</span>
-                <span class="chip">Вариация #3/10</span>
-              </div>
-              <div class="cluster">
-                <button class="btn btn--primary" onclick="startQuest('bodylang')">Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('bodylang')">Подробнее</button>
-              </div>
-            </div>
+        <div class="card" data-style="neo">
+          <div class="label">Психология</div>
+          <h3>Язык тела</h3>
+          <div class="description">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #3/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('bodylang')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('bodylang')">Подробнее</button>
           </div>
         </div>
 
@@ -183,144 +147,107 @@
 
 
         <!-- Империя влияния -->
-        <div class="card padding">
-          <div class="stack">
-            <div class="chip chip--accent" style="width: fit-content;">Влияние</div>
-            <h3 class="h3">Империя влияния</h3>
-            <p class="body">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</p>
-            <div class="cluster" style="justify-content: space-between; margin-top: 16px;">
-              <div class="cluster">
-                <span class="chip chip--error">Сложный</span>
-                <span class="chip">Вариация #6/10</span>
-              </div>
-              <div class="cluster">
-                <button class="btn btn--primary" onclick="startQuest('funnel')">Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('funnel')">Подробнее</button>
-              </div>
-            </div>
+        <div class="card" data-style="neo">
+          <div class="label">Влияние</div>
+          <h3>Империя влияния</h3>
+          <div class="description">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #6/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('funnel')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('funnel')">Подробнее</button>
           </div>
         </div>
 
         <!-- Психология -->
-        <div class="card padding">
-          <div class="stack">
-            <div class="chip chip--accent" style="width: fit-content;">Психология</div>
-            <h3 class="h3">Психология заработка</h3>
-            <p class="body">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</p>
-            <div class="cluster" style="justify-content: space-between; margin-top: 16px;">
-              <div class="cluster">
-                <span class="chip chip--warn">Средний</span>
-                <span class="chip">Вариация #7/10</span>
-              </div>
-              <div class="cluster">
-                <button class="btn btn--primary" onclick="startQuest('psychology')">Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('psychology')">Подробнее</button>
-              </div>
-            </div>
+        <div class="card" data-style="neo">
+          <div class="label">Психология</div>
+          <h3>Психология заработка</h3>
+          <div class="description">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
+          <div class="meta">
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #7/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('psychology')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('psychology')">Подробнее</button>
           </div>
         </div>
 
 
 
         <!-- Анализ конкурентов -->
-        <div class="card padding">
-          <div class="stack">
-            <div class="chip chip--accent" style="width: fit-content;">Стратегия</div>
-            <h3 class="h3">Анализ конкурентов</h3>
-            <p class="body">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</p>
-            <div class="cluster" style="justify-content: space-between; margin-top: 16px;">
-              <div class="cluster">
-                <span class="chip chip--error">Сложный</span>
-                <span class="chip">Вариация #9/10</span>
-              </div>
-              <div class="cluster">
-                <button class="btn btn--primary" onclick="startQuest('competitors')">Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('competitors')">Подробнее</button>
-              </div>
-            </div>
+        <div class="card" data-style="neo">
+          <div class="label">Стратегия</div>
+          <h3>Анализ конкурентов</h3>
+          <div class="description">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #9/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('competitors')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('competitors')">Подробнее</button>
           </div>
         </div>
 
         <!-- Анализ трендов -->
-        <div class="card padding">
-          <div class="stack">
-            <div class="chip chip--accent" style="width: fit-content;">Аналитика</div>
-            <h3 class="h3">Анализ трендов</h3>
-            <p class="body">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</p>
-            <div class="cluster" style="justify-content: space-between; margin-top: 16px;">
-              <div class="stack">
-                <span class="chip chip--error">Сложный</span>
-                <span class="chip">Вариация #10/10</span>
-              </div>
-              <div class="cluster">
-                <button class="btn btn--primary" onclick="startQuest('trends')">Начать квест</button>
-                <button class="btn btn--ghost" onclick="showQuestDetails('trends')">Подробнее</button>
-              </div>
-            </div>
+        <div class="card" data-style="neo">
+          <div class="label">Аналитика</div>
+          <h3>Анализ трендов</h3>
+          <div class="description">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #10/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('trends')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('trends')">Подробнее</button>
           </div>
         </div>
       </div>
     </section>
 
-    <footer class="container" style="margin-top: 32px; margin-bottom: 16px;">
-      <div class="card padding" style="text-align: center;">
-        <p class="subtle">Минималистичный чёрно‑белый интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</p>
+    <footer class="foot glass">
+      <div class="hint">
+        <span>Минималистичный чёрно‑белый интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
       </div>
     </footer>
   </div>
 
   <!-- Модал -->
-  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
-    <div class="modal__overlay" data-close></div>
-    <div class="modal__dialog">
-      <div class="modal__content">
-        <div class="modal__header">
-          <h2 class="modal__title" id="modalTitle">Детали квеста</h2>
-          <button class="modal__close" id="modalClose" aria-label="Закрыть">×</button>
-        </div>
-        <div id="modalBody"></div>
-      </div>
+  <div id="modal" class="modal">
+    <div class="modalContent glass">
+      <button class="close" id="modalClose" aria-label="Закрыть">×</button>
+      <div id="modalBody"></div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="toast toast--tg" role="status" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- Простой JavaScript -->
-  <script src="./js/telegram.js"></script>
-  <script src="./js/theme-switcher.js"></script>
   <script>
     // Простые функции для работы
     function openCase() {
       console.log('Открываем кейс...');
-      // Haptic feedback
-      if (window.telegramApp?.haptic) {
-        window.telegramApp.haptic.medium();
-      }
       // Простой переход на страницу кейса
       window.location.href = 'case.html';
     }
 
     function startQuest(questId) {
       console.log('Начинаем квест:', questId);
-      // Haptic feedback
-      if (window.telegramApp?.haptic) {
-        window.telegramApp.haptic.medium();
-      }
       // Простой переход на квест
       window.location.href = 'quests/' + questId + '.html';
     }
 
     function showQuestDetails(questId) {
       console.log('Показываем детали квеста:', questId);
-      // Haptic feedback
-      if (window.telegramApp?.haptic) {
-        window.telegramApp.haptic.light();
-      }
       // Простое модальное окно
       const modal = document.getElementById('modal');
       const modalBody = document.getElementById('modalBody');
-      const modalTitle = document.getElementById('modalTitle');
       
       const questData = {
         'copy': { name: '🏢 Твой первый бизнес', description: 'Создай и управляй своим бизнесом с нуля.' },
@@ -334,36 +261,24 @@
       
       const quest = questData[questId];
       if (quest) {
-        modalTitle.textContent = quest.name;
         modalBody.innerHTML = `
-          <p class="body">${quest.description}</p>
-          <div class="cluster" style="justify-content: flex-end; margin-top: 16px;">
-            <button class="btn btn--primary" onclick="startQuest('${questId}')">Начать квест</button>
-          </div>
+          <h3>${quest.name}</h3>
+          <p>${quest.description}</p>
+          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
         `;
-        modal.setAttribute('data-open', 'true');
+        modal.classList.add('show');
       }
     }
 
     // Закрытие модала
     document.getElementById('modalClose').addEventListener('click', function() {
-      document.getElementById('modal').removeAttribute('data-open');
+      document.getElementById('modal').classList.remove('show');
     });
 
     // Закрытие по клику вне модала
     document.getElementById('modal').addEventListener('click', function(e) {
-      if (e.target === this || e.target.hasAttribute('data-close')) {
-        this.removeAttribute('data-open');
-      }
-    });
-
-    // Закрытие по Escape
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        const modal = document.getElementById('modal');
-        if (modal.hasAttribute('data-open')) {
-          modal.removeAttribute('data-open');
-        }
+      if (e.target === this) {
+        this.classList.remove('show');
       }
     });
 
@@ -371,53 +286,14 @@
     function toast(message, type = 'info') {
       const toastEl = document.getElementById('toast');
       toastEl.textContent = message;
-      toastEl.className = `toast toast--tg show ${type}`;
-      // Haptic feedback
-      if (window.telegramApp?.haptic) {
-        if (type === 'success') {
-          window.telegramApp.haptic.success();
-        } else if (type === 'error') {
-          window.telegramApp.haptic.error();
-        } else {
-          window.telegramApp.haptic.light();
-        }
-      }
+      toastEl.className = `toast show ${type}`;
       setTimeout(() => toastEl.classList.remove('show'), 3000);
     }
 
     // Инициализация при загрузке
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Квесты загружены!');
-      
-      // Инициализация прогресса уровня
-      const levelProgressBar = document.getElementById('levelProgressBar');
-      if (levelProgressBar) {
-        // Пример: 40% прогресса
-        levelProgressBar.style.width = '40%';
-      }
-      
-      // Haptic feedback при загрузке
-      if (window.telegramApp?.haptic) {
-        window.telegramApp.haptic.success();
-      }
-      
       toast('Квесты загружены успешно!', 'success');
-    });
-
-    // Обработчики для кнопок с haptic feedback
-    document.addEventListener('click', function(e) {
-      const button = e.target.closest('.btn');
-      if (button && window.telegramApp?.haptic) {
-        window.telegramApp.haptic.light();
-      }
-    });
-
-    // Обработчик для CTA кнопки
-    document.getElementById('ctaStart')?.addEventListener('click', function() {
-      if (window.telegramApp?.haptic) {
-        window.telegramApp.haptic.medium();
-      }
-      toast('Добро пожаловать в мир квестов!', 'success');
     });
   </script>
 </body>
