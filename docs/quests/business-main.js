@@ -13,15 +13,6 @@ let businessStats = {
   reputation: 0
 };
 
-// Данные для рулетки
-const ROULETTE_PRIZES = [
-  { id: 1, name: 'Бонус к доходу', value: '+20% к доходу', icon: '💰', probability: 0.3 },
-  { id: 2, name: 'Ускорение роста', value: '+15% к росту', icon: '📈', probability: 0.25 },
-  { id: 3, name: 'Повышение репутации', value: '+10 к репутации', icon: '⭐', probability: 0.2 },
-  { id: 4, name: 'MULACOIN', value: '+2 MULACOIN', icon: '🥇', probability: 0.15 },
-  { id: 5, name: 'Специальный бонус', value: 'Уникальная награда', icon: '🎁', probability: 0.1 }
-];
-
 // Данные для постов канала (заглушка)
 const CHANNEL_POSTS = [
   {
@@ -84,9 +75,6 @@ function initializeQuest() {
   
   // Инициализируем обработчики событий
   initializeEventHandlers();
-  
-  // Инициализируем рулетку
-  initializeRoulette();
   
   // Инициализируем ленту активности
   initializeActivityFeed();
@@ -324,171 +312,6 @@ function updateAchievementsProgress() {
   }
 }
 
-// Инициализация рулетки
-function initializeRoulette() {
-  const spinRouletteBtn = document.getElementById('spinRoulette');
-  const showPrizesBtn = document.getElementById('showPrizes');
-  const buySpinBtn = document.getElementById('buySpin');
-  
-  if (spinRouletteBtn) {
-    spinRouletteBtn.addEventListener('click', spinRoulette);
-  }
-  
-  if (showPrizesBtn) {
-    showPrizesBtn.addEventListener('click', showPrizes);
-  }
-  
-  if (buySpinBtn) {
-    buySpinBtn.addEventListener('click', buySpin);
-  }
-  
-  // Создаем элементы рулетки
-  createRouletteItems();
-}
-
-// Создание элементов рулетки
-function createRouletteItems() {
-  const rouletteItems = document.getElementById('rouletteItems');
-  if (!rouletteItems) return;
-  
-  rouletteItems.innerHTML = '';
-  
-  ROULETTE_PRIZES.forEach((prize, index) => {
-    const item = document.createElement('div');
-    item.className = 'roulette-item';
-    item.style.transform = `rotate(${(360 / ROULETTE_PRIZES.length) * index}deg)`;
-    
-    item.innerHTML = `
-      <div class="prize-content">
-        <div class="prize-icon">${prize.icon}</div>
-        <div class="prize-name">${prize.name}</div>
-      </div>
-    `;
-    
-    rouletteItems.appendChild(item);
-  });
-}
-
-// Кручение рулетки
-function spinRoulette() {
-  const rouletteItems = document.getElementById('rouletteItems');
-  if (!rouletteItems) return;
-  
-  // Отключаем кнопку
-  const spinBtn = document.getElementById('spinRoulette');
-  if (spinBtn) {
-    spinBtn.disabled = true;
-    spinBtn.textContent = 'Крутится...';
-  }
-  
-  // Случайный приз
-  const randomPrize = ROULETTE_PRIZES[Math.floor(Math.random() * ROULETTE_PRIZES.length)];
-  
-  // Анимация вращения
-  const spins = 5 + Math.random() * 5; // 5-10 оборотов
-  const duration = 3000 + Math.random() * 2000; // 3-5 секунд
-  
-  rouletteItems.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-  rouletteItems.style.transform = `rotate(${spins * 360 + Math.random() * 360}deg)`;
-  
-  setTimeout(() => {
-    // Показываем результат
-    showRouletteResult(randomPrize);
-    
-    // Восстанавливаем кнопку
-    if (spinBtn) {
-      spinBtn.disabled = false;
-      spinBtn.textContent = 'Крутить рулетку';
-    }
-    
-    // Сбрасываем анимацию
-    rouletteItems.style.transition = 'none';
-    rouletteItems.style.transform = 'rotate(0deg)';
-    
-    setTimeout(() => {
-      rouletteItems.style.transition = 'transform 0.3s ease';
-    }, 50);
-  }, duration);
-}
-
-// Показать результат рулетки
-function showRouletteResult(prize) {
-  const modal = document.getElementById('rouletteResultModal');
-  const resultContent = document.getElementById('rouletteResult');
-  
-  if (!modal || !resultContent) return;
-  
-  resultContent.innerHTML = `
-    <div class="result-icon">${prize.icon}</div>
-    <h3>${prize.name}</h3>
-    <p>${prize.value}</p>
-  `;
-  
-  modal.classList.add('show');
-  
-  // Применяем приз
-  applyRoulettePrize(prize);
-}
-
-// Применение приза рулетки
-function applyRoulettePrize(prize) {
-  switch (prize.id) {
-    case 1: // Бонус к доходу
-      businessStats.revenue += businessStats.revenue * 0.2;
-      break;
-    case 2: // Ускорение роста
-      businessStats.growth += 15;
-      break;
-    case 3: // Повышение репутации
-      businessStats.reputation += 10;
-      break;
-    case 4: // MULACOIN
-      // Здесь можно добавить логику для MULACOIN
-      break;
-    case 5: // Специальный бонус
-      businessStats.revenue += 5000;
-      businessStats.reputation += 5;
-      break;
-  }
-  
-  // Обновляем отображение
-  updateBusinessStats();
-  updateAchievementsProgress();
-  
-  showToast(`Получен приз: ${prize.name} - ${prize.value}`, 'success');
-}
-
-// Показать призы
-function showPrizes() {
-  const modal = document.getElementById('prizesModal');
-  const prizesGrid = document.getElementById('prizesGrid');
-  
-  if (!modal || !prizesGrid) return;
-  
-  prizesGrid.innerHTML = '';
-  
-  ROULETTE_PRIZES.forEach(prize => {
-    const prizeCard = document.createElement('div');
-    prizeCard.className = 'prize-card glass';
-    
-    prizeCard.innerHTML = `
-      <div class="prize-icon">${prize.icon}</div>
-      <h4>${prize.name}</h4>
-      <p>${prize.value}</p>
-      <div class="prize-probability">Шанс: ${Math.round(prize.probability * 100)}%</div>
-    `;
-    
-    prizesGrid.appendChild(prizeCard);
-  });
-  
-  modal.classList.add('show');
-}
-
-// Покупка кручения
-function buySpin() {
-  showToast('Функция покупки кручения будет доступна в полной версии!', 'info');
-}
-
 // Инициализация ленты активности
 function initializeActivityFeed() {
   const joinChannelBtn = document.getElementById('joinChannel');
@@ -620,23 +443,27 @@ function handleDrop(e) {
       const clonedCard = candidateCard.cloneNode(true);
       clonedCard.draggable = false;
       clonedCard.classList.remove('dragging');
+      clonedCard.classList.add('assigned-candidate');
       
       // Добавляем кнопку удаления
       const removeBtn = document.createElement('button');
-      removeBtn.className = 'btn ghost';
+      removeBtn.className = 'btn ghost remove-candidate-btn';
       removeBtn.innerHTML = '❌ Убрать';
       removeBtn.style.fontSize = '12px';
       removeBtn.style.padding = '4px 8px';
+      removeBtn.style.marginTop = '10px';
       removeBtn.addEventListener('click', function() {
         clonedCard.remove();
         updateTeamStatus();
       });
       
-      clonedCard.appendChild(removeBtn);
-      
-      // Очищаем drop zone
+      // Очищаем drop zone и добавляем кандидата
       dropZone.innerHTML = '';
       dropZone.appendChild(clonedCard);
+      dropZone.appendChild(removeBtn);
+      
+      // Добавляем визуальное подтверждение
+      dropZone.classList.add('has-candidate');
       
       // Обновляем статус команды
       updateTeamStatus();
@@ -644,6 +471,12 @@ function handleDrop(e) {
       // Показываем toast
       const positionTitle = dropZone.closest('.position-slot').querySelector('.position-title').textContent;
       showToast(`Кандидат назначен на должность: ${positionTitle}`, 'success');
+      
+      // Добавляем анимацию успеха
+      dropZone.style.animation = 'successDrop 0.6s ease-in-out';
+      setTimeout(() => {
+        dropZone.style.animation = '';
+      }, 600);
     } else {
       showToast('Эта должность уже занята!', 'error');
     }
@@ -658,9 +491,11 @@ function updateTeamStatus() {
   dropZones.forEach(zone => {
     if (zone.querySelector('.candidate-card')) {
       zone.closest('.position-slot').classList.add('filled');
+      zone.classList.add('has-candidate');
       filledPositions++;
     } else {
       zone.closest('.position-slot').classList.remove('filled');
+      zone.classList.remove('has-candidate');
     }
   });
   
@@ -668,6 +503,12 @@ function updateTeamStatus() {
   const completeTeamBtn = document.getElementById('completeTeam');
   if (completeTeamBtn) {
     completeTeamBtn.disabled = filledPositions < 4;
+    
+    // Добавляем визуальную обратную связь
+    if (filledPositions === 4) {
+      completeTeamBtn.classList.add('ready-animation');
+      setTimeout(() => completeTeamBtn.classList.remove('ready-animation'), 1000);
+    }
   }
   
   // Обновляем статистику
@@ -730,17 +571,10 @@ function initializeEventHandlers() {
   
   // Обработчики модальных окон
   const closePrizesModal = document.getElementById('closePrizesModal');
-  const closeRouletteResult = document.getElementById('closeRouletteResult');
   
   if (closePrizesModal) {
     closePrizesModal.addEventListener('click', () => {
       document.getElementById('prizesModal').classList.remove('show');
-    });
-  }
-  
-  if (closeRouletteResult) {
-    closeRouletteResult.addEventListener('click', () => {
-      document.getElementById('rouletteResultModal').classList.remove('show');
     });
   }
   

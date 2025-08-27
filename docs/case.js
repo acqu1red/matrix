@@ -4,6 +4,15 @@ const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5c
 
 const SPIN_COST = 13;
 
+// Business Roulette Prizes
+const BUSINESS_ROULETTE_PRIZES = [
+  { id: "revenue_boost", name: "Бонус к доходу", value: "+20% к доходу", icon: "💰", probability: 0.3 },
+  { id: "growth_acceleration", name: "Ускорение роста", value: "+15% к росту", icon: "📈", probability: 0.25 },
+  { id: "reputation_boost", name: "Повышение репутации", value: "+10 к репутации", icon: "⭐", probability: 0.2 },
+  { id: "mulacoin_bonus", name: "MULACOIN", value: "+2 MULACOIN", icon: "🥇", probability: 0.15 },
+  { id: "special_bonus", name: "Специальный бонус", value: "Уникальная награда", icon: "🎁", probability: 0.1 }
+];
+
 // Success & Wealth Case Prizes
 const CASE_PRIZES = [
   { id: "financial_plan", name: "Финансовый План", icon: "📊", probability: 0.25 },
@@ -445,6 +454,162 @@ function navigateToQuest(questId) {
   }, 500);
 }
 
+/* ====== BUSINESS ROULETTE FUNCTIONS ====== */
+function createBusinessRoulette() {
+  const rouletteItems = $('#rouletteItems');
+  if (!rouletteItems) return;
+  
+  rouletteItems.innerHTML = '';
+  
+  BUSINESS_ROULETTE_PRIZES.forEach((prize, index) => {
+    const item = document.createElement('div');
+    item.className = 'roulette-item';
+    item.style.transform = `rotate(${(360 / BUSINESS_ROULETTE_PRIZES.length) * index}deg)`;
+    
+    item.innerHTML = `
+      <div class="prize-content">
+        <div class="prize-icon">${prize.icon}</div>
+        <div class="prize-name">${prize.name}</div>
+      </div>
+    `;
+    
+    rouletteItems.appendChild(item);
+  });
+}
+
+function spinBusinessRoulette() {
+  const rouletteItems = $('#rouletteItems');
+  if (!rouletteItems || isSpinning) return;
+  
+  isSpinning = true;
+  
+  // Отключаем кнопку
+  const spinBtn = $('#spinRoulette');
+  if (spinBtn) {
+    spinBtn.disabled = true;
+    spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутится...</span>';
+  }
+  
+  // Случайный приз
+  const randomPrize = BUSINESS_ROULETTE_PRIZES[Math.floor(Math.random() * BUSINESS_ROULETTE_PRIZES.length)];
+  
+  // Анимация вращения
+  const spins = 5 + Math.random() * 5; // 5-10 оборотов
+  const duration = 3000 + Math.random() * 2000; // 3-5 секунд
+  
+  rouletteItems.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+  rouletteItems.style.transform = `rotate(${spins * 360 + Math.random() * 360}deg)`;
+  
+  setTimeout(() => {
+    // Показываем результат
+    showBusinessRouletteResult(randomPrize);
+    
+    // Восстанавливаем кнопку
+    if (spinBtn) {
+      spinBtn.disabled = false;
+      spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутить Бизнес-рулетку</span>';
+    }
+    
+    // Сбрасываем анимацию
+    rouletteItems.style.transition = 'none';
+    rouletteItems.style.transform = 'rotate(0deg)';
+    
+    setTimeout(() => {
+      rouletteItems.style.transition = 'transform 0.3s ease';
+    }, 50);
+    
+    isSpinning = false;
+  }, duration);
+}
+
+function showBusinessRouletteResult(prize) {
+  const modal = $('#businessRouletteModal');
+  const resultContent = $('#businessRouletteResult');
+  
+  if (!modal || !resultContent) return;
+  
+  resultContent.innerHTML = `
+    <div class="result-icon">${prize.icon}</div>
+    <h3>${prize.name}</h3>
+    <p>${prize.value}</p>
+  `;
+  
+  modal.classList.add('show');
+  
+  // Применяем приз
+  applyBusinessRoulettePrize(prize);
+}
+
+function applyBusinessRoulettePrize(prize) {
+  switch (prize.id) {
+    case "revenue_boost":
+      toast(`Получен бонус: ${prize.name} - ${prize.value}`, 'success');
+      break;
+    case "growth_acceleration":
+      toast(`Получен бонус: ${prize.name} - ${prize.value}`, 'success');
+      break;
+    case "reputation_boost":
+      toast(`Получен бонус: ${prize.name} - ${prize.value}`, 'success');
+      break;
+    case "mulacoin_bonus":
+      userData.mulacoin += 2;
+      updateUI();
+      toast(`Получен приз: ${prize.name} - ${prize.value}`, 'success');
+      break;
+    case "special_bonus":
+      userData.mulacoin += 5;
+      userData.experience += 100;
+      updateUI();
+      toast(`Получен специальный приз: ${prize.name} - ${prize.value}`, 'success');
+      break;
+  }
+  
+  // Сохраняем данные пользователя
+  if (userData.telegramId) {
+    saveUserData(userData.telegramId);
+  }
+}
+
+function showBusinessPrizes() {
+  const modal = $('#prizesModal');
+  const prizesGrid = $('#prizesGrid');
+  
+  if (!modal || !prizesGrid) return;
+  
+  prizesGrid.innerHTML = '';
+  
+  BUSINESS_ROULETTE_PRIZES.forEach(prize => {
+    const prizeCard = document.createElement('div');
+    prizeCard.className = 'prize-card glass';
+    
+    prizeCard.innerHTML = `
+      <div class="prize-icon">${prize.icon}</div>
+      <h4>${prize.name}</h4>
+      <p>${prize.value}</p>
+      <div class="prize-probability">Шанс: ${Math.round(prize.probability * 100)}%</div>
+    `;
+    
+    prizesGrid.appendChild(prizeCard);
+  });
+  
+  modal.classList.add('show');
+}
+
+function buyBusinessSpin() {
+  if (userData.mulacoin >= 5) {
+    userData.mulacoin -= 5;
+    updateUI();
+    spinBusinessRoulette();
+    
+    // Сохраняем данные пользователя
+    if (userData.telegramId) {
+      saveUserData(userData.telegramId);
+    }
+  } else {
+    toast('Недостаточно MULACOIN для покупки кручения!', 'error');
+  }
+}
+
 /* ====== Event Listeners ====== */
 function bindEvents() {
   // Back button
@@ -456,10 +621,16 @@ function bindEvents() {
   $('#showPrizes')?.addEventListener('click', showPrizesModal);
   $('#showHistory')?.addEventListener('click', showHistoryModal);
   
+  // Business roulette controls
+  $('#spinRoulette')?.addEventListener('click', spinBusinessRoulette);
+  $('#showBusinessPrizes')?.addEventListener('click', showBusinessPrizes);
+  $('#buyBusinessSpin')?.addEventListener('click', buyBusinessSpin);
+  
   // Modal controls
   $('#closePrizesModal')?.addEventListener('click', () => closeModal('#prizesModal'));
   $('#closeHistoryModal')?.addEventListener('click', () => closeModal('#historyModal'));
   $('#closePrize')?.addEventListener('click', () => closeModal('#prizeModal'));
+  $('#closeBusinessRouletteModal')?.addEventListener('click', () => closeModal('#businessRouletteModal'));
   
   // Close modals by clicking outside
   $$('.modal').forEach(modal => {
@@ -495,8 +666,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadUserData(userData.telegramId);
   }
   
-  // Create roulette
+  // Create roulettes
   createCaseRoulette();
+  createBusinessRoulette();
   
   // Bind events
   bindEvents();

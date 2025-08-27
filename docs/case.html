@@ -104,6 +104,54 @@
       </div>
     </section>
 
+    <!-- Business Roulette -->
+    <section class="business-roulette-section">
+      <div class="roulette-container">
+        <div class="roulette-display">
+          <div class="roulette-items" id="rouletteItems">
+            <!-- Prizes will be loaded dynamically -->
+          </div>
+          <div class="roulette-pointer">
+            <div class="pointer-arrow">▼</div>
+            <div class="pointer-glow"></div>
+          </div>
+        </div>
+        
+        <!-- Mystical Effects -->
+        <div class="mystical-circle circle-1"></div>
+        <div class="mystical-circle circle-2"></div>
+        <div class="mystical-circle circle-3"></div>
+        
+        <!-- Particle Effects -->
+        <div class="particles">
+          <div class="particle particle-1"></div>
+          <div class="particle particle-2"></div>
+          <div class="particle particle-3"></div>
+          <div class="particle particle-4"></div>
+          <div class="particle particle-5"></div>
+        </div>
+      </div>
+      
+      <div class="roulette-controls">
+        <button id="spinRoulette" class="btn primary large conspiracy-btn glow-effect">
+          <span class="btn-icon">🎯</span>
+          <span class="btn-text">Крутить Бизнес-рулетку</span>
+          <div class="btn-glow"></div>
+          <div class="btn-ripple"></div>
+        </button>
+        
+        <button id="showBusinessPrizes" class="btn ghost conspiracy-btn hover-lift">
+          <span class="btn-icon">👁️</span>
+          <span class="btn-text">Возможные Призы</span>
+        </button>
+        
+        <button id="buyBusinessSpin" class="btn warning conspiracy-btn hover-lift">
+          <span class="btn-icon">🪙</span>
+          <span class="btn-text">Крутить за 5 MULACOIN</span>
+        </button>
+      </div>
+    </section>
+
     <!-- Controls -->
     <section class="controls-section">
       <div class="control-group">
@@ -202,6 +250,20 @@
       <p id="prizeDescription">Вы получили ценный ресурс!</p>
       <div id="prizeDetails"></div>
       <button id="closePrize" class="btn primary glow-effect">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Business Roulette Result Modal -->
+  <div id="businessRouletteModal" class="modal">
+    <div class="modalContent glass">
+      <button class="close" id="closeBusinessRouletteModal" aria-label="Закрыть">×</button>
+      <div class="modal-header">
+        <h3>🎉 Результат Бизнес-рулетки!</h3>
+        <p>Получите бонусы для развития вашего бизнеса</p>
+      </div>
+      <div class="roulette-result" id="businessRouletteResult">
+        <!-- Result will be shown here -->
+      </div>
     </div>
   </div>
 
