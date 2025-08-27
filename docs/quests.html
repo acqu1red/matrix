@@ -20,11 +20,8 @@
   </script>
 </head>
 <body>
-  <div id="app" class="app theme-transition">
-    <!-- Элемент для анимации стягивания экрана -->
-    <div class="screen-transition" id="screenTransition"></div>
-    
-    <header class="glass topbar smooth-transition">
+  <div id="app" class="app">
+    <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
         <h1>Квесты</h1>
@@ -34,7 +31,7 @@
       </div>
     </header>
 
-    <div class="currency-bar glass smooth-transition">
+    <div class="currency-bar glass">
       <div class="currency-info">
         <div class="mulacoin-display">
           <span class="currency-icon">🪙</span>
@@ -50,7 +47,7 @@
     </div>
 
     <!-- Кейс секция -->
-    <section class="case-section smooth-transition" id="caseSection">
+    <section class="case-section" id="caseSection">
       <div class="case-aura"></div>
       <div class="case-frame">
         <button class="case-button" id="mysteryCaseBtn" onclick="openCase()">
@@ -64,15 +61,15 @@
       </div>
     </section>
 
-    <section class="hero smooth-transition">
+    <section class="hero">
       <div class="heroCopy glass">
         <h2>Добро пожаловать в мир возможностей!</h2>
         <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
-          <div class="hero-stat">
-            <div class="stat-number">7</div>
-            <div class="stat-label">Квестов</div>
-          </div>
+                  <div class="hero-stat">
+          <div class="stat-number">7</div>
+          <div class="stat-label">Квестов</div>
+        </div>
           <div class="hero-stat">
             <div class="stat-number">∞</div>
             <div class="stat-label">Возможностей</div>
@@ -86,29 +83,7 @@
     </section>
 
     <!-- Квесты прямо в HTML -->
-    <section class="quests smooth-transition" id="quests">
-      <!-- Специальный квест - Тайное мировое правительство -->
-      <div class="special-quest-section" style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.1)); border: 2px solid rgba(139, 69, 19, 0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(139, 69, 19, 0.2);">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="color: #8B4513; font-size: 32px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🏛️ ОСОБЫЙ КВЕСТ</h2>
-          <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #8B4513, #A0522D); margin: 0 auto; border-radius: 2px;"></div>
-        </div>
-        
-        <div class="card" data-style="conspiracy" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.15), rgba(160, 82, 45, 0.15)); border: 2px solid rgba(139, 69, 19, 0.4); box-shadow: 0 15px 40px rgba(139, 69, 19, 0.3); transform: scale(1.05); margin: 20px auto; max-width: 600px;">
-          <div class="label" style="background: #8B4513; color: white; font-weight: bold;">Стратегия</div>
-          <h3 style="color: #8B4513; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">🏛️ Мировое тайное правительство</h3>
-          <div class="description" style="font-size: 18px; line-height: 1.6; color: #5D4037;">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени. Распредели персонажей по секторам власти и построй империю влияния.</div>
-          <div class="meta">
-            <div class="tag hard" style="background: #8B4513; color: white; font-weight: bold;">Сложный</div>
-            <div class="tag" style="background: rgba(139, 69, 19, 0.2); color: #8B4513; font-weight: bold;">Эксклюзивный</div>
-          </div>
-          <div class="cta">
-            <button class="btn primary start" onclick="startQuest('world-government')" style="background: linear-gradient(135deg, #8B4513, #A0522D); border: none; font-weight: bold; font-size: 18px; padding: 15px 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🚀 Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('world-government')" style="border: 2px solid #8B4513; color: #8B4513; font-weight: bold;">Подробнее</button>
-          </div>
-        </div>
-      </div>
-      
+    <section class="quests" id="quests">
       <div class="quests-grid">
         <!-- Первый бизнес -->
         <div class="card" data-style="neo">
@@ -125,7 +100,20 @@
           </div>
         </div>
 
-
+        <!-- Мировое правительство -->
+        <div class="card" data-style="conspiracy">
+          <div class="label">Стратегия</div>
+          <h3>Мировое тайное правительство</h3>
+          <div class="description">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени.</div>
+          <div class="meta">
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #2/10</div>
+          </div>
+          <div class="cta">
+            <button class="btn primary start" onclick="startQuest('world-government')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('world-government')">Подробнее</button>
+          </div>
+        </div>
 
         <!-- Язык тела -->
         <div class="card" data-style="neo">
@@ -251,7 +239,7 @@
       
       const questData = {
         'copy': { name: '🏢 Твой первый бизнес', description: 'Создай и управляй своим бизнесом с нуля.' },
-        'world-government': { name: '🏛️ Мировое тайное правительство', description: 'Создай мировое тайное правительство, распределяя персонажей по секторам власти.' },
+        'world-government': { name: 'Мировое тайное правительство', description: 'Создай мировое тайное правительство, распределяя персонажей по секторам.' },
         'bodylang': { name: 'Язык тела', description: 'Распознай невербальные сигналы 2D‑персонажа.' },
         'funnel': { name: 'Империя влияния', description: 'Создай медиа-империю и управляй массовым сознанием.' },
         'psychology': { name: 'Психология заработка', description: 'Используй психологические техники для успешных переговоров.' },
