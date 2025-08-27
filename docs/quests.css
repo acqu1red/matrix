@@ -64,7 +64,7 @@ body::before {
   height: 100%;
   background: url('./assets/photovideo/wtf.png') center center;
   background-size: cover;
-  opacity: 0.1;
+  opacity: 0.3;
   z-index: -1;
   pointer-events: none;
 }
@@ -895,7 +895,7 @@ body::before {
 }
 
 .level-num {
-  font-size: 16px;
+    font-size: 16px;
   font-weight: 800;
   margin-bottom: 4px;
 }
@@ -1054,7 +1054,7 @@ body::before {
   }
   
   .card {
-    padding: 20px;
+  padding: 20px;
   }
   
   .modalContent {
@@ -1082,7 +1082,7 @@ body::before {
   }
   
   .brand h1 {
-    font-size: 18px;
+  font-size: 18px;
   }
   
   .heroCopy {
@@ -1197,7 +1197,7 @@ body::before {
   }
   100% { 
     transform: translateY(-100px) rotate(360deg);
-    opacity: 0;
+  opacity: 0;
   }
 }
 

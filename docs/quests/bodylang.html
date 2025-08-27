@@ -3,817 +3,305 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Язык тела - Формула Quests</title>
-  <link rel="stylesheet" href="quests-black-white.css">
+  <title>🧠 Язык тела - Формула Quests</title>
+  
+  <!-- Критические стили inline для мгновенной загрузки -->
   <style>
-    /* Специфичные стили для квеста "Язык тела" */
-    .quest-container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
+    /* Базовые стили для мгновенного отображения */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #42100d 0%, #b95c1a 25%, #e7af3e 50%, #fdd77a 75%, #f3dcb3 100%);
+      color: #42100d;
+      line-height: 1.6; 
+      overflow-x: hidden; 
+      min-height: 100vh;
     }
-
-    /* Скрываем элементы управления видео в фазе эмоций */
-    #facePhase .video-controls {
-      display: none !important;
+    .app { opacity: 1 !important; }
+    
+    /* Критические стили для header */
+    .topbar { 
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(243, 220, 179, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 2px solid #fdd77a;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(231, 175, 62, 0.3);
     }
-
-    #facePhase .video-player {
-      pointer-events: none;
-    }
-
-    .phase-indicator {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 30px;
-    }
-
-    .phase-badge {
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 16px;
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .phase-badge.active {
-      background: var(--glow1);
-      color: var(--bg0);
-      font-weight: 600;
-    }
-
-    /* Видео контейнер */
-    .video-container {
-      background: var(--glass);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .video-player {
-      width: 100%;
-      max-width: 400px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 16px;
-    }
-
-    .video-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .play-btn {
-      background: var(--glow1);
-      color: var(--bg0);
-      border: none;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      font-size: 20px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .play-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 20px rgba(102, 247, 213, 0.4);
-    }
-
-    .progress-bar {
-      flex: 1;
-      max-width: 300px;
-      height: 6px;
-      background: var(--glass-strong);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--glow1);
-      width: 0%;
-      transition: width 0.1s ease;
-    }
-
-    .video-annotation {
-      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
-      border: 1px solid rgba(102, 247, 213, 0.2);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      margin-top: 16px;
-      font-size: 14px;
-      color: var(--text);
-    }
-
-    /* Контейнер для анимированных лиц */
-    .face-container {
-      background: var(--glass);
-      border-radius: var(--radius);
-      padding: 30px;
-      margin-bottom: 30px;
-      text-align: center;
-      min-height: 400px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .face-sprite {
-      width: 256px;
-      height: 256px;
-      background-size: calc(var(--cols) * 100%) calc(var(--rows) * 100%);
-      image-rendering: auto;
-      border-radius: 12px;
-      border: 2px solid var(--border);
-      margin-bottom: 20px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-
-    .face-instruction {
-      font-size: 16px;
-      color: var(--text);
-      margin-bottom: 24px;
-      font-weight: 500;
-    }
-
-    /* Варианты ответов */
-    .answer-options {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .answer-option {
-      background: var(--glass);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 500;
-    }
-
-    .answer-option:hover {
-      border-color: var(--glow1);
-      background: var(--glass-strong);
-      transform: translateY(-2px);
-    }
-
-    .answer-option.correct {
-      background: linear-gradient(135deg, var(--success), #22C55E);
-      color: white;
-      border-color: var(--success);
-    }
-
-    .answer-option.incorrect {
-      background: linear-gradient(135deg, var(--warning), #F59E0B);
-      color: white;
-      border-color: var(--warning);
-    }
-
-    /* Счетчик попыток */
-    .attempts-counter {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .attempts-text {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .attempts-dots {
-      display: flex;
-      gap: 4px;
-    }
-
-    .attempt-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: all 0.3s ease;
-    }
-
-    .attempt-dot.used {
-      background: var(--warning);
-    }
-
-    /* Кнопки навигации */
-    .quest-controls {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .btn-back {
-      background: var(--glass);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 24px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-back:hover {
-      background: var(--glass-strong);
-      border-color: var(--border-strong);
-    }
-
-    /* Модал завершения */
-    .quest-complete {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .quest-complete.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .quest-complete-content {
-      background: var(--bg1);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 40px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    }
-
-    .quest-complete-icon {
-      font-size: 64px;
-      margin-bottom: 20px;
-    }
-
-    .quest-complete-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--glow1);
-      margin-bottom: 16px;
-    }
-
-    .quest-complete-description {
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-
-    .quest-rewards {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .reward-item {
-      background: var(--glass);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      text-align: center;
-    }
-
-    .reward-amount {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--glow1);
-      margin-bottom: 4px;
-    }
-
-    .reward-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-close {
-      background: var(--glow1);
-      color: var(--bg0);
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 12px 24px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .btn-close:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.3);
-    }
-
-    /* Адаптивность */
-    @media (max-width: 768px) {
-      .quest-container {
-        padding: 16px;
-      }
-      
-      .face-sprite {
-        width: 200px;
-        height: 200px;
-      }
-      
-      .answer-options {
-        grid-template-columns: 1fr;
-      }
+    .brand h1 { 
+      font-size: 24px; 
+      font-weight: 700; 
+      color: #42100d;
+      text-shadow: 0 2px 4px rgba(66, 16, 13, 0.2);
     }
   </style>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bodylang-core.css">
 </head>
 <body>
-  <div class="quest-container">
-    <!-- Индикатор фазы -->
-    <div class="phase-indicator">
-      <div class="phase-badge" id="phase1Badge">Фаза 1: Видео допрос</div>
-      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ лица</div>
+  <!-- Animated Background -->
+  <div class="animated-background">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
     </div>
+    <div class="grid-overlay"></div>
+  </div>
 
-    <!-- Фаза 1: Видео допрос -->
-    <div id="videoPhase" class="video-container">
-      <h3>Анализ языка тела в видео</h3>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек
-      </p>
-      
-      <video id="videoPlayer" class="video-player" preload="metadata">
-        <source src="../video/dopros1.mp4" type="video/mp4">
-        Ваш браузер не поддерживает видео.
-      </video>
-      
-      <div class="video-controls">
-        <button class="play-btn" id="playBtn">▶️</button>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>🧠 Язык тела</h1>
+        <div class="badge">Психолог</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <!-- Информационное модальное окно -->
+    <div id="introModal" class="modal show">
+      <div class="modalContent glass">
+        <div class="modal-header">
+          <h3>🧠 Добро пожаловать в "Язык тела"</h3>
+          <p>Изучите психологию лжи и научитесь читать эмоции по мимике!</p>
+        </div>
+        
+        <div class="intro-content">
+          <div class="intro-section">
+            <h4>🎯 Суть квеста</h4>
+            <p>Вы — начинающий психолог, специализирующийся на детекции лжи. Ваша задача — анализировать мимику людей, их слова и поведение, чтобы определить, говорят ли они правду или лгут.</p>
+          </div>
+
+          <div class="intro-section">
+            <h4>💪 Что вы прокачаете</h4>
+            <ul>
+              <li>Навыки анализа мимики и микровыражений</li>
+              <li>Понимание психологии лжи и обмана</li>
+              <li>Способность читать эмоции по лицу</li>
+              <li>Критическое мышление и наблюдательность</li>
+              <li>Профессиональную интуицию психолога</li>
+            </ul>
+          </div>
+
+          <div class="intro-section">
+            <h4>🎮 Как играть</h4>
+            <p>Квест состоит из 2 этапов:</p>
+            <ol>
+              <li><strong>Психология лжи</strong> — анализируйте мимику и определяйте ложь</li>
+              <li><strong>Эмоции и чувства</strong> — читайте эмоции по выражению лица</li>
+            </ol>
+          </div>
+
+          <div class="rewards-section">
+            <h4>🏆 Награды за прохождение</h4>
+            <div class="rewards-grid">
+              <div class="reward-item">
+                <span class="reward-icon">🥇</span>
+                <span class="reward-amount">2 MULACOIN</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">⭐</span>
+                <span class="reward-amount">150 XP</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="disclaimer">
+            <h4>⚠️ Важно</h4>
+            <p>Это обучающий симулятор для развития навыков наблюдения и анализа. В реальной жизни детекция лжи требует профессиональной подготовки.</p>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button id="startQuest" class="btn primary">🚀 Начать квест</button>
         </div>
       </div>
-      
-      <div class="video-annotation">
-        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше 
-        (это работает и как это замечать, как использовать и тд) - научишься определять язык тела 
-        так, что за секунду начнешь понимать.
-      </div>
-      
-      <div class="attempts-counter">
-        <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="videoAttemptsDots">
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-        </div>
-      </div>
-      
-      <div class="answer-options" id="videoOptions">
-        <!-- Варианты ответов будут добавлены динамически -->
-      </div>
     </div>
 
-    <!-- Фаза 2: Анализ эмоций -->
-    <div id="facePhase" class="video-container" style="display: none;">
-      <h3>Анализ эмоций</h3>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите эмоцию персонажа
-      </p>
-      
-      <div class="video-frame">
-        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
-          <source src="" type="video/mp4">
-          Ваш браузер не поддерживает видео.
-        </video>
-      </div>
-      
-      <div class="attempts-counter">
-        <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="faceAttemptsDots">
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
+    <!-- Основной контент квеста -->
+    <main class="quest-content" style="display: none;">
+      <!-- Этап 1: Психология лжи -->
+      <section id="psychologyPhase" class="quest-stage active">
+        <div class="stage-header">
+          <h2>🎭 Этап 1: Психология лжи</h2>
+          <p>Анализируйте мимику человека и его слова, чтобы определить, говорит ли он правду или лжет</p>
         </div>
-      </div>
-      
-      <div class="answer-options" id="faceOptions">
-        <!-- Варианты ответов будут добавлены динамически -->
-      </div>
-    </div>
+        
+        <div class="video-container glass">
+          <div class="video-player" id="psychologyVideo">
+            <video id="psychologyVideoElement" controls>
+              <source src="../assets/videos/rf_01_skepticism.mp4" type="video/mp4">
+              Ваш браузер не поддерживает видео.
+            </video>
+          </div>
+          
+          <div class="video-annotation">
+            <h4>📝 Задание</h4>
+            <p>Посмотрите видео внимательно. Обратите внимание на мимику, жесты и слова говорящего. Определите, говорит ли он правду или лжет.</p>
+          </div>
+        </div>
+        
+        <div class="question-container glass">
+          <h3>❓ Вопрос</h3>
+          <p>Говорит ли человек в видео правду или лжет?</p>
+          
+          <div class="answer-options">
+            <div class="answer-option" data-answer="truth">
+              <span class="option-icon">✅</span>
+              <span class="option-text">Говорит правду</span>
+            </div>
+            <div class="answer-option" data-answer="lie">
+              <span class="option-icon">❌</span>
+              <span class="option-text">Лжет</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stage-actions">
+          <button id="checkPsychologyAnswer" class="btn primary">Проверить ответ</button>
+        </div>
+      </section>
 
-    <!-- Кнопки навигации -->
-    <div class="quest-controls">
-      <a href="../quests.html" class="btn-back">← Назад к квестам</a>
+      <!-- Этап 2: Эмоции и чувства -->
+      <section id="emotionsPhase" class="quest-stage">
+        <div class="stage-header">
+          <h2>😊 Этап 2: Эмоции и чувства</h2>
+          <p>Определите эмоцию, которую выражает лицо на изображении</p>
+        </div>
+        
+        <div class="face-container glass">
+          <div class="face-display">
+            <img id="currentFace" class="face-image" src="../assets/bodylang/faces/face_001_dominance.png" alt="Лицо для анализа">
+          </div>
+          
+          <div class="face-instruction">
+            <h4>🎯 Задание</h4>
+            <p>Посмотрите на лицо и определите, какую эмоцию оно выражает</p>
+          </div>
+        </div>
+        
+        <div class="question-container glass">
+          <h3>❓ Вопрос</h3>
+          <p>Какая эмоция изображена на лице?</p>
+          
+          <div class="answer-options emotions-grid">
+            <div class="answer-option" data-emotion="dominance">
+              <span class="option-icon">👑</span>
+              <span class="option-text">Доминирование</span>
+            </div>
+            <div class="answer-option" data-emotion="uncertainty">
+              <span class="option-icon">🤔</span>
+              <span class="option-text">Неуверенность</span>
+            </div>
+            <div class="answer-option" data-emotion="happiness">
+              <span class="option-icon">😊</span>
+              <span class="option-text">Счастье</span>
+            </div>
+            <div class="answer-option" data-emotion="anger">
+              <span class="option-icon">😠</span>
+              <span class="option-text">Гнев</span>
+            </div>
+            <div class="answer-option" data-emotion="skepticism">
+              <span class="option-icon">🤨</span>
+              <span class="option-text">Скептицизм</span>
+            </div>
+            <div class="answer-option" data-emotion="surprise">
+              <span class="option-icon">😲</span>
+              <span class="option-text">Удивление</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stage-actions">
+          <button id="checkEmotionAnswer" class="btn primary">Проверить ответ</button>
+        </div>
+      </section>
+
+      <!-- Результаты -->
+      <section id="resultsPhase" class="quest-stage">
+        <div class="stage-header">
+          <h2>🏆 Результаты</h2>
+          <p>Ваши достижения в изучении языка тела</p>
+        </div>
+        
+        <div class="results-summary glass">
+          <div class="result-card success">
+            <div class="result-icon">🎉</div>
+            <h3>Поздравляем!</h3>
+            <p>Вы успешно прошли квест "Язык тела"!</p>
+          </div>
+          
+          <div class="final-stats">
+            <h3>📊 Итоговая статистика</h3>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-label">Правильных ответов</span>
+                <span class="stat-value" id="correctAnswers">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Точность</span>
+                <span class="stat-value" id="accuracy">0%</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Время прохождения</span>
+                <span class="stat-value" id="completionTime">0 сек</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="rewards-display">
+            <h3>🎁 Награды</h3>
+            <div class="rewards-list">
+              <div class="reward-item">
+                <span class="reward-icon">🥇</span>
+                <span class="reward-text">+2 MULACOIN</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">⭐</span>
+                <span class="reward-text">+150 XP</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">🏆</span>
+                <span class="reward-text">Достижение "Психолог"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stage-actions">
+          <button id="finishQuest" class="btn primary">Завершить квест</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast уведомления -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Прогресс-бар -->
+    <div class="quest-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-steps">
+        <div class="step active" data-step="1">1</div>
+        <div class="step" data-step="2">2</div>
+        <div class="step" data-step="3">3</div>
+      </div>
     </div>
   </div>
 
-  <!-- Модал завершения квеста -->
-  <div class="quest-complete" id="questComplete">
-    <div class="quest-complete-content">
-      <div class="quest-complete-icon">🎉</div>
-      <h2 class="quest-complete-title">Квест завершен!</h2>
-      <p class="quest-complete-description">
-        Отлично! Вы успешно проанализировали язык тела и выражения лица. 
-        Результаты сохранены в главном меню по кнопке "История".
-      </p>
-      
-      <div class="quest-rewards">
-        <div class="reward-item">
-          <div class="reward-amount">+3</div>
-          <div class="reward-label">Mulacoin</div>
-        </div>
-        <div class="reward-item">
-          <div class="reward-amount">+500</div>
-          <div class="reward-label">Опыта</div>
-        </div>
-      </div>
-      
-      <button class="btn-close" onclick="closeQuestComplete()">Закрыть</button>
-    </div>
-  </div>
-
-  <script>
-    // Данные для видео допроса
-    const VIDEO_DATA = {
-      'dopros1.mp4': 'сепарирование (уход) от вопроса',
-      'dopros2.mp4': 'легкое нахмуривание',
-      'dopros3.mp4': 'поджатие губ',
-      'dopros4.mp4': 'учищенное моргание',
-      'dopros5.mp4': 'поджатие губ',
-      'dopros6.mp4': 'сепарирование (уход) от вопроса',
-      'dopros7.mp4': 'легкое нахмуривание',
-      'dopros8.mp4': 'поджатие губ'
-    };
-
-    const VIDEO_OPTIONS = [
-      'Поджатие губ',
-      'Учищенное моргание',
-      'Легкое нахмуривание',
-      'Легкое прикосновение лица (подбородка, носа, вески)',
-      'Покачивание головы в строну',
-      'Сепарирование (уход) от вопроса',
-      'Отбрасывание головы назад',
-      'Движение суставами (дергание ногой или кистью)',
-      'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
-      'Вскидывание взгляда вверх',
-      'Быстрое облизывание губ',
-      'Сглатывание',
-      'Напряжение челюсти'
-    ];
-
-    // Данные для видео эмоций
-    const EMOTION_VIDEO_DATA = {
-      'rf_01_skepticism.mp4': 'Скептицизм',
-      'rf_02_anger.mp4': 'Гнев',
-      'rf_03_anxiety.mp4': 'Тревога',
-      'rf_04_determination.mp4': 'Решительность',
-      'rf_04_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
-      'rf_05_dominance.mp4': 'Доминирование',
-      'rf_06_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
-      'rf_07_high-self-esteem.mp4': 'Высокая самооценка',
-      'rf_08_submission.mp4': 'Подчинение',
-      'rf_09_surprise.mp4': 'Удивление',
-      'rf_10_contempt.mp4': 'Презрение',
-      'rf_11_thoughtfulness.mp4': 'Задумчивость',
-      'rf_12_skepticism.mp4': 'Скептицизм',
-      'rf_13_anger.mp4': 'Гнев',
-      'rf_14_anxiety.mp4': 'Тревога',
-      'rf_15_determination.mp4': 'Решительность',
-      'rf_16_dominance.mp4': 'Доминирование',
-      'rf_17_fear.mp4': 'Страх',
-      'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
-      'rf_19_contempt.mp4': 'Презрение',
-      'rf_19_submission.mp4': 'Подчинение',
-      'rf_20_surprise.mp4': 'Удивление'
-    };
-
-    const EMOTION_OPTIONS = [
-      'Скептицизм',
-      'Гнев',
-      'Тревога',
-      'Решительность',
-      'Страх-Удивление-Отрицание',
-      'Доминирование',
-      'Высокая самооценка',
-      'Подчинение',
-      'Удивление',
-      'Презрение',
-      'Задумчивость',
-      'Страх'
-    ];
-
-    let currentEmotionVideo = null;
-    let currentVideo = null;
-    let videoAttempts = 0;
-    let emotionAttempts = 0;
-    let isVideoPhase = true;
-
-    // Инициализация
-    function init() {
-      loadVideoPhase();
-    }
-
-    // Загрузка фазы видео
-    function loadVideoPhase() {
-      isVideoPhase = true;
-      updatePhaseIndicator();
-      
-      // Выбираем случайное видео
-      const videoFiles = Object.keys(VIDEO_DATA);
-      currentVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-      
-      const video = document.getElementById('videoPlayer');
-      video.src = `../video/${currentVideo}`;
-      video.load();
-      
-      // Сбрасываем попытки
-      videoAttempts = 0;
-      updateAttemptsDisplay('video');
-      
-      // Создаем варианты ответов
-      createVideoOptions();
-      
-      // Показываем фазу видео
-      document.getElementById('videoPhase').style.display = 'block';
-      document.getElementById('facePhase').style.display = 'none';
-    }
-
-    // Загрузка фазы эмоций
-    function loadFacePhase() {
-      isVideoPhase = false;
-      updatePhaseIndicator();
-      
-      // Выбираем случайное видео эмоции
-      const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
-      currentEmotionVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-      
-      // Настраиваем видео
-      const video = document.getElementById('emotionVideoPlayer');
-      video.src = `../assets/videos/${currentEmotionVideo}`;
-      video.load();
-      
-      // Автовоспроизведение
-      video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
-      
-      // Сбрасываем попытки
-      emotionAttempts = 0;
-      updateAttemptsDisplay('face');
-      
-      // Создаем варианты ответов
-      createEmotionOptions();
-      
-      // Показываем фазу эмоций
-      document.getElementById('videoPhase').style.display = 'none';
-      document.getElementById('facePhase').style.display = 'block';
-    }
-
-
-
-    // Создание вариантов ответов для видео
-    function createVideoOptions() {
-      const correctAnswer = VIDEO_DATA[currentVideo];
-      const options = [correctAnswer];
-      
-      // Добавляем случайные варианты
-      const availableOptions = VIDEO_OPTIONS.filter(opt => opt !== correctAnswer);
-      for (let i = 0; i < 4; i++) {
-        if (availableOptions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableOptions.length);
-          options.push(availableOptions.splice(randomIndex, 1)[0]);
-        }
-      }
-      
-      // Перемешиваем
-      options.sort(() => Math.random() - 0.5);
-      
-      const container = document.getElementById('videoOptions');
-      container.innerHTML = '';
-      
-      options.forEach(option => {
-        const button = document.createElement('button');
-        button.className = 'answer-option';
-        button.textContent = option;
-        button.onclick = () => handleVideoAnswer(option);
-        container.appendChild(button);
-      });
-    }
-
-    // Создание вариантов ответов для эмоций
-    function createEmotionOptions() {
-      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
-      const options = [correctAnswer];
-      
-      // Добавляем случайные варианты
-      const availableOptions = EMOTION_OPTIONS.filter(opt => opt !== correctAnswer);
-      for (let i = 0; i < 3; i++) {
-        if (availableOptions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableOptions.length);
-          options.push(availableOptions.splice(randomIndex, 1)[0]);
-        }
-      }
-      
-      // Перемешиваем
-      options.sort(() => Math.random() - 0.5);
-      
-      const container = document.getElementById('faceOptions');
-      container.innerHTML = '';
-      
-      options.forEach(option => {
-        const button = document.createElement('button');
-        button.className = 'answer-option';
-        button.textContent = option;
-        button.onclick = () => handleEmotionAnswer(option);
-        container.appendChild(button);
-      });
-    }
-
-    // Обработка ответа на видео
-    function handleVideoAnswer(answer) {
-      const correctAnswer = VIDEO_DATA[currentVideo];
-      const buttons = document.querySelectorAll('#videoOptions .answer-option');
-      
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === correctAnswer) {
-          btn.classList.add('correct');
-        } else if (btn.textContent === answer && answer !== correctAnswer) {
-          btn.classList.add('incorrect');
-        }
-      });
-      
-      if (answer === correctAnswer) {
-        setTimeout(() => {
-          loadFacePhase();
-        }, 2000);
-      } else {
-        videoAttempts++;
-        updateAttemptsDisplay('video');
-        
-        if (videoAttempts >= 3) {
-          setTimeout(() => {
-            loadVideoPhase(); // Загружаем новое видео
-          }, 2000);
-        } else {
-          setTimeout(() => {
-            createVideoOptions(); // Меняем варианты ответов
-            buttons.forEach(btn => {
-              btn.disabled = false;
-              btn.classList.remove('correct', 'incorrect');
-            });
-          }, 2000);
-        }
-      }
-    }
-
-    // Обработка ответа на эмоции
-    function handleEmotionAnswer(answer) {
-      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
-      const buttons = document.querySelectorAll('#faceOptions .answer-option');
-      
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === correctAnswer) {
-          btn.classList.add('correct');
-        } else if (btn.textContent === answer && answer !== correctAnswer) {
-          btn.classList.add('incorrect');
-        }
-      });
-      
-      if (answer === correctAnswer) {
-        setTimeout(() => {
-          completeQuest();
-        }, 2000);
-      } else {
-        emotionAttempts++;
-        updateAttemptsDisplay('face');
-        
-        if (emotionAttempts >= 3) {
-          setTimeout(() => {
-            loadFacePhase(); // Загружаем новое видео эмоции
-          }, 2000);
-        } else {
-          setTimeout(() => {
-            createEmotionOptions(); // Меняем варианты ответов
-            buttons.forEach(btn => {
-              btn.disabled = false;
-              btn.classList.remove('correct', 'incorrect');
-            });
-          }, 2000);
-        }
-      }
-    }
-
-    // Обновление индикатора фазы
-    function updatePhaseIndicator() {
-      const phase1Badge = document.getElementById('phase1Badge');
-      const phase2Badge = document.getElementById('phase2Badge');
-      
-      if (isVideoPhase) {
-        phase1Badge.classList.add('active');
-        phase2Badge.classList.remove('active');
-      } else {
-        phase1Badge.classList.remove('active');
-        phase2Badge.classList.add('active');
-      }
-    }
-
-    // Обновление отображения попыток
-    function updateAttemptsDisplay(phase) {
-      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
-      const attempts = phase === 'video' ? videoAttempts : emotionAttempts;
-      
-      dots.forEach((dot, index) => {
-        if (index < attempts) {
-          dot.classList.add('used');
-        } else {
-          dot.classList.remove('used');
-        }
-      });
-    }
-
-    // Завершение квеста
-    function completeQuest() {
-      const modal = document.getElementById('questComplete');
-      modal.classList.add('show');
-      
-      // Сохраняем награды через новую систему
-      if (window.parent && window.parent.addRewards) {
-        window.parent.addRewards(3, 500, 'bodylang', 'Язык тела', 'medium');
-      } else {
-        // Fallback на localStorage
-        const userId = localStorage.getItem('currentUserId') || 'default';
-        const userDataKey = `userData_${userId}`;
-        const savedData = localStorage.getItem(userDataKey);
-        
-        if (savedData) {
-          const userData = JSON.parse(savedData);
-          userData.mulacoin = (userData.mulacoin || 0) + 3;
-          userData.exp = (userData.exp || 0) + 500;
-          localStorage.setItem(userDataKey, JSON.stringify(userData));
-        }
-      }
-    }
-
-    // Закрытие модала завершения
-    function closeQuestComplete() {
-      const modal = document.getElementById('questComplete');
-      modal.classList.remove('show');
-      window.location.href = '../quests.html';
-    }
-
-    // Управление видео
-    const video = document.getElementById('videoPlayer');
-    const playBtn = document.getElementById('playBtn');
-    const progressFill = document.getElementById('progressFill');
-
-    playBtn.addEventListener('click', () => {
-      if (video.paused) {
-        video.play();
-        playBtn.textContent = '⏸️';
-      } else {
-        video.pause();
-        playBtn.textContent = '▶️';
-      }
-    });
-
-    video.addEventListener('timeupdate', () => {
-      const progress = (video.currentTime / video.duration) * 100;
-      progressFill.style.width = progress + '%';
-    });
-
-    video.addEventListener('ended', () => {
-      playBtn.textContent = '▶️';
-    });
-
-    // Инициализация при загрузке страницы
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+  <!-- Подключение скриптов -->
+  <script src="bodylang-data.js"></script>
+  <script src="bodylang-engine.js"></script>
+  <script src="bodylang-ui.js"></script>
+  <script src="bodylang-main.js"></script>
 </body>
 </html>
