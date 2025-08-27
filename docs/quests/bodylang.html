@@ -394,6 +394,33 @@
       box-shadow: var(--shadow-medium);
     }
 
+    .sound-btn {
+      background: var(--accent-secondary);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-light);
+    }
+
+    .sound-btn:hover {
+      background: var(--accent-primary);
+      transform: scale(1.1);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .sound-btn.muted {
+      background: var(--bg-dark);
+      color: var(--text-muted);
+    }
+
     .progress-bar {
       flex: 1;
       max-width: 300px;
@@ -800,12 +827,13 @@
       
              <div class="video-section">
          <div class="video-container">
-           <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline>
+           <video id="videoPlayer" class="video-player" preload="metadata" playsInline>
              <source src="../video/dopros1.mp4" type="video/mp4">
              Ваш браузер не поддерживает видео.
            </video>
            <div class="video-controls">
              <button class="play-btn" id="playBtn">▶️</button>
+             <button class="sound-btn" id="soundBtn">🔊</button>
              <div class="progress-bar">
                <div class="progress-fill" id="progressFill"></div>
              </div>
@@ -991,6 +1019,16 @@
       const video = document.getElementById('videoPlayer');
       video.src = `../video/${currentVideo}`;
       video.load();
+      
+      // Включаем звук для нового видео
+      video.muted = false;
+      
+      // Обновляем состояние кнопки звука
+      const soundBtn = document.getElementById('soundBtn');
+      if (soundBtn) {
+        soundBtn.textContent = '🔊';
+        soundBtn.classList.remove('muted');
+      }
       
       // Reset attempts
       videoAttempts = 0;
@@ -1239,27 +1277,62 @@
     function initVideoControls() {
       const video = document.getElementById('videoPlayer');
       const playBtn = document.getElementById('playBtn');
+      const soundBtn = document.getElementById('soundBtn');
       const progressFill = document.getElementById('progressFill');
 
-      if (playBtn && video && progressFill) {
+      if (playBtn && soundBtn && video && progressFill) {
+        // Обработчик для кнопки воспроизведения
         playBtn.addEventListener('click', () => {
           if (video.paused) {
-            video.play();
-            playBtn.textContent = '⏸️';
+            video.play().then(() => {
+              playBtn.textContent = '⏸️';
+            }).catch(error => {
+              console.log('Ошибка воспроизведения:', error);
+            });
           } else {
             video.pause();
             playBtn.textContent = '▶️';
           }
         });
 
+        // Обработчик для кнопки звука
+        soundBtn.addEventListener('click', () => {
+          video.muted = !video.muted;
+          if (video.muted) {
+            soundBtn.textContent = '🔇';
+            soundBtn.classList.add('muted');
+          } else {
+            soundBtn.textContent = '🔊';
+            soundBtn.classList.remove('muted');
+          }
+        });
+
+        // Обновление прогресса
         video.addEventListener('timeupdate', () => {
           const progress = (video.currentTime / video.duration) * 100;
           progressFill.style.width = progress + '%';
         });
 
+        // Обработка окончания видео
         video.addEventListener('ended', () => {
           playBtn.textContent = '▶️';
         });
+
+        // Автоматическое включение звука при загрузке
+        video.addEventListener('canplay', () => {
+          video.muted = false;
+          soundBtn.textContent = '🔊';
+          soundBtn.classList.remove('muted');
+        });
+
+        // Инициализация состояния звука
+        if (video.muted) {
+          soundBtn.textContent = '🔇';
+          soundBtn.classList.add('muted');
+        } else {
+          soundBtn.textContent = '🔊';
+          soundBtn.classList.remove('muted');
+        }
       }
     }
 
