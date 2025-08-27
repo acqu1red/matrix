@@ -15,7 +15,7 @@ class BusinessQuestUI {
     
     this.initialize();
   }
-  
+
   // Инициализация UI
   initialize() {
     console.log('🎨 Инициализация UI для бизнес-квеста...');
@@ -240,7 +240,7 @@ class BusinessQuestUI {
     
     this.showToast('🚀 Квест начался! Выберите нишу для вашего бизнеса.', 'success');
   }
-  
+
   // Выбор ниши
   selectNiche(card) {
     // Убираем выделение со всех карточек
@@ -567,7 +567,7 @@ class BusinessQuestUI {
       window.location.href = '../quests.html';
     }
   }
-  
+
   // Показать toast уведомление
   showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
