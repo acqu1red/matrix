@@ -4,16 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Квесты</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="./quests.css" as="style">
+  <link rel="preload" href="./quests.js" as="script">
+  <link rel="preload" href="assets/rulette/case_open.png" as="image">
+  
+  <!-- Fonts with display=swap for better performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="./quests.css" />
+  
+  <!-- Optimized Telegram WebApp SDK loading -->
   <script>
-    // Telegram WebApp SDK
+    // Optimized Telegram WebApp SDK loading
     (function(){
       if (!window.Telegram || !window.Telegram.WebApp) {
         var s = document.createElement('script');
         s.src = "https://telegram.org/js/telegram-web-app.js";
+        s.async = true;
         document.head.appendChild(s);
       }
     })();
@@ -50,8 +61,8 @@
     <section class="case-section" id="caseSection">
       <div class="case-aura"></div>
       <div class="case-frame">
-        <button class="case-button" id="mysteryCaseBtn" onclick="openCase()">
-          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
+        <button class="case-button" id="mysteryCaseBtn">
+          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage" loading="lazy">
         </button>
         
         <div class="case-caption">
@@ -66,10 +77,10 @@
         <h2>Добро пожаловать в мир возможностей!</h2>
         <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
-                  <div class="hero-stat">
-          <div class="stat-number">7</div>
-          <div class="stat-label">Квестов</div>
-        </div>
+          <div class="hero-stat">
+            <div class="stat-number">7</div>
+            <div class="stat-label">Квестов</div>
+          </div>
           <div class="hero-stat">
             <div class="stat-number">∞</div>
             <div class="stat-label">Возможностей</div>
@@ -86,7 +97,7 @@
     <section class="quests" id="quests">
       <div class="quests-grid">
         <!-- Первый бизнес -->
-        <div class="card" data-style="neo">
+        <div class="card" data-style="neo" data-quest="copy">
           <div class="label">Бизнес</div>
           <h3>Твой первый бизнес</h3>
           <div class="description">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
@@ -95,13 +106,13 @@
             <div class="tag">Вариация #1/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('copy')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('copy')">Подробнее</button>
+            <button class="btn primary start" data-quest="copy">Начать квест</button>
+            <button class="btn ghost details" data-quest="copy">Подробнее</button>
           </div>
         </div>
 
         <!-- Мировое правительство -->
-        <div class="card" data-style="conspiracy">
+        <div class="card" data-style="conspiracy" data-quest="world-government">
           <div class="label">Стратегия</div>
           <h3>Мировое тайное правительство</h3>
           <div class="description">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени.</div>
@@ -110,13 +121,13 @@
             <div class="tag">Вариация #2/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('world-government')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('world-government')">Подробнее</button>
+            <button class="btn primary start" data-quest="world-government">Начать квест</button>
+            <button class="btn ghost details" data-quest="world-government">Подробнее</button>
           </div>
         </div>
 
         <!-- Язык тела -->
-        <div class="card" data-style="neo">
+        <div class="card" data-style="neo" data-quest="bodylang">
           <div class="label">Психология</div>
           <h3>Язык тела</h3>
           <div class="description">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
@@ -125,17 +136,13 @@
             <div class="tag">Вариация #3/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('bodylang')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('bodylang')">Подробнее</button>
+            <button class="btn primary start" data-quest="bodylang">Начать квест</button>
+            <button class="btn ghost details" data-quest="bodylang">Подробнее</button>
           </div>
         </div>
 
-
-
-
-
         <!-- Империя влияния -->
-        <div class="card" data-style="neo">
+        <div class="card" data-style="neo" data-quest="funnel">
           <div class="label">Влияние</div>
           <h3>Империя влияния</h3>
           <div class="description">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
@@ -144,13 +151,13 @@
             <div class="tag">Вариация #6/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('funnel')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('funnel')">Подробнее</button>
+            <button class="btn primary start" data-quest="funnel">Начать квест</button>
+            <button class="btn ghost details" data-quest="funnel">Подробнее</button>
           </div>
         </div>
 
         <!-- Психология -->
-        <div class="card" data-style="neo">
+        <div class="card" data-style="neo" data-quest="psychology">
           <div class="label">Психология</div>
           <h3>Психология заработка</h3>
           <div class="description">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
@@ -159,15 +166,13 @@
             <div class="tag">Вариация #7/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('psychology')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('psychology')">Подробнее</button>
+            <button class="btn primary start" data-quest="psychology">Начать квест</button>
+            <button class="btn ghost details" data-quest="psychology">Подробнее</button>
           </div>
         </div>
 
-
-
         <!-- Анализ конкурентов -->
-        <div class="card" data-style="neo">
+        <div class="card" data-style="neo" data-quest="competitors">
           <div class="label">Стратегия</div>
           <h3>Анализ конкурентов</h3>
           <div class="description">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
@@ -176,13 +181,13 @@
             <div class="tag">Вариация #9/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('competitors')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('competitors')">Подробнее</button>
+            <button class="btn primary start" data-quest="competitors">Начать квест</button>
+            <button class="btn ghost details" data-quest="competitors">Подробнее</button>
           </div>
         </div>
 
         <!-- Анализ трендов -->
-        <div class="card" data-style="neo">
+        <div class="card" data-style="neo" data-quest="trends">
           <div class="label">Аналитика</div>
           <h3>Анализ трендов</h3>
           <div class="description">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
@@ -191,8 +196,8 @@
             <div class="tag">Вариация #10/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('trends')">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('trends')">Подробнее</button>
+            <button class="btn primary start" data-quest="trends">Начать квест</button>
+            <button class="btn ghost details" data-quest="trends">Подробнее</button>
           </div>
         </div>
       </div>
@@ -216,73 +221,8 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Простой JavaScript -->
-  <script>
-    // Простые функции для работы
-    function openCase() {
-      console.log('Открываем кейс...');
-      // Простой переход на страницу кейса
-      window.location.href = 'case.html';
-    }
-
-    function startQuest(questId) {
-      console.log('Начинаем квест:', questId);
-      // Простой переход на квест
-      window.location.href = 'quests/' + questId + '.html';
-    }
-
-    function showQuestDetails(questId) {
-      console.log('Показываем детали квеста:', questId);
-      // Простое модальное окно
-      const modal = document.getElementById('modal');
-      const modalBody = document.getElementById('modalBody');
-      
-      const questData = {
-        'copy': { name: '🏢 Твой первый бизнес', description: 'Создай и управляй своим бизнесом с нуля.' },
-        'world-government': { name: 'Мировое тайное правительство', description: 'Создай мировое тайное правительство, распределяя персонажей по секторам.' },
-        'bodylang': { name: 'Язык тела', description: 'Распознай невербальные сигналы 2D‑персонажа.' },
-        'funnel': { name: 'Империя влияния', description: 'Создай медиа-империю и управляй массовым сознанием.' },
-        'psychology': { name: 'Психология заработка', description: 'Используй психологические техники для успешных переговоров.' },
-        'competitors': { name: 'Анализ конкурентов', description: 'Изучи конкурентную среду и выбери наиболее сильного конкурента.' },
-        'trends': { name: 'Анализ трендов', description: 'Стань мастером рыночной аналитики и трендов.' }
-      };
-      
-      const quest = questData[questId];
-      if (quest) {
-        modalBody.innerHTML = `
-          <h3>${quest.name}</h3>
-          <p>${quest.description}</p>
-          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
-        `;
-        modal.classList.add('show');
-      }
-    }
-
-    // Закрытие модала
-    document.getElementById('modalClose').addEventListener('click', function() {
-      document.getElementById('modal').classList.remove('show');
-    });
-
-    // Закрытие по клику вне модала
-    document.getElementById('modal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.classList.remove('show');
-      }
-    });
-
-    // Простая функция toast
-    function toast(message, type = 'info') {
-      const toastEl = document.getElementById('toast');
-      toastEl.textContent = message;
-      toastEl.className = `toast show ${type}`;
-      setTimeout(() => toastEl.classList.remove('show'), 3000);
-    }
-
-    // Инициализация при загрузке
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Квесты загружены!');
-      toast('Квесты загружены успешно!', 'success');
-    });
-  </script>
+  <!-- Optimized JavaScript loading -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+  <script src="./quests.js" defer></script>
 </body>
 </html>

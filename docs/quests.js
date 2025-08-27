@@ -53,40 +53,21 @@ function initTG(){
       // Получаем Telegram ID пользователя
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userData.telegramId = tg.initDataUnsafe.user.id;
-        console.log('Telegram ID получен:', userData.telegramId);
       }
     }
-  }catch(e){ console.log("TG init fail", e); }
+  }catch(e){ /* silent fail */ }
 }
 
 /* ====== Case Navigation ====== */
 function setupCaseNavigation() {
-  console.log('=== НАСТРОЙКА НАВИГАЦИИ КЕЙСА ===');
-  
   const caseButton = document.getElementById('mysteryCaseBtn');
   const caseImage = document.getElementById('caseImage');
-  
-  console.log('Кнопка кейса найдена:', !!caseButton);
-  console.log('Изображение кейса найдено:', !!caseImage);
   
   if (caseButton && caseImage) {
     // Set initial image (closed case)
     const currentPath = window.location.pathname;
     const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
     caseImage.src = basePath + '/assets/rulette/case_open.png';
-    
-    // Add click handler for case transition
-    caseButton.addEventListener('click', (e) => {
-      console.log('Клик по кейсу!');
-      e.preventDefault();
-      e.stopPropagation();
-      openCaseWithTransition();
-    });
-    
-    console.log('✅ Обработчик клика для кейса добавлен');
-  } else {
-    console.error('❌ Элементы кейса не найдены');
-    console.log('Доступные элементы с id:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
   }
 }
 
@@ -200,8 +181,6 @@ function getExpForNextLevel(level) {
 }
 
 function updateCurrencyDisplay() {
-  console.log('Обновление отображения валюты:', userData);
-  
   // Обновляем mulacoin во всех возможных местах
   const mulacoinElements = [
     $("#mulacoinAmount"),
@@ -213,21 +192,15 @@ function updateCurrencyDisplay() {
   const levelEl = $("#currentLevel");
   const progressEl = $("#levelProgress");
   
-  console.log('Найденные элементы mulacoin:', mulacoinElements.map(el => !!el));
-  console.log('Level элемент:', !!levelEl);
-  console.log('Progress элемент:', !!progressEl);
-  
   // Обновляем все элементы с mulacoin
   mulacoinElements.forEach(el => {
     if (el) {
       el.textContent = userData.mulacoin || 0;
-      console.log('Обновлен элемент mulacoin:', el.textContent);
     }
   });
   
   if (levelEl) {
     levelEl.textContent = userData.level || 1;
-    console.log('Обновлен currentLevel:', userData.level);
   }
   
   // Исправляем расчет прогресса уровня
@@ -238,24 +211,7 @@ function updateCurrencyDisplay() {
   
   if (progressEl) {
     progressEl.textContent = `${progress}/${total}`;
-    console.log('Обновлен levelProgress:', `${progress}/${total}`);
   }
-  
-  // Принудительно обновляем отображение один раз
-  setTimeout(() => {
-    const mulacoinElements = [
-      $("#mulacoinAmount"),
-      $("#userMulacoin"),
-      $("#currentMulacoin"),
-      document.querySelector('[data-mulacoin]')
-    ];
-    
-    mulacoinElements.forEach(el => {
-      if (el) {
-        el.textContent = userData.mulacoin || 0;
-      }
-    });
-  }, 100);
 }
 
 async function addRewards(mulacoin, exp, questId = null, questName = null, difficulty = null) {
@@ -893,10 +849,6 @@ async function saveUserData() {
 }
 
 async function loadUserData(userId) {
-  console.log('Загрузка данных пользователя:', userId);
-  console.log('Supabase доступен:', !!supabase);
-  console.log('Telegram ID:', userData.telegramId);
-  
   userData.userId = userId;
   
   // Сначала загружаем из localStorage как fallback
@@ -909,18 +861,14 @@ async function loadUserData(userId) {
       // Пересчитываем уровень на основе опыта
       userData.level = calculateLevel(userData.exp);
       userData.lastFreeSpin = parsed.lastFreeSpin;
-      console.log('Данные загружены из localStorage:', parsed);
-      console.log('Уровень пересчитан на основе опыта:', userData.level);
     } catch (error) {
-      console.error('Ошибка парсинга localStorage:', error);
+      // Тихая обработка ошибок
     }
   }
   
   // Пытаемся загрузить из Supabase
   if (supabase && userData.telegramId) {
     try {
-      console.log('Попытка загрузки из Supabase для Telegram ID:', userData.telegramId);
-      
       const { data, error } = await supabase
         .from('bot_user')
         .select('*')
@@ -928,27 +876,18 @@ async function loadUserData(userId) {
         .single();
       
       if (data && !error) {
-        console.log('Данные загружены из Supabase:', data);
         // Обновляем данные из Supabase (они имеют приоритет)
         userData.mulacoin = data.mulacoin || userData.mulacoin || 0;
         userData.exp = data.experience || userData.exp || 0;
         // Пересчитываем уровень на основе опыта
         userData.level = calculateLevel(userData.exp);
         userData.lastFreeSpin = data.last_free_spin || userData.lastFreeSpin;
-        console.log('Уровень пересчитан на основе опыта:', userData.level);
         toast('Данные загружены из базы данных', 'success');
-      } else {
-        console.log('Пользователь не найден в Supabase, используем данные из localStorage');
       }
     } catch (error) {
-      console.error('Ошибка загрузки из Supabase:', error);
       toast('Ошибка загрузки из базы данных', 'error');
     }
   } else {
-    console.log('Supabase недоступен, загружаем из localStorage');
-    if (!supabase) console.log('Причина: Supabase клиент не инициализирован');
-    if (!userData.telegramId) console.log('Причина: Отсутствует Telegram ID');
-    
     // Fallback на localStorage
     const saved = localStorage.getItem(`userData_${userId}`);
     if (saved) {
@@ -956,18 +895,11 @@ async function loadUserData(userId) {
       userData = { ...userData, ...parsed };
       // Пересчитываем уровень на основе опыта
       userData.level = calculateLevel(userData.exp || 0);
-      console.log('Данные загружены из localStorage:', parsed);
-      console.log('Уровень пересчитан на основе опыта:', userData.level);
     }
   }
   
-  console.log('Итоговые данные пользователя:', userData);
-  
-  // Принудительно обновляем отображение несколько раз для надежности
+  // Обновляем отображение
   updateCurrencyDisplay();
-  setTimeout(() => updateCurrencyDisplay(), 100);
-  setTimeout(() => updateCurrencyDisplay(), 500);
-  
   updateRouletteButton();
 }
 
@@ -1269,30 +1201,18 @@ function featuredQuests(state){
 
 /* ====== Cards ====== */
 function buildCards(state){
-  console.log('=== BUILD CARDS НАЧАЛО ===');
-  console.log('DOM готов?', document.readyState);
-  console.log('Состояние пользователя:', state);
-  
   // Проверяем все возможные селекторы
   const container = document.getElementById('quests');
   
-  console.log('Контейнер #quests найден?', !!container);
-  
   if (!container) {
-    console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Контейнер #quests не найден!');
-    console.log('Все элементы с id на странице:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
-    
     // Попробуем найти контейнер по другому селектору
     const alternativeContainer = document.querySelector('.quests') || document.querySelector('[data-quests]');
     if (alternativeContainer) {
-      console.log('Найден альтернативный контейнер:', alternativeContainer);
-      // Используем альтернативный контейнер
       buildCardsInContainer(alternativeContainer, state);
       return;
     }
     
     // Если контейнер все еще не найден, создаем его
-    console.log('Создаем контейнер для квестов...');
     const appContainer = document.querySelector('.app');
     if (appContainer) {
       const questsSection = document.createElement('section');
@@ -1308,13 +1228,10 @@ function buildCards(state){
         appContainer.appendChild(questsSection);
       }
       
-      console.log('✅ Контейнер квестов создан');
       buildCardsInContainer(questsSection, state);
       return;
     }
     
-    // Если ничего не получилось, выводим ошибку
-    console.error('❌ Не удалось создать или найти контейнер для квестов');
     return;
   }
   
@@ -1322,25 +1239,17 @@ function buildCards(state){
 }
 
 function buildCardsInContainer(container, state) {
-  console.log('=== BUILD CARDS В КОНТЕЙНЕРЕ ===');
-  console.log('Контейнер:', container);
-  console.log('Состояние пользователя:', state);
-  
   if (!container) {
-    console.error('❌ Контейнер не передан в buildCardsInContainer');
     return;
   }
   
   try {
-    // Очищаем контейнер и убираем loading
+    // Очищаем контейнер
     container.innerHTML = "";
     
     const list = featuredQuests(state);
-    console.log('📊 Квестов для отображения:', list.length);
-    console.log('📋 Список квестов:', list.map(q => q.name));
     
     if (!list || list.length === 0) {
-      console.error('❌ Список квестов пуст');
       container.innerHTML = '<div class="error-message">Квесты не загружены</div>';
       return;
     }
@@ -1354,6 +1263,9 @@ function buildCardsInContainer(container, state) {
       gap: 20px;
       padding: 20px;
     `;
+    
+    // Используем DocumentFragment для оптимизации DOM операций
+    const fragment = document.createDocumentFragment();
     
     list.forEach((q, index) => {
       try {
@@ -1372,36 +1284,20 @@ function buildCardsInContainer(container, state) {
             <div class="tag">Вариация #${variationIndex()+1}/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start">Начать квест</button>
-            <button class="btn ghost details">Подробнее</button>
+            <button class="btn primary start" data-quest="${q.id}">Начать квест</button>
+            <button class="btn ghost details" data-quest="${q.id}">Подробнее</button>
           </div>
         `;
         
-        const startBtn = card.querySelector(".start");
-        const detailsBtn = card.querySelector(".details");
-        
-        if (startBtn) {
-          startBtn.addEventListener("click", ()=>startQuest(q, state));
-        }
-        
-        if (detailsBtn) {
-          detailsBtn.addEventListener("click", ()=>{
-            showQuestDetails(q, state);
-          });
-        }
-        
-        questsGrid.appendChild(card);
-        console.log(`✅ Добавлена карточка квеста: ${q.name}`);
+        fragment.appendChild(card);
       } catch (cardError) {
-        console.error(`❌ Ошибка создания карточки квеста ${q.name}:`, cardError);
+        // Тихая обработка ошибок для производительности
       }
     });
     
+    questsGrid.appendChild(fragment);
     container.appendChild(questsGrid);
-    console.log(`🎯 ИТОГО: Добавлено ${list.length} карточек квестов в контейнер`);
-    console.log('Содержимое контейнера после добавления:', container.innerHTML.length > 0 ? 'НЕ ПУСТОЕ' : 'ПУСТОЕ');
   } catch (error) {
-    console.error('❌ Ошибка в buildCardsInContainer:', error);
     container.innerHTML = '<div class="error-message">Ошибка загрузки квестов</div>';
   }
 }
@@ -2231,21 +2127,14 @@ async function forceSaveData() {
 }
 
 /* ====== Init ====== */
-console.log('🚀 ИНИЦИАЛИЗАЦИЯ НАЧАТА');
-console.log('DOM состояние:', document.readyState);
-
-// Ждем полной загрузки DOM
+// Оптимизированная инициализация
 if (document.readyState === 'loading') {
-  console.log('⏳ DOM еще загружается, ждем DOMContentLoaded');
   document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  console.log('✅ DOM уже загружен, запускаем инициализацию');
   initializeApp();
 }
 
 async function initializeApp() {
-  console.log('🎯 ЗАПУСК ИНИЦИАЛИЗАЦИИ ПРИЛОЖЕНИЯ');
-  
   // Инициализируем Telegram
   initTG();
   
@@ -2254,14 +2143,7 @@ async function initializeApp() {
     await initSupabase();
   }
   
-  if (supabase) {
-    console.log('✅ Supabase готов к использованию');
-  } else {
-    console.error('❌ Supabase не инициализирован');
-  }
-  
   const state = await loadState();
-  console.log('📊 Состояние загружено:', state);
   
   // Загружаем данные пользователя
   await loadUserData(state.userId);
@@ -2269,9 +2151,8 @@ async function initializeApp() {
   // Обновляем отображение валюты после загрузки данных
   updateCurrencyDisplay();
   
-  // Всегда начинаем со стандартного дизайна рулетки
+  // Устанавливаем стандартный дизайн рулетки
   currentRouletteDesign = 'standard';
-  console.log('Установлен стандартный дизайн рулетки');
   
   // Создаем рулетку
   createRouletteWheel();
@@ -2288,23 +2169,12 @@ async function initializeApp() {
   // Инициализируем навигацию кейса
   setupCaseNavigation();
   
-  // Строим карточки квестов
+  // Строим карточки квестов только один раз
   buildCards(state);
   maybeOfferPromo(state);
   
-  // Принудительно обновляем отображение квестов
-  setTimeout(() => {
-    console.log('Принудительное обновление квестов...');
-    buildCards(state);
-  }, 100);
-  
-  // Дополнительное обновление через 500ms для надежности
-  setTimeout(() => {
-    console.log('Дополнительное обновление квестов...');
-    buildCards(state);
-  }, 500);
-  
-  console.log('🎉 ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА УСПЕШНО');
+  // Инициализируем обработчики событий для квестов
+  initializeQuestEventHandlers();
 }
 
 // Глобальные функции для доступа из других файлов
@@ -2317,3 +2187,90 @@ window.questSystem = {
 
 // Делаем addRewards доступной глобально для квестов
 window.addRewards = addRewards;
+
+// Оптимизированная инициализация обработчиков событий для квестов
+function initializeQuestEventHandlers() {
+  // Используем делегирование событий для всех кнопок квестов
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    
+    // Обработка кнопок "Начать квест"
+    if (target.classList.contains('start') && target.dataset.quest) {
+      e.preventDefault();
+      startQuest(target.dataset.quest);
+      return;
+    }
+    
+    // Обработка кнопок "Подробнее"
+    if (target.classList.contains('details') && target.dataset.quest) {
+      e.preventDefault();
+      showQuestDetails(target.dataset.quest);
+      return;
+    }
+  });
+  
+  // Обработчик для кнопки истории
+  const btnHistory = document.getElementById('btnHistory');
+  if (btnHistory) {
+    btnHistory.addEventListener('click', showHistory);
+  }
+  
+  // Обработчик для кнопки кейса
+  const mysteryCaseBtn = document.getElementById('mysteryCaseBtn');
+  if (mysteryCaseBtn) {
+    mysteryCaseBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      openCase();
+    });
+  }
+  
+  // Обработчики для модального окна
+  const modal = document.getElementById('modal');
+  const modalClose = document.getElementById('modalClose');
+  
+  if (modalClose) {
+    modalClose.addEventListener('click', closeModal);
+  }
+  
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+  }
+}
+
+// Простые функции для работы (оптимизированные)
+function openCase() {
+  window.location.href = 'case.html';
+}
+
+function startQuest(questId) {
+  window.location.href = 'quests/' + questId + '.html';
+}
+
+function showQuestDetails(questId) {
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modalBody');
+  
+  const questData = {
+    'copy': { name: '🏢 Твой первый бизнес', description: 'Создай и управляй своим бизнесом с нуля.' },
+    'world-government': { name: 'Мировое тайное правительство', description: 'Создай мировое тайное правительство, распределяя персонажей по секторам.' },
+    'bodylang': { name: 'Язык тела', description: 'Распознай невербальные сигналы 2D‑персонажа.' },
+    'funnel': { name: 'Империя влияния', description: 'Создай медиа-империю и управляй массовым сознанием.' },
+    'psychology': { name: 'Психология заработка', description: 'Используй психологические техники для успешных переговоров.' },
+    'competitors': { name: 'Анализ конкурентов', description: 'Изучи конкурентную среду и выбери наиболее сильного конкурента.' },
+    'trends': { name: 'Анализ трендов', description: 'Стань мастером рыночной аналитики и трендов.' }
+  };
+  
+  const quest = questData[questId];
+  if (quest) {
+    modalBody.innerHTML = `
+      <h3>${quest.name}</h3>
+      <p>${quest.description}</p>
+      <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
+    `;
+    modal.classList.add('show');
+  }
+}
