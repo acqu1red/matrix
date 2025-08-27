@@ -3,11 +3,57 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Твой первый бизнес — Квест‑Хаб</title>
+  <title>🏢 Твой первый бизнес — Квест‑Хаб</title>
+  
+  <!-- Критические стили inline для мгновенной загрузки -->
+  <style>
+    /* Базовые стили для мгновенного отображения */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #D18A39 0%, #D6AB7E 25%, #ECE9E4 50%, #E1D8D1 75%, #C3B39D 100%);
+      color: #2C1810;
+      line-height: 1.6; 
+      overflow-x: hidden; 
+      min-height: 100vh;
+    }
+    .app { opacity: 1 !important; }
+    
+    /* Критические стили для header */
+    .topbar { 
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(135deg, rgba(209, 138, 57, 0.95), rgba(214, 171, 126, 0.95));
+      backdrop-filter: blur(20px);
+      border-bottom: 3px solid #D6AB7E;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(209, 138, 57, 0.3);
+    }
+    .brand h1 { 
+      font-size: 24px; 
+      font-weight: 700; 
+      color: #2C1810;
+      text-shadow: 0 2px 4px rgba(44, 24, 16, 0.2);
+    }
+    
+    /* Критические стили для модала */
+    .modal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(44, 24, 16, 0.8);
+      backdrop-filter: blur(15px);
+    }
+    .modalContent {
+      background: linear-gradient(135deg, rgba(236, 233, 228, 0.98), rgba(225, 216, 209, 0.98));
+      border: 3px solid #D18A39;
+      border-radius: 30px;
+      box-shadow: 0 16px 80px rgba(209, 138, 57, 0.4);
+    }
+  </style>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="quests-black-white.css" />
   <link rel="stylesheet" href="business-core.css" />
 </head>
 <body>
@@ -15,7 +61,7 @@
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>💼 Твой первый бизнес</h1>
+        <h1>🏢 Твой первый бизнес</h1>
         <div class="badge">Предприниматель</div>
       </div>
       <div class="actions">
@@ -28,7 +74,7 @@
       <div class="modalContent glass">
         <div class="modal-header">
           <h3>🚀 Добро пожаловать в "Твой первый бизнес"</h3>
-          <p>Создайте успешный бизнес с нуля</p>
+          <p>Создайте успешный бизнес с нуля и станьте миллионером!</p>
         </div>
         
         <div class="intro-content">
@@ -98,167 +144,133 @@
               <div class="status-value" id="currentStage">1/4</div>
             </div>
           </div>
+          
           <div class="status-item">
             <div class="status-icon">💰</div>
             <div class="status-info">
               <div class="status-label">Капитал</div>
-              <div class="status-value" id="businessCapital">$50K</div>
+              <div class="status-value" id="currentCapital">$50,000</div>
             </div>
           </div>
-          <div class="status-item">
-            <div class="status-icon">📈</div>
-            <div class="status-info">
-              <div class="status-label">Доход/мес</div>
-              <div class="status-value" id="monthlyRevenue">$0</div>
-            </div>
-          </div>
+          
           <div class="status-item">
             <div class="status-icon">👥</div>
             <div class="status-info">
-              <div class="status-label">Команда</div>
-              <div class="status-value" id="teamSize">0/10</div>
+              <div class="status-label">Сотрудники</div>
+              <div class="status-value" id="currentEmployees">0/10</div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Основная рабочая область -->
-      <div class="main-workspace">
-        <!-- Левая панель: Выбор ниши/Кандидаты -->
-        <div class="selection-panel glass">
-          <div class="panel-header">
-            <h3 id="selectionTitle">🎯 Выбор ниши бизнеса</h3>
-            <div class="stage-progress" id="stageProgress">Этап 1: Выбор направления</div>
           </div>
           
-          <div class="selection-content" id="selectionContent">
-            <!-- Динамически заполняется -->
-          </div>
-        </div>
-
-        <!-- Правая панель: Построение бизнеса -->
-        <div class="business-panel glass">
-          <div class="panel-header">
-            <h3>🏢 Ваш бизнес</h3>
-            <div class="business-name" id="businessName">Выберите нишу</div>
-          </div>
-
-          <!-- Организационная структура -->
-          <div class="org-structure" id="orgStructure">
-            <div class="positions-grid">
-              <!-- Должности для drag & drop -->
-              <div class="position-slot" data-position="ceo">
-                <div class="position-title">👑 CEO</div>
-                <div class="position-description">Вы</div>
-                <div class="position-occupied">
-                  <div class="employee-card owner">
-                    <div class="employee-avatar">👤</div>
-                    <div class="employee-name">Вы</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="position-slot" data-position="marketing">
-                <div class="position-title">📢 Маркетинг</div>
-                <div class="position-description">Привлечение клиентов</div>
-                <div class="position-salary">$3,000-8,000/мес</div>
-                <div class="drop-zone">Перетащите кандидата</div>
-              </div>
-              
-              <div class="position-slot" data-position="sales">
-                <div class="position-title">💼 Продажи</div>
-                <div class="position-description">Работа с клиентами</div>
-                <div class="position-salary">$2,500-7,000/мес</div>
-                <div class="drop-zone">Перетащите кандидата</div>
-              </div>
-              
-              <div class="position-slot" data-position="tech">
-                <div class="position-title">💻 IT/Техника</div>
-                <div class="position-description">Техническая поддержка</div>
-                <div class="position-salary">$4,000-10,000/мес</div>
-                <div class="drop-zone">Перетащите кандидата</div>
-              </div>
-              
-              <div class="position-slot" data-position="finance">
-                <div class="position-title">💳 Финансы</div>
-                <div class="position-description">Учет и планирование</div>
-                <div class="position-salary">$3,500-8,500/мес</div>
-                <div class="drop-zone">Перетащите кандидата</div>
-              </div>
-              
-              <div class="position-slot" data-position="operations">
-                <div class="position-title">⚙️ Операции</div>
-                <div class="position-description">Процессы и логистика</div>
-                <div class="position-salary">$3,000-7,500/мес</div>
-                <div class="drop-zone">Перетащите кандидата</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Финансовая панель -->
-          <div class="finance-panel" id="financePanel">
-            <h4>💰 Финансы</h4>
-            <div class="finance-grid">
-              <div class="finance-item">
-                <span class="finance-label">Месячные расходы:</span>
-                <span class="finance-value" id="monthlyExpenses">$0</span>
-              </div>
-              <div class="finance-item">
-                <span class="finance-label">Прибыль:</span>
-                <span class="finance-value profit" id="monthlyProfit">$0</span>
-              </div>
-              <div class="finance-item">
-                <span class="finance-label">ROI:</span>
-                <span class="finance-value" id="businessROI">0%</span>
-              </div>
+          <div class="status-item">
+            <div class="status-icon">📈</div>
+            <div class="status-info">
+              <div class="status-label">Доход</div>
+              <div class="status-value" id="currentRevenue">$0</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Нижняя панель: Действия -->
-      <div class="actions-panel glass">
-        <div class="actions-content">
-          <div class="current-candidate" id="currentCandidate" style="display: none;">
-            <!-- Информация о текущем кандидате -->
-          </div>
-          
-          <div class="action-buttons" id="actionButtons">
-            <button id="nextStage" class="btn primary" disabled>Продолжить</button>
-            <button id="skipCandidate" class="btn secondary" style="display: none;">Пропустить кандидата</button>
-            <button id="hireCandidate" class="btn success" style="display: none;">Нанять</button>
-          </div>
+      <!-- Этап 1: Выбор ниши -->
+      <div id="stage1" class="quest-stage active">
+        <div class="stage-header glass">
+          <h2>🎯 Этап 1: Выбор бизнес-ниши</h2>
+          <p>Выберите сферу бизнеса, в которой хотите развиваться. Каждая ниша имеет свои особенности, риски и потенциал роста.</p>
+        </div>
+
+        <div class="niches-grid">
+          <!-- Ниши будут добавлены динамически -->
+        </div>
+
+        <div class="stage-actions">
+          <button id="confirmNiche" class="btn primary large" disabled>✅ Подтвердить выбор</button>
         </div>
       </div>
-    </div>
 
-    <!-- Модальное окно результатов -->
-    <div id="resultsModal" class="modal">
-      <div class="modalContent glass">
-        <div class="results-header">
-          <div class="results-icon" id="resultsIcon">🏆</div>
-          <h3 id="resultsTitle">Бизнес создан!</h3>
-        </div>
-        
-        <div class="results-content" id="resultsContent">
-          <!-- Динамически заполняется -->
+      <!-- Этап 2: Формирование команды -->
+      <div id="stage2" class="quest-stage">
+        <div class="stage-header glass">
+          <h2>👥 Этап 2: Формирование команды</h2>
+          <p>Наймите до 10 сотрудников из 50+ кандидатов. Каждый специалист имеет уникальные навыки и опыт.</p>
         </div>
 
-        <div class="modal-actions">
-          <button id="restartBusiness" class="btn primary">🔄 Создать новый бизнес</button>
-          <button id="exitBusiness" class="btn secondary">← Выход</button>
+        <div class="team-building-interface">
+          <div class="candidates-panel glass">
+            <h3>📋 Кандидаты</h3>
+            <div class="candidates-grid" id="candidatesGrid">
+              <!-- Кандидаты будут добавлены динамически -->
+            </div>
+          </div>
+
+          <div class="team-panel glass">
+            <h3>🏢 Ваша команда</h3>
+            <div class="team-grid" id="teamGrid">
+              <div class="team-placeholder">
+                <div class="placeholder-icon">👥</div>
+                <div class="placeholder-text">Перетащите сюда сотрудников</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-actions">
+          <button id="confirmTeam" class="btn primary large" disabled>✅ Подтвердить команду</button>
+        </div>
+      </div>
+
+      <!-- Этап 3: Развитие бизнеса -->
+      <div id="stage3" class="quest-stage">
+        <div class="stage-header glass">
+          <h2>🚀 Этап 3: Развитие бизнеса</h2>
+          <p>Принимайте стратегические решения для развития вашего бизнеса. Каждый выбор влияет на успех компании.</p>
+        </div>
+
+        <div class="business-decisions">
+          <div class="decision-cards">
+            <!-- Решения будут добавлены динамически -->
+          </div>
+        </div>
+
+        <div class="stage-actions">
+          <button id="confirmDecisions" class="btn primary large" disabled>✅ Подтвердить решения</button>
+        </div>
+      </div>
+
+      <!-- Этап 4: Масштабирование -->
+      <div id="stage4" class="quest-stage">
+        <div class="stage-header glass">
+          <h2>📈 Этап 4: Масштабирование</h2>
+          <p>Расширяйте бизнес и увеличивайте прибыль. Принимайте решения о масштабировании и инвестициях.</p>
+        </div>
+
+        <div class="scaling-options">
+          <!-- Опции масштабирования будут добавлены динамически -->
+        </div>
+
+        <div class="stage-actions">
+          <button id="finishBusiness" class="btn primary large" disabled>🏆 Завершить квест</button>
+        </div>
+      </div>
+
+      <!-- Результаты квеста -->
+      <div id="questResults" class="quest-results" style="display: none;">
+        <div class="results-content glass">
+          <h2>🎉 Поздравляем! Квест завершен!</h2>
+          <div class="results-summary">
+            <!-- Результаты будут добавлены динамически -->
+          </div>
+          <div class="results-actions">
+            <button id="backToQuests" class="btn primary">← Вернуться к квестам</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast уведомления -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
   <!-- Скрипты -->
   <script src="business-data.js"></script>
   <script src="business-engine.js"></script>
-  <script src="business-ui.js"></script>
   <script src="business-main.js"></script>
+  <script src="business-ui.js"></script>
 </body>
 </html>
