@@ -233,7 +233,7 @@ class BusinessQuestEngine {
     // Проверяем, есть ли свободные слоты
     const filledSlots = document.querySelectorAll('.candidate-slot[data-assigned]').length;
     if (filledSlots >= 9) {
-      // Все слоты заполнены, не показываем новых кандидатов
+      // Все позиции заполнены, не показываем новых кандидатов
       const currentCandidate = document.getElementById('currentCandidate');
       if (currentCandidate) {
         currentCandidate.innerHTML = '<div style="text-align: center; padding: 20px; color: #28a745; font-weight: 600;">🎉 Все позиции заполнены!</div>';
@@ -241,17 +241,34 @@ class BusinessQuestEngine {
       return;
     }
     
-    const roles = ['marketing', 'sales', 'tech', 'finance', 'operations'];
-    const randomRole = roles[Math.floor(Math.random() * roles.length)];
+    // Получаем все доступные роли из базы кандидатов
+    const availableRoles = ['marketing', 'sales', 'tech', 'finance', 'operations', 'creative', 'hr', 'legal', 'analytics'];
+    if (availableRoles.length === 0) {
+      console.error('Нет доступных ролей в базе кандидатов');
+      return;
+    }
     
-    const candidate = BusinessDataService.getRandomCandidate(randomRole);
+    // Пробуем найти кандидата для случайной роли
+    let attempts = 0;
+    const maxAttempts = availableRoles.length * 2;
     
-    if (candidate) {
-      this.displaySingleCandidate(candidate);
-    } else {
-      // Если кандидат не найден, пробуем другую роль
-      console.log('Кандидат не найден для роли:', randomRole);
-      this.showNextCandidate();
+    while (attempts < maxAttempts) {
+      const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+      const candidate = BusinessDataService.getRandomCandidate(randomRole);
+      
+      if (candidate) {
+        this.displaySingleCandidate(candidate);
+        return;
+      }
+      
+      attempts++;
+    }
+    
+    // Если не удалось найти кандидата, показываем сообщение об ошибке
+    console.error('Не удалось найти подходящего кандидата после', attempts, 'попыток');
+    const currentCandidate = document.getElementById('currentCandidate');
+    if (currentCandidate) {
+      currentCandidate.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545; font-weight: 600;">⚠️ Ошибка загрузки кандидатов</div>';
     }
   }
 
@@ -862,7 +879,7 @@ class BusinessQuestEngine {
       </div>
       <div class="worker-assignment">
         <div class="worker-slot" data-scenario="${scenario.id}" data-index="${index}">
-          <div style="font-size: 12px; text-align: center; color: #666;">
+          <div style="font-size: 12px; text-align: center; color: #aaaaaa;">
             Назначить<br>работника
           </div>
         </div>
@@ -926,12 +943,12 @@ class BusinessQuestEngine {
     `;
 
     modalContent.innerHTML = `
-      <h3 style="color: #ffffff; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Выберите работника для задачи</h3>
+      <h3 style="color: #cccccc; margin-bottom: 20px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Выберите работника для задачи</h3>
       <div style="margin: 20px 0;">
         ${availableWorkers.map(worker => `
           <div style="
             padding: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(170, 170, 170, 0.4);
             border-radius: 8px;
             margin-bottom: 10px;
             cursor: pointer;
@@ -944,9 +961,9 @@ class BusinessQuestEngine {
           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.6)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.4)'" onclick="window.businessEngine.assignWorkerToScenario('${scenarioId}', ${worker.id})">
             <div style="font-size: 24px; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));">${worker.avatar}</div>
             <div>
-              <div style="font-weight: 600; color: #ffffff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${worker.name}</div>
-              <div style="color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${this.getRoleDisplayName(worker.role)}</div>
-              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
+              <div style="font-weight: 600; color: #cccccc; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${worker.name}</div>
+              <div style="color: rgba(170, 170, 170, 0.9); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">${this.getRoleDisplayName(worker.role)}</div>
+              <div style="font-size: 12px; color: rgba(170, 170, 170, 0.8); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
                 Эфф: ${worker.stats.efficiency} | Креатив: ${worker.stats.creativity} | Лидер: ${worker.stats.leadership}
               </div>
             </div>
@@ -955,7 +972,7 @@ class BusinessQuestEngine {
       </div>
       <button onclick="this.parentElement.parentElement.remove()" style="
         background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-        color: white;
+        color: #cccccc;
         border: none;
         padding: 10px 20px;
         border-radius: 6px;
@@ -1028,7 +1045,7 @@ class BusinessQuestEngine {
       resultDiv.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
           <span style="font-size: 20px;">✅</span>
-          <span style="font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Задача выполнена успешно!</span>
+          <span style="font-weight: 600; color: #cccccc; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Задача выполнена успешно!</span>
         </div>
         <div style="font-size: 12px; color: #28a745; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
           ${worker.name} отлично справился с задачей! +3% к успешности
@@ -1053,7 +1070,7 @@ class BusinessQuestEngine {
       resultDiv.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
           <span style="font-size: 20px;">❌</span>
-          <span style="font-weight: 600; color: #ffffff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Задача провалена. Бизнес несет убытки.</span>
+          <span style="font-weight: 600; color: #cccccc; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">Задача провалена. Бизнес несет убытки.</span>
         </div>
         <div style="font-size: 12px; color: #dc3545; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">
           ${worker.name} не справился с задачей. -2% к успешности
@@ -1532,8 +1549,8 @@ class BusinessQuestEngine {
     notification.innerHTML = `
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 20px;">${event.icon}</span>
-        <span>${worker.name} ${event.text}!</span>
-        <button class="btn-replace" style="margin-left: auto; padding: 5px 10px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Заменить</button>
+        <span style="color: #cccccc;">${worker.name} ${event.text}!</span>
+        <button class="btn-replace" style="margin-left: auto; padding: 5px 10px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #cccccc; border: none; border-radius: 5px; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Заменить</button>
       </div>
     `;
     
@@ -1543,14 +1560,14 @@ class BusinessQuestEngine {
       left: 50%;
       transform: translateX(-50%);
       background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(170, 170, 170, 0.4);
       border-radius: 8px;
       padding: 15px 20px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
       z-index: 1000;
       max-width: 400px;
       width: 90%;
-      color: #ffffff;
+      color: #cccccc;
     `;
     
     document.body.appendChild(notification);
@@ -1581,14 +1598,14 @@ class BusinessQuestEngine {
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 25px;
         border-radius: 15px;
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(170, 170, 170, 0.3);
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
         max-width: 500px;
         width: 90%;
-        color: #ffffff;
+        color: #cccccc;
       ">
-        <h3 style="color: #ffffff; margin-bottom: 15px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${event.icon} ${oldWorker.name} ${event.text}!</h3>
-        <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 20px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">Выберите нового работника на замену:</p>
+        <h3 style="color: #cccccc; margin-bottom: 15px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">${event.icon} ${oldWorker.name} ${event.text}!</h3>
+        <p style="color: rgba(170, 170, 170, 0.9); margin-bottom: 20px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);">Выберите нового работника на замену:</p>
         <div id="replacementCandidates"></div>
         <div class="modal-actions" style="display: flex; gap: 15px; margin-top: 20px;">
           <button class="btn-skip" style="
@@ -1607,7 +1624,7 @@ class BusinessQuestEngine {
             flex: 1;
             padding: 10px 20px;
             background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-            color: white;
+            color: #cccccc;
             border: none;
             border-radius: 8px;
             cursor: pointer;

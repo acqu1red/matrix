@@ -22,7 +22,7 @@ const BUSINESS_CONFIG = {
   }
 };
 
-// Ниши бизнеса
+// Ниши бизнеса (только 4 основные)
 const BUSINESS_NICHES = [
   {
     id: 'marketplace',
@@ -74,74 +74,6 @@ const BUSINESS_NICHES = [
     requiredRoles: ['tech', 'sales', 'marketing'],
     revenueMultiplier: 2.2,
     riskFactor: 0.6
-  },
-  {
-    id: 'dropshipping',
-    name: 'Дропшиппинг',
-    category: 'E-commerce',
-    icon: '📦',
-    description: 'Продажа товаров без складских запасов через поставщиков',
-    metrics: {
-      startupCost: 10000,
-      monthlyRevenue: 8000,
-      competition: 'Очень высокая',
-      growth: '+120%',
-      difficulty: 'Легко'
-    },
-    requiredRoles: ['marketing', 'sales'],
-    revenueMultiplier: 1.2,
-    riskFactor: 0.9
-  },
-  {
-    id: 'consulting',
-    name: 'Консалтинговое агентство',
-    category: 'Услуги',
-    icon: '💼',
-    description: 'Предоставление экспертных консультаций для бизнеса',
-    metrics: {
-      startupCost: 15000,
-      monthlyRevenue: 14000,
-      competition: 'Средняя',
-      growth: '+95%',
-      difficulty: 'Средне'
-    },
-    requiredRoles: ['sales', 'marketing', 'analytics'],
-    revenueMultiplier: 1.4,
-    riskFactor: 0.7
-  },
-  {
-    id: 'logistics',
-    name: 'Логистическая компания',
-    category: 'Логистика',
-    icon: '🚛',
-    description: 'Услуги доставки и складирования для других компаний',
-    metrics: {
-      startupCost: 40000,
-      monthlyRevenue: 16000,
-      competition: 'Средняя',
-      growth: '+75%',
-      difficulty: 'Сложно'
-    },
-    requiredRoles: ['operations', 'finance', 'tech'],
-    revenueMultiplier: 1.1,
-    riskFactor: 0.8
-  },
-  {
-    id: 'education',
-    name: 'Онлайн-школа',
-    category: 'Образование',
-    icon: '🎓',
-    description: 'Платформа для онлайн-обучения с курсами и вебинарами',
-    metrics: {
-      startupCost: 18000,
-      monthlyRevenue: 11000,
-      competition: 'Высокая',
-      growth: '+140%',
-      difficulty: 'Средне'
-    },
-    requiredRoles: ['marketing', 'tech', 'creative'],
-    revenueMultiplier: 1.5,
-    riskFactor: 0.7
   },
   {
     id: 'agency',

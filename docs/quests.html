@@ -8,221 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./quests.css" />
-  <style>
-    :root{
-      /* База (тёмный) */
-      --bg:        #0B0C0F;   /* фон приложения */
-      --surface:   #111317;   /* базовые панели/карточки */
-      --surface-2: #161A1F;   /* вторичные поверхности/хедеры секций */
-      --line:      #20242C;   /* тонкие разделители */
-
-      /* Текст */
-      --text:        #F5F6F8; /* основной (почти белый) */
-      --text-muted:  #A3ABB8; /* вторичный серый */
-      --text-invert: #0B0C0F; /* чёрный для инверсных кнопок */
-
-      /* Акцент (монохром): белая пилюля, без цвета */
-      --accent:      #FFFFFF;  /* primary fill на тёмном фоне */
-      --accent-600:  #E6EAF0;  /* hover/active для белой кнопки */
-      --accent-50:   #2A2F36;  /* светлая серо‑чёрная подложка для secondary */
-
-      /* Статусы: сдержанные (серые). Если в коде ожидаются цветные — оставь внутренние значения, но тут применяй нейтральные. */
-      --success: #DDE3EA;
-      --warn:    #D8DEE6;
-      --error:   #D3D9E2;
-
-      /* Радиусы/тени/анимации */
-      --radius:     14px;
-      --radius-sm:  10px;
-      --shadow-sm:  0 2px 8px rgba(0,0,0,.35);
-      --shadow-md:  0 14px 32px rgba(0,0,0,.45);
-      --ring:       rgba(255,255,255,.35); /* кольцо фокуса — мягкое белое */
-
-      --dur-xfast:.12s; --dur-fast:.18s; --dur-base:.28s; --dur-slow:.48s;
-      --ease-out: cubic-bezier(.22,.61,.36,1);
-      --ease-io:  cubic-bezier(.16,1,.3,1);
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
-    }
-
-    /* Глобальный фон */
-    body{ 
-      background: var(--bg); 
-      color: var(--text); 
-    }
-    body::before{
-      content:''; 
-      position:fixed; 
-      inset:0; 
-      z-index:-1;
-      background:
-        radial-gradient(70% 60% at 75% 15%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(70% 60% at 25% 85%, rgba(255,255,255,.04), transparent 60%),
-        var(--bg);
-      opacity:.95;
-      transition: opacity var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out);
-    }
-
-    /* Кнопки — моно‑акцент */
-    .btn{
-      color: var(--text);
-      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow-sm);
-      transition:
-        transform var(--dur-fast) var(--ease-out),
-        box-shadow var(--dur-base) var(--ease-out),
-        background var(--dur-base) var(--ease-out),
-        border-color var(--dur-base) var(--ease-out),
-        color var(--dur-base) var(--ease-out),
-        opacity var(--dur-base) var(--ease-out);
-      will-change: transform;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-md); }
-    .btn:active{ transform: translateY(0) scale(.985); }
-    .btn:focus-visible{ outline:none; box-shadow: 0 0 0 3px var(--ring), var(--shadow-md); }
-
-    /* Primary — белая «пилюля» (монохром), текст — чёрный */
-    .btn--primary{
-      background: var(--accent);
-      color: var(--text-invert);
-      border-color: transparent;
-      position: relative;
-    }
-    .btn--primary:hover{ background: var(--accent-600); }
-    .btn--primary::after{
-      content:''; position:absolute; inset:-2px; border-radius:inherit; pointer-events:none;
-      background: radial-gradient(60% 60% at 50% 0%, rgba(255,255,255,.35), transparent 70%);
-      opacity:0; transition: opacity var(--dur-base) var(--ease-out);
-    }
-    .btn--primary:hover::after{ opacity:.85; }
-
-    /* Secondary — тёмная пилюля, белый текст приглушённый */
-    .btn--secondary{
-      background: var(--accent-50);
-      color: var(--text);
-      border-color: var(--line);
-    }
-    .btn--secondary:hover{ background: #323844; }
-
-    /* Danger — нейтрально‑серый (без алого) */
-    .btn--danger{
-      background: linear-gradient(180deg, #151922 0%, #12161D 100%);
-      color: var(--text);
-      border-color: #2A2F36;
-    }
-
-    /* Карточки */
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow-sm);
-      backdrop-filter: blur(8px);
-      transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
-    }
-    .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md); }
-
-    /* Чипы — оттенки серого */
-    .chip{
-      color: var(--text);
-      background: #1A1F28;
-      border: 1px solid #262B35;
-      transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
-    }
-    .chip--success{ background:#1B222B; border-color:#2A313C; }
-    .chip--warn{    background:#1B2027; border-color:#2A2F37; }
-    .chip--error{   background:#1B1E25; border-color:#2A2D36; }
-
-    /* Прогресс — только бело‑серый градиент */
-    .progress{ background: #161B23; border: 1px solid #20242C; }
-    .progress__bar{
-      background: linear-gradient(90deg, #EDEFF3, #FFFFFF);
-      box-shadow: 0 0 18px rgba(255,255,255,.28);
-      transition: width var(--dur-slow) var(--ease-io), background var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
-    }
-
-    /* Модалки — «дорогой» влет */
-    .modal__overlay{
-      background: rgba(0,0,0,.55);
-      opacity:0; transition: opacity var(--dur-base) var(--ease-io);
-    }
-    .modal[data-open="true"] .modal__overlay{ opacity:1; }
-
-    .modal__content{
-      background: var(--surface);
-      border: 1px solid var(--line);
-      box-shadow: 0 28px 80px rgba(0,0,0,.6);
-      transform: translateY(8px) scale(.985);
-      opacity: 0;
-      transition:
-        opacity var(--dur-base) var(--ease-io),
-        transform var(--dur-base) var(--ease-io),
-        box-shadow var(--dur-base) var(--ease-io),
-        background var(--dur-base) var(--ease-out),
-        border-color var(--dur-base) var(--ease-out);
-    }
-    .modal[data-open="true"] .modal__content{
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-
-    /* «Дорогие» анимации */
-    .reveal-up{ opacity:0; transform: translateY(8px); animation: revealUp var(--dur-base) var(--ease-io) both; }
-    .reveal-up:nth-child(1){ animation-delay:.02s } .reveal-up:nth-child(2){ animation-delay:.05s } .reveal-up:nth-child(3){ animation-delay:.08s }
-    @keyframes revealUp{ to{ opacity:1; transform:none } }
-
-    /* Лёгкий «press» */
-    .btn:active, .card:active{ transform: scale(.985); }
-
-    /* Шиммер скелетонов */
-    .skeleton{ position:relative; overflow:hidden; background:#151922; }
-    .skeleton::after{
-      content:''; position:absolute; inset:0; translate:-100% 0;
-      background:linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
-      animation: shimmer 1.2s infinite var(--ease-out);
-    }
-    @keyframes shimmer{ to{ translate:100% 0; } }
-    
-    /* Дополнительные стили для элементов */
-    .glass {
-      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent), var(--surface);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow-sm);
-    }
-    
-    .topbar {
-      background: linear-gradient(180deg, rgba(255,255,255,.08), transparent), var(--surface-2);
-      backdrop-filter: blur(15px);
-      border-bottom: 1px solid var(--line);
-    }
-    
-    .currency-bar {
-      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--line);
-    }
-    
-    .hero {
-      background: linear-gradient(180deg, rgba(255,255,255,.02), transparent), var(--bg);
-    }
-    
-    .case-section {
-      background: linear-gradient(180deg, rgba(255,255,255,.01), transparent), var(--bg);
-    }
-    
-    .quests {
-      background: linear-gradient(180deg, rgba(255,255,255,.01), transparent), var(--bg);
-    }
-    
-    .foot {
-      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface);
-      backdrop-filter: blur(8px);
-      border-top: 1px solid var(--line);
-    }
-  </style>
   <script>
     // Telegram WebApp SDK
     (function(){
@@ -232,157 +17,128 @@
         document.head.appendChild(s);
       }
     })();
-    
-    // Функции для модального окна
-    function showModal() {
-      const modal = document.getElementById('modal');
-      modal.setAttribute('data-open', 'true');
-    }
-    
-    function hideModal() {
-      const modal = document.getElementById('modal');
-      modal.setAttribute('data-open', 'false');
-    }
-    
-    // Обработчик для кнопки закрытия
-    document.addEventListener('DOMContentLoaded', function() {
-      const closeBtn = document.getElementById('modalClose');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', hideModal);
-      }
-      
-      // Закрытие по клику вне модального окна
-      const modal = document.getElementById('modal');
-      if (modal) {
-        modal.addEventListener('click', function(e) {
-          if (e.target === modal) {
-            hideModal();
-          }
-        });
-      }
-    });
   </script>
 </head>
 <body>
-  <div id="app" class="app theme-transition reveal-up">
+  <div id="app" class="app theme-transition">
     <!-- Элемент для анимации стягивания экрана -->
     <div class="screen-transition" id="screenTransition"></div>
     
-    <header class="glass topbar smooth-transition reveal-up">
-      <div class="brand reveal-up">
+    <header class="glass topbar smooth-transition">
+      <div class="brand">
         <span class="logoGlow"></span>
-        <h1 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Квесты</h1>
+        <h1>Квесты</h1>
       </div>
-      <div class="actions reveal-up">
-        <button id="btnHistory" class="btn ghost" aria-label="История" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line);">📊</button>
+      <div class="actions">
+        <button id="btnHistory" class="btn ghost" aria-label="История">📊</button>
       </div>
     </header>
 
-    <div class="currency-bar glass smooth-transition reveal-up">
-      <div class="currency-info reveal-up">
-                  <div class="mulacoin-display">
-            <span class="currency-icon">🪙</span>
-            <span class="currency-amount" id="mulacoinAmount" style="color: var(--accent); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">0</span>
-            <span class="currency-label" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">mulacoin</span>
-          </div>
-          <div class="level-display" id="levelDisplay">
-            <span class="level-icon">⭐</span>
-            <span class="level-text" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Уровень <span id="currentLevel" style="color: var(--accent); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">1</span></span>
-            <span class="level-progress" id="levelProgress" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">0/100</span>
-          </div>
+    <div class="currency-bar glass smooth-transition">
+      <div class="currency-info">
+        <div class="mulacoin-display">
+          <span class="currency-icon">🪙</span>
+          <span class="currency-amount" id="mulacoinAmount">0</span>
+          <span class="currency-label">mulacoin</span>
+        </div>
+        <div class="level-display" id="levelDisplay">
+          <span class="level-icon">⭐</span>
+          <span class="level-text">Уровень <span id="currentLevel">1</span></span>
+          <span class="level-progress" id="levelProgress">0/100</span>
+        </div>
       </div>
     </div>
 
     <!-- Кейс секция -->
-    <section class="case-section smooth-transition reveal-up" id="caseSection">
+    <section class="case-section smooth-transition" id="caseSection">
       <div class="case-aura"></div>
-      <div class="case-frame reveal-up">
-        <button class="case-button" id="mysteryCaseBtn" onclick="openCase()" style="background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
+      <div class="case-frame">
+        <button class="case-button" id="mysteryCaseBtn" onclick="openCase()">
           <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
         </button>
         
-        <div class="case-caption reveal-up">
-          <h2 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">🔮 Тайный кейс</h2>
-          <p style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
+        <div class="case-caption">
+          <h2>🔮 Тайный кейс</h2>
+          <p>🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
         </div>
       </div>
     </section>
 
-    <section class="hero smooth-transition reveal-up">
-      <div class="heroCopy glass reveal-up">
-        <h2 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Добро пожаловать в мир возможностей!</h2>
-        <p style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
+    <section class="hero smooth-transition">
+      <div class="heroCopy glass">
+        <h2>Добро пожаловать в мир возможностей!</h2>
+        <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
-                      <div class="hero-stat reveal-up">
-              <div class="stat-number" style="color: var(--accent); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">7</div>
-              <div class="stat-label" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Квестов</div>
-            </div>
-            <div class="hero-stat reveal-up">
-              <div class="stat-number" style="color: var(--accent); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">∞</div>
-              <div class="stat-label" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Возможностей</div>
-            </div>
-            <div class="hero-stat reveal-up">
-              <div class="stat-number" style="color: var(--accent); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">100%</div>
-              <div class="stat-label" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Успеха</div>
-            </div>
+          <div class="hero-stat">
+            <div class="stat-number">7</div>
+            <div class="stat-label">Квестов</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Возможностей</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Успеха</div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Квесты прямо в HTML -->
-    <section class="quests smooth-transition reveal-up" id="quests">
+    <section class="quests smooth-transition" id="quests">
       <!-- Специальный квест - Тайное мировое правительство -->
-              <div class="special-quest-section reveal-up" style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, rgba(255,255,255,.03), transparent), var(--surface); border: 2px solid var(--line); border-radius: 20px; box-shadow: var(--shadow-md);">
+      <div class="special-quest-section" style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.1)); border: 2px solid rgba(139, 69, 19, 0.3); border-radius: 20px; box-shadow: 0 10px 30px rgba(139, 69, 19, 0.2);">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="color: var(--text); font-size: 32px; margin-bottom: 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">🏛️ ОСОБЫЙ КВЕСТ</h2>
-          <div style="width: 100px; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-600)); margin: 0 auto; border-radius: 2px; box-shadow: 0 2px 8px rgba(255,255,255,0.3);"></div>
+          <h2 style="color: #8B4513; font-size: 32px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🏛️ ОСОБЫЙ КВЕСТ</h2>
+          <div style="width: 100px; height: 3px; background: linear-gradient(90deg, #8B4513, #A0522D); margin: 0 auto; border-radius: 2px;"></div>
         </div>
         
-        <div class="card" data-style="conspiracy" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 2px solid var(--line); box-shadow: var(--shadow-md); transform: scale(1.05); margin: 20px auto; max-width: 600px;">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Стратегия</div>
-          <h3 style="color: var(--text); font-size: 28px; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">🏛️ Мировое тайное правительство</h3>
-          <div class="description" style="font-size: 18px; line-height: 1.6; color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени. Распредели персонажей по секторам власти и построй империю влияния.</div>
-                      <div class="meta">
-              <div class="tag hard" style="background: var(--accent-50); color: var(--text); font-weight: bold; border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Сложный</div>
-              <div class="tag" style="background: var(--accent-50); color: var(--text); font-weight: bold; border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Эксклюзивный</div>
-            </div>
+        <div class="card" data-style="conspiracy" style="background: linear-gradient(135deg, rgba(139, 69, 19, 0.15), rgba(160, 82, 45, 0.15)); border: 2px solid rgba(139, 69, 19, 0.4); box-shadow: 0 15px 40px rgba(139, 69, 19, 0.3); transform: scale(1.05); margin: 20px auto; max-width: 600px;">
+          <div class="label" style="background: #8B4513; color: white; font-weight: bold;">Стратегия</div>
+          <h3 style="color: #8B4513; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">🏛️ Мировое тайное правительство</h3>
+          <div class="description" style="font-size: 18px; line-height: 1.6; color: #5D4037;">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени. Распредели персонажей по секторам власти и построй империю влияния.</div>
+          <div class="meta">
+            <div class="tag hard" style="background: #8B4513; color: white; font-weight: bold;">Сложный</div>
+            <div class="tag" style="background: rgba(139, 69, 19, 0.2); color: #8B4513; font-weight: bold;">Эксклюзивный</div>
+          </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('world-government')" style="background: var(--accent); color: var(--text-invert); border: none; font-weight: bold; font-size: 18px; padding: 15px 30px; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">🚀 Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('world-government')" style="border: 2px solid var(--line); color: var(--text); font-weight: bold; transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('world-government')" style="background: linear-gradient(135deg, #8B4513, #A0522D); border: none; font-weight: bold; font-size: 18px; padding: 15px 30px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🚀 Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('world-government')" style="border: 2px solid #8B4513; color: #8B4513; font-weight: bold;">Подробнее</button>
           </div>
         </div>
       </div>
       
       <div class="quests-grid">
         <!-- Первый бизнес -->
-        <div class="card reveal-up" data-style="neo" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Бизнес</div>
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Твой первый бизнес</h3>
-          <div class="description" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
+        <div class="card" data-style="neo">
+          <div class="label">Бизнес</div>
+          <h3>Твой первый бизнес</h3>
+          <div class="description">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
           <div class="meta">
-            <div class="tag medium" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Средний</div>
-            <div class="tag" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Вариация #1/10</div>
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #1/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('copy')" style="background: var(--accent); color: var(--text-invert); border: none; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('copy')" style="border: 1px solid var(--line); color: var(--text); transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('copy')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('copy')">Подробнее</button>
           </div>
         </div>
 
 
 
         <!-- Язык тела -->
-        <div class="card reveal-up" data-style="neo" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Психология</div>
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Язык тела</h3>
-          <div class="description" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
+        <div class="card" data-style="neo">
+          <div class="label">Психология</div>
+          <h3>Язык тела</h3>
+          <div class="description">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
           <div class="meta">
-            <div class="tag medium" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Средний</div>
-            <div class="tag" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Вариация #3/10</div>
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #3/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('bodylang')" style="background: var(--accent); color: var(--text-invert); border: none; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('bodylang')" style="border: 1px solid var(--line); color: var(--text); transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('bodylang')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('bodylang')">Подробнее</button>
           </div>
         </div>
 
@@ -391,87 +147,86 @@
 
 
         <!-- Империя влияния -->
-        <div class="card reveal-up" data-style="neo" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Влияние</div>
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Империя влияния</h3>
-          <div class="description" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
+        <div class="card" data-style="neo">
+          <div class="label">Влияние</div>
+          <h3>Империя влияния</h3>
+          <div class="description">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
           <div class="meta">
-            <div class="tag hard" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Сложный</div>
-            <div class="tag" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Вариация #6/10</div>
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #6/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('funnel')" style="background: var(--accent); color: var(--text-invert); border: none; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('funnel')" style="border: 1px solid var(--line); color: var(--text); transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('funnel')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('funnel')">Подробнее</button>
           </div>
         </div>
 
         <!-- Психология -->
-        <div class="card reveal-up" data-style="neo" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Психология</div>
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Психология заработка</h3>
-          <div class="description" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
+        <div class="card" data-style="neo">
+          <div class="label">Психология</div>
+          <h3>Психология заработка</h3>
+          <div class="description">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
           <div class="meta">
-            <div class="tag medium" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Средний</div>
-            <div class="tag" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Вариация #7/10</div>
+            <div class="tag medium">Средний</div>
+            <div class="tag">Вариация #7/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('psychology')" style="background: var(--accent); color: var(--text-invert); border: none; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('psychology')" style="border: 1px solid var(--line); color: var(--text); transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('psychology')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('psychology')">Подробнее</button>
           </div>
         </div>
 
 
 
         <!-- Анализ конкурентов -->
-        <div class="card reveal-up" data-style="neo" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Стратегия</div>
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Анализ конкурентов</h3>
-          <div class="description" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
+        <div class="card" data-style="neo">
+          <div class="label">Стратегия</div>
+          <h3>Анализ конкурентов</h3>
+          <div class="description">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
           <div class="meta">
-            <div class="tag hard" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Сложный</div>
-            <div class="tag" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Вариация #9/10</div>
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #9/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('competitors')" style="background: var(--accent); color: var(--text-invert); border: none; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('competitors')" style="border: 1px solid var(--line); color: var(--text); transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('competitors')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('competitors')">Подробнее</button>
           </div>
         </div>
 
         <!-- Анализ трендов -->
-        <div class="card reveal-up" data-style="neo" style="background: linear-gradient(180deg, rgba(255,255,255,.03), transparent), var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">
-          <div class="label" style="background: var(--accent); color: var(--text-invert); font-weight: bold;">Аналитика</div>
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">Анализ трендов</h3>
-          <div class="description" style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
+        <div class="card" data-style="neo">
+          <div class="label">Аналитика</div>
+          <h3>Анализ трендов</h3>
+          <div class="description">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
           <div class="meta">
-            <div class="tag hard" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Сложный</div>
-            <div class="tag" style="background: var(--accent-50); color: var(--text-invert); border: 1px solid var(--line); box-shadow: var(--shadow-sm);">Вариация #10/10</div>
+            <div class="tag hard">Сложный</div>
+            <div class="tag">Вариация #10/10</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" onclick="startQuest('trends')" style="background: var(--accent); color: var(--text-invert); border: none; box-shadow: var(--shadow-sm); transition: all 0.3s ease;">Начать квест</button>
-            <button class="btn ghost details" onclick="showQuestDetails('trends')" style="border: 1px solid var(--line); color: var(--text); transition: all 0.3s ease;">Подробнее</button>
+            <button class="btn primary start" onclick="startQuest('trends')">Начать квест</button>
+            <button class="btn ghost details" onclick="showQuestDetails('trends')">Подробнее</button>
           </div>
         </div>
       </div>
     </section>
 
-    <footer class="foot glass reveal-up">
+    <footer class="foot glass">
       <div class="hint">
-        <span style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Минималистичный чёрно‑белый интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
+        <span>Минималистичный чёрно‑белый интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
       </div>
     </footer>
   </div>
 
   <!-- Модал -->
-  <div id="modal" class="modal" data-open="false">
-    <div class="modal__overlay"></div>
-    <div class="modal__content glass">
-      <button class="close" id="modalClose" aria-label="Закрыть" style="background: var(--accent-50); color: var(--text); border: 1px solid var(--line); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;">×</button>
+  <div id="modal" class="modal">
+    <div class="modalContent glass">
+      <button class="close" id="modalClose" aria-label="Закрыть">×</button>
       <div id="modalBody"></div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" style="display: none;"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- Простой JavaScript -->
   <script>
@@ -490,7 +245,7 @@
 
     function showQuestDetails(questId) {
       console.log('Показываем детали квеста:', questId);
-      // Новое модальное окно
+      // Простое модальное окно
       const modal = document.getElementById('modal');
       const modalBody = document.getElementById('modalBody');
       
@@ -507,44 +262,32 @@
       const quest = questData[questId];
       if (quest) {
         modalBody.innerHTML = `
-          <h3 style="color: var(--text); text-shadow: 0 2px 8px rgba(0,0,0,0.5);">${quest.name}</h3>
-          <p style="color: var(--text-muted); text-shadow: 0 1px 4px rgba(0,0,0,0.5);">${quest.description}</p>
-          <button class="btn primary" onclick="startQuest('${questId}')" style="background: var(--accent); color: var(--text-invert); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Начать квест</button>
+          <h3>${quest.name}</h3>
+          <p>${quest.description}</p>
+          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
         `;
-        showModal();
+        modal.classList.add('show');
       }
     }
 
     // Закрытие модала
     document.getElementById('modalClose').addEventListener('click', function() {
-      hideModal();
+      document.getElementById('modal').classList.remove('show');
     });
 
     // Закрытие по клику вне модала
     document.getElementById('modal').addEventListener('click', function(e) {
       if (e.target === this) {
-        hideModal();
+        this.classList.remove('show');
       }
     });
 
     // Простая функция toast
     function toast(message, type = 'info') {
-      const toastEl = document.getElementById('modalBody');
-      const originalContent = toastEl.innerHTML;
-      
-      toastEl.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <h3 style="color: var(--text); margin-bottom: 20px;">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'} ${message}</h3>
-          <button onclick="hideModal()" style="background: var(--accent); color: var(--text-invert); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Закрыть</button>
-        </div>
-      `;
-      
-      showModal();
-      
-      setTimeout(() => {
-        hideModal();
-        toastEl.innerHTML = originalContent;
-      }, 3000);
+      const toastEl = document.getElementById('toast');
+      toastEl.textContent = message;
+      toastEl.className = `toast show ${type}`;
+      setTimeout(() => toastEl.classList.remove('show'), 3000);
     }
 
     // Инициализация при загрузке

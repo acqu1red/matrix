@@ -402,14 +402,14 @@
 .candidate-info h5 {
   font-size: 11px;
   font-weight: 600;
-  color: #ffffff;
+  color: #cccccc;
   margin-bottom: 2px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .candidate-role {
   font-size: 8px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(170, 170, 170, 0.9);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -426,9 +426,9 @@
   font-size: 7px;
   padding: 1px 4px;
   background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(170, 170, 170, 0.6);
   border-radius: 7px;
-  color: #ffffff;
+  color: #cccccc;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -450,13 +450,13 @@
 .stat-value {
   font-size: 8px;
   font-weight: 600;
-  color: #ffffff;
+  color: #cccccc;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .stat-label {
   font-size: 6px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(170, 170, 170, 0.9);
   text-transform: uppercase;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
