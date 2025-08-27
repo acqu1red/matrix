@@ -145,22 +145,46 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
 }
 
-.mulacoin-display {
+/* ====== CURRENCY BUTTONS ====== */
+.currency-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--transition-fast);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.currency-button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
+}
+
+.currency-button:active {
+  transform: translateY(-1px);
+}
+
+.mulacoin-display, .level-display {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 15px 20px;
   background: linear-gradient(135deg, #e7af3e, #fdd77a);
   border: 2px solid #e7af3e;
-  border-radius: 12px;
+  border-radius: 15px;
   font-weight: 600;
   transition: all var(--transition-fast);
   color: var(--text-primary);
+  box-shadow: 0 4px 15px rgba(231, 175, 62, 0.3);
+  min-width: 140px;
+  justify-content: center;
 }
 
-.mulacoin-display:hover {
+.mulacoin-display:hover, .level-display:hover {
   background: linear-gradient(135deg, #fdd77a, #f3dcb3);
   border-color: var(--border-hover);
   transform: translateY(-2px);
@@ -168,7 +192,7 @@ body::before {
 }
 
 .currency-icon {
-  font-size: 20px;
+  font-size: 24px;
   animation: coinBounce 2s ease-in-out infinite;
 }
 
@@ -178,29 +202,37 @@ body::before {
   75% { transform: translateY(-3px) rotate(-5deg); }
 }
 
-.level-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #e7af3e, #fdd77a);
-  border: 2px solid #e7af3e;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all var(--transition-fast);
-  cursor: pointer;
+.currency-amount {
+  font-size: 20px;
+  font-weight: 800;
   color: var(--text-primary);
 }
 
-.level-display:hover {
-  background: linear-gradient(135deg, #fdd77a, #f3dcb3);
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-light);
+.currency-label {
+  font-size: 12px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
 }
 
 .level-icon {
-  font-size: 20px;
+  font-size: 24px;
+}
+
+.level-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.level-progress {
+  font-size: 12px;
+  color: var(--text-primary);
+  background: rgba(66, 16, 13, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
 /* ====== CASE SECTION ====== */
@@ -435,7 +467,7 @@ body::before {
 
 .tag {
   padding: 6px 12px;
-  background: rgba(243, 220, 179, 0.8);
+  background: rgba(253, 215, 122, 0.8);
   border: 1px solid var(--border-color);
   border-radius: 15px;
   font-size: 12px;
@@ -648,6 +680,226 @@ body::before {
   transform: translateX(0);
 }
 
+/* ====== MULACOIN INFO MODAL ====== */
+.mulacoin-info {
+  text-align: center;
+  max-width: 600px;
+}
+
+.info-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.info-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 15px;
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.info-header h3 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--text-primary);
+  text-shadow: 0 2px 4px rgba(66, 16, 13, 0.2);
+}
+
+.info-description {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 30px;
+  line-height: 1.6;
+  background: rgba(253, 215, 122, 0.2);
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+}
+
+.info-section {
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.info-section h4 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(66, 16, 13, 0.2);
+}
+
+.earn-list, .spend-list, .benefits-list, .level-up-list {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.earn-list li, .spend-list li, .benefits-list li, .level-up-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(253, 215, 122, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 16px;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.earn-list li:hover, .spend-list li:hover, .benefits-list li:hover, .level-up-list li:hover {
+  background: rgba(253, 215, 122, 0.4);
+  transform: translateX(5px);
+  box-shadow: var(--shadow-light);
+}
+
+.earn-icon, .spend-icon, .benefit-icon, .up-icon {
+  font-size: 20px;
+  min-width: 24px;
+}
+
+.info-tip {
+  background: linear-gradient(135deg, #e7af3e, #fdd77a);
+  border: 2px solid #e7af3e;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 30px 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-light);
+}
+
+.tip-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+/* ====== LEVEL INFO MODAL ====== */
+.level-info {
+  text-align: center;
+  max-width: 700px;
+}
+
+.level-overview {
+  background: linear-gradient(135deg, #e7af3e, #fdd77a);
+  border: 2px solid #e7af3e;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: var(--shadow-medium);
+}
+
+.current-level {
+  margin-bottom: 20px;
+}
+
+.level-number {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--text-primary);
+  display: block;
+  text-shadow: 0 2px 4px rgba(66, 16, 13, 0.3);
+}
+
+.level-label {
+  font-size: 18px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.level-progress-bar {
+  width: 100%;
+  height: 20px;
+  background: rgba(66, 16, 13, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 20px 0;
+  border: 2px solid var(--border-color);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #42100d, #b95c1a);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+
+.level-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.level-stats span {
+  background: rgba(66, 16, 13, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.level-item {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(253, 215, 122, 0.3);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.level-item.completed {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  border-color: #4ecdc4;
+  color: white;
+}
+
+.level-item.current {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border-color: #ff6b6b;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: var(--shadow-medium);
+}
+
+.level-item.locked {
+  background: rgba(66, 16, 13, 0.3);
+  border-color: var(--text-muted);
+  color: var(--text-muted);
+}
+
+.level-num {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
 /* ====== QUEST DETAILS MODAL STYLES ====== */
 .quest-details {
   text-align: center;
@@ -761,7 +1013,7 @@ body::before {
 
 .stat-label {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -807,6 +1059,20 @@ body::before {
   
   .modalContent {
     padding: 30px 20px;
+  }
+  
+  .currency-info {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .mulacoin-display, .level-display {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .levels-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -854,6 +1120,10 @@ body::before {
   
   .card .cta {
     flex-direction: column;
+  }
+  
+  .levels-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
