@@ -4,6 +4,61 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Квесты</title>
+  
+  <!-- Критические стили inline для мгновенной загрузки -->
+  <style>
+    /* Базовые стили для мгновенного отображения */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000000; 
+      color: #ffffff; 
+      line-height: 1.6; 
+      overflow-x: hidden; 
+    }
+    .app { opacity: 1 !important; }
+    .loading-overlay { display: none !important; }
+    
+    /* Скрываем элементы до полной загрузки */
+    .card, .btn, .glass { opacity: 0; transition: opacity 0.3s ease; }
+    .loaded .card, .loaded .btn, .loaded .glass { opacity: 1; }
+    
+    /* Критические стили для header */
+    .topbar { 
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255, 255, 255, 0.05); 
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 16px 20px;
+    }
+    .brand h1 { font-size: 24px; font-weight: 700; }
+    
+    /* Критические стили для квестов */
+    .quests-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 20px; 
+      padding: 20px; 
+    }
+    .card { 
+      background: rgba(255, 255, 255, 0.05); 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+      border-radius: 20px; 
+      padding: 24px; 
+      backdrop-filter: blur(20px);
+    }
+    .btn { 
+      padding: 12px 24px; 
+      border: 1px solid rgba(255, 255, 255, 0.2); 
+      border-radius: 12px; 
+      background: rgba(255, 255, 255, 0.1); 
+      color: #ffffff; 
+      cursor: pointer; 
+      font-weight: 600;
+    }
+    .btn.primary { background: #ffffff; color: #000000; }
+  </style>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
@@ -12,20 +67,43 @@
   <!-- Preload critical resources -->
   <link rel="preload" href="./assets/rulette/case_open.png" as="image">
   <link rel="preload" href="./assets/photovideo/ruletka.png" as="image">
-  
+</head>
+<body>
+  <!-- Принудительная инициализация Telegram WebApp -->
   <script>
-    // Telegram WebApp SDK - загружаем асинхронно
-    (function(){
-      if (!window.Telegram || !window.Telegram.WebApp) {
+    // Немедленная инициализация без ожидания внешних скриптов
+    (function() {
+      // Принудительно расширяем MiniApp
+      if (window.Telegram && window.Telegram.WebApp) {
+        try {
+          window.Telegram.WebApp.expand();
+          window.Telegram.WebApp.enableClosingConfirmation();
+          document.body.classList.add('tg-ready');
+          console.log('Telegram WebApp инициализирован немедленно');
+        } catch (e) {
+          console.log('Ошибка инициализации Telegram WebApp:', e);
+        }
+      } else {
+        // Fallback - загружаем SDK и инициализируем
         var s = document.createElement('script');
         s.src = "https://telegram.org/js/telegram-web-app.js";
-        s.async = true;
+        s.onload = function() {
+          if (window.Telegram && window.Telegram.WebApp) {
+            try {
+              window.Telegram.WebApp.expand();
+              window.Telegram.WebApp.enableClosingConfirmation();
+              document.body.classList.add('tg-ready');
+              console.log('Telegram WebApp инициализирован после загрузки SDK');
+            } catch (e) {
+              console.log('Ошибка инициализации после загрузки SDK:', e);
+            }
+          }
+        };
         document.head.appendChild(s);
       }
     })();
   </script>
-</head>
-<body>
+
   <div id="app" class="app">
     <header class="glass topbar">
       <div class="brand">
@@ -216,7 +294,7 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Оптимизированный JavaScript -->
+  <!-- Оптимизированный JavaScript с принудительной инициализацией -->
   <script>
     // Конфигурация
     const QUEST_DATA = {
@@ -441,8 +519,8 @@
       }
     }
 
-    // Инициализация приложения
-    function initializeApp() {
+    // Принудительная инициализация приложения
+    function forceInitializeApp() {
       if (appState.isInitialized) return;
 
       try {
@@ -462,12 +540,15 @@
         // Обновляем отображение
         updateDisplay();
         
+        // Показываем все элементы
+        document.body.classList.add('loaded');
+        
         appState.isInitialized = true;
         showToast('Квесты загружены успешно!', 'success');
         
-        console.log('Приложение инициализировано');
+        console.log('Приложение принудительно инициализировано');
       } catch (error) {
-        console.error('Ошибка инициализации:', error);
+        console.error('Ошибка принудительной инициализации:', error);
         showToast('Ошибка загрузки приложения', 'error');
       }
     }
@@ -495,6 +576,12 @@
       }
     }
 
+    // Множественная инициализация для надежности
+    function initializeApp() {
+      if (appState.isInitialized) return;
+      forceInitializeApp();
+    }
+
     // Инициализация при загрузке DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initializeApp);
@@ -502,13 +589,36 @@
       initializeApp();
     }
 
-    // Fallback инициализация
-    setTimeout(() => {
+    // Принудительная инициализация через 100ms
+    setTimeout(forceInitializeApp, 100);
+    
+    // Дополнительная инициализация через 500ms
+    setTimeout(forceInitializeApp, 500);
+    
+    // Финальная инициализация через 1 секунду
+    setTimeout(forceInitializeApp, 1000);
+    
+    // Инициализация при любом взаимодействии пользователя
+    document.addEventListener('click', function() {
       if (!appState.isInitialized) {
-        console.warn('Fallback инициализация');
-        initializeApp();
+        forceInitializeApp();
       }
-    }, 1000);
+    }, { once: true });
+    
+    document.addEventListener('touchstart', function() {
+      if (!appState.isInitialized) {
+        forceInitializeApp();
+      }
+    }, { once: true });
+
+    // Инициализация при изменении видимости страницы
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && !appState.isInitialized) {
+        forceInitializeApp();
+      }
+    });
+
+    console.log('Система инициализации MiniApp запущена');
   </script>
 </body>
 </html>
