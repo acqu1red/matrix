@@ -8,37 +8,39 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /* ====== BLACK & WHITE THEME ====== */
+    /* ====== GOLDEN THEME ====== */
     :root {
-      /* Color Palette */
-      --bg-primary: #000000;
-      --bg-secondary: #0a0a0a;
-      --bg-tertiary: #111111;
-      --bg-glass: rgba(255, 255, 255, 0.05);
-      --bg-glass-hover: rgba(255, 255, 255, 0.1);
+      /* Color Palette - Golden Harmony */
+      --bg-primary: #443020;
+      --bg-secondary: #d5921a;
+      --bg-tertiary: #f1d881;
+      --bg-light: #f9f4e6;
+      --bg-dark: #5b5643;
+      --bg-glass: rgba(243, 220, 179, 0.9);
+      --bg-glass-hover: rgba(253, 215, 122, 0.95);
       
       /* Text Colors */
-      --text-primary: #ffffff;
-      --text-secondary: #e0e0e0;
-      --text-muted: #a0a0a0;
-      --text-accent: #ffffff;
+      --text-primary: #42100d;
+      --text-secondary: #b95c1a;
+      --text-muted: #8b4513;
+      --text-accent: #e7af3e;
       
       /* Accent Colors */
-      --accent-primary: #ffffff;
-      --accent-secondary: #f0f0f0;
-      --accent-glow: #ffffff;
+      --accent-primary: #e7af3e;
+      --accent-secondary: #fdd77a;
+      --accent-glow: #f3dcb3;
       
       /* Border & Shadow */
-      --border-color: rgba(255, 255, 255, 0.1);
-      --border-hover: rgba(255, 255, 255, 0.2);
-      --shadow-light: 0 4px 20px rgba(255, 255, 255, 0.1);
-      --shadow-medium: 0 8px 40px rgba(255, 255, 255, 0.15);
-      --shadow-heavy: 0 16px 80px rgba(255, 255, 255, 0.2);
+      --border-color: #fdd77a;
+      --border-hover: #e7af3e;
+      --shadow-light: 0 4px 20px rgba(231, 175, 62, 0.3);
+      --shadow-medium: 0 8px 40px rgba(231, 175, 62, 0.4);
+      --shadow-heavy: 0 16px 80px rgba(231, 175, 62, 0.5);
       
       /* Glass Effect */
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --glass-bg: rgba(243, 220, 179, 0.9);
+      --glass-border: #fdd77a;
+      --glass-shadow: 0 8px 32px rgba(66, 16, 13, 0.2);
       
       /* Animation */
       --transition-fast: 0.2s ease;
@@ -56,7 +58,7 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-primary);
+      background: linear-gradient(135deg, #443020 0%, #d5921a 25%, #f1d881 50%, #f9f4e6 75%, #5b5643 100%);
       color: var(--text-primary);
       line-height: 1.6;
       overflow-x: hidden;
@@ -82,10 +84,10 @@
 
     .shape {
       position: absolute;
-      background: var(--bg-glass);
+      background: rgba(253, 215, 122, 0.2);
       border: 1px solid var(--border-color);
       border-radius: 50%;
-      opacity: 0.3;
+      opacity: 0.4;
       animation: float 20s infinite linear;
     }
 
@@ -160,8 +162,8 @@
       width: 100%;
       height: 100%;
       background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        linear-gradient(rgba(253, 215, 122, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(253, 215, 122, 0.05) 1px, transparent 1px);
       background-size: 50px 50px;
       animation: gridMove 60s linear infinite;
     }
@@ -201,12 +203,18 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      animation: titleGlow 3s ease-in-out infinite;
+      position: relative;
+      animation: titleGlow 3s ease-in-out infinite, titleFloat 4s ease-in-out infinite;
     }
 
     @keyframes titleGlow {
-      0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); }
-      50% { filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)); }
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(231, 175, 62, 0.3)); }
+      50% { filter: drop-shadow(0 0 40px rgba(231, 175, 62, 0.6)); }
+    }
+
+    @keyframes titleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
 
     .quest-description {
@@ -259,6 +267,12 @@
       border-color: var(--accent-primary);
       transform: translateY(-3px);
       box-shadow: var(--shadow-light);
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { transform: translateY(-3px) scale(1); }
+      50% { transform: translateY(-3px) scale(1.05); }
     }
 
     /* ====== PHASE CONTAINERS ====== */
@@ -276,17 +290,22 @@
 
     .phase-container {
       display: block;
-      animation: fadeInUp 0.6s ease-out;
+      animation: fadeInUp 0.8s ease-out;
+      transform-origin: center;
     }
 
     @keyframes fadeInUp {
       from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(40px) scale(0.95);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(20px) scale(0.98);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -333,31 +352,64 @@
       width: 100%;
       height: auto;
       border-radius: 15px;
+    }
+
+    /* Видео на 2 этапе - без взаимодействия */
+    .emotion-video .video-player {
       pointer-events: none;
     }
 
-    .video-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+    /* Видео-контролы для 1 этапа */
+    .video-controls {
       display: flex;
       align-items: center;
       justify-content: center;
-      opacity: 0;
-      transition: opacity var(--transition-fast);
+      gap: 15px;
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
     }
 
-    .video-container:hover .video-overlay {
-      opacity: 1;
+    .play-btn {
+      background: var(--accent-primary);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-light);
     }
 
-    .play-indicator {
-      font-size: 48px;
-      color: var(--text-primary);
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    .play-btn:hover {
+      background: var(--accent-secondary);
+      transform: scale(1.1);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .progress-bar {
+      flex: 1;
+      max-width: 300px;
+      height: 8px;
+      background: var(--bg-glass);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      width: 0%;
+      transition: width 0.1s ease;
+      border-radius: 4px;
     }
 
     /* ====== ANSWER OPTIONS ====== */
@@ -385,6 +437,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: var(--shadow-light);
     }
 
     .answer-option::before {
@@ -394,7 +447,7 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      background: linear-gradient(90deg, transparent, rgba(253, 215, 122, 0.3), transparent);
       transition: left var(--transition-medium);
     }
 
@@ -405,15 +458,20 @@
     .answer-option:hover {
       background: var(--bg-glass-hover);
       border-color: var(--border-hover);
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-light);
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .answer-option:active {
+      transform: translateY(-2px) scale(0.98);
     }
 
     .answer-option.correct {
       background: rgba(34, 197, 94, 0.2);
       border-color: #22c55e;
       color: #22c55e;
-      animation: correctPulse 0.6s ease-in-out;
+      animation: correctPulse 0.8s ease-in-out;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
     }
 
     .answer-option.incorrect {
@@ -421,6 +479,7 @@
       border-color: #ef4444;
       color: #ef4444;
       animation: incorrectShake 0.6s ease-in-out;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
     }
 
     .answer-option:disabled {
@@ -430,14 +489,24 @@
     }
 
     @keyframes correctPulse {
-      0%, 100% { transform: scale(1); }
+      0% { transform: scale(1); }
+      25% { transform: scale(1.1); }
       50% { transform: scale(1.05); }
+      75% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
 
     @keyframes incorrectShake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      10% { transform: translateX(-3px) rotate(-1deg); }
+      20% { transform: translateX(3px) rotate(1deg); }
+      30% { transform: translateX(-3px) rotate(-1deg); }
+      40% { transform: translateX(3px) rotate(1deg); }
+      50% { transform: translateX(-3px) rotate(-1deg); }
+      60% { transform: translateX(3px) rotate(1deg); }
+      70% { transform: translateX(-3px) rotate(-1deg); }
+      80% { transform: translateX(3px) rotate(1deg); }
+      90% { transform: translateX(-3px) rotate(-1deg); }
     }
 
     /* ====== ATTEMPTS COUNTER ====== */
@@ -729,17 +798,20 @@
         Обратите внимание на мимику, жесты и микровыражения.
       </p>
       
-      <div class="video-section">
-        <div class="video-container">
-          <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline loop>
-            <source src="../video/dopros1.mp4" type="video/mp4">
-            Ваш браузер не поддерживает видео.
-          </video>
-          <div class="video-overlay">
-            <div class="play-indicator">▶️</div>
-          </div>
-        </div>
-      </div>
+             <div class="video-section">
+         <div class="video-container">
+           <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline>
+             <source src="../video/dopros1.mp4" type="video/mp4">
+             Ваш браузер не поддерживает видео.
+           </video>
+           <div class="video-controls">
+             <button class="play-btn" id="playBtn">▶️</button>
+             <div class="progress-bar">
+               <div class="progress-fill" id="progressFill"></div>
+             </div>
+           </div>
+         </div>
+       </div>
       
       <div class="attempts-counter">
         <span class="attempts-text">Попытки:</span>
@@ -763,17 +835,14 @@
         положение бровей, губ и общее настроение.
       </p>
       
-      <div class="video-section">
-        <div class="video-container">
-          <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
-            <source src="" type="video/mp4">
-            Ваш браузер не поддерживает видео.
-          </video>
-          <div class="video-overlay">
-            <div class="play-indicator">▶️</div>
-          </div>
-        </div>
-      </div>
+             <div class="video-section">
+         <div class="video-container emotion-video">
+           <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+             <source src="" type="video/mp4">
+             Ваш браузер не поддерживает видео.
+           </video>
+         </div>
+       </div>
       
       <div class="attempts-counter">
         <span class="attempts-text">Попытки:</span>
@@ -1166,8 +1235,39 @@
       window.location.href = '../quests.html';
     }
 
+    // ====== VIDEO CONTROLS ======
+    function initVideoControls() {
+      const video = document.getElementById('videoPlayer');
+      const playBtn = document.getElementById('playBtn');
+      const progressFill = document.getElementById('progressFill');
+
+      if (playBtn && video && progressFill) {
+        playBtn.addEventListener('click', () => {
+          if (video.paused) {
+            video.play();
+            playBtn.textContent = '⏸️';
+          } else {
+            video.pause();
+            playBtn.textContent = '▶️';
+          }
+        });
+
+        video.addEventListener('timeupdate', () => {
+          const progress = (video.currentTime / video.duration) * 100;
+          progressFill.style.width = progress + '%';
+        });
+
+        video.addEventListener('ended', () => {
+          playBtn.textContent = '▶️';
+        });
+      }
+    }
+
     // ====== EVENT LISTENERS ======
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      initVideoControls();
+    });
   </script>
 </body>
 </html>
