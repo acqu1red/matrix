@@ -557,15 +557,15 @@ function applyDecision(decision) {
 
 // Обработчики событий
 function initializeEventHandlers() {
-  // Обработчик ошибок
-  window.addEventListener('error', function(event) {
-    console.error('Глобальная ошибка:', event.error);
+// Обработчик ошибок
+window.addEventListener('error', function(event) {
+  console.error('Глобальная ошибка:', event.error);
     showToast('Произошла ошибка. Проверьте консоль для деталей.', 'error');
-  });
-  
-  // Обработчик необработанных промисов
-  window.addEventListener('unhandledrejection', function(event) {
-    console.error('Необработанный промис:', event.reason);
+});
+
+// Обработчик необработанных промисов
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('Необработанный промис:', event.reason);
     showToast('Произошла асинхронная ошибка.', 'error');
   });
   
@@ -851,7 +851,7 @@ function getQuestProgress() {
 
 // Экспортируем функции для совместимости
 window.businessQuest = {
-  getQuestProgress,
+    getQuestProgress,
   showToast,
   goBack
 };

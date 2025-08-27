@@ -7,25 +7,578 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./case.css" />
-  <script>
-    // Telegram WebApp SDK
-    (function(){
-      if (!window.Telegram || !window.Telegram.WebApp) {
-        var s = document.createElement('script');
-        s.src = "https://telegram.org/js/telegram-web-app.js";
-        document.head.appendChild(s);
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* ====== GOLDEN THEME ====== */
+    :root {
+      --bg-primary: #443020;
+      --bg-secondary: #5b5643;
+      --bg-tertiary: #d5921a;
+      --bg-glass: rgba(241, 216, 129, 0.1);
+      --bg-glass-hover: rgba(241, 216, 129, 0.2);
+      
+      --text-primary: #f9f4e6;
+      --text-secondary: #f1d881;
+      --text-muted: #d5921a;
+      --text-accent: #f9f4e6;
+      
+      --accent-primary: #f1d881;
+      --accent-secondary: #d5921a;
+      --accent-glow: #f1d881;
+      
+      --border-color: rgba(241, 216, 129, 0.3);
+      --border-hover: rgba(241, 216, 129, 0.5);
+      --shadow-light: 0 4px 20px rgba(241, 216, 129, 0.2);
+      --shadow-medium: 0 8px 40px rgba(241, 216, 129, 0.3);
+      --shadow-heavy: 0 16px 80px rgba(241, 216, 129, 0.4);
+      
+      --glass-bg: rgba(241, 216, 129, 0.1);
+      --glass-border: rgba(241, 216, 129, 0.2);
+      --glass-shadow: 0 8px 32px rgba(68, 48, 32, 0.3);
+      
+      --transition-fast: 0.2s ease;
+      --transition-medium: 0.4s ease;
+      --transition-slow: 0.8s ease;
+      --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* ====== BASE STYLES ====== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ====== ANIMATED BACKGROUND ====== */
+    .animated-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+    }
+
+    .floating-shapes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .shape {
+      position: absolute;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 20s infinite linear;
+    }
+
+    .shape-1 {
+      width: 80px;
+      height: 80px;
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+      animation-duration: 25s;
+    }
+
+    .shape-2 {
+      width: 120px;
+      height: 120px;
+      top: 60%;
+      right: 15%;
+      animation-delay: -5s;
+      animation-duration: 30s;
+    }
+
+    .shape-3 {
+      width: 60px;
+      height: 60px;
+      top: 30%;
+      right: 30%;
+      animation-delay: -10s;
+      animation-duration: 20s;
+    }
+
+    .shape-4 {
+      width: 100px;
+      height: 100px;
+      bottom: 20%;
+      left: 20%;
+      animation-delay: -15s;
+      animation-duration: 35s;
+    }
+
+    .shape-5 {
+      width: 70px;
+      height: 70px;
+      bottom: 40%;
+      right: 40%;
+      animation-delay: -20s;
+      animation-duration: 28s;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+      100% { transform: translateY(0px) rotate(360deg); }
+    }
+
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(241, 216, 129, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(241, 216, 129, 0.1) 1px, transparent 1px);
+      background-size: 50px 50px;
+      opacity: 0.3;
+      animation: gridMove 30s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    /* ====== APP CONTAINER ====== */
+    .app {
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ====== HEADER ====== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--glass-shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .back-btn {
+      background: var(--accent-secondary);
+      color: var(--text-primary);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+    }
+
+    .back-btn:hover {
+      background: var(--accent-primary);
+      transform: translateX(-2px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .title-glow {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+      text-shadow: 0 0 20px var(--accent-glow);
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 20px var(--accent-glow); }
+      to { text-shadow: 0 0 30px var(--accent-glow), 0 0 40px var(--accent-glow); }
+    }
+
+    .mulacoin-display {
+      background: var(--accent-secondary);
+      color: var(--text-primary);
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-light);
+    }
+
+    /* ====== SECTIONS ====== */
+    .section {
+      margin: 2rem 1rem;
+      padding: 2rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: var(--glass-shadow);
+      transition: all var(--transition-medium);
+    }
+
+    .section:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-heavy);
+      border-color: var(--border-hover);
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+      margin-bottom: 1rem;
+      text-align: center;
+      text-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .section-description {
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    /* ====== ROULETTE SECTION ====== */
+    .roulette-section {
+      text-align: center;
+    }
+
+    .roulette-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 2rem;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        var(--accent-primary) 0deg,
+        var(--accent-secondary) 72deg,
+        var(--accent-primary) 144deg,
+        var(--accent-secondary) 216deg,
+        var(--accent-primary) 288deg,
+        var(--accent-secondary) 360deg
+      );
+      padding: 10px;
+      box-shadow: var(--shadow-heavy);
+    }
+
+    .roulette-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .roulette-pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 30px solid var(--accent-primary);
+      filter: drop-shadow(0 0 10px var(--accent-glow));
+    }
+
+    .spin-btn {
+      background: var(--accent-secondary);
+      color: var(--text-primary);
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .spin-btn:hover {
+      background: var(--accent-primary);
+      transform: scale(1.05);
+      box-shadow: var(--shadow-heavy);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ====== BUSINESS ROULETTE ====== */
+    .business-roulette-section {
+      text-align: center;
+    }
+
+    .business-roulette-container {
+      position: relative;
+      width: 350px;
+      height: 350px;
+      margin: 0 auto 2rem;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        var(--accent-primary) 0deg,
+        var(--accent-secondary) 60deg,
+        var(--accent-primary) 120deg,
+        var(--accent-secondary) 180deg,
+        var(--accent-primary) 240deg,
+        var(--accent-secondary) 300deg,
+        var(--accent-primary) 360deg
+      );
+      padding: 15px;
+      box-shadow: var(--shadow-heavy);
+    }
+
+    .business-roulette-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .business-roulette-pointer {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 40px solid var(--accent-primary);
+      filter: drop-shadow(0 0 15px var(--accent-glow));
+    }
+
+    /* ====== ACTIVITY FEED ====== */
+    .activity-feed-section {
+      margin-top: 3rem;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .join-channel-btn {
+      background: var(--accent-secondary);
+      color: var(--text-primary);
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .join-channel-btn:hover {
+      background: var(--accent-primary);
+      transform: scale(1.05);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .post-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all var(--transition-fast);
+    }
+
+    .post-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-medium);
+      border-color: var(--border-hover);
+    }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .post-info h4 {
+      color: var(--accent-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .post-date {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .post-content {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 768px) {
+      .section {
+        margin: 1rem 0.5rem;
+        padding: 1.5rem;
       }
-    })();
-  </script>
+      
+      .roulette-container,
+      .business-roulette-container {
+        width: 250px;
+        height: 250px;
+      }
+      
+      .title-glow {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* ====== LOADING ANIMATION ====== */
+    .loading {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-primary);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .loading.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--bg-glass);
+      border-top: 4px solid var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--accent-primary);
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    /* ====== MODALS ====== */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(68, 48, 32, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: var(--bg-primary);
+      border: 2px solid var(--accent-primary);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-heavy);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h3 {
+      color: var(--accent-primary);
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .modal-content button {
+      margin-top: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-  <!-- Page Transition Overlay -->
-  <div id="pageTransition" class="page-transition">
-    <div class="transition-content">
-      <div class="transition-spinner"></div>
-      <div class="transition-text">Загружаем академию успеха...</div>
-    </div>
+  <!-- Loading Screen -->
+  <div id="loading" class="loading show">
+    <div class="spinner"></div>
+    <div class="loading-text">Загружаем академию успеха...</div>
   </div>
 
   <!-- Animated Background -->
@@ -41,241 +594,434 @@
   </div>
 
   <div id="app" class="app">
-    <header class="glass topbar">
+    <!-- Header -->
+    <header class="topbar">
       <div class="brand">
-        <button id="backToQuests" class="btn ghost back-btn">
-          <span class="back-icon">←</span>
-          <span class="back-text">Назад</span>
+        <button id="backToQuests" class="back-btn">
+          <span>←</span>
+          <span>Назад</span>
         </button>
         <h1 class="title-glow">💰 Кейс Финансового Успеха</h1>
       </div>
-      <div class="actions">
         <div class="mulacoin-display">
-          <span class="currency-icon">🪙</span>
-          <span class="currency-amount" id="mulacoinAmount">0</span>
-        </div>
+        <span>🥇</span>
+        <span id="mulacoinAmount">0</span>
       </div>
     </header>
 
-    <!-- Success Introduction -->
-    <section class="intro-section glass">
-      <div class="intro-content">
-        <div class="skull-icon floating">💰</div>
-        <h2 class="title-animated">Академия Финансового Успеха</h2>
-        <p class="intro-text">
-          Добро пожаловать в эксклюзивную академию, где хранятся секреты самых 
-          успешных людей планеты. Каждый кейс содержит ценные знания и стратегии, 
-          которые помогут вам достичь финансовой независимости и построить империю богатства.
-        </p>
-        <div class="conspiracy-badges">
-          <span class="badge conspiracy pulse">📈 ИНВЕСТИЦИИ</span>
-          <span class="badge conspiracy pulse">💎 БОГАТСТВО</span>
-          <span class="badge conspiracy pulse">🏆 УСПЕХ</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Case Roulette -->
-    <section class="case-roulette-section">
+    <!-- Main Roulette Section -->
+    <section class="section roulette-section">
+      <h2 class="section-title">🎰 Кейс Успеха</h2>
+      <p class="section-description">
+        Откройте кейс и получите ценные знания, стратегии и бонусы для достижения финансового успеха!
+      </p>
+      
       <div class="roulette-container">
-        <div class="roulette-display">
-          <div class="roulette-items" id="rouletteItems">
-            <!-- Prizes will be loaded dynamically -->
-          </div>
-          <div class="roulette-pointer">
-            <div class="pointer-arrow">▼</div>
-            <div class="pointer-glow"></div>
-          </div>
-        </div>
-        
-        <!-- Mystical Effects -->
-        <div class="mystical-circle circle-1"></div>
-        <div class="mystical-circle circle-2"></div>
-        <div class="mystical-circle circle-3"></div>
-        
-        <!-- Particle Effects -->
-        <div class="particles">
-          <div class="particle particle-1"></div>
-          <div class="particle particle-2"></div>
-          <div class="particle particle-3"></div>
-          <div class="particle particle-4"></div>
-          <div class="particle particle-5"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Business Roulette -->
-    <section class="business-roulette-section">
-      <div class="roulette-container">
-        <div class="roulette-display">
-          <div class="roulette-items" id="rouletteItems">
-            <!-- Prizes will be loaded dynamically -->
-          </div>
-          <div class="roulette-pointer">
-            <div class="pointer-arrow">▼</div>
-            <div class="pointer-glow"></div>
-          </div>
-        </div>
-        
-        <!-- Mystical Effects -->
-        <div class="mystical-circle circle-1"></div>
-        <div class="mystical-circle circle-2"></div>
-        <div class="mystical-circle circle-3"></div>
-        
-        <!-- Particle Effects -->
-        <div class="particles">
-          <div class="particle particle-1"></div>
-          <div class="particle particle-2"></div>
-          <div class="particle particle-3"></div>
-          <div class="particle particle-4"></div>
-          <div class="particle particle-5"></div>
+        <div class="roulette-inner">
+          <div class="roulette-pointer"></div>
         </div>
       </div>
       
-      <div class="roulette-controls">
-        <button id="spinRoulette" class="btn primary large conspiracy-btn glow-effect">
-          <span class="btn-icon">🎯</span>
-          <span class="btn-text">Крутить Бизнес-рулетку</span>
-          <div class="btn-glow"></div>
-          <div class="btn-ripple"></div>
-        </button>
+      <button id="spinBtn" class="spin-btn">🎯 Крутить кейс</button>
+    </section>
+
+    <!-- Business Roulette Section -->
+    <section class="section business-roulette-section">
+      <h2 class="section-title">🏢 Бизнес-рулетка</h2>
+      <p class="section-description">
+        Специальная рулетка для предпринимателей с уникальными бизнес-призами и возможностями!
+      </p>
+      
+      <div class="business-roulette-container">
+        <div class="business-roulette-inner">
+          <div class="business-roulette-pointer"></div>
+        </div>
+        </div>
         
-        <button id="showBusinessPrizes" class="btn ghost conspiracy-btn hover-lift">
-          <span class="btn-icon">👁️</span>
-          <span class="btn-text">Возможные Призы</span>
-        </button>
-        
-        <button id="buyBusinessSpin" class="btn warning conspiracy-btn hover-lift">
-          <span class="btn-icon">🪙</span>
-          <span class="btn-text">Крутить за 5 MULACOIN</span>
-        </button>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button id="businessSpinBtn" class="spin-btn">🎯 Крутить бизнес-рулетку</button>
+        <button id="showPrizesBtn" class="spin-btn">🏆 Показать призы</button>
+        <button id="buySpinBtn" class="spin-btn">💎 Купить спин</button>
       </div>
     </section>
 
-    <!-- Controls -->
-    <section class="controls-section">
-      <div class="control-group">
-        <button id="spinCase" class="btn primary large conspiracy-btn glow-effect">
-          <span class="btn-icon">🎯</span>
-          <span class="btn-text">Крутить Кейс</span>
-          <div class="btn-glow"></div>
-          <div class="btn-ripple"></div>
-        </button>
-        
-        <button id="showPrizes" class="btn ghost conspiracy-btn hover-lift">
-          <span class="btn-icon">👁️</span>
-          <span class="btn-text">Возможные Призы</span>
-        </button>
-        
-        <button id="buySpinCase" class="btn warning conspiracy-btn hover-lift">
-          <span class="btn-icon">🪙</span>
-          <span class="btn-text">Крутить за 13 MULACOIN</span>
-        </button>
-        
-        <button id="showHistory" class="btn ghost conspiracy-btn hover-lift">
-          <span class="btn-icon">📜</span>
-          <span class="btn-text">История Прохождения</span>
-        </button>
+    <!-- Activity Feed Section -->
+    <section class="section activity-feed-section">
+      <div class="feed-header">
+        <h2 class="section-title">📱 Лента активности</h2>
+        <a href="https://t.me/+channel" target="_blank" class="join-channel-btn" onclick="joinChannel()">
+          Вступить и читать
+        </a>
+      </div>
+      
+      <div id="activityFeed" class="activity-feed">
+        <!-- Posts will be loaded here -->
       </div>
     </section>
+  </div>
 
-    <!-- Success Lore -->
-    <section class="lore-section">
-      <div class="lore-grid">
-        <div class="lore-card glass lore-button hover-card" id="islandSecretsCard">
-          <div class="lore-icon floating">🏝️</div>
-          <h3>Остров Возможностей</h3>
-          <p>Эксклюзивное место, где собираются самые успешные предприниматели мира для обмена стратегиями и создания империй.</p>
-          <div class="lore-action">→ Исследовать Возможности</div>
-          <div class="card-glow"></div>
+  <!-- Modals -->
+  <div id="rouletteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Результат кейса</h3>
+      <div id="rouletteResult"></div>
+      <button onclick="closeModal('rouletteModal')" class="spin-btn">Закрыть</button>
+    </div>
+  </div>
+
+  <div id="businessRouletteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Результат бизнес-рулетки</h3>
+      <div id="businessRouletteResult"></div>
+      <button onclick="closeModal('businessRouletteModal')" class="spin-btn">Закрыть</button>
+    </div>
+  </div>
+
+  <div id="prizesModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Доступные призы</h3>
+      <div id="prizesList"></div>
+      <button onclick="closeModal('prizesModal')" class="spin-btn">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
+
+    // Prizes data
+    const CASE_PRIZES = [
+      { id: "financial_plan", name: "Финансовый План", icon: "📊", probability: 0.25 },
+      { id: "investment_strategy", name: "Инвестиционная Стратегия", icon: "📈", probability: 0.20 },
+      { id: "golden_opportunity", name: "Золотая Возможность", icon: "💎", probability: 0.15 },
+      { id: "business_secrets", name: "Секреты Бизнеса", icon: "🔐", probability: 0.12 },
+      { id: "success_mindset", name: "Мышление Успеха", icon: "🧠", probability: 0.10 },
+      { id: "wealth_blueprint", name: "Чертеж Богатства", icon: "🗞️", probability: 0.08 },
+      { id: "elite_network", name: "Элитная Сеть", icon: "🤝", probability: 0.06 },
+      { id: "millionaire_habits", name: "Привычки Миллионера", icon: "⭐", probability: 0.03 },
+      { id: "ultimate_formula", name: "Формула Успеха", icon: "🏆", probability: 0.01 }
+    ];
+
+    const BUSINESS_ROULETTE_PRIZES = [
+      { id: "revenue_boost", name: "Бонус к доходу", value: "+20% к доходу", icon: "💰", probability: 0.3 },
+      { id: "growth_acceleration", name: "Ускорение роста", value: "+15% к росту", icon: "📈", probability: 0.25 },
+      { id: "reputation_boost", name: "Повышение репутации", value: "+10 к репутации", icon: "⭐", probability: 0.2 },
+      { id: "mulacoin_bonus", name: "MULACOIN", value: "+2 MULACOIN", icon: "🥇", probability: 0.15 },
+      { id: "special_bonus", name: "Специальный бонус", value: "Уникальная награда", icon: "🎁", probability: 0.1 }
+    ];
+
+    // Global variables
+    let tg = null;
+    let supabase = null;
+    let userData = {
+      telegramId: null,
+      mulacoin: 0,
+      level: 1,
+      experience: 0
+    };
+
+    let isSpinning = false;
+
+    // Utility functions
+    function $(selector) {
+      return document.querySelector(selector);
+    }
+
+    function showModal(modalId) {
+      $(modalId).style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+      $(modalId).style.display = 'none';
+    }
+
+    function toast(message, type = 'info') {
+      // Simple toast implementation
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--accent-secondary);
+        color: var(--text-primary);
+        padding: 1rem;
+        border-radius: 10px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+      `;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Telegram integration
+    function initTG() {
+      try {
+        tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        if (tg) {
+          tg.expand();
+          tg.enableClosingConfirmation();
+          document.body.classList.add("tg-ready");
+          
+          if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userData.telegramId = tg.initDataUnsafe.user.id;
+            console.log('Telegram ID получен:', userData.telegramId);
+          }
+        }
+      } catch (e) {
+        console.log("TG init fail", e);
+      }
+    }
+
+    // Supabase integration
+    async function initSupabase() {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase инициализирован');
+        return true;
+      } catch (error) {
+        console.error('Ошибка инициализации Supabase:', error);
+        return false;
+      }
+    }
+
+    // Load user data
+    async function loadUserData(telegramId) {
+      if (!supabase || !telegramId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('bot_user')
+          .select('*')
+          .eq('telegram_id', String(telegramId))
+          .single();
+        
+        if (data && !error) {
+          userData.mulacoin = data.mulacoin || 0;
+          userData.level = data.level || 1;
+          userData.experience = data.experience || 0;
+          updateUI();
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных пользователя:', error);
+      }
+    }
+
+    // Update UI
+    function updateUI() {
+      $('#mulacoinAmount').textContent = userData.mulacoin;
+    }
+
+    // Roulette functions
+    function spinRoulette() {
+      if (isSpinning) return;
+      
+      isSpinning = true;
+      $('#spinBtn').disabled = true;
+      $('#spinBtn').textContent = '🎯 Крутится...';
+      
+      // Simulate spinning animation
+      setTimeout(() => {
+        const prize = getRandomPrize(CASE_PRIZES);
+        showRouletteResult(prize);
+        isSpinning = false;
+        $('#spinBtn').disabled = false;
+        $('#spinBtn').textContent = '🎯 Крутить кейс';
+      }, 2000);
+    }
+
+    function spinBusinessRoulette() {
+      if (isSpinning) return;
+      
+      isSpinning = true;
+      $('#businessSpinBtn').disabled = true;
+      $('#businessSpinBtn').textContent = '🎯 Крутится...';
+      
+      setTimeout(() => {
+        const prize = getRandomPrize(BUSINESS_ROULETTE_PRIZES);
+        showBusinessRouletteResult(prize);
+        isSpinning = false;
+        $('#businessSpinBtn').disabled = false;
+        $('#businessSpinBtn').textContent = '🎯 Крутить бизнес-рулетку';
+      }, 2000);
+    }
+
+    function getRandomPrize(prizes) {
+      const random = Math.random();
+      let cumulative = 0;
+      
+      for (const prize of prizes) {
+        cumulative += prize.probability;
+        if (random <= cumulative) {
+          return prize;
+        }
+      }
+      
+      return prizes[0]; // Fallback
+    }
+
+    function showRouletteResult(prize) {
+      $('#rouletteResult').innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">${prize.icon}</div>
+          <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
+          <p style="color: var(--text-secondary);">Поздравляем! Вы получили ценный приз!</p>
         </div>
-        <div class="lore-card glass lore-button hover-card" id="powerSymbolsCard">
-          <div class="lore-icon floating">💎</div>
-          <h3>Символы Богатства</h3>
-          <p>Каждый символ представляет проверенный путь к финансовому успеху и содержит мудрость миллионеров.</p>
-          <div class="lore-action">→ Изучить Богатство</div>
-          <div class="card-glow"></div>
+      `;
+      showModal('rouletteModal');
+    }
+
+    function showBusinessRouletteResult(prize) {
+      $('#businessRouletteResult').innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">${prize.icon}</div>
+          <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1rem;">${prize.value}</p>
+          <p style="color: var(--text-secondary);">Отличный бизнес-приз!</p>
         </div>
-        <div class="lore-card glass hover-card">
-          <div class="lore-icon floating">📊</div>
-          <h3>Аналитика Успеха</h3>
-          <p>Подробная аналитика и стратегии, которые помогли тысячам людей достичь финансовой независимости.</p>
-          <div class="card-glow"></div>
+      `;
+      showModal('businessRouletteModal');
+    }
+
+    function showPrizes() {
+      const prizesList = BUSINESS_ROULETTE_PRIZES.map(prize => `
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);">
+          <div style="font-size: 2rem;">${prize.icon}</div>
+          <div>
+            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">${prize.name}</h4>
+            <p style="color: var(--text-secondary);">${prize.value}</p>
+          </div>
         </div>
-      </div>
-    </section>
+      `).join('');
+      
+      $('#prizesList').innerHTML = prizesList;
+      showModal('prizesModal');
+    }
 
-    <!-- Disclaimer Footer -->
-    <footer class="conspiracy-footer glass">
-      <div class="warning-text">
-        ⚠️ Внимание: Кейс содержит образовательную информацию о финансовых стратегиях и предназначен для развлечения. 
-        Инвестиционные решения принимайте осознанно и с учетом рисков.
-      </div>
-    </footer>
-  </div>
+    function buySpin() {
+      if (userData.mulacoin >= 13) {
+        userData.mulacoin -= 13;
+        updateUI();
+        toast('Спин куплен за 13 MULACOIN!', 'success');
+        spinBusinessRoulette();
+      } else {
+        toast('Недостаточно MULACOIN для покупки спина!', 'error');
+      }
+    }
 
-  <!-- Prizes Modal -->
-  <div id="prizesModal" class="modal">
-    <div class="modalContent glass">
-      <button class="close" id="closePrizesModal" aria-label="Закрыть">×</button>
-      <div class="modal-header">
-        <h3>🎁 Возможные Награды</h3>
-        <p>Ценные ресурсы для достижения успеха</p>
-      </div>
-      <div class="prizes-grid" id="prizesGrid">
-        <!-- Prizes will be loaded here -->
-      </div>
-    </div>
-  </div>
+    function joinChannel() {
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink('https://t.me/+channel');
+      } else {
+        window.open('https://t.me/+channel', '_blank');
+      }
+    }
 
-  <!-- History Modal -->
-  <div id="historyModal" class="modal">
-    <div class="modalContent glass">
-      <button class="close" id="closeHistoryModal" aria-label="Закрыть">×</button>
-      <div class="modal-header">
-        <h3>📜 История Достижений</h3>
-        <p>Ваши успехи в академии богатства</p>
-      </div>
-      <div id="historyContent">
-        <!-- History will be loaded here -->
-      </div>
-    </div>
-  </div>
+    // Activity feed
+    async function loadActivityFeed() {
+      try {
+        // Simulate loading posts from channel
+        const mockPosts = [
+          {
+            id: 1,
+            author: "Академия Успеха",
+            content: "🔥 Новый кейс 'Инвестиции в криптовалюту' теперь доступен! Изучите стратегии опытных трейдеров.",
+            date: "2 часа назад"
+          },
+          {
+            id: 2,
+            author: "Академия Успеха",
+            content: "💎 Секреты успешных предпринимателей: как построить бизнес с нуля и достичь финансовой независимости.",
+            date: "5 часов назад"
+          },
+          {
+            id: 3,
+            author: "Академия Успеха",
+            content: "📈 Анализ рынка: какие отрасли будут расти в 2024 году? Экспертные прогнозы и рекомендации.",
+            date: "1 день назад"
+          }
+        ];
+        
+        const feedContainer = $('#activityFeed');
+        feedContainer.innerHTML = mockPosts.map(post => `
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-avatar">🎓</div>
+              <div class="post-info">
+                <h4>${post.author}</h4>
+                <div class="post-date">${post.date}</div>
+              </div>
+            </div>
+            <div class="post-content">${post.content}</div>
+          </div>
+        `).join('');
+        
+      } catch (error) {
+        console.error('Ошибка загрузки ленты активности:', error);
+      }
+    }
 
-  <!-- Prize Result Modal -->
-  <div id="prizeModal" class="prize-modal">
-    <div class="prize-content glass">
-      <div class="prize-icon" id="prizeIcon">🎁</div>
-      <h3 id="prizeTitle">Ключ к Успеху Найден!</h3>
-      <p id="prizeDescription">Вы получили ценный ресурс!</p>
-      <div id="prizeDetails"></div>
-      <button id="closePrize" class="btn primary glow-effect">Закрыть</button>
-    </div>
-  </div>
+    // Event listeners
+    function initEventListeners() {
+      $('#backToQuests').addEventListener('click', () => {
+        if (tg && tg.close) {
+          tg.close();
+        } else {
+          window.history.back();
+        }
+      });
+      
+      $('#spinBtn').addEventListener('click', spinRoulette);
+      $('#businessSpinBtn').addEventListener('click', spinBusinessRoulette);
+      $('#showPrizesBtn').addEventListener('click', showPrizes);
+      $('#buySpinBtn').addEventListener('click', buySpin);
+    }
 
-  <!-- Business Roulette Result Modal -->
-  <div id="businessRouletteModal" class="modal">
-    <div class="modalContent glass">
-      <button class="close" id="closeBusinessRouletteModal" aria-label="Закрыть">×</button>
-      <div class="modal-header">
-        <h3>🎉 Результат Бизнес-рулетки!</h3>
-        <p>Получите бонусы для развития вашего бизнеса</p>
-      </div>
-      <div class="roulette-result" id="businessRouletteResult">
-        <!-- Result will be shown here -->
-      </div>
-    </div>
-  </div>
+    // Initialize app
+    async function initApp() {
+      try {
+        // Initialize Telegram
+        initTG();
+        
+        // Initialize Supabase
+        await initSupabase();
+        
+        // Load user data if available
+        if (userData.telegramId) {
+          await loadUserData(userData.telegramId);
+        }
+        
+        // Load activity feed
+        await loadActivityFeed();
+        
+        // Initialize event listeners
+        initEventListeners();
+        
+        // Hide loading screen
+        setTimeout(() => {
+          $('#loading').classList.remove('show');
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Ошибка инициализации приложения:', error);
+        // Hide loading screen even if there's an error
+        setTimeout(() => {
+          $('#loading').classList.remove('show');
+        }, 1000);
+      }
+    }
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <!-- Audio -->
-  <audio id="caseSpinMusic" preload="auto">
-    <source src="./assets/photovideo/kazik.mp3" type="audio/mpeg">
-  </audio>
-
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="./case.js"></script>
+    // Start app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
+    
+    // Fallback initialization
+    setTimeout(initApp, 100);
+    setTimeout(initApp, 500);
+    setTimeout(initApp, 1000);
+  </script>
 </body>
 </html>
