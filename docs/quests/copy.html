@@ -57,6 +57,18 @@
   <link rel="stylesheet" href="business-core.css" />
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="animated-background">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+    </div>
+    <div class="grid-overlay"></div>
+  </div>
+
   <div id="app" class="app">
     <header class="glass topbar">
       <div class="brand">
@@ -363,6 +375,225 @@
           <button id="finishQuest" class="btn primary">Завершить квест</button>
         </div>
       </section>
+
+      <!-- Дополнительные блоки из case.html -->
+      
+      <!-- Бизнес-рулетка -->
+      <section class="business-roulette-section">
+        <div class="stage-header">
+          <h2>🎰 Бизнес-рулетка</h2>
+          <p>Крутите рулетку и получайте бонусы для вашего бизнеса!</p>
+        </div>
+        
+        <div class="roulette-container">
+          <div class="roulette-display">
+            <div class="roulette-items" id="rouletteItems">
+              <!-- Призы будут загружены динамически -->
+            </div>
+            <div class="roulette-pointer">
+              <div class="pointer-arrow">▼</div>
+              <div class="pointer-glow"></div>
+            </div>
+          </div>
+          
+          <!-- Мистические эффекты -->
+          <div class="mystical-circle circle-1"></div>
+          <div class="mystical-circle circle-2"></div>
+          <div class="mystical-circle circle-3"></div>
+          
+          <!-- Партиклы -->
+          <div class="particles">
+            <div class="particle particle-1"></div>
+            <div class="particle particle-2"></div>
+            <div class="particle particle-3"></div>
+            <div class="particle particle-4"></div>
+            <div class="particle particle-5"></div>
+          </div>
+        </div>
+        
+        <div class="roulette-controls">
+          <button id="spinRoulette" class="btn primary large">
+            <span class="btn-icon">🎯</span>
+            <span class="btn-text">Крутить рулетку</span>
+          </button>
+          
+          <button id="showPrizes" class="btn ghost">
+            <span class="btn-icon">👁️</span>
+            <span class="btn-text">Возможные призы</span>
+          </button>
+          
+          <button id="buySpin" class="btn warning">
+            <span class="btn-icon">🪙</span>
+            <span class="btn-text">Крутить за 5 MULACOIN</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Бизнес-лоре -->
+      <section class="business-lore-section">
+        <div class="stage-header">
+          <h2>📚 Бизнес-мудрость</h2>
+          <p>Изучите секреты успешных предпринимателей и стратегии ведения бизнеса</p>
+        </div>
+        
+        <div class="lore-grid">
+          <div class="lore-card glass hover-card">
+            <div class="lore-icon floating">🏝️</div>
+            <h3>Остров Возможностей</h3>
+            <p>Эксклюзивное место, где собираются самые успешные предприниматели мира для обмена стратегиями и создания империй.</p>
+            <div class="lore-action">→ Исследовать возможности</div>
+            <div class="card-glow"></div>
+          </div>
+          
+          <div class="lore-card glass hover-card">
+            <div class="lore-icon floating">💎</div>
+            <h3>Символы богатства</h3>
+            <p>Каждый символ представляет проверенный путь к финансовому успеху и содержит мудрость миллионеров.</p>
+            <div class="lore-action">→ Изучить богатство</div>
+            <div class="card-glow"></div>
+          </div>
+          
+          <div class="lore-card glass hover-card">
+            <div class="lore-icon floating">📊</div>
+            <h3>Аналитика успеха</h3>
+            <p>Подробная аналитика и стратегии, которые помогли тысячам людей достичь финансовой независимости.</p>
+            <div class="card-glow"></div>
+          </div>
+          
+          <div class="lore-card glass hover-card">
+            <div class="lore-icon floating">🚀</div>
+            <h3>Стратегии роста</h3>
+            <p>Проверенные методы масштабирования бизнеса и увеличения прибыли в кратчайшие сроки.</p>
+            <div class="lore-action">→ Изучить стратегии</div>
+            <div class="card-glow"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Бизнес-инструменты -->
+      <section class="business-tools-section">
+        <div class="stage-header">
+          <h2>🛠️ Бизнес-инструменты</h2>
+          <p>Полезные инструменты для развития вашего бизнеса</p>
+        </div>
+        
+        <div class="tools-grid">
+          <div class="tool-card glass hover-card">
+            <div class="tool-icon floating">📈</div>
+            <h3>Калькулятор ROI</h3>
+            <p>Рассчитайте возврат инвестиций для различных бизнес-проектов</p>
+            <button class="btn primary">Использовать</button>
+          </div>
+          
+          <div class="tool-card glass hover-card">
+            <div class="tool-icon floating">📊</div>
+            <h3>Анализ конкурентов</h3>
+            <p>Изучите конкурентов и найдите свои преимущества</p>
+            <button class="btn primary">Анализировать</button>
+          </div>
+          
+          <div class="tool-card glass hover-card">
+            <div class="tool-icon floating">💡</div>
+            <h3>Генератор идей</h3>
+            <p>Получите креативные идеи для развития бизнеса</p>
+            <button class="btn primary">Генерировать</button>
+          </div>
+          
+          <div class="tool-card glass hover-card">
+            <div class="tool-icon floating">🎯</div>
+            <h3>Планировщик целей</h3>
+            <p>Создайте план достижения ваших бизнес-целей</p>
+            <button class="btn primary">Планировать</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Лента активности -->
+      <section class="activity-feed-section">
+        <div class="stage-header">
+          <h2>📱 Лента активности</h2>
+          <p>Последние посты из нашего канала о бизнесе и успехе</p>
+        </div>
+        
+        <div class="activity-feed">
+          <div class="feed-header">
+            <div class="channel-info">
+              <div class="channel-avatar">📢</div>
+              <div class="channel-details">
+                <h3>Бизнес & Успех</h3>
+                <p>Канал о предпринимательстве и достижении целей</p>
+              </div>
+            </div>
+            <button id="joinChannel" class="btn primary">Вступить и читать</button>
+          </div>
+          
+          <div class="posts-container" id="postsContainer">
+            <!-- Посты будут загружены динамически -->
+            <div class="loading-posts">
+              <div class="loading-spinner"></div>
+              <p>Загружаем последние посты...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Достижения и награды -->
+      <section class="achievements-section">
+        <div class="stage-header">
+          <h2>🏆 Достижения</h2>
+          <p>Отслеживайте свой прогресс и получайте награды</p>
+        </div>
+        
+        <div class="achievements-grid">
+          <div class="achievement-card glass">
+            <div class="achievement-icon">🎯</div>
+            <h3>Первый шаг</h3>
+            <p>Начните свой путь предпринимателя</p>
+            <div class="achievement-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%"></div>
+              </div>
+              <span class="progress-text">Завершено</span>
+            </div>
+          </div>
+          
+          <div class="achievement-card glass">
+            <div class="achievement-icon">👥</div>
+            <h3>Командостроитель</h3>
+            <p>Соберите команду из 4 специалистов</p>
+            <div class="achievement-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+              <span class="progress-text">0/4</span>
+            </div>
+          </div>
+          
+          <div class="achievement-card glass">
+            <div class="achievement-icon">💰</div>
+            <h3>Миллионер</h3>
+            <p>Достигните дохода 100,000 ₽</p>
+            <div class="achievement-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+              <span class="progress-text">0/100,000</span>
+            </div>
+          </div>
+          
+          <div class="achievement-card glass">
+            <div class="achievement-icon">🚀</div>
+            <h3>Предприниматель</h3>
+            <p>Завершите весь квест</p>
+            <div class="achievement-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+              <span class="progress-text">0/4 этапа</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Toast уведомления -->
@@ -378,6 +609,35 @@
         <div class="step" data-step="2">2</div>
         <div class="step" data-step="3">3</div>
         <div class="step" data-step="4">4</div>
+      </div>
+    </div>
+
+    <!-- Модальные окна -->
+    
+    <!-- Модал призов -->
+    <div id="prizesModal" class="modal">
+      <div class="modalContent glass">
+        <button class="close" id="closePrizesModal">×</button>
+        <div class="modal-header">
+          <h3>🎁 Возможные призы</h3>
+          <p>Ценные ресурсы для развития вашего бизнеса</p>
+        </div>
+        <div class="prizes-grid" id="prizesGrid">
+          <!-- Призы будут загружены динамически -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Модал результата рулетки -->
+    <div id="rouletteResultModal" class="modal">
+      <div class="modalContent glass">
+        <div class="modal-header">
+          <h3>🎉 Результат рулетки!</h3>
+        </div>
+        <div class="roulette-result" id="rouletteResult">
+          <!-- Результат будет показан динамически -->
+        </div>
+        <button id="closeRouletteResult" class="btn primary">Закрыть</button>
       </div>
     </div>
   </div>

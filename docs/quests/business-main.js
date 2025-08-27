@@ -13,6 +13,51 @@ let businessStats = {
   reputation: 0
 };
 
+// Данные для рулетки
+const ROULETTE_PRIZES = [
+  { id: 1, name: 'Бонус к доходу', value: '+20% к доходу', icon: '💰', probability: 0.3 },
+  { id: 2, name: 'Ускорение роста', value: '+15% к росту', icon: '📈', probability: 0.25 },
+  { id: 3, name: 'Повышение репутации', value: '+10 к репутации', icon: '⭐', probability: 0.2 },
+  { id: 4, name: 'MULACOIN', value: '+2 MULACOIN', icon: '🥇', probability: 0.15 },
+  { id: 5, name: 'Специальный бонус', value: 'Уникальная награда', icon: '🎁', probability: 0.1 }
+];
+
+// Данные для постов канала (заглушка)
+const CHANNEL_POSTS = [
+  {
+    id: 1,
+    title: '5 секретов успешного предпринимателя',
+    excerpt: 'Узнайте, как построить прибыльный бизнес с нуля и стать лидером в своей нише...',
+    date: '2 часа назад',
+    views: '1.2K',
+    likes: '89'
+  },
+  {
+    id: 2,
+    title: 'Инвестиционные стратегии 2024',
+    excerpt: 'Анализ лучших инвестиционных возможностей года и стратегии для начинающих инвесторов...',
+    date: '5 часов назад',
+    views: '856',
+    likes: '67'
+  },
+  {
+    id: 3,
+    title: 'Как собрать сильную команду',
+    excerpt: 'Пошаговое руководство по найму лучших специалистов и созданию эффективной команды...',
+    date: '1 день назад',
+    views: '2.1K',
+    likes: '156'
+  },
+  {
+    id: 4,
+    title: 'Маркетинг в цифровую эпоху',
+    excerpt: 'Современные методы продвижения бизнеса в интернете и социальных сетях...',
+    date: '2 дня назад',
+    views: '1.8K',
+    likes: '134'
+  }
+];
+
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Инициализация квеста "Твой первый бизнес"...');
@@ -39,6 +84,12 @@ function initializeQuest() {
   
   // Инициализируем обработчики событий
   initializeEventHandlers();
+  
+  // Инициализируем рулетку
+  initializeRoulette();
+  
+  // Инициализируем ленту активности
+  initializeActivityFeed();
   
   // Показываем вступительное модальное окно
   showIntroModal();
@@ -87,6 +138,12 @@ function initializeUI() {
   
   // Инициализируем решения
   initializeDecisions();
+  
+  // Инициализируем инструменты
+  initializeTools();
+  
+  // Инициализируем достижения
+  initializeAchievements();
 }
 
 // Инициализация карточек ниш
@@ -213,6 +270,291 @@ function initializeDecisions() {
   });
 }
 
+// Инициализация инструментов
+function initializeTools() {
+  const toolCards = document.querySelectorAll('.tool-card .btn');
+  
+  toolCards.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const toolName = this.closest('.tool-card').querySelector('h3').textContent;
+      showToast(`Инструмент "${toolName}" будет доступен в полной версии!`, 'info');
+    });
+  });
+}
+
+// Инициализация достижений
+function initializeAchievements() {
+  // Обновляем прогресс достижений
+  updateAchievementsProgress();
+}
+
+// Обновление прогресса достижений
+function updateAchievementsProgress() {
+  // Первый шаг - всегда завершен
+  const firstStepProgress = document.querySelector('.achievement-card:nth-child(1) .progress-fill');
+  if (firstStepProgress) {
+    firstStepProgress.style.width = '100%';
+  }
+  
+  // Командостроитель
+  const teamBuilderProgress = document.querySelector('.achievement-card:nth-child(2) .progress-fill');
+  const teamBuilderText = document.querySelector('.achievement-card:nth-child(2) .progress-text');
+  if (teamBuilderProgress && teamBuilderText) {
+    const progress = (businessStats.teamSize / 4) * 100;
+    teamBuilderProgress.style.width = `${progress}%`;
+    teamBuilderText.textContent = `${businessStats.teamSize}/4`;
+  }
+  
+  // Миллионер
+  const millionaireProgress = document.querySelector('.achievement-card:nth-child(3) .progress-fill');
+  const millionaireText = document.querySelector('.achievement-card:nth-child(3) .progress-text');
+  if (millionaireProgress && millionaireText) {
+    const progress = Math.min((businessStats.revenue / 100000) * 100, 100);
+    millionaireProgress.style.width = `${progress}%`;
+    millionaireText.textContent = `${businessStats.revenue.toLocaleString()}/100,000`;
+  }
+  
+  // Предприниматель
+  const entrepreneurProgress = document.querySelector('.achievement-card:nth-child(4) .progress-fill');
+  const entrepreneurText = document.querySelector('.achievement-card:nth-child(4) .progress-text');
+  if (entrepreneurProgress && entrepreneurText) {
+    const progress = (currentStage / 4) * 100;
+    entrepreneurProgress.style.width = `${progress}%`;
+    entrepreneurText.textContent = `${currentStage}/4 этапа`;
+  }
+}
+
+// Инициализация рулетки
+function initializeRoulette() {
+  const spinRouletteBtn = document.getElementById('spinRoulette');
+  const showPrizesBtn = document.getElementById('showPrizes');
+  const buySpinBtn = document.getElementById('buySpin');
+  
+  if (spinRouletteBtn) {
+    spinRouletteBtn.addEventListener('click', spinRoulette);
+  }
+  
+  if (showPrizesBtn) {
+    showPrizesBtn.addEventListener('click', showPrizes);
+  }
+  
+  if (buySpinBtn) {
+    buySpinBtn.addEventListener('click', buySpin);
+  }
+  
+  // Создаем элементы рулетки
+  createRouletteItems();
+}
+
+// Создание элементов рулетки
+function createRouletteItems() {
+  const rouletteItems = document.getElementById('rouletteItems');
+  if (!rouletteItems) return;
+  
+  rouletteItems.innerHTML = '';
+  
+  ROULETTE_PRIZES.forEach((prize, index) => {
+    const item = document.createElement('div');
+    item.className = 'roulette-item';
+    item.style.transform = `rotate(${(360 / ROULETTE_PRIZES.length) * index}deg)`;
+    
+    item.innerHTML = `
+      <div class="prize-content">
+        <div class="prize-icon">${prize.icon}</div>
+        <div class="prize-name">${prize.name}</div>
+      </div>
+    `;
+    
+    rouletteItems.appendChild(item);
+  });
+}
+
+// Кручение рулетки
+function spinRoulette() {
+  const rouletteItems = document.getElementById('rouletteItems');
+  if (!rouletteItems) return;
+  
+  // Отключаем кнопку
+  const spinBtn = document.getElementById('spinRoulette');
+  if (spinBtn) {
+    spinBtn.disabled = true;
+    spinBtn.textContent = 'Крутится...';
+  }
+  
+  // Случайный приз
+  const randomPrize = ROULETTE_PRIZES[Math.floor(Math.random() * ROULETTE_PRIZES.length)];
+  
+  // Анимация вращения
+  const spins = 5 + Math.random() * 5; // 5-10 оборотов
+  const duration = 3000 + Math.random() * 2000; // 3-5 секунд
+  
+  rouletteItems.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+  rouletteItems.style.transform = `rotate(${spins * 360 + Math.random() * 360}deg)`;
+  
+  setTimeout(() => {
+    // Показываем результат
+    showRouletteResult(randomPrize);
+    
+    // Восстанавливаем кнопку
+    if (spinBtn) {
+      spinBtn.disabled = false;
+      spinBtn.textContent = 'Крутить рулетку';
+    }
+    
+    // Сбрасываем анимацию
+    rouletteItems.style.transition = 'none';
+    rouletteItems.style.transform = 'rotate(0deg)';
+    
+    setTimeout(() => {
+      rouletteItems.style.transition = 'transform 0.3s ease';
+    }, 50);
+  }, duration);
+}
+
+// Показать результат рулетки
+function showRouletteResult(prize) {
+  const modal = document.getElementById('rouletteResultModal');
+  const resultContent = document.getElementById('rouletteResult');
+  
+  if (!modal || !resultContent) return;
+  
+  resultContent.innerHTML = `
+    <div class="result-icon">${prize.icon}</div>
+    <h3>${prize.name}</h3>
+    <p>${prize.value}</p>
+  `;
+  
+  modal.classList.add('show');
+  
+  // Применяем приз
+  applyRoulettePrize(prize);
+}
+
+// Применение приза рулетки
+function applyRoulettePrize(prize) {
+  switch (prize.id) {
+    case 1: // Бонус к доходу
+      businessStats.revenue += businessStats.revenue * 0.2;
+      break;
+    case 2: // Ускорение роста
+      businessStats.growth += 15;
+      break;
+    case 3: // Повышение репутации
+      businessStats.reputation += 10;
+      break;
+    case 4: // MULACOIN
+      // Здесь можно добавить логику для MULACOIN
+      break;
+    case 5: // Специальный бонус
+      businessStats.revenue += 5000;
+      businessStats.reputation += 5;
+      break;
+  }
+  
+  // Обновляем отображение
+  updateBusinessStats();
+  updateAchievementsProgress();
+  
+  showToast(`Получен приз: ${prize.name} - ${prize.value}`, 'success');
+}
+
+// Показать призы
+function showPrizes() {
+  const modal = document.getElementById('prizesModal');
+  const prizesGrid = document.getElementById('prizesGrid');
+  
+  if (!modal || !prizesGrid) return;
+  
+  prizesGrid.innerHTML = '';
+  
+  ROULETTE_PRIZES.forEach(prize => {
+    const prizeCard = document.createElement('div');
+    prizeCard.className = 'prize-card glass';
+    
+    prizeCard.innerHTML = `
+      <div class="prize-icon">${prize.icon}</div>
+      <h4>${prize.name}</h4>
+      <p>${prize.value}</p>
+      <div class="prize-probability">Шанс: ${Math.round(prize.probability * 100)}%</div>
+    `;
+    
+    prizesGrid.appendChild(prizeCard);
+  });
+  
+  modal.classList.add('show');
+}
+
+// Покупка кручения
+function buySpin() {
+  showToast('Функция покупки кручения будет доступна в полной версии!', 'info');
+}
+
+// Инициализация ленты активности
+function initializeActivityFeed() {
+  const joinChannelBtn = document.getElementById('joinChannel');
+  
+  if (joinChannelBtn) {
+    joinChannelBtn.addEventListener('click', joinChannel);
+  }
+  
+  // Загружаем посты
+  loadChannelPosts();
+}
+
+// Присоединение к каналу
+function joinChannel() {
+  // Открываем канал в Telegram
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.openTelegramLink('https://t.me/+1001928787715');
+  } else {
+    // Fallback для браузера
+    window.open('https://t.me/+1001928787715', '_blank');
+  }
+  
+  showToast('Переходим в канал "Бизнес & Успех"!', 'success');
+}
+
+// Загрузка постов канала
+function loadChannelPosts() {
+  const postsContainer = document.getElementById('postsContainer');
+  if (!postsContainer) return;
+  
+  // Имитируем загрузку
+  setTimeout(() => {
+    postsContainer.innerHTML = '';
+    
+    CHANNEL_POSTS.forEach(post => {
+      const postCard = createPostCard(post);
+      postsContainer.appendChild(postCard);
+    });
+  }, 1500);
+}
+
+// Создание карточки поста
+function createPostCard(post) {
+  const postCard = document.createElement('div');
+  postCard.className = 'post-card glass';
+  
+  postCard.innerHTML = `
+    <div class="post-header">
+      <h4>${post.title}</h4>
+      <span class="post-date">${post.date}</span>
+    </div>
+    <p class="post-excerpt">${post.excerpt}</p>
+    <div class="post-stats">
+      <span class="post-views">👁️ ${post.views}</span>
+      <span class="post-likes">❤️ ${post.likes}</span>
+    </div>
+  `;
+  
+  postCard.addEventListener('click', () => {
+    // Открываем пост в канале
+    joinChannel();
+  });
+  
+  return postCard;
+}
+
 // Инициализация drag & drop
 function initializeDragAndDrop() {
   const candidateCards = document.querySelectorAll('.candidate-card');
@@ -249,11 +591,17 @@ function handleDragOver(e) {
 
 function handleDragEnter(e) {
   e.preventDefault();
-  e.target.closest('.candidate-drop-zone').classList.add('drag-over');
+  const dropZone = e.target.closest('.candidate-drop-zone');
+  if (dropZone) {
+    dropZone.classList.add('drag-over');
+  }
 }
 
 function handleDragLeave(e) {
-  e.target.closest('.candidate-drop-zone').classList.remove('drag-over');
+  const dropZone = e.target.closest('.candidate-drop-zone');
+  if (dropZone) {
+    dropZone.classList.remove('drag-over');
+  }
 }
 
 function handleDrop(e) {
@@ -325,6 +673,7 @@ function updateTeamStatus() {
   // Обновляем статистику
   businessStats.teamSize = filledPositions;
   updateBusinessStats();
+  updateAchievementsProgress();
 }
 
 // Обновление бизнес-статистики
@@ -359,6 +708,7 @@ function applyDecision(decision) {
   
   // Обновляем отображение
   updateBusinessStats();
+  updateAchievementsProgress();
   
   // Показываем toast
   showToast(`Решение применено: ${decision.title}`, 'success');
@@ -376,6 +726,32 @@ function initializeEventHandlers() {
   window.addEventListener('unhandledrejection', function(event) {
     console.error('Необработанный промис:', event.reason);
     showToast('Произошла асинхронная ошибка.', 'error');
+  });
+  
+  // Обработчики модальных окон
+  const closePrizesModal = document.getElementById('closePrizesModal');
+  const closeRouletteResult = document.getElementById('closeRouletteResult');
+  
+  if (closePrizesModal) {
+    closePrizesModal.addEventListener('click', () => {
+      document.getElementById('prizesModal').classList.remove('show');
+    });
+  }
+  
+  if (closeRouletteResult) {
+    closeRouletteResult.addEventListener('click', () => {
+      document.getElementById('rouletteResultModal').classList.remove('show');
+    });
+  }
+  
+  // Закрытие модалов по клику вне их
+  window.addEventListener('click', function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      if (event.target === modal) {
+        modal.classList.remove('show');
+      }
+    });
   });
 }
 
@@ -446,6 +822,7 @@ function nextQuarter() {
   
   // Обновляем отображение
   updateBusinessStats();
+  updateAchievementsProgress();
   
   // Показываем toast
   showToast('📈 Квартал завершен! Бизнес растет.', 'success');
@@ -466,7 +843,7 @@ function finishQuest() {
   // Показываем toast
   showToast('🎉 Квест завершен! Поздравляем с успешным бизнесом!', 'success');
   
-  // Здесь можно добавить логику возврата к основным квестам
+  // Возвращаемся к основным квестам
   setTimeout(() => {
     goBack();
   }, 2000);
@@ -489,6 +866,9 @@ function showStage(stageNumber) {
   
   // Обновляем текущий этап
   currentStage = stageNumber;
+  
+  // Обновляем достижения
+  updateAchievementsProgress();
 }
 
 // Получить ID этапа
@@ -554,8 +934,8 @@ function goBack() {
     window.history.back();
   } else {
     // Если нет истории, переходим на главную страницу квестов
-        window.location.href = '../quests.html';
-    }
+    window.location.href = '../quests.html';
+  }
 }
 
 // Показать toast уведомление
