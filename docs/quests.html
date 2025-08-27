@@ -4,22 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Квесты</title>
-  
-  <!-- Preload critical resources -->
-  <link rel="preload" href="./quests.css" as="style">
-  <link rel="preload" href="./quests.js" as="script">
-  <link rel="preload" href="assets/rulette/case_open.png" as="image">
-  
-  <!-- Fonts with display=swap for better performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  
   <link rel="stylesheet" href="./quests.css" />
   
-  <!-- Optimized Telegram WebApp SDK loading -->
+  <!-- Preload critical resources -->
+  <link rel="preload" href="./assets/rulette/case_open.png" as="image">
+  <link rel="preload" href="./assets/photovideo/ruletka.png" as="image">
+  
   <script>
-    // Optimized Telegram WebApp SDK loading
+    // Telegram WebApp SDK - загружаем асинхронно
     (function(){
       if (!window.Telegram || !window.Telegram.WebApp) {
         var s = document.createElement('script');
@@ -62,7 +57,7 @@
       <div class="case-aura"></div>
       <div class="case-frame">
         <button class="case-button" id="mysteryCaseBtn">
-          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage" loading="lazy">
+          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
         </button>
         
         <div class="case-caption">
@@ -103,11 +98,11 @@
           <div class="description">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
           <div class="meta">
             <div class="tag medium">Средний</div>
-            <div class="tag">Вариация #1/10</div>
+            <div class="tag">Вариация #1/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="copy">Начать квест</button>
-            <button class="btn ghost details" data-quest="copy">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
 
@@ -118,11 +113,11 @@
           <div class="description">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени.</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #2/10</div>
+            <div class="tag">Вариация #2/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="world-government">Начать квест</button>
-            <button class="btn ghost details" data-quest="world-government">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
 
@@ -133,11 +128,11 @@
           <div class="description">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
           <div class="meta">
             <div class="tag medium">Средний</div>
-            <div class="tag">Вариация #3/10</div>
+            <div class="tag">Вариация #3/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="bodylang">Начать квест</button>
-            <button class="btn ghost details" data-quest="bodylang">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
 
@@ -148,11 +143,11 @@
           <div class="description">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #6/10</div>
+            <div class="tag">Вариация #4/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="funnel">Начать квест</button>
-            <button class="btn ghost details" data-quest="funnel">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
 
@@ -163,11 +158,11 @@
           <div class="description">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
           <div class="meta">
             <div class="tag medium">Средний</div>
-            <div class="tag">Вариация #7/10</div>
+            <div class="tag">Вариация #5/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="psychology">Начать квест</button>
-            <button class="btn ghost details" data-quest="psychology">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
 
@@ -178,26 +173,26 @@
           <div class="description">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #9/10</div>
+            <div class="tag">Вариация #6/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="competitors">Начать квест</button>
-            <button class="btn ghost details" data-quest="competitors">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
 
         <!-- Анализ трендов -->
         <div class="card" data-style="neo" data-quest="trends">
           <div class="label">Аналитика</div>
-          <h3>Анализ трендов</h3>
+          <h3>📊 Анализ трендов</h3>
           <div class="description">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag">Вариация #10/10</div>
+            <div class="tag">Вариация #7/7</div>
           </div>
           <div class="cta">
-            <button class="btn primary start" data-quest="trends">Начать квест</button>
-            <button class="btn ghost details" data-quest="trends">Подробнее</button>
+            <button class="btn primary start">Начать квест</button>
+            <button class="btn ghost details">Подробнее</button>
           </div>
         </div>
       </div>
@@ -221,8 +216,299 @@
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Optimized JavaScript loading -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
-  <script src="./quests.js" defer></script>
+  <!-- Оптимизированный JavaScript -->
+  <script>
+    // Конфигурация
+    const QUEST_DATA = {
+      'copy': { 
+        name: '🏢 Твой первый бизнес', 
+        description: 'Создай и управляй своим бизнесом с нуля.',
+        difficulty: 'medium',
+        rewards: { mulacoin: 3, exp: 200 }
+      },
+      'world-government': { 
+        name: 'Мировое тайное правительство', 
+        description: 'Создай мировое тайное правительство, распределяя персонажей по секторам.',
+        difficulty: 'hard',
+        rewards: { mulacoin: 5, exp: 1000 }
+      },
+      'bodylang': { 
+        name: 'Язык тела', 
+        description: 'Распознай невербальные сигналы 2D‑персонажа.',
+        difficulty: 'medium',
+        rewards: { mulacoin: 3, exp: 500 }
+      },
+      'funnel': { 
+        name: 'Империя влияния', 
+        description: 'Создай медиа-империю и управляй массовым сознанием.',
+        difficulty: 'hard',
+        rewards: { mulacoin: 5, exp: 200 }
+      },
+      'psychology': { 
+        name: 'Психология заработка', 
+        description: 'Используй психологические техники для успешных переговоров.',
+        difficulty: 'medium',
+        rewards: { mulacoin: 3, exp: 500 }
+      },
+      'competitors': { 
+        name: 'Анализ конкурентов', 
+        description: 'Изучи конкурентную среду и выбери наиболее сильного конкурента.',
+        difficulty: 'hard',
+        rewards: { mulacoin: 5, exp: 120 }
+      },
+      'trends': { 
+        name: '📊 Анализ трендов', 
+        description: 'Стань мастером рыночной аналитики и трендов.',
+        difficulty: 'hard',
+        rewards: { mulacoin: 4, exp: 200 }
+      }
+    };
+
+    // Состояние приложения
+    let appState = {
+      isInitialized: false,
+      userData: {
+        mulacoin: 0,
+        exp: 0,
+        level: 1
+      }
+    };
+
+    // Утилиты
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    // Функция toast
+    function showToast(message, type = 'info') {
+      const toast = $('#toast');
+      if (!toast) return;
+      
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Функция показа модала
+    function showModal(content) {
+      const modal = $('#modal');
+      const modalBody = $('#modalBody');
+      
+      if (!modal || !modalBody) return;
+      
+      modalBody.innerHTML = content;
+      modal.classList.add('show');
+    }
+
+    // Функция скрытия модала
+    function hideModal() {
+      const modal = $('#modal');
+      if (modal) {
+        modal.classList.remove('show');
+      }
+    }
+
+    // Функция открытия кейса
+    function openCase() {
+      try {
+        // Плавный переход на страницу кейса
+        window.location.href = 'case.html';
+      } catch (error) {
+        console.error('Ошибка перехода на квест:', error);
+        showToast('Ошибка открытия кейса', 'error');
+      }
+    }
+
+    // Функция запуска квеста
+    function startQuest(questId) {
+      try {
+        const quest = QUEST_DATA[questId];
+        if (!quest) {
+          showToast('Квест не найден', 'error');
+          return;
+        }
+
+        // Плавный переход на квест
+        window.location.href = `quests/${questId}.html`;
+      } catch (error) {
+        console.error('Ошибка запуска квеста:', error);
+        showToast('Ошибка запуска квеста', 'error');
+      }
+    }
+
+    // Функция показа деталей квеста
+    function showQuestDetails(questId) {
+      const quest = QUEST_DATA[questId];
+      if (!quest) return;
+
+      const content = `
+        <div class="quest-details">
+          <h3>${quest.name}</h3>
+          <p>${quest.description}</p>
+          <div class="quest-stats">
+            <div class="stat">
+              <span class="label">Сложность:</span>
+              <span class="value ${quest.difficulty}">${quest.difficulty === 'hard' ? 'Сложный' : quest.difficulty === 'medium' ? 'Средний' : 'Легкий'}</span>
+            </div>
+            <div class="stat">
+              <span class="label">Награда:</span>
+              <span class="value">${quest.rewards.mulacoin} 🪙 + ${quest.rewards.exp} XP</span>
+            </div>
+          </div>
+          <div class="quest-actions">
+            <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
+            <button class="btn ghost" onclick="hideModal()">Закрыть</button>
+          </div>
+        </div>
+      `;
+
+      showModal(content);
+    }
+
+    // Функция показа истории
+    function showHistory() {
+      const content = `
+        <div class="history-content">
+          <h3>📊 История прохождения</h3>
+          <p>Ваша статистика и достижения</p>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">${appState.userData.mulacoin}</div>
+              <div class="stat-label">Mulacoin</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${appState.userData.exp}</div>
+              <div class="stat-label">Опыт</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${appState.userData.level}</div>
+              <div class="stat-label">Уровень</div>
+            </div>
+          </div>
+          <button class="btn primary" onclick="hideModal()">Закрыть</button>
+        </div>
+      `;
+
+      showModal(content);
+    }
+
+    // Инициализация обработчиков событий
+    function initializeEventHandlers() {
+      // Обработчики для кнопок квестов
+      $$('.card').forEach(card => {
+        const questId = card.dataset.quest;
+        if (!questId) return;
+
+        const startBtn = card.querySelector('.start');
+        const detailsBtn = card.querySelector('.details');
+
+        if (startBtn) {
+          startBtn.addEventListener('click', () => startQuest(questId));
+        }
+
+        if (detailsBtn) {
+          detailsBtn.addEventListener('click', () => showQuestDetails(questId));
+        }
+      });
+
+      // Обработчик для кнопки кейса
+      const caseBtn = $('#mysteryCaseBtn');
+      if (caseBtn) {
+        caseBtn.addEventListener('click', openCase);
+      }
+
+      // Обработчик для кнопки истории
+      const historyBtn = $('#btnHistory');
+      if (historyBtn) {
+        historyBtn.addEventListener('click', showHistory);
+      }
+
+      // Обработчики для модала
+      const modalClose = $('#modalClose');
+      if (modalClose) {
+        modalClose.addEventListener('click', hideModal);
+      }
+
+      const modal = $('#modal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            hideModal();
+          }
+        });
+      }
+    }
+
+    // Инициализация приложения
+    function initializeApp() {
+      if (appState.isInitialized) return;
+
+      try {
+        // Инициализируем обработчики событий
+        initializeEventHandlers();
+        
+        // Загружаем данные пользователя из localStorage
+        const savedData = localStorage.getItem('userData');
+        if (savedData) {
+          try {
+            appState.userData = { ...appState.userData, ...JSON.parse(savedData) };
+          } catch (e) {
+            console.warn('Ошибка парсинга сохраненных данных:', e);
+          }
+        }
+
+        // Обновляем отображение
+        updateDisplay();
+        
+        appState.isInitialized = true;
+        showToast('Квесты загружены успешно!', 'success');
+        
+        console.log('Приложение инициализировано');
+      } catch (error) {
+        console.error('Ошибка инициализации:', error);
+        showToast('Ошибка загрузки приложения', 'error');
+      }
+    }
+
+    // Обновление отображения
+    function updateDisplay() {
+      // Обновляем mulacoin
+      const mulacoinEl = $('#mulacoinAmount');
+      if (mulacoinEl) {
+        mulacoinEl.textContent = appState.userData.mulacoin;
+      }
+
+      // Обновляем уровень
+      const levelEl = $('#currentLevel');
+      if (levelEl) {
+        levelEl.textContent = appState.userData.level;
+      }
+
+      // Обновляем прогресс уровня
+      const progressEl = $('#levelProgress');
+      if (progressEl) {
+        const expForNext = appState.userData.level * 100;
+        const currentExp = appState.userData.exp % 100;
+        progressEl.textContent = `${currentExp}/${expForNext}`;
+      }
+    }
+
+    // Инициализация при загрузке DOM
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+
+    // Fallback инициализация
+    setTimeout(() => {
+      if (!appState.isInitialized) {
+        console.warn('Fallback инициализация');
+        initializeApp();
+      }
+    }, 1000);
+  </script>
 </body>
 </html>
