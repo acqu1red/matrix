@@ -6,7 +6,7 @@
   <title>Кейс Финансового Успеха</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Creepster&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./case.css" />
   <script>
     // Telegram WebApp SDK
@@ -28,13 +28,26 @@
     </div>
   </div>
 
+  <!-- Animated Background -->
+  <div class="animated-background">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+    </div>
+    <div class="grid-overlay"></div>
+  </div>
+
   <div id="app" class="app">
     <header class="glass topbar">
       <div class="brand">
         <button id="backToQuests" class="btn ghost back-btn">
-          <span>←</span> Назад
+          <span class="back-icon">←</span>
+          <span class="back-text">Назад</span>
         </button>
-        <h1>💰 Кейс Финансового Успеха</h1>
+        <h1 class="title-glow">💰 Кейс Финансового Успеха</h1>
       </div>
       <div class="actions">
         <div class="mulacoin-display">
@@ -47,17 +60,17 @@
     <!-- Success Introduction -->
     <section class="intro-section glass">
       <div class="intro-content">
-        <div class="skull-icon">💰</div>
-        <h2>Академия Финансового Успеха</h2>
+        <div class="skull-icon floating">💰</div>
+        <h2 class="title-animated">Академия Финансового Успеха</h2>
         <p class="intro-text">
           Добро пожаловать в эксклюзивную академию, где хранятся секреты самых 
           успешных людей планеты. Каждый кейс содержит ценные знания и стратегии, 
           которые помогут вам достичь финансовой независимости и построить империю богатства.
         </p>
         <div class="conspiracy-badges">
-          <span class="badge conspiracy">📈 ИНВЕСТИЦИИ</span>
-          <span class="badge conspiracy">💎 БОГАТСТВО</span>
-          <span class="badge conspiracy">🏆 УСПЕХ</span>
+          <span class="badge conspiracy pulse">📈 ИНВЕСТИЦИИ</span>
+          <span class="badge conspiracy pulse">💎 БОГАТСТВО</span>
+          <span class="badge conspiracy pulse">🏆 УСПЕХ</span>
         </div>
       </div>
     </section>
@@ -79,29 +92,39 @@
         <div class="mystical-circle circle-1"></div>
         <div class="mystical-circle circle-2"></div>
         <div class="mystical-circle circle-3"></div>
+        
+        <!-- Particle Effects -->
+        <div class="particles">
+          <div class="particle particle-1"></div>
+          <div class="particle particle-2"></div>
+          <div class="particle particle-3"></div>
+          <div class="particle particle-4"></div>
+          <div class="particle particle-5"></div>
+        </div>
       </div>
     </section>
 
     <!-- Controls -->
     <section class="controls-section">
       <div class="control-group">
-        <button id="spinCase" class="btn primary large conspiracy-btn">
+        <button id="spinCase" class="btn primary large conspiracy-btn glow-effect">
           <span class="btn-icon">🎯</span>
           <span class="btn-text">Крутить Кейс</span>
           <div class="btn-glow"></div>
+          <div class="btn-ripple"></div>
         </button>
         
-        <button id="showPrizes" class="btn ghost conspiracy-btn">
+        <button id="showPrizes" class="btn ghost conspiracy-btn hover-lift">
           <span class="btn-icon">👁️</span>
           <span class="btn-text">Возможные Призы</span>
         </button>
         
-        <button id="buySpinCase" class="btn warning conspiracy-btn">
+        <button id="buySpinCase" class="btn warning conspiracy-btn hover-lift">
           <span class="btn-icon">🪙</span>
           <span class="btn-text">Крутить за 13 MULACOIN</span>
         </button>
         
-        <button id="showHistory" class="btn ghost conspiracy-btn">
+        <button id="showHistory" class="btn ghost conspiracy-btn hover-lift">
           <span class="btn-icon">📜</span>
           <span class="btn-text">История Прохождения</span>
         </button>
@@ -111,22 +134,25 @@
     <!-- Success Lore -->
     <section class="lore-section">
       <div class="lore-grid">
-        <div class="lore-card glass lore-button" id="islandSecretsCard">
-          <div class="lore-icon">🏝️</div>
+        <div class="lore-card glass lore-button hover-card" id="islandSecretsCard">
+          <div class="lore-icon floating">🏝️</div>
           <h3>Остров Возможностей</h3>
           <p>Эксклюзивное место, где собираются самые успешные предприниматели мира для обмена стратегиями и создания империй.</p>
           <div class="lore-action">→ Исследовать Возможности</div>
+          <div class="card-glow"></div>
         </div>
-        <div class="lore-card glass lore-button" id="powerSymbolsCard">
-          <div class="lore-icon">💎</div>
+        <div class="lore-card glass lore-button hover-card" id="powerSymbolsCard">
+          <div class="lore-icon floating">💎</div>
           <h3>Символы Богатства</h3>
           <p>Каждый символ представляет проверенный путь к финансовому успеху и содержит мудрость миллионеров.</p>
           <div class="lore-action">→ Изучить Богатство</div>
+          <div class="card-glow"></div>
         </div>
-        <div class="lore-card glass">
-          <div class="lore-icon">📊</div>
+        <div class="lore-card glass hover-card">
+          <div class="lore-icon floating">📊</div>
           <h3>Аналитика Успеха</h3>
           <p>Подробная аналитика и стратегии, которые помогли тысячам людей достичь финансовой независимости.</p>
+          <div class="card-glow"></div>
         </div>
       </div>
     </section>
@@ -170,12 +196,12 @@
 
   <!-- Prize Result Modal -->
   <div id="prizeModal" class="prize-modal">
-    <div class="prize-content">
+    <div class="prize-content glass">
       <div class="prize-icon" id="prizeIcon">🎁</div>
       <h3 id="prizeTitle">Ключ к Успеху Найден!</h3>
       <p id="prizeDescription">Вы получили ценный ресурс!</p>
       <div id="prizeDetails"></div>
-      <button id="closePrize" class="btn primary">Закрыть</button>
+      <button id="closePrize" class="btn primary glow-effect">Закрыть</button>
     </div>
   </div>
 
