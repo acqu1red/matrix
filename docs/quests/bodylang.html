@@ -3,43 +3,694 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🧠 Язык тела - Формула Quests</title>
-  
-  <!-- Критические стили inline для мгновенной загрузки -->
-  <style>
-    /* Базовые стили для мгновенного отображения */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #42100d 0%, #b95c1a 25%, #e7af3e 50%, #fdd77a 75%, #f3dcb3 100%);
-      color: #42100d;
-      line-height: 1.6; 
-      overflow-x: hidden; 
-      min-height: 100vh;
-    }
-    .app { opacity: 1 !important; }
-    
-    /* Критические стили для header */
-    .topbar { 
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(243, 220, 179, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 2px solid #fdd77a;
-      padding: 16px 20px;
-      box-shadow: 0 4px 20px rgba(231, 175, 62, 0.3);
-    }
-    .brand h1 { 
-      font-size: 24px; 
-      font-weight: 700; 
-      color: #42100d;
-      text-shadow: 0 2px 4px rgba(66, 16, 13, 0.2);
-    }
-  </style>
-  
+  <title>Язык тела - Формула Quests</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="bodylang-core.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ====== BLACK & WHITE THEME ====== */
+    :root {
+      /* Color Palette */
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
+      --bg-tertiary: #111111;
+      --bg-glass: rgba(255, 255, 255, 0.05);
+      --bg-glass-hover: rgba(255, 255, 255, 0.1);
+      
+      /* Text Colors */
+      --text-primary: #ffffff;
+      --text-secondary: #e0e0e0;
+      --text-muted: #a0a0a0;
+      --text-accent: #ffffff;
+      
+      /* Accent Colors */
+      --accent-primary: #ffffff;
+      --accent-secondary: #f0f0f0;
+      --accent-glow: #ffffff;
+      
+      /* Border & Shadow */
+      --border-color: rgba(255, 255, 255, 0.1);
+      --border-hover: rgba(255, 255, 255, 0.2);
+      --shadow-light: 0 4px 20px rgba(255, 255, 255, 0.1);
+      --shadow-medium: 0 8px 40px rgba(255, 255, 255, 0.15);
+      --shadow-heavy: 0 16px 80px rgba(255, 255, 255, 0.2);
+      
+      /* Glass Effect */
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      
+      /* Animation */
+      --transition-fast: 0.2s ease;
+      --transition-medium: 0.4s ease;
+      --transition-slow: 0.8s ease;
+      --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* ====== BASE STYLES ====== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ====== ANIMATED BACKGROUND ====== */
+    .animated-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .floating-shapes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .shape {
+      position: absolute;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 20s infinite linear;
+    }
+
+    .shape-1 {
+      width: 80px;
+      height: 80px;
+      top: 20%;
+      left: 10%;
+      animation-delay: 0s;
+      animation-duration: 25s;
+    }
+
+    .shape-2 {
+      width: 120px;
+      height: 120px;
+      top: 60%;
+      right: 15%;
+      animation-delay: -5s;
+      animation-duration: 30s;
+    }
+
+    .shape-3 {
+      width: 60px;
+      height: 60px;
+      bottom: 30%;
+      left: 20%;
+      animation-delay: -10s;
+      animation-duration: 20s;
+    }
+
+    .shape-4 {
+      width: 100px;
+      height: 100px;
+      top: 40%;
+      right: 40%;
+      animation-delay: -15s;
+      animation-duration: 35s;
+    }
+
+    .shape-5 {
+      width: 40px;
+      height: 40px;
+      bottom: 60%;
+      right: 10%;
+      animation-delay: -20s;
+      animation-duration: 15s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.3;
+      }
+      25% {
+        transform: translateY(-20px) rotate(90deg);
+        opacity: 0.5;
+      }
+      50% {
+        transform: translateY(-40px) rotate(180deg);
+        opacity: 0.3;
+      }
+      75% {
+        transform: translateY(-20px) rotate(270deg);
+        opacity: 0.5;
+      }
+    }
+
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 60s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    /* ====== QUEST CONTAINER ====== */
+    .quest-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ====== HEADER ====== */
+    .quest-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .quest-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 32px;
+      margin-bottom: 15px;
+      background: linear-gradient(45deg, var(--text-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); }
+      50% { filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)); }
+    }
+
+    .quest-description {
+      color: var(--text-secondary);
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ====== PHASE INDICATOR ====== */
+    .phase-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+      gap: 20px;
+    }
+
+    .phase-badge {
+      padding: 12px 24px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-muted);
+      transition: all var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phase-badge::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left var(--transition-medium);
+    }
+
+    .phase-badge:hover::before {
+      left: 100%;
+    }
+
+    .phase-badge.active {
+      background: var(--accent-primary);
+      color: var(--bg-primary);
+      border-color: var(--accent-primary);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-light);
+    }
+
+    /* ====== PHASE CONTAINERS ====== */
+    .phase-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(20px);
+      box-shadow: var(--glass-shadow);
+      transition: all var(--transition-medium);
+      display: none;
+    }
+
+    .phase-container {
+      display: block;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .phase-container:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .phase-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--text-primary);
+    }
+
+    .phase-description {
+      color: var(--text-secondary);
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    /* ====== VIDEO SECTION ====== */
+    .video-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .video-container {
+      position: relative;
+      max-width: 500px;
+      margin: 0 auto;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .video-player {
+      width: 100%;
+      height: auto;
+      border-radius: 15px;
+      pointer-events: none;
+    }
+
+    .video-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+
+    .video-container:hover .video-overlay {
+      opacity: 1;
+    }
+
+    .play-indicator {
+      font-size: 48px;
+      color: var(--text-primary);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    }
+
+    /* ====== ANSWER OPTIONS ====== */
+    .answer-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .answer-option {
+      padding: 20px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .answer-option::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left var(--transition-medium);
+    }
+
+    .answer-option:hover::before {
+      left: 100%;
+    }
+
+    .answer-option:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-light);
+    }
+
+    .answer-option.correct {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: #22c55e;
+      color: #22c55e;
+      animation: correctPulse 0.6s ease-in-out;
+    }
+
+    .answer-option.incorrect {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #ef4444;
+      animation: incorrectShake 0.6s ease-in-out;
+    }
+
+    .answer-option:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes incorrectShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* ====== ATTEMPTS COUNTER ====== */
+    .attempts-counter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 25px 0;
+      padding: 15px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      border-radius: 15px;
+    }
+
+    .attempts-text {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .attempts-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .attempt-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border-color);
+      transition: all var(--transition-fast);
+    }
+
+    .attempt-dot.used {
+      background: #ef4444;
+      transform: scale(1.2);
+    }
+
+    /* ====== CONTROLS ====== */
+    .quest-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .btn-back {
+      padding: 15px 30px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-back::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left var(--transition-medium);
+    }
+
+    .btn-back:hover::before {
+      left: 100%;
+    }
+
+    .btn-back:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-light);
+    }
+
+    /* ====== COMPLETION MODAL ====== */
+    .quest-complete {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-medium);
+      backdrop-filter: blur(10px);
+    }
+
+    .quest-complete.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .quest-complete-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow-heavy);
+      transform: scale(0.8);
+      transition: transform var(--transition-medium);
+    }
+
+    .quest-complete.show .quest-complete-content {
+      transform: scale(1);
+    }
+
+    .quest-complete-icon {
+      font-size: 72px;
+      margin-bottom: 25px;
+      animation: celebrationBounce 2s ease-in-out infinite;
+    }
+
+    @keyframes celebrationBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-10px) scale(1.1); }
+    }
+
+    .quest-complete-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      color: var(--accent-primary);
+      margin-bottom: 20px;
+    }
+
+    .quest-complete-description {
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .quest-rewards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .reward-item {
+      background: var(--bg-glass);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .reward-amount {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent-primary);
+      margin-bottom: 8px;
+    }
+
+    .reward-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+
+    .btn-close {
+      padding: 15px 30px;
+      background: var(--accent-primary);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-size: 16px;
+    }
+
+    .btn-close:hover {
+      background: var(--accent-secondary);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 768px) {
+      .quest-container {
+        padding: 15px;
+      }
+      
+      .quest-title {
+        font-size: 28px;
+      }
+      
+      .answer-options {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .answer-option {
+        padding: 18px;
+        font-size: 15px;
+        min-height: 70px;
+      }
+      
+      .phase-container {
+        padding: 25px 20px;
+      }
+      
+      .quest-rewards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .quest-title {
+        font-size: 24px;
+      }
+      
+      .quest-description {
+        font-size: 16px;
+      }
+      
+      .phase-badge {
+        padding: 10px 20px;
+        font-size: 13px;
+      }
+      
+      .answer-option {
+        padding: 16px;
+        font-size: 14px;
+        min-height: 60px;
+      }
+      
+      .quest-complete-content {
+        padding: 30px 20px;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- Animated Background -->
@@ -54,254 +705,469 @@
     <div class="grid-overlay"></div>
   </div>
 
-  <div id="app" class="app">
-    <header class="glass topbar">
-      <div class="brand">
-        <span class="logoGlow"></span>
-        <h1>🧠 Язык тела</h1>
-        <div class="badge">Психолог</div>
+  <div class="quest-container">
+    <!-- Header -->
+    <div class="quest-header">
+      <h1 class="quest-title">🧠 Язык тела</h1>
+      <p class="quest-description">
+        Изучите психологию лжи и анализ эмоций через невербальные сигналы. 
+        Научитесь читать язык тела как профессионал!
+      </p>
+    </div>
+
+    <!-- Phase Indicator -->
+    <div class="phase-indicator">
+      <div class="phase-badge" id="phase1Badge">Фаза 1: Психология лжи</div>
+      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ эмоций</div>
+    </div>
+
+    <!-- Phase 1: Psychology of Lies -->
+    <div id="videoPhase" class="phase-container">
+      <h2 class="phase-title">🎭 Психология лжи</h2>
+      <p class="phase-description">
+        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек. 
+        Обратите внимание на мимику, жесты и микровыражения.
+      </p>
+      
+      <div class="video-section">
+        <div class="video-container">
+          <video id="videoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+            <source src="../video/dopros1.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+          </video>
+          <div class="video-overlay">
+            <div class="play-indicator">▶️</div>
+          </div>
+        </div>
       </div>
-      <div class="actions">
-        <button id="btnBack" class="btn ghost">← Назад</button>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="videoAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
       </div>
-    </header>
-
-    <!-- Информационное модальное окно -->
-    <div id="introModal" class="modal show">
-      <div class="modalContent glass">
-        <div class="modal-header">
-          <h3>🧠 Добро пожаловать в "Язык тела"</h3>
-          <p>Изучите психологию лжи и научитесь читать эмоции по мимике!</p>
-        </div>
-        
-        <div class="intro-content">
-          <div class="intro-section">
-            <h4>🎯 Суть квеста</h4>
-            <p>Вы — начинающий психолог, специализирующийся на детекции лжи. Ваша задача — анализировать мимику людей, их слова и поведение, чтобы определить, говорят ли они правду или лгут.</p>
-          </div>
-
-          <div class="intro-section">
-            <h4>💪 Что вы прокачаете</h4>
-            <ul>
-              <li>Навыки анализа мимики и микровыражений</li>
-              <li>Понимание психологии лжи и обмана</li>
-              <li>Способность читать эмоции по лицу</li>
-              <li>Критическое мышление и наблюдательность</li>
-              <li>Профессиональную интуицию психолога</li>
-            </ul>
-          </div>
-
-          <div class="intro-section">
-            <h4>🎮 Как играть</h4>
-            <p>Квест состоит из 2 этапов:</p>
-            <ol>
-              <li><strong>Психология лжи</strong> — анализируйте мимику и определяйте ложь</li>
-              <li><strong>Эмоции и чувства</strong> — читайте эмоции по выражению лица</li>
-            </ol>
-          </div>
-
-          <div class="rewards-section">
-            <h4>🏆 Награды за прохождение</h4>
-            <div class="rewards-grid">
-              <div class="reward-item">
-                <span class="reward-icon">🥇</span>
-                <span class="reward-amount">2 MULACOIN</span>
-              </div>
-              <div class="reward-item">
-                <span class="reward-icon">⭐</span>
-                <span class="reward-amount">150 XP</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="disclaimer">
-            <h4>⚠️ Важно</h4>
-            <p>Это обучающий симулятор для развития навыков наблюдения и анализа. В реальной жизни детекция лжи требует профессиональной подготовки.</p>
-          </div>
-        </div>
-        
-        <div class="modal-actions">
-          <button id="startQuest" class="btn primary">🚀 Начать квест</button>
-        </div>
+      
+      <div class="answer-options" id="videoOptions">
+        <!-- Options will be added dynamically -->
       </div>
     </div>
 
-    <!-- Основной контент квеста -->
-    <main class="quest-content" style="display: none;">
-      <!-- Этап 1: Психология лжи -->
-      <section id="psychologyPhase" class="quest-stage active">
-        <div class="stage-header">
-          <h2>🎭 Этап 1: Психология лжи</h2>
-          <p>Анализируйте мимику человека и его слова, чтобы определить, говорит ли он правду или лжет</p>
-        </div>
-        
-        <div class="video-container glass">
-          <div class="video-player" id="psychologyVideo">
-            <video id="psychologyVideoElement" controls>
-              <source src="../assets/videos/rf_01_skepticism.mp4" type="video/mp4">
-              Ваш браузер не поддерживает видео.
-            </video>
-          </div>
-          
-          <div class="video-annotation">
-            <h4>📝 Задание</h4>
-            <p>Посмотрите видео внимательно. Обратите внимание на мимику, жесты и слова говорящего. Определите, говорит ли он правду или лжет.</p>
+    <!-- Phase 2: Emotion Analysis -->
+    <div id="facePhase" class="phase-container" style="display: none;">
+      <h2 class="phase-title">😊 Анализ эмоций</h2>
+      <p class="phase-description">
+        Определите эмоцию персонажа на видео. Обратите внимание на выражение лица, 
+        положение бровей, губ и общее настроение.
+      </p>
+      
+      <div class="video-section">
+        <div class="video-container">
+          <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+            <source src="" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+          </video>
+          <div class="video-overlay">
+            <div class="play-indicator">▶️</div>
           </div>
         </div>
-        
-        <div class="question-container glass">
-          <h3>❓ Вопрос</h3>
-          <p>Говорит ли человек в видео правду или лжет?</p>
-          
-          <div class="answer-options">
-            <div class="answer-option" data-answer="truth">
-              <span class="option-icon">✅</span>
-              <span class="option-text">Говорит правду</span>
-            </div>
-            <div class="answer-option" data-answer="lie">
-              <span class="option-icon">❌</span>
-              <span class="option-text">Лжет</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="stage-actions">
-          <button id="checkPsychologyAnswer" class="btn primary">Проверить ответ</button>
-        </div>
-      </section>
-
-      <!-- Этап 2: Эмоции и чувства -->
-      <section id="emotionsPhase" class="quest-stage">
-        <div class="stage-header">
-          <h2>😊 Этап 2: Эмоции и чувства</h2>
-          <p>Определите эмоцию, которую выражает лицо на изображении</p>
-        </div>
-        
-        <div class="face-container glass">
-          <div class="face-display">
-            <img id="currentFace" class="face-image" src="../assets/bodylang/faces/face_001_dominance.png" alt="Лицо для анализа">
-          </div>
-          
-          <div class="face-instruction">
-            <h4>🎯 Задание</h4>
-            <p>Посмотрите на лицо и определите, какую эмоцию оно выражает</p>
-          </div>
-        </div>
-        
-        <div class="question-container glass">
-          <h3>❓ Вопрос</h3>
-          <p>Какая эмоция изображена на лице?</p>
-          
-          <div class="answer-options emotions-grid">
-            <div class="answer-option" data-emotion="dominance">
-              <span class="option-icon">👑</span>
-              <span class="option-text">Доминирование</span>
-            </div>
-            <div class="answer-option" data-emotion="uncertainty">
-              <span class="option-icon">🤔</span>
-              <span class="option-text">Неуверенность</span>
-            </div>
-            <div class="answer-option" data-emotion="happiness">
-              <span class="option-icon">😊</span>
-              <span class="option-text">Счастье</span>
-            </div>
-            <div class="answer-option" data-emotion="anger">
-              <span class="option-icon">😠</span>
-              <span class="option-text">Гнев</span>
-            </div>
-            <div class="answer-option" data-emotion="skepticism">
-              <span class="option-icon">🤨</span>
-              <span class="option-text">Скептицизм</span>
-            </div>
-            <div class="answer-option" data-emotion="surprise">
-              <span class="option-icon">😲</span>
-              <span class="option-text">Удивление</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="stage-actions">
-          <button id="checkEmotionAnswer" class="btn primary">Проверить ответ</button>
-        </div>
-      </section>
-
-      <!-- Результаты -->
-      <section id="resultsPhase" class="quest-stage">
-        <div class="stage-header">
-          <h2>🏆 Результаты</h2>
-          <p>Ваши достижения в изучении языка тела</p>
-        </div>
-        
-        <div class="results-summary glass">
-          <div class="result-card success">
-            <div class="result-icon">🎉</div>
-            <h3>Поздравляем!</h3>
-            <p>Вы успешно прошли квест "Язык тела"!</p>
-          </div>
-          
-          <div class="final-stats">
-            <h3>📊 Итоговая статистика</h3>
-            <div class="stats-grid">
-              <div class="stat-item">
-                <span class="stat-label">Правильных ответов</span>
-                <span class="stat-value" id="correctAnswers">0</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Точность</span>
-                <span class="stat-value" id="accuracy">0%</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Время прохождения</span>
-                <span class="stat-value" id="completionTime">0 сек</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="rewards-display">
-            <h3>🎁 Награды</h3>
-            <div class="rewards-list">
-              <div class="reward-item">
-                <span class="reward-icon">🥇</span>
-                <span class="reward-text">+2 MULACOIN</span>
-              </div>
-              <div class="reward-item">
-                <span class="reward-icon">⭐</span>
-                <span class="reward-text">+150 XP</span>
-              </div>
-              <div class="reward-item">
-                <span class="reward-icon">🏆</span>
-                <span class="reward-text">Достижение "Психолог"</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="stage-actions">
-          <button id="finishQuest" class="btn primary">Завершить квест</button>
-        </div>
-      </section>
-    </main>
-
-    <!-- Toast уведомления -->
-    <div id="toast" class="toast"></div>
-
-    <!-- Прогресс-бар -->
-    <div class="quest-progress">
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
       </div>
-      <div class="progress-steps">
-        <div class="step active" data-step="1">1</div>
-        <div class="step" data-step="2">2</div>
-        <div class="step" data-step="3">3</div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="faceAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
       </div>
+      
+      <div class="answer-options" id="faceOptions">
+        <!-- Options will be added dynamically -->
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="quest-controls">
+      <a href="../quests.html" class="btn-back">← Назад к квестам</a>
     </div>
   </div>
 
-  <!-- Подключение скриптов -->
-  <script src="bodylang-data.js"></script>
-  <script src="bodylang-engine.js"></script>
-  <script src="bodylang-ui.js"></script>
-  <script src="bodylang-main.js"></script>
+  <!-- Completion Modal -->
+  <div class="quest-complete" id="questComplete">
+    <div class="quest-complete-content">
+      <div class="quest-complete-icon">🎉</div>
+      <h2 class="quest-complete-title">Квест завершен!</h2>
+      <p class="quest-complete-description">
+        Отлично! Вы успешно проанализировали язык тела и выражения лица. 
+        Теперь вы лучше понимаете невербальные сигналы и психологию лжи.
+      </p>
+      
+      <div class="quest-rewards">
+        <div class="reward-item">
+          <div class="reward-amount">+3</div>
+          <div class="reward-label">Mulacoin</div>
+        </div>
+        <div class="reward-item">
+          <div class="reward-amount">+500</div>
+          <div class="reward-label">Опыта</div>
+        </div>
+      </div>
+      
+      <button class="btn-close" onclick="closeQuestComplete()">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    // ====== QUEST DATA ======
+    
+    // Video data for psychology of lies phase
+    const VIDEO_DATA = {
+      'dopros1.mp4': 'Сепарирование (уход) от вопроса',
+      'dopros2.mp4': 'Легкое нахмуривание',
+      'dopros3.mp4': 'Поджатие губ',
+      'dopros4.mp4': 'Учащенное моргание',
+      'dopros5.mp4': 'Поджатие губ',
+      'dopros6.mp4': 'Сепарирование (уход) от вопроса',
+      'dopros7.mp4': 'Легкое нахмуривание',
+      'dopros8.mp4': 'Поджатие губ'
+    };
+
+    // All possible options for video phase (6 unique options per question)
+    const VIDEO_OPTIONS = [
+      'Поджатие губ',
+      'Учащенное моргание',
+      'Легкое нахмуривание',
+      'Легкое прикосновение лица',
+      'Покачивание головы в сторону',
+      'Сепарирование (уход) от вопроса',
+      'Отбрасывание головы назад',
+      'Движение суставами',
+      'Взаимодействие с руками',
+      'Вскидывание взгляда вверх',
+      'Быстрое облизывание губ',
+      'Сглатывание',
+      'Напряжение челюсти',
+      'Потирание глаз',
+      'Прикрытие рта',
+      'Постукивание пальцами',
+      'Скрещивание рук',
+      'Отведение взгляда'
+    ];
+
+    // Emotion data for emotion analysis phase
+    const EMOTION_VIDEO_DATA = {
+      'rf_01_skepticism.mp4': 'Скептицизм',
+      'rf_02_anger.mp4': 'Гнев',
+      'rf_03_anxiety.mp4': 'Тревога',
+      'rf_04_determination.mp4': 'Решительность',
+      'rf_04_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
+      'rf_05_dominance.mp4': 'Доминирование',
+      'rf_06_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
+      'rf_07_high-self-esteem.mp4': 'Высокая самооценка',
+      'rf_08_submission.mp4': 'Подчинение',
+      'rf_09_surprise.mp4': 'Удивление',
+      'rf_10_contempt.mp4': 'Презрение',
+      'rf_11_thoughtfulness.mp4': 'Задумчивость',
+      'rf_12_skepticism.mp4': 'Скептицизм',
+      'rf_13_anger.mp4': 'Гнев',
+      'rf_14_anxiety.mp4': 'Тревога',
+      'rf_15_determination.mp4': 'Решительность',
+      'rf_16_dominance.mp4': 'Доминирование',
+      'rf_17_fear.mp4': 'Страх',
+      'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
+      'rf_19_contempt.mp4': 'Презрение',
+      'rf_19_submission.mp4': 'Подчинение',
+      'rf_20_surprise.mp4': 'Удивление'
+    };
+
+    const EMOTION_OPTIONS = [
+      'Скептицизм',
+      'Гнев',
+      'Тревога',
+      'Решительность',
+      'Страх-Удивление-Отрицание',
+      'Доминирование',
+      'Высокая самооценка',
+      'Подчинение',
+      'Удивление',
+      'Презрение',
+      'Задумчивость',
+      'Страх'
+    ];
+
+    // ====== GLOBAL VARIABLES ======
+    let currentEmotionVideo = null;
+    let currentVideo = null;
+    let videoAttempts = 0;
+    let emotionAttempts = 0;
+    let isVideoPhase = true;
+
+    // ====== INITIALIZATION ======
+    function init() {
+      loadVideoPhase();
+    }
+
+    // ====== PHASE MANAGEMENT ======
+    function loadVideoPhase() {
+      isVideoPhase = true;
+      updatePhaseIndicator();
+      
+      // Select random video
+      const videoFiles = Object.keys(VIDEO_DATA);
+      currentVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+      
+      const video = document.getElementById('videoPlayer');
+      video.src = `../video/${currentVideo}`;
+      video.load();
+      
+      // Reset attempts
+      videoAttempts = 0;
+      updateAttemptsDisplay('video');
+      
+      // Create answer options
+      createVideoOptions();
+      
+      // Show video phase
+      showPhase('videoPhase');
+    }
+
+    function loadFacePhase() {
+      isVideoPhase = false;
+      updatePhaseIndicator();
+      
+      // Select random emotion video
+      const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
+      currentEmotionVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+      
+      // Setup video
+      const video = document.getElementById('emotionVideoPlayer');
+      video.src = `../assets/videos/${currentEmotionVideo}`;
+      video.load();
+      
+      // Auto-play
+      video.play().catch(e => console.log('Autoplay blocked:', e));
+      
+      // Reset attempts
+      emotionAttempts = 0;
+      updateAttemptsDisplay('face');
+      
+      // Create answer options
+      createEmotionOptions();
+      
+      // Show face phase
+      showPhase('facePhase');
+    }
+
+    function showPhase(phaseId) {
+      // Hide all phases
+      document.getElementById('videoPhase').style.display = 'none';
+      document.getElementById('facePhase').style.display = 'none';
+      
+      // Show selected phase
+      document.getElementById(phaseId).style.display = 'block';
+    }
+
+    // ====== ANSWER OPTIONS CREATION ======
+    function createVideoOptions() {
+      const correctAnswer = VIDEO_DATA[currentVideo];
+      const options = [correctAnswer];
+      
+      // Add 5 random unique options
+      const availableOptions = VIDEO_OPTIONS.filter(opt => opt !== correctAnswer);
+      const shuffledOptions = availableOptions.sort(() => Math.random() - 0.5);
+      
+      for (let i = 0; i < 5 && i < shuffledOptions.length; i++) {
+        options.push(shuffledOptions[i]);
+      }
+      
+      // Shuffle all options
+      options.sort(() => Math.random() - 0.5);
+      
+      const container = document.getElementById('videoOptions');
+      container.innerHTML = '';
+      
+      options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = option;
+        button.onclick = () => handleVideoAnswer(option);
+        container.appendChild(button);
+      });
+    }
+
+    function createEmotionOptions() {
+      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
+      const options = [correctAnswer];
+      
+      // Add 5 random unique options
+      const availableOptions = EMOTION_OPTIONS.filter(opt => opt !== correctAnswer);
+      const shuffledOptions = availableOptions.sort(() => Math.random() - 0.5);
+      
+      for (let i = 0; i < 5 && i < shuffledOptions.length; i++) {
+        options.push(shuffledOptions[i]);
+      }
+      
+      // Shuffle all options
+      options.sort(() => Math.random() - 0.5);
+      
+      const container = document.getElementById('faceOptions');
+      container.innerHTML = '';
+      
+      options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = option;
+        button.onclick = () => handleEmotionAnswer(option);
+        container.appendChild(button);
+      });
+    }
+
+    // ====== ANSWER HANDLING ======
+    function handleVideoAnswer(answer) {
+      const correctAnswer = VIDEO_DATA[currentVideo];
+      const buttons = document.querySelectorAll('#videoOptions .answer-option');
+      
+      // Disable all buttons and show correct/incorrect
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === answer && answer !== correctAnswer) {
+          btn.classList.add('incorrect');
+        }
+      });
+      
+      if (answer === correctAnswer) {
+        // Correct answer - proceed to next phase
+        setTimeout(() => {
+          loadFacePhase();
+        }, 2000);
+      } else {
+        // Incorrect answer
+        videoAttempts++;
+        updateAttemptsDisplay('video');
+        
+        if (videoAttempts >= 3) {
+          // Max attempts reached - load new video
+          setTimeout(() => {
+            loadVideoPhase();
+          }, 2000);
+        } else {
+          // Try again with new options
+          setTimeout(() => {
+            createVideoOptions();
+            buttons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+          }, 2000);
+        }
+      }
+    }
+
+    function handleEmotionAnswer(answer) {
+      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
+      const buttons = document.querySelectorAll('#faceOptions .answer-option');
+      
+      // Disable all buttons and show correct/incorrect
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+        } else if (btn.textContent === answer && answer !== correctAnswer) {
+          btn.classList.add('incorrect');
+        }
+      });
+      
+      if (answer === correctAnswer) {
+        // Correct answer - complete quest
+        setTimeout(() => {
+          completeQuest();
+        }, 2000);
+      } else {
+        // Incorrect answer
+        emotionAttempts++;
+        updateAttemptsDisplay('face');
+        
+        if (emotionAttempts >= 3) {
+          // Max attempts reached - load new emotion video
+          setTimeout(() => {
+            loadFacePhase();
+          }, 2000);
+        } else {
+          // Try again with new options
+          setTimeout(() => {
+            createEmotionOptions();
+            buttons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+          }, 2000);
+        }
+      }
+    }
+
+    // ====== UI UPDATES ======
+    function updatePhaseIndicator() {
+      const phase1Badge = document.getElementById('phase1Badge');
+      const phase2Badge = document.getElementById('phase2Badge');
+      
+      if (isVideoPhase) {
+        phase1Badge.classList.add('active');
+        phase2Badge.classList.remove('active');
+      } else {
+        phase1Badge.classList.remove('active');
+        phase2Badge.classList.add('active');
+      }
+    }
+
+    function updateAttemptsDisplay(phase) {
+      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
+      const attempts = phase === 'video' ? videoAttempts : emotionAttempts;
+      
+      dots.forEach((dot, index) => {
+        if (index < attempts) {
+          dot.classList.add('used');
+        } else {
+          dot.classList.remove('used');
+        }
+      });
+    }
+
+    // ====== QUEST COMPLETION ======
+    function completeQuest() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.add('show');
+      
+      // Save rewards
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(3, 500, 'bodylang', 'Язык тела', 'medium');
+      } else {
+        // Fallback to localStorage
+        const userId = localStorage.getItem('currentUserId') || 'default';
+        const userDataKey = `userData_${userId}`;
+        const savedData = localStorage.getItem(userDataKey);
+        
+        if (savedData) {
+          const userData = JSON.parse(savedData);
+          userData.mulacoin = (userData.mulacoin || 0) + 3;
+          userData.exp = (userData.exp || 0) + 500;
+          localStorage.setItem(userDataKey, JSON.stringify(userData));
+        }
+      }
+    }
+
+    function closeQuestComplete() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.remove('show');
+      window.location.href = '../quests.html';
+    }
+
+    // ====== EVENT LISTENERS ======
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
