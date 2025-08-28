@@ -155,18 +155,17 @@
         }
 
         .roulette-section {
-            background: linear-gradient(135deg, rgba(68, 48, 32, 0.95), rgba(91, 86, 67, 0.95));
-            border-radius: 25px;
-            padding: 35px;
-            margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(68, 48, 32, 0.9), rgba(91, 86, 67, 0.8));
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
             box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                0 10px 30px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
             animation: fadeInUp 1s ease 0.4s both;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 146, 26, 0.3);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(212, 146, 26, 0.2);
             position: relative;
-            overflow: hidden;
         }
 
         .roulette-section::before {
@@ -177,7 +176,7 @@
             right: 0;
             height: 1px;
             background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-            animation: shimmer 3s ease-in-out infinite;
+            animation: shimmer 4s ease-in-out infinite;
         }
 
         @keyframes shimmer {
@@ -187,32 +186,18 @@
 
         .roulette-container {
             position: relative;
-            height: 180px;
+            height: 160px;
             background: linear-gradient(135deg, 
-                rgba(68, 48, 32, 0.8) 0%, 
-                rgba(91, 86, 67, 0.6) 50%, 
-                rgba(68, 48, 32, 0.8) 100%);
-            border-radius: 20px;
+                rgba(68, 48, 32, 0.7) 0%, 
+                rgba(91, 86, 67, 0.5) 50%, 
+                rgba(68, 48, 32, 0.7) 100%);
+            border-radius: 16px;
             overflow: hidden;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             box-shadow: 
-                inset 0 0 30px rgba(0, 0, 0, 0.4),
-                0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(212, 146, 26, 0.2);
-            position: relative;
-        }
-
-        .roulette-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(212, 146, 26, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 50%, rgba(241, 216, 129, 0.1) 0%, transparent 50%);
-            pointer-events: none;
+                inset 0 0 20px rgba(0, 0, 0, 0.3),
+                0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(212, 146, 26, 0.15);
         }
 
         .roulette-track {
@@ -226,55 +211,34 @@
         }
 
         .roulette-item {
-            min-width: 140px;
+            min-width: 130px;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(212, 146, 26, 0.3);
-            background: linear-gradient(135deg, 
-                rgba(212, 146, 26, 0.1) 0%, 
-                rgba(241, 216, 129, 0.1) 100%);
+            border: 1px solid rgba(212, 146, 26, 0.2);
+            background: rgba(212, 146, 26, 0.05);
             transition: all var(--transition-fast);
-        }
-
-        .roulette-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, 
-                transparent 30%, 
-                rgba(255, 255, 255, 0.1) 50%, 
-                transparent 70%);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
-        .roulette-item:hover::before {
-            transform: translateX(100%);
         }
 
         .roulette-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
             transition: all var(--transition-medium);
         }
 
         .roulette-item:hover img {
-            transform: scale(1.05);
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+            transform: scale(1.02);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
         }
 
         .roulette-pointer {
             position: absolute;
-            bottom: -25px;
+            bottom: -20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 15;
@@ -284,28 +248,28 @@
         .roulette-pointer::before {
             content: '';
             position: absolute;
-            top: -5px;
+            top: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-bottom: 20px solid var(--accent-secondary);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 18px solid var(--accent-secondary);
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .roulette-pointer::after {
             content: '';
             position: absolute;
-            top: -2px;
+            top: 2px;
             left: 50%;
             transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
+            width: 4px;
+            height: 4px;
             background: var(--accent-secondary);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-secondary);
+            box-shadow: 0 0 8px var(--accent-secondary);
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -331,36 +295,14 @@
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: var(--bg-primary);
             border: none;
-            padding: 18px 35px;
-            border-radius: 30px;
-            font-size: 1.1rem;
+            padding: 15px 28px;
+            border-radius: 25px;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all var(--transition-medium);
-            box-shadow: 
-                0 8px 25px rgba(212, 146, 26, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(212, 146, 26, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .control-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.2), 
-                transparent);
-            transition: left 0.5s ease;
-        }
-
-        .control-btn:hover::before {
-            left: 100%;
         }
 
         .control-btn.prizes-btn {
@@ -377,32 +319,28 @@
         }
 
         .control-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 
-                0 12px 35px rgba(212, 146, 26, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 146, 26, 0.35);
         }
 
         .control-btn:active {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 20px rgba(212, 146, 26, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(212, 146, 26, 0.25);
         }
 
         .control-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .control-btn:disabled::before {
-            display: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .spinning {
             animation: spin 0.08s linear infinite;
+        }
+
+        .spinning-slow {
+            animation: spin 0.3s linear infinite;
         }
 
         @keyframes spin {
@@ -438,54 +376,11 @@
 
         .section-title {
             text-align: center;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             color: var(--accent-secondary);
-            margin-bottom: 30px;
-            text-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(212, 146, 26, 0.3);
-            position: relative;
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, 
-                transparent, 
-                var(--accent-secondary), 
-                transparent);
-            border-radius: 2px;
-            animation: titleLine 2s ease-in-out infinite;
-        }
-
-        @keyframes titleGlow {
-            from { 
-                text-shadow: 
-                    0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 0 20px rgba(212, 146, 26, 0.3);
-            }
-            to { 
-                text-shadow: 
-                    0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 0 30px rgba(212, 146, 26, 0.6);
-            }
-        }
-
-        @keyframes titleLine {
-            0%, 100% { 
-                width: 60px;
-                opacity: 0.7;
-            }
-            50% { 
-                width: 100px;
-                opacity: 1;
-            }
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
         }
 
         .promocodes-grid {
@@ -1151,11 +1046,17 @@
             // Определяем выигрышный приз
             const winningPrize = getRandomPrize();
             
+            // Замедляем рулетку в последние 5 секунд
+            setTimeout(() => {
+                track.classList.remove('spinning');
+                track.classList.add('spinning-slow');
+            }, 10000);
+            
             // Останавливаем рулетку ровно через 15 секунд
             const spinDuration = 15000;
             
             setTimeout(() => {
-                track.classList.remove('spinning');
+                track.classList.remove('spinning-slow');
                 track.style.transition = 'none';
                 
                 // Убираем анимацию с элементов рулетки
