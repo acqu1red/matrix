@@ -1,9 +1,9 @@
-/* ===== BUSINESS QUEST ENGINE - OPTIMIZED FOR MINIAPPS ===== */
+/* ===== BUSINESS QUEST ENGINE ===== */
 
-// Основной движок для бизнес-квеста
+// Движок для управления логикой квеста
 class BusinessQuestEngine {
   constructor() {
-    this.gameState = {
+    this.state = {
       currentStage: 1,
       selectedNiche: null,
       teamMembers: {},
@@ -12,572 +12,732 @@ class BusinessQuestEngine {
         growth: 0,
         teamSize: 0,
         reputation: 0,
-        capital: 100000,
         expenses: 0,
         profit: 0
       },
       decisions: [],
-      startTime: Date.now(),
-      isRunning: false
+      events: [],
+      gameTime: 0,
+      isGameOver: false
     };
+    
+    this.gameLoop = null;
+    this.eventQueue = [];
     
     this.initialize();
   }
   
   // Инициализация движка
   initialize() {
-    console.log('⚙️ Инициализация движка бизнес-квеста...');
-    
-    // Загружаем сохраненный прогресс
-    this.loadProgress();
-    
-    // Устанавливаем флаг запуска
-    this.gameState.isRunning = true;
-    
-    console.log('✅ Движок бизнес-квеста инициализирован');
+    this.loadState();
+    this.setupGameLoop();
+    this.bindEvents();
+    console.log('Business Quest Engine initialized');
   }
   
-  // Загрузка прогресса
-  loadProgress() {
+  // Загрузка состояния
+  loadState() {
     try {
-      const savedProgress = localStorage.getItem('businessQuestProgress');
-      if (savedProgress) {
-        const progress = JSON.parse(savedProgress);
-        this.gameState = { ...this.gameState, ...progress };
-        console.log('📁 Прогресс квеста загружен');
+      const savedState = localStorage.getItem('businessQuestState');
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        this.state = { ...this.state, ...parsed };
       }
-    } catch (error) {
-      console.warn('⚠️ Не удалось загрузить прогресс:', error);
+    } catch (e) {
+      console.error('Error loading quest state:', e);
     }
   }
   
-  // Сохранение прогресса
-  saveProgress() {
+  // Сохранение состояния
+  saveState() {
     try {
-      const progressData = {
-        currentStage: this.gameState.currentStage,
-        selectedNiche: this.gameState.selectedNiche,
-        teamMembers: this.gameState.teamMembers,
-        businessStats: this.gameState.businessStats,
-        decisions: this.gameState.decisions,
-        startTime: this.gameState.startTime
-      };
-      
-      localStorage.setItem('businessQuestProgress', JSON.stringify(progressData));
-      console.log('💾 Прогресс квеста сохранен');
-    } catch (error) {
-      console.warn('⚠️ Не удалось сохранить прогресс:', error);
+      localStorage.setItem('businessQuestState', JSON.stringify(this.state));
+    } catch (e) {
+      console.error('Error saving quest state:', e);
     }
   }
   
-  // Получение текущего состояния игры
-  getGameState() {
-    return { ...this.gameState };
+  // Настройка игрового цикла
+  setupGameLoop() {
+    this.gameLoop = setInterval(() => {
+      this.updateGame();
+    }, 1000); // Обновление каждую секунду
   }
   
-  // Обновление состояния игры
-  updateGameState(newState) {
-    this.gameState = { ...this.gameState, ...newState };
-    this.saveProgress();
+  // Привязка событий
+  bindEvents() {
+    // События для перетаскивания
+    this.setupDragAndDrop();
+    
+    // События для кнопок
+    this.setupButtonEvents();
+    
+    // События для модалов
+    this.setupModalEvents();
   }
   
-  // Выбор ниши
-  selectNiche(nicheId) {
-    const niche = this.getNicheById(nicheId);
-    if (!niche) {
-      throw new Error('Ниша не найдена');
+  // Настройка drag & drop
+  setupDragAndDrop() {
+    document.addEventListener('DOMContentLoaded', () => {
+      this.initializeDragAndDrop();
+    });
+  }
+  
+  // Инициализация drag & drop
+  initializeDragAndDrop() {
+    const candidateCards = document.querySelectorAll('.candidate-card');
+    const dropZones = document.querySelectorAll('.candidate-drop-zone');
+    
+    if (!candidateCards.length || !dropZones.length) {
+      return;
     }
     
-    this.gameState.selectedNiche = niche;
-    this.gameState.currentStage = 2;
-    
-    // Обновляем статистику на основе выбранной ниши
-    this.updateBusinessStats({
-      capital: this.gameState.businessStats.capital - niche.startupCost,
-      expenses: niche.startupCost
+    // Обработчики для кандидатов
+    candidateCards.forEach(card => {
+      card.addEventListener('dragstart', this.handleDragStart.bind(this));
+      card.addEventListener('dragend', this.handleDragEnd.bind(this));
+      card.addEventListener('click', this.handleCandidateClick.bind(this));
     });
     
-    this.saveProgress();
-    
-    return {
-      success: true,
-      message: `Ниша "${niche.name}" выбрана успешно`,
-      niche: niche
-    };
+    // Обработчики для зон сброса
+    dropZones.forEach(zone => {
+      zone.addEventListener('dragover', this.handleDragOver.bind(this));
+      zone.addEventListener('drop', this.handleDrop.bind(this));
+      zone.addEventListener('dragenter', this.handleDragEnter.bind(this));
+      zone.addEventListener('dragleave', this.handleDragLeave.bind(this));
+    });
   }
   
-  // Получение ниши по ID
-  getNicheById(nicheId) {
-    const niches = window.BUSINESS_QUEST_DATA?.niches || [];
-    return niches.find(niche => niche.id === nicheId);
+  // Обработчик начала перетаскивания
+  handleDragStart(e) {
+    e.target.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', e.target.dataset.candidateId);
+    e.dataTransfer.effectAllowed = 'move';
+    
+    // Добавляем визуальный эффект
+    e.target.style.opacity = '0.5';
+    e.target.style.transform = 'rotate(5deg) scale(1.05)';
   }
   
-  // Наем сотрудника
-  hireEmployee(candidateId, positionId) {
-    const candidate = this.getCandidateById(candidateId);
-    const position = this.getPositionById(positionId);
+  // Обработчик окончания перетаскивания
+  handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    e.target.style.opacity = '1';
+    e.target.style.transform = 'rotate(0deg) scale(1)';
+  }
+  
+  // Обработчик перетаскивания над зоной
+  handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+  
+  // Обработчик входа в зону сброса
+  handleDragEnter(e) {
+    e.preventDefault();
+    const dropZone = e.target.closest('.candidate-drop-zone');
+    if (dropZone) {
+      dropZone.classList.add('drag-over');
+      dropZone.style.transform = 'scale(1.05)';
+      dropZone.style.borderColor = 'var(--accent-primary)';
+    }
+  }
+  
+  // Обработчик выхода из зоны сброса
+  handleDragLeave(e) {
+    const dropZone = e.target.closest('.candidate-drop-zone');
+    if (dropZone && !dropZone.contains(e.relatedTarget)) {
+      dropZone.classList.remove('drag-over');
+      dropZone.style.transform = 'scale(1)';
+      dropZone.style.borderColor = 'var(--border-color)';
+    }
+  }
+  
+  // Обработчик сброса
+  handleDrop(e) {
+    e.preventDefault();
+    const dropZone = e.target.closest('.candidate-drop-zone');
+    const candidateId = e.dataTransfer.getData('text/plain');
     
-    if (!candidate || !position) {
-      throw new Error('Кандидат или должность не найдены');
+    if (dropZone && candidateId) {
+      this.placeCandidate(candidateId, dropZone);
     }
     
-    // Проверяем, что должность свободна
-    if (this.gameState.teamMembers[positionId]) {
-      throw new Error('Должность уже занята');
+    // Убираем все эффекты drag-over
+    document.querySelectorAll('.candidate-drop-zone').forEach(zone => {
+      zone.classList.remove('drag-over');
+      zone.style.transform = 'scale(1)';
+      zone.style.borderColor = 'var(--border-color)';
+    });
+  }
+  
+  // Размещение кандидата
+  placeCandidate(candidateId, dropZone) {
+    const position = dropZone.dataset.position;
+    const candidate = window.BUSINESS_QUEST_DATA?.CANDIDATES?.[candidateId];
+    
+    if (!candidate) {
+      this.showToast('Ошибка: кандидат не найден', 'error');
+      return;
     }
     
-    // Проверяем, что у нас достаточно капитала
-    if (this.gameState.businessStats.capital < position.salary) {
-      throw new Error('Недостаточно капитала для найма');
+    // Проверяем, не занята ли позиция
+    if (this.state.teamMembers[position]) {
+      this.showToast('Эта позиция уже занята!', 'warning');
+      return;
     }
     
-    // Нанимаем сотрудника
-    const employee = {
-      id: candidateId,
-      name: candidate.name,
-      position: positionId,
-      salary: position.salary,
-      skills: candidate.skills,
-      efficiency: candidate.efficiency,
-      creativity: candidate.creativity,
-      leadership: candidate.leadership,
-      hireDate: Date.now()
-    };
+    // Проверяем совместимость
+    const compatibility = candidate.compatibility[position] || 0;
+    if (compatibility < 50) {
+      this.showToast(`Низкая совместимость: ${compatibility}%`, 'warning');
+    }
     
-    this.gameState.teamMembers[positionId] = employee;
+    // Размещаем кандидата
+    this.state.teamMembers[position] = candidateId;
+    
+    // Обновляем зону сброса
+    this.updateDropZone(dropZone, candidate);
     
     // Обновляем статистику
-    this.updateBusinessStats({
-      capital: this.gameState.businessStats.capital - position.salary,
-      expenses: this.gameState.businessStats.expenses + position.salary,
-      teamSize: Object.keys(this.gameState.teamMembers).length
-    });
+    this.updateBusinessStats();
     
-    this.saveProgress();
+    // Проверяем завершение подбора
+    this.checkTeamCompletion();
     
-    return {
-      success: true,
-      message: `${candidate.name} нанят на должность ${position.title}`,
-      employee: employee
-    };
+    // Сохраняем состояние
+    this.saveState();
+    
+    // Показываем уведомление
+    this.showToast(`Кандидат ${candidate.name} размещен на позиции ${this.getPositionTitle(position)}!`, 'success');
   }
   
-  // Получение кандидата по ID
-  getCandidateById(candidateId) {
-    const candidates = window.BUSINESS_QUEST_DATA?.candidates || [];
-    return candidates.find(candidate => candidate.id === candidateId);
+  // Обновление зоны сброса
+  updateDropZone(dropZone, candidate) {
+    dropZone.classList.add('filled');
+    dropZone.innerHTML = `
+      <div class="candidate-in-position">
+        <div class="candidate-avatar">${candidate.avatar}</div>
+        <div class="candidate-name">${candidate.name}</div>
+        <div class="candidate-compatibility">Совместимость: ${candidate.compatibility[dropZone.dataset.position] || 0}%</div>
+      </div>
+    `;
+    
+    // Анимация успеха
+    dropZone.style.animation = 'successPulse 0.5s ease-out';
+    setTimeout(() => {
+      dropZone.style.animation = '';
+    }, 500);
   }
   
-  // Получение должности по ID
-  getPositionById(positionId) {
-    const positions = window.BUSINESS_QUEST_DATA?.positions || [];
-    return positions.find(position => position.id === positionId);
+  // Обработчик клика по кандидату (для мобильных устройств)
+  handleCandidateClick(e) {
+    const candidateId = e.currentTarget.dataset.candidateId;
+    const candidate = window.BUSINESS_QUEST_DATA?.CANDIDATES?.[candidateId];
+    
+    if (!candidate) return;
+    
+    // Показываем информацию о кандидате
+    this.showCandidateInfo(candidate);
   }
   
-  // Увольнение сотрудника
-  fireEmployee(positionId) {
-    const employee = this.gameState.teamMembers[positionId];
-    if (!employee) {
-      throw new Error('Сотрудник не найден');
+  // Показать информацию о кандидате
+  showCandidateInfo(candidate) {
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.innerHTML = `
+      <div class="modalContent glass">
+        <div class="modal-header">
+          <h3>${candidate.avatar} ${candidate.name}</h3>
+          <p>Возраст: ${candidate.age}, Опыт: ${candidate.experience}</p>
+        </div>
+        
+        <div class="candidate-details">
+          <div class="detail-section">
+            <h4>Навыки</h4>
+            <div class="skills-list">
+              ${candidate.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+            </div>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Сильные стороны</h4>
+            <ul>
+              ${candidate.strengths.map(strength => `<li>${strength}</li>`).join('')}
+            </ul>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Слабые стороны</h4>
+            <ul>
+              ${candidate.weaknesses.map(weakness => `<li>${weakness}</li>`).join('')}
+            </ul>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Совместимость с позициями</h4>
+            <div class="compatibility-grid">
+              ${Object.entries(candidate.compatibility).map(([pos, comp]) => `
+                <div class="compatibility-item">
+                  <span class="position-name">${this.getPositionTitle(pos)}</span>
+                  <span class="compatibility-score ${comp >= 80 ? 'high' : comp >= 60 ? 'medium' : 'low'}">${comp}%</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Мотивация</h4>
+            <p>${candidate.motivation}</p>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Зарплата</h4>
+            <p class="salary">${candidate.salary.toLocaleString()} ₽</p>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn ghost" onclick="this.closest('.modal').remove()">Закрыть</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  }
+  
+  // Настройка событий кнопок
+  setupButtonEvents() {
+    // Кнопка "Начать квест"
+    const startQuestBtn = document.getElementById('startQuest');
+    if (startQuestBtn) {
+      startQuestBtn.addEventListener('click', () => this.startQuest());
     }
     
-    // Возвращаем часть зарплаты
-    const refund = Math.floor(employee.salary * 0.1);
+    // Кнопка "Выбрать нишу"
+    const selectNicheBtn = document.getElementById('selectNiche');
+    if (selectNicheBtn) {
+      selectNicheBtn.addEventListener('click', () => this.selectNiche());
+    }
     
-    // Удаляем сотрудника
-    delete this.gameState.teamMembers[positionId];
+    // Кнопка "Завершить подбор"
+    const completeTeamBtn = document.getElementById('completeTeam');
+    if (completeTeamBtn) {
+      completeTeamBtn.addEventListener('click', () => this.completeTeam());
+    }
     
-    // Обновляем статистику
-    this.updateBusinessStats({
-      capital: this.gameState.businessStats.capital + refund,
-      expenses: this.gameState.businessStats.expenses - employee.salary,
-      teamSize: Object.keys(this.gameState.teamMembers).length
-    });
+    // Кнопка "Следующий квартал"
+    const nextQuarterBtn = document.getElementById('nextQuarter');
+    if (nextQuarterBtn) {
+      nextQuarterBtn.addEventListener('click', () => this.nextQuarter());
+    }
     
-    this.saveProgress();
-    
-    return {
-      success: true,
-      message: `${employee.name} уволен`,
-      refund: refund
-    };
+    // Кнопка "Завершить квест"
+    const finishQuestBtn = document.getElementById('finishQuest');
+    if (finishQuestBtn) {
+      finishQuestBtn.addEventListener('click', () => this.finishQuest());
+    }
   }
   
-  // Применение решения
-  applyDecision(decisionId) {
-    const decision = this.getDecisionById(decisionId);
-    if (!decision) {
-      throw new Error('Решение не найдено');
-    }
-    
-    // Проверяем, что у нас достаточно капитала
-    if (this.gameState.businessStats.capital < decision.impact.cost) {
-      throw new Error('Недостаточно капитала для применения решения');
-    }
-    
-    // Применяем решение
-    const revenueIncrease = this.calculateRevenueIncrease(decision);
-    const riskFactor = this.calculateRiskFactor(decision.impact.risk);
-    
-    // Обновляем статистику
-    this.updateBusinessStats({
-      capital: this.gameState.businessStats.capital - decision.impact.cost,
-      expenses: this.gameState.businessStats.expenses + decision.impact.cost,
-      revenue: this.gameState.businessStats.revenue + revenueIncrease,
-      growth: this.gameState.businessStats.growth + parseInt(decision.impact.revenue),
-      reputation: this.gameState.businessStats.reputation + riskFactor
-    });
-    
-    // Добавляем решение в историю
-    this.gameState.decisions.push({
-      id: decisionId,
-      appliedAt: Date.now(),
-      impact: {
-        revenue: revenueIncrease,
-        reputation: riskFactor
+  // Настройка событий модалов
+  setupModalEvents() {
+    // Закрытие модалов по клику вне
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.remove();
       }
     });
     
-    this.saveProgress();
-    
-    return {
-      success: true,
-      message: `Решение "${decision.title}" применено`,
-      impact: {
-        revenue: revenueIncrease,
-        reputation: riskFactor
+    // Закрытие модалов по Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => modal.remove());
       }
-    };
+    });
   }
   
-  // Получение решения по ID
-  getDecisionById(decisionId) {
-    const decisions = window.BUSINESS_QUEST_DATA?.decisions || [];
-    return decisions.find(decision => decision.id === decisionId);
-  }
-  
-  // Расчет увеличения дохода
-  calculateRevenueIncrease(decision) {
-    const baseRevenue = this.gameState.businessStats.revenue || 10000;
-    const increasePercent = parseInt(decision.impact.revenue);
-    return Math.floor(baseRevenue * (increasePercent / 100));
-  }
-  
-  // Расчет фактора риска
-  calculateRiskFactor(risk) {
-    switch (risk) {
-      case 'Низкий': return 5;
-      case 'Средний': return 3;
-      case 'Высокий': return 1;
-      default: return 2;
+  // Обновление игры
+  updateGame() {
+    this.state.gameTime++;
+    
+    // Автоматические события каждые 30 секунд
+    if (this.state.gameTime % 30 === 0) {
+      this.processRandomEvents();
+    }
+    
+    // Автосохранение каждые 60 секунд
+    if (this.state.gameTime % 60 === 0) {
+      this.saveState();
     }
   }
   
-  // Обновление бизнес-статистики
-  updateBusinessStats(newStats) {
-    this.gameState.businessStats = { ...this.gameState.businessStats, ...newStats };
+  // Обработка случайных событий
+  processRandomEvents() {
+    const events = window.BUSINESS_QUEST_DATA?.RANDOM_EVENTS;
+    if (!events) return;
     
-    // Пересчитываем прибыль
-    this.gameState.businessStats.profit = 
-      this.gameState.businessStats.revenue - this.gameState.businessStats.expenses;
+    // Положительные события
+    events.positive.forEach(event => {
+      if (Math.random() < event.probability) {
+        this.applyEventEffect(event);
+        this.showToast(event.description, 'success');
+      }
+    });
     
-    // Проверяем банкротство
-    if (this.gameState.businessStats.capital < 0) {
-      this.gameState.businessStats.capital = 0;
-      this.gameState.businessStats.reputation = Math.max(0, this.gameState.businessStats.reputation - 10);
-    }
+    // Негативные события
+    events.negative.forEach(event => {
+      if (Math.random() < event.probability) {
+        this.applyEventEffect(event);
+        this.showToast(event.description, 'warning');
+      }
+    });
   }
   
-  // Переход к следующему этапу
-  nextStage() {
-    if (this.gameState.currentStage < 4) {
-      this.gameState.currentStage++;
-      this.saveProgress();
+  // Применение эффекта события
+  applyEventEffect(event) {
+    Object.entries(event.effect).forEach(([stat, value]) => {
+      if (this.state.businessStats[stat] !== undefined) {
+        this.state.businessStats[stat] += value;
+      }
+    });
+    
+    // Добавляем событие в историю
+    this.state.events.push({
+      ...event,
+      timestamp: Date.now()
+    });
+    
+    // Обновляем отображение
+    this.updateBusinessStats();
+  }
+  
+  // Обновление статистики бизнеса
+  updateBusinessStats() {
+    // Обновляем размер команды
+    this.state.businessStats.teamSize = Object.keys(this.state.teamMembers).length;
+    
+    // Рассчитываем прибыль
+    this.state.businessStats.profit = this.state.businessStats.revenue - this.state.businessStats.expenses;
+    
+    // Обновляем отображение
+    this.updateStatsDisplay();
+  }
+  
+  // Обновление отображения статистики
+  updateStatsDisplay() {
+    const stats = this.state.businessStats;
+    
+    // Обновляем элементы на странице
+    const revenueEl = document.getElementById('revenue');
+    if (revenueEl) revenueEl.textContent = `${stats.revenue.toLocaleString()} ₽`;
+    
+    const growthEl = document.getElementById('growth');
+    if (growthEl) growthEl.textContent = `${stats.growth}%`;
+    
+    const teamSizeEl = document.getElementById('teamSize');
+    if (teamSizeEl) teamSizeEl.textContent = stats.teamSize;
+    
+    const reputationEl = document.getElementById('reputation');
+    if (reputationEl) reputationEl.textContent = stats.reputation;
+  }
+  
+  // Проверка завершения подбора команды
+  checkTeamCompletion() {
+    const requiredPositions = ['manager', 'marketer', 'financier', 'specialist'];
+    const filledPositions = requiredPositions.filter(pos => this.state.teamMembers[pos]);
+    
+    if (filledPositions.length === requiredPositions.length) {
+      const completeTeamBtn = document.getElementById('completeTeam');
+      if (completeTeamBtn) {
+        completeTeamBtn.disabled = false;
+        completeTeamBtn.style.animation = 'successPulse 1s ease-out infinite';
+      }
       
-      return {
-        success: true,
-        message: `Переход к этапу ${this.gameState.currentStage}`,
-        newStage: this.gameState.currentStage
-      };
+      this.showToast('Команда полностью укомплектована!', 'success');
+    }
+  }
+  
+  // Получение названия позиции
+  getPositionTitle(position) {
+    const titles = {
+      manager: 'Менеджер',
+      marketer: 'Маркетолог',
+      financier: 'Финансист',
+      specialist: 'Специалист'
+    };
+    return titles[position] || position;
+  }
+  
+  // Показать toast уведомление
+  showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    
+    // Убираем предыдущие классы
+    toast.className = 'toast';
+    
+    // Добавляем тип
+    toast.classList.add(type);
+    
+    // Устанавливаем сообщение
+    toast.textContent = message;
+    
+    // Показываем
+    toast.classList.add('show');
+    
+    // Скрываем через 3 секунды
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+  
+  // Основные методы квеста
+  startQuest() {
+    this.hideIntroModal();
+    this.showStage(1);
+    this.updateProgress();
+  }
+  
+  selectNiche() {
+    if (!this.state.selectedNiche) {
+      this.showToast('Сначала выберите нишу!', 'warning');
+      return;
+    }
+    
+    this.showStage(2);
+    this.updateProgress();
+    this.showToast(`Выбрана ниша: ${this.getNicheTitle(this.state.selectedNiche)}!`, 'success');
+  }
+  
+  completeTeam() {
+    if (Object.keys(this.state.teamMembers).length < 4) {
+      this.showToast('Нужно заполнить все позиции!', 'warning');
+      return;
+    }
+    
+    this.showStage(3);
+    this.updateProgress();
+    this.initializeBusinessManagement();
+    this.showToast('Команда собрана! Теперь управляйте бизнесом!', 'success');
+  }
+  
+  nextQuarter() {
+    this.processBusinessDecisions();
+    this.updateBusinessStats();
+    
+    // Проверяем, можно ли перейти к результатам
+    if (this.state.businessStats.revenue >= 1000000) {
+      this.showStage(4);
+      this.updateProgress();
+      this.showFinalResults();
     } else {
-      throw new Error('Квест уже завершен');
+      this.showToast('Бизнес развивается! Продолжайте принимать решения.', 'info');
     }
   }
   
-  // Проверка завершения квеста
-  checkQuestCompletion() {
-    const conditions = [
-      this.gameState.selectedNiche !== null,
-      Object.keys(this.gameState.teamMembers).length >= 4,
-      this.gameState.businessStats.revenue >= 100000
-    ];
-    
-    return conditions.every(condition => condition === true);
-  }
-  
-  // Завершение квеста
-  completeQuest() {
-    if (!this.checkQuestCompletion()) {
-      throw new Error('Не все условия завершения выполнены');
-    }
-    
-    this.gameState.isRunning = false;
-    this.gameState.currentStage = 4;
-    
-    // Рассчитываем финальные награды
-    const rewards = this.calculateFinalRewards();
-    
-    this.saveProgress();
-    
-    return {
-      success: true,
-      message: 'Квест успешно завершен!',
-      rewards: rewards,
-      finalStats: this.gameState.businessStats
-    };
-  }
-  
-  // Расчет финальных наград
-  calculateFinalRewards() {
-    const baseRewards = window.BUSINESS_QUEST_DATA?.config?.rewards || {
-      mulacoins: 3,
-      xp: 200
-    };
-    
-    // Бонусы за достижения
-    let bonusMulacoins = 0;
-    let bonusXP = 0;
-    
-    // Бонус за размер команды
-    if (Object.keys(this.gameState.teamMembers).length >= 6) {
-      bonusMulacoins += 1;
-      bonusXP += 50;
-    }
-    
-    // Бонус за высокий доход
-    if (this.gameState.businessStats.revenue >= 200000) {
-      bonusMulacoins += 1;
-      bonusXP += 100;
-    }
-    
-    // Бонус за высокую репутацию
-    if (this.gameState.businessStats.reputation >= 50) {
-      bonusMulacoins += 1;
-      bonusXP += 75;
-    }
-    
-    return {
-      mulacoins: baseRewards.mulacoins + bonusMulacoins,
-      xp: baseRewards.xp + bonusXP,
+  finishQuest() {
+    // Награды за прохождение
+    const rewards = window.BUSINESS_QUEST_DATA?.REWARDS?.completion || {
+      mulacoin: 3,
+      xp: 200,
       achievement: 'Предприниматель'
     };
+    
+    this.showToast(`Поздравляем! Получено ${rewards.mulacoin} MULACOIN и ${rewards.xp} XP!`, 'success');
+    
+    // Возврат к главной странице
+    setTimeout(() => {
+      this.goBack();
+    }, 2000);
   }
   
-  // Получение аналитики команды
-  getTeamAnalytics() {
-    const employees = Object.values(this.gameState.teamMembers);
-    
-    if (employees.length === 0) {
-      return null;
+  // Вспомогательные методы
+  hideIntroModal() {
+    const introModal = document.getElementById('introModal');
+    if (introModal) {
+      introModal.classList.remove('show');
     }
-    
-    // Аналитика по ролям
-    const roleDistribution = {};
-    employees.forEach(emp => {
-      const position = this.getPositionById(emp.position);
-      const role = position ? position.title : 'Неизвестно';
-      roleDistribution[role] = (roleDistribution[role] || 0) + 1;
+  }
+  
+  showStage(stageNumber) {
+    // Скрываем все этапы
+    document.querySelectorAll('.quest-stage').forEach(stage => {
+      stage.classList.remove('active');
     });
     
-    // Средние показатели
-    const avgStats = {
-      efficiency: employees.reduce((sum, emp) => sum + emp.efficiency, 0) / employees.length,
-      creativity: employees.reduce((sum, emp) => sum + emp.creativity, 0) / employees.length,
-      leadership: employees.reduce((sum, emp) => sum + emp.leadership, 0) / employees.length
-    };
+    // Показываем нужный этап
+    const targetStage = document.getElementById(this.getStageId(stageNumber));
+    if (targetStage) {
+      targetStage.classList.add('active');
+    }
     
-    // Зарплатная статистика
-    const salaries = employees.map(emp => emp.salary).sort((a, b) => a - b);
-    const totalSalaries = salaries.reduce((sum, salary) => sum + salary, 0);
+    // Обновляем состояние
+    this.state.currentStage = stageNumber;
     
-    return {
-      teamSize: employees.length,
-      roleDistribution,
-      avgStats,
-      salaryStats: {
-        total: totalSalaries,
-        avg: Math.round(totalSalaries / employees.length),
-        min: salaries[0] || 0,
-        max: salaries[salaries.length - 1] || 0
-      },
-      topPerformers: employees
-        .sort((a, b) => (a.efficiency + a.creativity + a.leadership) - (b.efficiency + b.creativity + b.leadership))
-        .slice(0, 3)
-        .map(emp => ({ 
-          name: emp.name, 
-          position: this.getPositionById(emp.position)?.title || 'Неизвестно',
-          performance: Math.round((emp.efficiency + emp.creativity + emp.leadership) / 3)
-        }))
-    };
+    // Обновляем прогресс
+    this.updateProgress();
   }
   
-  // Генерация отчета о бизнесе
-  generateBusinessReport() {
-    const niche = this.gameState.selectedNiche;
-    const employees = Object.values(this.gameState.teamMembers);
-    const monthlyProfit = this.gameState.businessStats.revenue - this.gameState.businessStats.expenses;
-    
-    return {
-      summary: {
-        niche: niche?.name || 'Не выбрана',
-        teamSize: employees.length,
-        monthlyRevenue: this.gameState.businessStats.revenue,
-        monthlyExpenses: this.gameState.businessStats.expenses,
-        monthlyProfit,
-        businessAge: Math.floor((Date.now() - this.gameState.startTime) / (1000 * 60 * 60 * 24))
-      },
-      team: employees.map(emp => ({
-        name: emp.name,
-        position: this.getPositionById(emp.position)?.title || 'Неизвестно',
-        salary: emp.salary,
-        performance: Math.round((emp.efficiency + emp.creativity + emp.leadership) / 3),
-        experience: emp.experience || 'Не указано'
-      })),
-      financials: {
-        startingCapital: 100000,
-        currentCapital: this.gameState.businessStats.capital,
-        totalInvested: 100000 - this.gameState.businessStats.capital + (niche?.startupCost || 0),
-        breakEvenPoint: monthlyProfit > 0 ? Math.ceil((100000 - this.gameState.businessStats.capital) / monthlyProfit) : null
-      },
-      recommendations: this.generateBusinessRecommendations()
+  getStageId(stageNumber) {
+    const stageIds = {
+      1: 'nicheSelection',
+      2: 'teamSelection',
+      3: 'businessManagement',
+      4: 'results'
     };
+    return stageIds[stageNumber];
   }
   
-  // Генерация рекомендаций
-  generateBusinessRecommendations() {
-    const recommendations = [];
-    const monthlyProfit = this.gameState.businessStats.revenue - this.gameState.businessStats.expenses;
+  updateProgress() {
+    const progressFill = document.getElementById('progressFill');
+    const steps = document.querySelectorAll('.step');
     
-    if (monthlyProfit <= 0) {
-      recommendations.push({
-        type: 'urgent',
-        title: 'Достижение прибыльности',
-        description: 'Необходимо срочно оптимизировать расходы или увеличить доходы'
-      });
+    if (progressFill) {
+      const progress = (this.state.currentStage / 4) * 100;
+      progressFill.style.width = `${progress}%`;
     }
     
-    if (Object.keys(this.gameState.teamMembers).length < 5) {
-      recommendations.push({
-        type: 'growth',
-        title: 'Расширение команды',
-        description: 'Рассмотрите найм дополнительных специалистов для ускорения роста'
-      });
-    }
-    
-    if (this.gameState.businessStats.capital < 10000) {
-      recommendations.push({
-        type: 'financial',
-        title: 'Управление капиталом',
-        description: 'Следите за уровнем оборотного капитала для обеспечения стабильности'
-      });
-    }
-    
-    return recommendations;
+    // Обновляем шаги
+    steps.forEach((step, index) => {
+      const stepNumber = index + 1;
+      step.classList.remove('active', 'completed');
+      
+      if (stepNumber < this.state.currentStage) {
+        step.classList.add('completed');
+      } else if (stepNumber === this.state.currentStage) {
+        step.classList.add('active');
+      }
+    });
   }
   
-  // Сброс квеста
-  resetQuest() {
-    this.gameState = {
-      currentStage: 1,
-      selectedNiche: null,
-      teamMembers: {},
-      businessStats: {
-        revenue: 0,
-        growth: 0,
-        teamSize: 0,
-        reputation: 0,
-        capital: 100000,
-        expenses: 0,
-        profit: 0
-      },
-      decisions: [],
-      startTime: Date.now(),
-      isRunning: true
-    };
-    
-    // Удаляем сохраненный прогресс
-    localStorage.removeItem('businessQuestProgress');
-    
-    return {
-      success: true,
-      message: 'Квест сброшен к началу'
-    };
+  getNicheTitle(niche) {
+    const niches = window.BUSINESS_QUEST_DATA?.BUSINESS_NICHES;
+    if (niches && niches[niche]) {
+      return niches[niche].name;
+    }
+    return niche;
   }
   
-  // Получение статистики производительности
-  getPerformanceStats() {
-    const employees = Object.values(this.gameState.teamMembers);
-    
-    if (employees.length === 0) {
-      return null;
+  goBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '../quests.html';
     }
-    
-    const totalEfficiency = employees.reduce((sum, emp) => sum + emp.efficiency, 0);
-    const totalCreativity = employees.reduce((sum, emp) => sum + emp.creativity, 0);
-    const totalLeadership = employees.reduce((sum, emp) => sum + emp.leadership, 0);
-    
-    return {
-      averageEfficiency: Math.round(totalEfficiency / employees.length),
-      averageCreativity: Math.round(totalCreativity / employees.length),
-      averageLeadership: Math.round(totalLeadership / employees.length),
-      totalPerformance: Math.round((totalEfficiency + totalCreativity + totalLeadership) / employees.length),
-      teamSynergy: this.calculateTeamSynergy(employees)
-    };
   }
   
-  // Расчет синергии команды
-  calculateTeamSynergy(employees) {
-    if (employees.length < 2) return 0;
+  // Инициализация управления бизнесом
+  initializeBusinessManagement() {
+    this.createDecisionCards();
+    this.updateBusinessStats();
+  }
+  
+  // Создание карточек решений
+  createDecisionCards() {
+    const decisionsGrid = document.querySelector('.decisions-grid');
+    if (!decisionsGrid) return;
     
-    let synergy = 0;
+    const decisions = window.BUSINESS_QUEST_DATA?.BUSINESS_DECISIONS;
+    if (!decisions) return;
     
-    // Проверяем разнообразие навыков
-    const skillSets = employees.map(emp => ({
-      efficiency: emp.efficiency > 70,
-      creativity: emp.creativity > 70,
-      leadership: emp.leadership > 70
-    }));
-    
-    const hasEfficiency = skillSets.some(set => set.efficiency);
-    const hasCreativity = skillSets.some(set => set.creativity);
-    const hasLeadership = skillSets.some(set => set.leadership);
-    
-    if (hasEfficiency && hasCreativity && hasLeadership) {
-      synergy += 20; // Полный набор навыков
-    } else if ((hasEfficiency && hasCreativity) || (hasEfficiency && hasLeadership) || (hasCreativity && hasLeadership)) {
-      synergy += 10; // Частичный набор навыков
+    Object.values(decisions).forEach(decision => {
+      const decisionCard = document.createElement('div');
+      decisionCard.className = 'decision-card';
+      decisionCard.dataset.decisionId = decision.id;
+      
+      decisionCard.innerHTML = `
+        <div class="decision-icon">${decision.icon}</div>
+        <div class="decision-title">${decision.title}</div>
+        <div class="decision-description">${decision.description}</div>
+        <div class="decision-cost">Стоимость: ${decision.cost.toLocaleString()} ₽</div>
+        <div class="decision-risk">Риск: ${decision.risk}</div>
+      `;
+      
+      decisionCard.addEventListener('click', () => this.selectDecision(decision));
+      decisionsGrid.appendChild(decisionCard);
+    });
+  }
+  
+  // Выбор решения
+  selectDecision(decision) {
+    // Проверяем, достаточно ли средств
+    if (this.state.businessStats.revenue < decision.cost) {
+      this.showToast('Недостаточно средств для этого решения!', 'warning');
+      return;
     }
     
-    // Бонус за размер команды
-    if (employees.length >= 4) {
-      synergy += 15;
-    } else if (employees.length >= 2) {
-      synergy += 5;
+    // Применяем эффект решения
+    this.state.businessStats.revenue -= decision.cost;
+    this.state.businessStats.expenses += decision.cost;
+    
+    Object.entries(decision.effect).forEach(([stat, value]) => {
+      if (this.state.businessStats[stat] !== undefined) {
+        this.state.businessStats[stat] += value;
+      }
+    });
+    
+    // Сохраняем решение
+    this.state.decisions.push({
+      ...decision,
+      timestamp: Date.now()
+    });
+    
+    // Обновляем отображение
+    this.updateBusinessStats();
+    
+    // Анимация выбора
+    const decisionCard = document.querySelector(`[data-decision-id="${decision.id}"]`);
+    if (decisionCard) {
+      decisionCard.classList.add('selected');
+      decisionCard.style.animation = 'successPulse 0.5s ease-out';
+      setTimeout(() => {
+        decisionCard.style.animation = '';
+      }, 500);
     }
     
-    return Math.min(synergy, 100);
+    this.showToast(`Решение "${decision.title}" принято!`, 'success');
+  }
+  
+  // Обработка решений бизнеса
+  processBusinessDecisions() {
+    // Автоматический рост на основе решений
+    if (this.state.decisions.length > 0) {
+      this.state.businessStats.growth += 5;
+      this.state.businessStats.revenue += this.state.businessStats.growth * 1000;
+      this.state.businessStats.reputation += 2;
+    }
+  }
+  
+  // Показать финальные результаты
+  showFinalResults() {
+    const finalRevenue = document.getElementById('finalRevenue');
+    const finalTeamSize = document.getElementById('finalTeamSize');
+    const finalReputation = document.getElementById('finalReputation');
+    const finalGrowth = document.getElementById('finalGrowth');
+    
+    if (finalRevenue) finalRevenue.textContent = `${this.state.businessStats.revenue.toLocaleString()} ₽`;
+    if (finalTeamSize) finalTeamSize.textContent = this.state.businessStats.teamSize;
+    if (finalReputation) finalReputation.textContent = this.state.businessStats.reputation;
+    if (finalGrowth) finalGrowth.textContent = `${this.state.businessStats.growth}%`;
+  }
+  
+  // Очистка ресурсов
+  destroy() {
+    if (this.gameLoop) {
+      clearInterval(this.gameLoop);
+    }
+    this.saveState();
   }
 }
 
-// Создаем экземпляр движка при загрузке страницы
-let businessEngine = null;
+// Создание экземпляра движка
+let businessQuestEngine = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-  businessEngine = new BusinessQuestEngine();
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  businessQuestEngine = new BusinessQuestEngine();
 });
 
-// Экспортируем для использования в других модулях
-window.BusinessQuestEngine = BusinessQuestEngine;
-window.businessEngine = businessEngine;
-
-console.log('Business Quest Engine system loaded successfully!');
+// Экспорт для использования в других файлах
+window.businessQuestEngine = businessQuestEngine;

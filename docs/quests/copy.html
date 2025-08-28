@@ -11,8 +11,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #42100d 0%, #b95c1a 25%, #e7af3e 50%, #fdd77a 75%, #f3dcb3 100%);
-      color: #42100d;
+      background: linear-gradient(135deg, #161412 0%, #2a241f 50%, #161412 100%);
+      color: #ffffff;
       line-height: 1.6; 
       overflow-x: hidden; 
       min-height: 100vh;
@@ -22,17 +22,17 @@
     /* Критические стили для header */
     .topbar { 
       position: sticky; top: 0; z-index: 100;
-      background: rgba(243, 220, 179, 0.95);
+      background: rgba(22, 20, 18, 0.95);
       backdrop-filter: blur(20px);
-      border-bottom: 2px solid #fdd77a;
+      border-bottom: 2px solid #5a473a;
       padding: 16px 20px;
-      box-shadow: 0 4px 20px rgba(231, 175, 62, 0.3);
+      box-shadow: 0 4px 20px rgba(22, 20, 18, 0.8);
     }
     .brand h1 { 
       font-size: 24px; 
       font-weight: 700; 
-      color: #42100d;
-      text-shadow: 0 2px 4px rgba(66, 16, 13, 0.2);
+      color: #c7bdb1;
+      text-shadow: 0 2px 4px rgba(22, 20, 18, 0.5);
     }
     
     /* Критические стили для модала */
@@ -40,14 +40,35 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(66, 16, 13, 0.8);
+      background: rgba(22, 20, 18, 0.8);
       backdrop-filter: blur(15px);
     }
     .modalContent {
-      background: rgba(243, 220, 179, 0.98);
-      border: 2px solid #fdd77a;
+      background: rgba(90, 71, 58, 0.98);
+      border: 2px solid #5a473a;
       border-radius: 20px;
-      box-shadow: 0 16px 80px rgba(231, 175, 62, 0.4);
+      box-shadow: 0 16px 80px rgba(22, 20, 18, 0.8);
+    }
+    
+    /* Критические стили для квестов */
+    .quest-content {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .quest-stage {
+      display: none;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    .quest-stage.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
   
