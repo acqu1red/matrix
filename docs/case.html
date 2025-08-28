@@ -7,14 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    // Проверяем, не загружен ли уже Supabase
-    if (!window.supabase) {
-      const script = document.createElement('script');
-      script.src = "https://unpkg.com/@supabase/supabase-js@2";
-      document.head.appendChild(script);
-    }
-  </script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   
   <style>
     /* ====== GOLDEN THEME ====== */
@@ -271,52 +264,113 @@
       line-height: 1.8;
     }
 
-    /* ====== ROULETTE SECTION ====== */
-    .roulette-section {
+    /* ====== CASE ROULETTE ====== */
+    .business-roulette-section {
       text-align: center;
     }
 
-    .roulette-container {
+    .case-roulette-container {
       position: relative;
-      width: 300px;
-      height: 300px;
+      width: 100%;
+      max-width: 800px;
+      height: 200px;
       margin: 0 auto 2rem;
-      border-radius: 50%;
-      background: conic-gradient(
-        from 0deg,
-        var(--accent-primary) 0deg,
-        var(--accent-secondary) 72deg,
-        var(--accent-primary) 144deg,
-        var(--accent-secondary) 216deg,
-        var(--accent-primary) 288deg,
-        var(--accent-secondary) 360deg
-      );
-      padding: 10px;
+      background: var(--bg-primary);
+      border: 3px solid var(--accent-primary);
+      border-radius: 20px;
+      overflow: hidden;
       box-shadow: var(--shadow-heavy);
     }
 
-    .roulette-inner {
+    .case-roulette-track {
+      position: relative;
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      background: var(--bg-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      overflow: hidden;
     }
 
-    .roulette-pointer {
+    .case-roulette-items {
       position: absolute;
-      top: -20px;
+      top: 0;
+      left: 0;
+      height: 100%;
+      display: flex;
+      transition: transform 15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .case-roulette-item {
+      min-width: 150px;
+      height: 100%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: 2px solid var(--accent-glow);
+      border-radius: 15px;
+      margin: 0 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-primary);
+      font-weight: 600;
+      text-align: center;
+      padding: 1rem;
+      box-shadow: var(--shadow-medium);
+      transition: all var(--transition-fast);
+    }
+
+    .case-roulette-item:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-heavy);
+    }
+
+    .case-roulette-item .prize-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 10px var(--accent-glow));
+    }
+
+    .case-roulette-item .prize-name {
+      font-size: 0.9rem;
+      line-height: 1.2;
+    }
+
+    .case-roulette-pointer {
+      position: absolute;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .pointer-arrow {
       width: 0;
       height: 0;
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-top: 30px solid var(--accent-primary);
-      filter: drop-shadow(0 0 10px var(--accent-glow));
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 40px solid var(--accent-primary);
+      filter: drop-shadow(0 0 15px var(--accent-glow));
+      animation: pointerGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes pointerGlow {
+      from { filter: drop-shadow(0 0 15px var(--accent-glow)); }
+      to { filter: drop-shadow(0 0 25px var(--accent-glow), 0 0 35px var(--accent-glow)); }
+    }
+
+    .pointer-glow {
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      width: 40px;
+      height: 40px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: glowPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.2); opacity: 0.6; }
     }
 
     .spin-btn {
@@ -344,100 +398,14 @@
       transform: none;
     }
 
-    /* ====== HORIZONTAL ROULETTE ====== */
-    .business-roulette-section {
-      text-align: center;
+    .spin-btn.spinning {
+      background: var(--accent-primary);
+      animation: spinPulse 0.5s ease-in-out infinite alternate;
     }
 
-    .roulette-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto 2rem;
-      overflow: hidden;
-    }
-
-    .roulette-container {
-      position: relative;
-      height: 200px;
-      background: linear-gradient(90deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-      border: 3px solid var(--accent-primary);
-      border-radius: 20px;
-      box-shadow: var(--shadow-heavy);
-      overflow: hidden;
-    }
-
-    .roulette-track {
-      display: flex;
-      transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      height: 100%;
-    }
-
-    .roulette-item {
-      flex-shrink: 0;
-      width: 150px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--glass-bg);
-      border: 2px solid var(--border-color);
-      border-radius: 15px;
-      margin: 0 5px;
-      transition: all var(--transition-fast);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .roulette-item:hover {
-      transform: scale(1.05);
-      border-color: var(--accent-primary);
-      box-shadow: var(--shadow-medium);
-    }
-
-    .roulette-item img {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      margin-bottom: 0.5rem;
-      filter: drop-shadow(0 0 10px var(--accent-glow));
-    }
-
-    .roulette-item-name {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      text-align: center;
-      line-height: 1.2;
-      font-weight: 600;
-      max-width: 120px;
-    }
-
-    .roulette-pointer {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 0;
-      height: 0;
-      border-top: 15px solid transparent;
-      border-bottom: 15px solid transparent;
-      border-left: 25px solid var(--accent-primary);
-      filter: drop-shadow(0 0 15px var(--accent-glow));
-      z-index: 10;
-    }
-
-    .roulette-pointer::after {
-      content: '';
-      position: absolute;
-      top: -15px;
-      left: -25px;
-      width: 0;
-      height: 0;
-      border-top: 15px solid transparent;
-      border-bottom: 15px solid transparent;
-      border-left: 25px solid var(--bg-primary);
-      z-index: 11;
+    @keyframes spinPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
     }
 
     /* ====== ACTIVITY FEED ====== */
@@ -663,27 +631,28 @@
       </div>
     </header>
 
-
-
-    <!-- Business Roulette Section -->
+        <!-- Business Roulette Section -->
     <section class="section business-roulette-section">
-      <h2 class="section-title">🎰 Кейс Успеха</h2>
+      <h2 class="section-title">🏢 Бизнес-рулетка</h2>
       <p class="section-description">
-        Откройте кейс и получите ценные призы, скидки и бонусы для достижения успеха!
+        Откройте кейс и получите ценные призы, скидки и бонусы для вашего бизнеса!
       </p>
       
-            <div class="roulette-wrapper">
-        <div class="roulette-container">
-          <div class="roulette-track" id="rouletteTrack">
-            <!-- Призы будут добавлены динамически -->
+      <div class="case-roulette-container">
+        <div class="case-roulette-track">
+          <div class="case-roulette-items" id="caseRouletteItems">
+            <!-- Prizes will be generated here -->
           </div>
-          <div class="roulette-pointer"></div>
+        </div>
+        <div class="case-roulette-pointer">
+          <div class="pointer-arrow">▼</div>
+          <div class="pointer-glow"></div>
         </div>
       </div>
       
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <button id="spinBtn" class="spin-btn">🎯 Крутить кейс</button>
-        <button id="showPrizesBtn" class="spin-btn">🏆 Показать призы</button>
+        <button id="spinBtn" class="spin-btn">🎯 Открыть кейс</button>
+        <button id="showPrizesBtn" class="spin-btn">🏆 Возможные призы</button>
         <button id="buySpinBtn" class="spin-btn">💎 Купить спин</button>
       </div>
     </section>
@@ -714,7 +683,7 @@
 
   <div id="prizesModal" class="modal" style="display: none;">
     <div class="modal-content">
-      <h3>Доступные призы</h3>
+      <h3>Возможные призы</h3>
       <div id="prizesList"></div>
       <button onclick="closeModal('prizesModal')" class="spin-btn">Закрыть</button>
     </div>
@@ -726,16 +695,16 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
 
     // Prizes data
-    const ROULETTE_PRIZES = [
-      { id: "discount_10", name: "Скидка 10% на любую подписку", image: "./assets/ruletka/emoji1.png", probability: 0.40 },
-      { id: "discount_20", name: "Скидка 20% на подписку 6 мес.", image: "./assets/ruletka/emoji2.png", probability: 0.25 },
-      { id: "discount_50", name: "Скидка 50% на подписку 12 мес.", image: "./assets/ruletka/emoji3.png", probability: 0.15 },
-      { id: "free_month", name: "Полная подписка 1 мес.", image: "./assets/ruletka/emoji4.png", probability: 0.05 },
-      { id: "mulacoin_50", name: "50 MULACOIN", image: "./assets/ruletka/emoji5.png", probability: 0.40 },
-      { id: "plus_spin", name: "+1 SPIN", image: "./assets/ruletka/emoji6.png", probability: 0.80 },
-      { id: "mulacoin_10", name: "10 MULACOIN", image: "./assets/ruletka/emoji7.png", probability: 0.60 },
-      { id: "consultation", name: "Личная консультация", image: "./assets/ruletka/emoji8.png", probability: 0.03 },
-      { id: "frod_education", name: "Полное обучение ФРОДУ", image: "./assets/ruletka/emoji9.png", probability: 0.01 }
+    const CASE_PRIZES = [
+      { id: "discount_10", name: "Скидка 10% на любую подписку", icon: "🎫", probability: 0.40 },
+      { id: "discount_20_6m", name: "Скидка 20% на подписку 6 мес.", icon: "🎫", probability: 0.25 },
+      { id: "discount_50_12m", name: "Скидка 50% на подписку 12 мес.", icon: "🎫", probability: 0.15 },
+      { id: "free_1m", name: "Полная подписка 1 мес.", icon: "🎁", probability: 0.05 },
+      { id: "mulacoin_50", name: "50 MULACOIN", icon: "🥇", probability: 0.40 },
+      { id: "plus_1_spin", name: "+1 SPIN", icon: "🎯", probability: 0.80 },
+      { id: "mulacoin_10", name: "10 MULACOIN", icon: "🥇", probability: 0.60 },
+      { id: "consultation", name: "Личная консультация", icon: "👨‍💼", probability: 0.03 },
+      { id: "frod_education", name: "Полное обучение ФРОДУ", icon: "🎓", probability: 0.01 }
     ];
 
     // Global variables
@@ -844,87 +813,82 @@
     }
 
     // Roulette functions
-    function createRoulette() {
-      const track = $('#rouletteTrack');
-      track.innerHTML = '';
-      
-      // Создаем бесконечную ленту призов (3 полных цикла для плавности)
-      for (let cycle = 0; cycle < 3; cycle++) {
-        ROULETTE_PRIZES.forEach((prize, index) => {
-          const item = document.createElement('div');
-          item.className = 'roulette-item';
-          
-          // Создаем изображение с обработкой ошибок
-          const img = document.createElement('img');
-          img.src = prize.image;
-          img.alt = prize.name;
-          img.onerror = function() {
-            this.style.display = 'none';
-            // Создаем fallback эмодзи
-            const emoji = document.createElement('div');
-            emoji.style.cssText = 'font-size: 3rem; margin-bottom: 0.5rem;';
-            emoji.textContent = '🎁';
-            this.parentNode.insertBefore(emoji, this);
-          };
-          
-          item.appendChild(img);
-          
-          const nameDiv = document.createElement('div');
-          nameDiv.className = 'roulette-item-name';
-          nameDiv.textContent = prize.name;
-          item.appendChild(nameDiv);
-          
-          track.appendChild(item);
-        });
-      }
-    }
-
     function spinRoulette() {
       if (isSpinning) return;
       
       isSpinning = true;
-      $('#spinBtn').disabled = true;
-      $('#spinBtn').textContent = '🎯 Крутится...';
+      const spinBtn = $('#spinBtn');
+      spinBtn.disabled = true;
+      spinBtn.textContent = '🎯 Крутится...';
+      spinBtn.classList.add('spinning');
       
-      // Получаем случайный приз с учетом вероятности
-      const prize = getRandomPrize(ROULETTE_PRIZES);
+      // Create audio element for sound
+      const audio = new Audio('../assets/photovideo/kazik.mp3');
+      audio.volume = 0.7;
       
-      // Вычисляем позицию для остановки (центр экрана)
-      const track = $('#rouletteTrack');
-      const itemWidth = 150; // ширина одного приза
-      const centerPosition = (window.innerWidth / 2) - (itemWidth / 2);
+      // Start playing sound
+      audio.play().catch(e => console.log('Audio play failed:', e));
       
-      // Находим позицию приза в ленте
-      let targetPosition = 0;
-      for (let i = 0; i < ROULETTE_PRIZES.length; i++) {
-        if (ROULETTE_PRIZES[i].id === prize.id) {
-          targetPosition = -(i * itemWidth + centerPosition);
-          break;
+      // Calculate final position based on probability
+      const prize = getRandomPrize(CASE_PRIZES);
+      const prizeIndex = CASE_PRIZES.findIndex(p => p.id === prize.id);
+      
+      // Calculate final position (center of the prize)
+      const itemWidth = 170; // 150px + 20px margin
+      const centerOffset = 400; // Center of the container
+      const finalPosition = centerOffset - (prizeIndex * itemWidth) - (itemWidth / 2);
+      
+      // Get roulette items container
+      const rouletteItems = $('#caseRouletteItems');
+      
+      // Animate roulette with custom easing
+      let startTime = Date.now();
+      const duration = 15000; // 15 seconds
+      
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / duration;
+        
+        if (progress < 1) {
+          // Custom easing: slow start (0-3s), fast middle (3-10s), slow end (10-15s)
+          let easedProgress;
+          
+          if (progress < 0.2) { // 0-3 seconds: slow start
+            easedProgress = progress * progress * 0.5;
+          } else if (progress < 0.67) { // 3-10 seconds: fast middle
+            easedProgress = 0.1 + (progress - 0.2) * 1.8;
+          } else { // 10-15 seconds: slow end
+            easedProgress = 0.82 + (progress - 0.67) * 0.18 * (1 - Math.pow(progress - 0.67, 2));
+          }
+          
+          // Calculate current position with infinite loop
+          const totalDistance = 10000; // Large distance for infinite effect
+          const currentPosition = (totalDistance * easedProgress) - finalPosition;
+          
+          rouletteItems.style.transform = `translateX(-${currentPosition}px)`;
+          
+          requestAnimationFrame(animate);
+        } else {
+          // Animation finished
+          rouletteItems.style.transform = `translateX(-${finalPosition}px)`;
+          
+          // Stop sound
+          audio.pause();
+          audio.currentTime = 0;
+          
+          // Show result
+          setTimeout(() => {
+            showRouletteResult(prize);
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.textContent = '🎯 Открыть кейс';
+            spinBtn.classList.remove('spinning');
+          }, 500);
         }
       }
       
-      // Добавляем случайное смещение для реалистичности
-      const randomOffset = (Math.random() - 0.5) * 50;
-      targetPosition += randomOffset;
-      
-      // Анимация прокрутки
-      track.style.transform = `translateX(${targetPosition}px)`;
-      
-      setTimeout(() => {
-        showRouletteResult(prize);
-        isSpinning = false;
-        $('#spinBtn').disabled = false;
-        $('#spinBtn').textContent = '🎯 Крутить кейс';
-        
-        // Возвращаем рулетку в исходное положение
-        setTimeout(() => {
-          track.style.transition = 'none';
-          track.style.transform = 'translateX(0)';
-          setTimeout(() => {
-            track.style.transition = 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-          }, 50);
-        }, 1000);
-      }, 3000);
+      // Start animation
+      animate();
     }
 
     function getRandomPrize(prizes) {
@@ -942,78 +906,80 @@
     }
 
     function showRouletteResult(prize) {
-      const resultDiv = document.createElement('div');
-      resultDiv.style.cssText = 'text-align: center; padding: 2rem;';
-      
-      // Создаем изображение с обработкой ошибок
-      const img = document.createElement('img');
-      img.src = prize.image;
-      img.alt = prize.name;
-      img.style.cssText = 'width: 100px; height: 100px; object-fit: contain; margin-bottom: 1rem;';
-      img.onerror = function() {
-        this.style.display = 'none';
-        // Создаем fallback эмодзи
-        const emoji = document.createElement('div');
-        emoji.style.cssText = 'font-size: 5rem; margin-bottom: 1rem;';
-        emoji.textContent = '🎁';
-        this.parentNode.insertBefore(emoji, this);
-      };
-      
-      resultDiv.appendChild(img);
-      
-      const title = document.createElement('h3');
-      title.style.cssText = 'color: var(--accent-primary); margin-bottom: 1rem;';
-      title.textContent = prize.name;
-      resultDiv.appendChild(title);
-      
-      const message = document.createElement('p');
-      message.style.cssText = 'color: var(--text-secondary);';
-      message.textContent = 'Поздравляем! Вы получили ценный приз!';
-      resultDiv.appendChild(message);
-      
-      $('#rouletteResult').innerHTML = '';
-      $('#rouletteResult').appendChild(resultDiv);
+      $('#rouletteResult').innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">${prize.icon}</div>
+          <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
+          <p style="color: var(--text-secondary);">Поздравляем! Вы получили ценный приз!</p>
+        </div>
+      `;
+      showModal('rouletteModal');
+    }
+
+    function showBusinessRouletteResult(prize) {
+      $('#rouletteResult').innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">${prize.icon}</div>
+          <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
+          <p style="color: var(--text-secondary);">Отличный бизнес-приз!</p>
+        </div>
+      `;
       showModal('rouletteModal');
     }
 
     function showPrizes() {
-      const prizesList = ROULETTE_PRIZES.map(prize => {
-        const prizeDiv = document.createElement('div');
-        prizeDiv.style.cssText = 'display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);';
-        
-        // Создаем изображение с обработкой ошибок
-        const img = document.createElement('img');
-        img.src = prize.image;
-        img.alt = prize.name;
-        img.style.cssText = 'width: 50px; height: 50px; object-fit: contain;';
-        img.onerror = function() {
-          this.style.display = 'none';
-          // Создаем fallback эмодзи
-          const emoji = document.createElement('div');
-          emoji.style.cssText = 'font-size: 2rem; width: 50px; text-align: center;';
-          emoji.textContent = '🎁';
-          this.parentNode.insertBefore(emoji, this);
-        };
-        
-        prizeDiv.appendChild(img);
-        
-        const infoDiv = document.createElement('div');
-        const title = document.createElement('h4');
-        title.style.cssText = 'color: var(--accent-primary); margin-bottom: 0.5rem;';
-        title.textContent = prize.name;
-        infoDiv.appendChild(title);
-        
-        const chance = document.createElement('p');
-        chance.style.cssText = 'color: var(--text-secondary);';
-        chance.textContent = `Шанс: ${Math.round(prize.probability * 100)}%`;
-        infoDiv.appendChild(chance);
-        
-        prizeDiv.appendChild(infoDiv);
-        return prizeDiv.outerHTML;
-      }).join('');
+      const prizesList = CASE_PRIZES.map(prize => `
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);">
+          <div style="font-size: 2rem;">${prize.icon}</div>
+          <div>
+            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">${prize.name}</h4>
+            <p style="color: var(--text-secondary);">Шанс: ${Math.round(prize.probability * 100)}%</p>
+          </div>
+        </div>
+      `).join('');
       
       $('#prizesList').innerHTML = prizesList;
       showModal('prizesModal');
+    }
+
+    function createRouletteItems() {
+      const container = $('#caseRouletteItems');
+      if (!container) return;
+      
+      // Create multiple sets of prizes for infinite loop effect
+      let html = '';
+      
+      // First set (visible at start)
+      CASE_PRIZES.forEach(prize => {
+        html += `
+          <div class="case-roulette-item">
+            <div class="prize-icon">${prize.icon}</div>
+            <div class="prize-name">${prize.name}</div>
+          </div>
+        `;
+      });
+      
+      // Second set (for seamless loop)
+      CASE_PRIZES.forEach(prize => {
+        html += `
+          <div class="case-roulette-item">
+            <div class="prize-icon">${prize.icon}</div>
+            <div class="prize-name">${prize.name}</div>
+          </div>
+        `;
+      });
+      
+      // Third set (for extra smoothness)
+      CASE_PRIZES.forEach(prize => {
+        html += `
+          <div class="case-roulette-item">
+            <div class="prize-icon">${prize.icon}</div>
+            <div class="prize-name">${prize.name}</div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
     }
 
     function buySpin() {
@@ -1021,7 +987,7 @@
         userData.mulacoin -= 13;
         updateUI();
         toast('Спин куплен за 13 MULACOIN!', 'success');
-        spinRoulette();
+        spinBusinessRoulette();
       } else {
         toast('Недостаточно MULACOIN для покупки спина!', 'error');
       }
@@ -1108,11 +1074,11 @@
           await loadUserData(userData.telegramId);
         }
         
-        // Create roulette
-        createRoulette();
-        
         // Load activity feed
         await loadActivityFeed();
+        
+        // Create roulette items
+        createRouletteItems();
         
         // Initialize event listeners
         initEventListeners();
