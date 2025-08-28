@@ -75,6 +75,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./quests.css" />
+  <link rel="stylesheet" href="./case.css" />
   
   <!-- Preload critical resources -->
   <link rel="preload" href="./assets/rulette/case_open.png" as="image">
@@ -152,11 +153,16 @@
       <div class="case-frame">
         <button class="case-button" id="mysteryCaseBtn">
           <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
+          <div class="case-glow"></div>
         </button>
         
         <div class="case-caption">
-          <h2>🔮 Тайный кейс</h2>
+          <h2>🎰 Тайный кейс</h2>
           <p>🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
+          <div class="case-stats">
+            <span class="case-stat">🎯 Шанс выигрыша: 100%</span>
+            <span class="case-stat">💰 Призы: MULACOIN, подписки, скидки</span>
+          </div>
         </div>
       </div>
     </section>

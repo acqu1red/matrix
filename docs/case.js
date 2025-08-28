@@ -1,684 +1,706 @@
-/* ====== CONFIG ====== */
-const SUPABASE_URL = window.SUPABASE_URL || "https://uhhsrtmmuwoxsdquimaa.supabase.co";
-const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
+// ====== CASE ROULETTE JAVASCRIPT ======
 
-const SPIN_COST = 13;
-
-// Business Roulette Prizes
-const BUSINESS_ROULETTE_PRIZES = [
-  { id: "revenue_boost", name: "Бонус к доходу", value: "+20% к доходу", icon: "💰", probability: 0.3 },
-  { id: "growth_acceleration", name: "Ускорение роста", value: "+15% к росту", icon: "📈", probability: 0.25 },
-  { id: "reputation_boost", name: "Повышение репутации", value: "+10 к репутации", icon: "⭐", probability: 0.2 },
-  { id: "mulacoin_bonus", name: "MULACOIN", value: "+2 MULACOIN", icon: "🥇", probability: 0.15 },
-  { id: "special_bonus", name: "Специальный бонус", value: "Уникальная награда", icon: "🎁", probability: 0.1 }
+// Конфигурация призов с точными шансами
+const PRIZES_CONFIG = [
+  { 
+    name: 'Скидка 10% на любую подписку', 
+    type: 'discount', 
+    value: 10, 
+    chance: 40, 
+    icon: '💎', 
+    action: 'use',
+    description: 'Получите скидку 10% на любую подписку'
+  },
+  { 
+    name: 'Скидка 20% на подписку 6 мес.', 
+    type: 'discount', 
+    value: 20, 
+    chance: 25, 
+    icon: '💎', 
+    action: 'use',
+    description: 'Скидка 20% на подписку на 6 месяцев'
+  },
+  { 
+    name: 'Скидка 50% на подписку 12 мес.', 
+    type: 'discount', 
+    value: 50, 
+    chance: 15, 
+    icon: '💎', 
+    action: 'use',
+    description: 'Скидка 50% на подписку на 12 месяцев'
+  },
+  { 
+    name: 'Полная подписка 1 мес.', 
+    type: 'subscription', 
+    value: 1, 
+    chance: 5, 
+    icon: '🎫', 
+    action: 'activate',
+    description: 'Бесплатная подписка на 1 месяц'
+  },
+  { 
+    name: '50 MULACOIN', 
+    type: 'mulacoin', 
+    value: 50, 
+    chance: 40, 
+    icon: '🥇', 
+    action: 'activate',
+    description: 'Получите 50 золотых монет'
+  },
+  { 
+    name: '+1 SPIN', 
+    type: 'spin', 
+    value: 1, 
+    chance: 80, 
+    icon: '🎰', 
+    action: 'activate',
+    description: 'Дополнительный спин в рулетке'
+  },
+  { 
+    name: '10 MULACOIN', 
+    type: 'mulacoin', 
+    value: 10, 
+    chance: 60, 
+    icon: '🥇', 
+    action: 'activate',
+    description: 'Получите 10 золотых монет'
+  },
+  { 
+    name: 'Личная консультация', 
+    type: 'consultation', 
+    value: 1, 
+    chance: 3, 
+    icon: '👨‍💼', 
+    action: 'use',
+    description: 'Персональная консультация от эксперта'
+  },
+  { 
+    name: 'Полное обучение ФРОДУ', 
+    type: 'education', 
+    value: 1, 
+    chance: 1, 
+    icon: '📚', 
+    action: 'use',
+    description: 'Полный курс обучения ФРОДУ'
+  }
 ];
 
-// Success & Wealth Case Prizes
-const CASE_PRIZES = [
-  { id: "financial_plan", name: "Финансовый План", icon: "📊", probability: 0.25 },
-  { id: "investment_strategy", name: "Инвестиционная Стратегия", icon: "📈", probability: 0.20 },
-  { id: "golden_opportunity", name: "Золотая Возможность", icon: "💎", probability: 0.15 },
-  { id: "business_secrets", name: "Секреты Бизнеса", icon: "🔐", probability: 0.12 },
-  { id: "success_mindset", name: "Мышление Успеха", icon: "🧠", probability: 0.10 },
-  { id: "wealth_blueprint", name: "Чертеж Богатства", icon: "🗞️", probability: 0.08 },
-  { id: "elite_network", name: "Элитная Сеть", icon: "🤝", probability: 0.06 },
-  { id: "millionaire_habits", name: "Привычки Миллионера", icon: "⭐", probability: 0.03 },
-  { id: "ultimate_formula", name: "Формула Успеха", icon: "🏆", probability: 0.01 }
-];
-
-/* ====== Global Variables ====== */
-let tg = null;
-let supabase = null;
-let userData = {
-  telegramId: null,
-  mulacoin: 0,
-  level: 1,
-  experience: 0
+// Состояние игры
+let gameState = {
+  spinsLeft: 3,
+  totalWins: 0,
+  mulacoinBalance: 0,
+  isSpinning: false,
+  userPrizes: [],
+  spinHistory: [],
+  lastSpinTime: null
 };
 
-let currentRoulettePosition = 0;
-let isSpinning = false;
+// Аудио элементы
+let spinAudio = null;
+let winAudio = null;
 
-/* ====== Utility Functions ====== */
-function $(selector) {
-  return document.querySelector(selector);
-}
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  initializeGame();
+  loadGameState();
+  initializeRoulette();
+  updateDisplay();
+  loadUserPrizes();
+  setupEventListeners();
+  preloadAudio();
+});
 
-function $$(selector) {
-  return document.querySelectorAll(selector);
-}
-
-function toast(message, type = 'info') {
-  const toast = $('#toast');
-  toast.textContent = message;
-  toast.className = `toast show ${type}`;
+// Инициализация игры
+function initializeGame() {
+  // Проверяем, есть ли сохраненные данные
+  const savedData = localStorage.getItem('rouletteGameState');
+  if (savedData) {
+    try {
+      const parsed = JSON.parse(savedData);
+      gameState = { ...gameState, ...parsed };
+    } catch (e) {
+      console.warn('Ошибка загрузки сохраненных данных:', e);
+    }
+  }
   
+  // Инициализируем аудио
+  preloadAudio();
+}
+
+// Предзагрузка аудио
+function preloadAudio() {
+  try {
+    spinAudio = new Audio('./assets/photovideo/kazik.mp3');
+    spinAudio.volume = 0.5;
+    spinAudio.preload = 'auto';
+  } catch (e) {
+    console.warn('Не удалось загрузить аудио:', e);
+  }
+}
+
+// Настройка обработчиков событий
+function setupEventListeners() {
+  // Обработка клавиши Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeWinningModal();
+    }
+  });
+
+  // Обработка клика вне модального окна
+  const modal = document.getElementById('winningModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeWinningModal();
+      }
+    });
+  }
+
+  // Обработка изменения видимости страницы
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden && gameState.isSpinning) {
+      // Если страница скрыта во время вращения, останавливаем
+      stopRoulette();
+    }
+  });
+}
+
+// Загрузка состояния игры
+function loadGameState() {
+  const saved = localStorage.getItem('rouletteGameState');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      gameState = { ...gameState, ...parsed };
+    } catch (e) {
+      console.warn('Ошибка загрузки состояния игры:', e);
+    }
+  }
+}
+
+// Сохранение состояния игры
+function saveGameState() {
+  try {
+    localStorage.setItem('rouletteGameState', JSON.stringify(gameState));
+  } catch (e) {
+    console.warn('Ошибка сохранения состояния игры:', e);
+  }
+}
+
+// Инициализация рулетки
+function initializeRoulette() {
+  const track = document.getElementById('rouletteTrack');
+  if (!track) return;
+
+  // Создаем бесконечную ленту призов
+  let html = '';
+  const totalItems = 100; // Увеличиваем количество элементов для плавности
+  
+  for (let i = 0; i < totalItems; i++) {
+    const prize = PRIZES_CONFIG[Math.floor(Math.random() * PRIZES_CONFIG.length)];
+    html += `<div class="roulette-item" data-prize="${prize.type}">${prize.icon} ${prize.name}</div>`;
+  }
+  
+  track.innerHTML = html;
+  
+  // Добавляем эффект бесконечности
+  track.addEventListener('transitionend', function() {
+    if (track.classList.contains('slowdown')) {
+      // После остановки перемещаем в начальное положение
+      setTimeout(() => {
+        track.style.transition = 'none';
+        track.style.transform = 'translateX(0)';
+        setTimeout(() => {
+          track.style.transition = 'transform 15s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        }, 10);
+      }, 100);
+    }
+  });
+}
+
+// Обновление отображения
+function updateDisplay() {
+  const spinsLeftEl = document.getElementById('spinsLeft');
+  const totalWinsEl = document.getElementById('totalWins');
+  const mulacoinBalanceEl = document.getElementById('mulacoinBalance');
+  
+  if (spinsLeftEl) spinsLeftEl.textContent = gameState.spinsLeft;
+  if (totalWinsEl) totalWinsEl.textContent = gameState.totalWins;
+  if (mulacoinBalanceEl) mulacoinBalanceEl.textContent = gameState.mulacoinBalance;
+  
+  const spinBtn = document.getElementById('spinBtn');
+  const buySpinBtn = document.getElementById('buySpinBtn');
+  
+  if (spinBtn) {
+    spinBtn.disabled = gameState.isSpinning || gameState.spinsLeft <= 0;
+    spinBtn.textContent = gameState.isSpinning ? '🎰 Крутится...' : '🎰 Крутить рулетку';
+  }
+  
+  if (buySpinBtn) {
+    buySpinBtn.disabled = gameState.mulacoinBalance < 50;
+  }
+  
+  // Обновляем анимацию для статистики
+  animateStats();
+}
+
+// Анимация статистики
+function animateStats() {
+  const statValues = document.querySelectorAll('.stat-value');
+  statValues.forEach(el => {
+    el.style.animation = 'none';
+    setTimeout(() => {
+      el.style.animation = 'countUp 0.6s ease-out';
+    }, 10);
+  });
+}
+
+// Кручение рулетки
+function spinRoulette() {
+  if (gameState.isSpinning || gameState.spinsLeft <= 0) {
+    showToast('Нельзя крутить рулетку сейчас!', 'error');
+    return;
+  }
+
+  // Проверяем время последнего спина (антиспам)
+  const now = Date.now();
+  if (gameState.lastSpinTime && (now - gameState.lastSpinTime) < 1000) {
+    showToast('Подождите немного перед следующим спином!', 'warning');
+    return;
+  }
+
+  gameState.isSpinning = true;
+  gameState.spinsLeft--;
+  gameState.lastSpinTime = now;
+  
+  updateDisplay();
+
+  const track = document.getElementById('rouletteTrack');
+  const spinBtn = document.getElementById('spinBtn');
+  
+  if (!track || !spinBtn) return;
+  
+  // Блокируем кнопку
+  spinBtn.disabled = true;
+  spinBtn.textContent = '🎰 Крутится...';
+
+  // Запускаем анимацию
+  track.classList.add('spinning');
+  
+  // Воспроизводим звук
+  playSpinSound();
+
+  // Через 10 секунд начинаем замедление
   setTimeout(() => {
-    toast.classList.remove('show');
+    track.classList.remove('spinning');
+    track.classList.add('slowdown');
+    
+    // Плавно замедляем
+    track.style.transition = 'transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    
+    // Вычисляем финальную позицию
+    const finalPosition = calculateFinalPosition();
+    track.style.transform = `translateX(${finalPosition}px)`;
+    
+  }, 10000);
+
+  // Через 15 секунд останавливаемся
+  setTimeout(() => {
+    stopRoulette();
+  }, 15000);
+}
+
+// Вычисление финальной позиции
+function calculateFinalPosition() {
+  // Случайная позиция для остановки
+  const basePosition = -Math.random() * 1000 - 500;
+  return basePosition;
+}
+
+// Остановка рулетки
+function stopRoulette() {
+  const track = document.getElementById('rouletteTrack');
+  if (!track) return;
+  
+  track.classList.remove('slowdown');
+  
+  // Определяем выигрышный приз
+  const winningPrize = determineWinningPrize();
+  
+  // Показываем модальное окно
+  showWinningModal(winningPrize);
+  
+  // Обновляем состояние
+  gameState.totalWins++;
+  gameState.userPrizes.push(winningPrize);
+  gameState.spinHistory.push({
+    prize: winningPrize,
+    timestamp: Date.now()
+  });
+  
+  // Сохраняем состояние
+  saveGameState();
+  updateDisplay();
+  loadUserPrizes();
+  
+  // Разблокируем кнопку
+  gameState.isSpinning = false;
+  const spinBtn = document.getElementById('spinBtn');
+  if (spinBtn) {
+    spinBtn.disabled = false;
+    spinBtn.textContent = '🎰 Крутить рулетку';
+  }
+  
+  // Показываем уведомление о выигрыше
+  showToast(`🎉 Выигрыш: ${winningPrize.name}!`, 'success');
+}
+
+// Определение выигрышного приза
+function determineWinningPrize() {
+  const random = Math.random() * 100;
+  let cumulativeChance = 0;
+  
+  for (const prize of PRIZES_CONFIG) {
+    cumulativeChance += prize.chance;
+    if (random <= cumulativeChance) {
+      return { ...prize, id: Date.now() + Math.random() };
+    }
+  }
+  
+  // Fallback - возвращаем первый приз
+  return { ...PRIZES_CONFIG[0], id: Date.now() + Math.random() };
+}
+
+// Показ модального окна выигрыша
+function showWinningModal(prize) {
+  const modal = document.getElementById('winningModal');
+  const icon = document.getElementById('winningIcon');
+  const title = document.getElementById('winningTitle');
+  const description = document.getElementById('winningDescription');
+  const actions = document.getElementById('winningActions');
+
+  if (!modal || !icon || !title || !description || !actions) return;
+
+  icon.textContent = prize.icon;
+  title.textContent = '🎉 Поздравляем!';
+  description.textContent = `Вы выиграли: ${prize.name}`;
+
+  let actionsHtml = '';
+  if (prize.action === 'activate') {
+    actionsHtml = `<button class="btn btn-primary btn-small" onclick="activatePrize('${prize.id}')">Активировать</button>`;
+  } else if (prize.action === 'use') {
+    actionsHtml = `<button class="btn btn-secondary btn-small" onclick="usePrize('${prize.id}')">Использовать</button>`;
+  }
+  
+  actionsHtml += `<button class="btn btn-secondary btn-small" onclick="closeWinningModal()">Закрыть</button>`;
+  actions.innerHTML = actionsHtml;
+
+  modal.style.display = 'flex';
+  
+  // Добавляем анимацию появления
+  modal.style.animation = 'fadeIn 0.3s ease';
+}
+
+// Закрытие модального окна
+function closeWinningModal() {
+  const modal = document.getElementById('winningModal');
+  if (modal) {
+    modal.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 300);
+  }
+}
+
+// Активация приза
+function activatePrize(prizeId) {
+  const prize = gameState.userPrizes.find(p => p.id == prizeId);
+  if (!prize) return;
+
+  let message = '';
+  let success = false;
+
+  switch (prize.type) {
+    case 'mulacoin':
+      gameState.mulacoinBalance += prize.value;
+      message = `Получено ${prize.value} MULACOIN!`;
+      success = true;
+      break;
+    case 'spin':
+      gameState.spinsLeft += prize.value;
+      message = `Получено ${prize.value} дополнительный спин!`;
+      success = true;
+      break;
+    case 'subscription':
+      // Команда для выдачи подписки
+      if (window.Telegram && window.Telegram.WebApp) {
+        try {
+          window.Telegram.WebApp.sendData(JSON.stringify({
+            command: '/galdin',
+            duration: '1 месяц',
+            timestamp: Date.now()
+          }));
+          message = 'Подписка активирована!';
+          success = true;
+        } catch (e) {
+          message = 'Ошибка активации подписки';
+          success = false;
+        }
+      } else {
+        message = 'Подписка активирована!';
+        success = true;
+      }
+      break;
+  }
+
+  if (success) {
+    // Удаляем приз из списка
+    gameState.userPrizes = gameState.userPrizes.filter(p => p.id != prizeId);
+    
+    saveGameState();
+    updateDisplay();
+    loadUserPrizes();
+    closeWinningModal();
+    
+    showToast(message, 'success');
+  } else {
+    showToast(message, 'error');
+  }
+}
+
+// Использование приза
+function usePrize(prizeId) {
+  const prize = gameState.userPrizes.find(p => p.id == prizeId);
+  if (!prize) return;
+
+  let message = '';
+  let originalPrice = '';
+  let discountedPrice = '';
+
+  switch (prize.type) {
+    case 'discount':
+      if (prize.value === 10) {
+        originalPrice = 'Любая подписка';
+        discountedPrice = 'Скидка 10%';
+      } else if (prize.value === 20) {
+        originalPrice = 'Подписка 6 мес.';
+        discountedPrice = 'Скидка 20%';
+      } else if (prize.value === 50) {
+        originalPrice = 'Подписка 12 мес.';
+        discountedPrice = 'Скидка 50%';
+      }
+      message = `Хочу активировать промокод: ${prize.name}\n\n${originalPrice}\n${discountedPrice}`;
+      break;
+    case 'consultation':
+      message = 'Хочу получить личную консультацию по промокоду!';
+      break;
+    case 'education':
+      message = 'Хочу активировать промокод на полное обучение ФРОДУ!';
+      break;
+  }
+
+  // Отправляем сообщение админу
+  try {
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.openTelegramLink(`https://t.me/acqu1red?text=${encodeURIComponent(message)}`);
+    } else {
+      // Fallback для браузера
+      window.open(`https://t.me/acqu1red?text=${encodeURIComponent(message)}`, '_blank');
+    }
+    
+    // Удаляем приз из списка
+    gameState.userPrizes = gameState.userPrizes.filter(p => p.id != prizeId);
+    
+    saveGameState();
+    updateDisplay();
+    loadUserPrizes();
+    closeWinningModal();
+    
+    showToast('Промокод использован!', 'success');
+  } catch (e) {
+    showToast('Ошибка отправки сообщения', 'error');
+  }
+}
+
+// Покупка спина
+function buySpin() {
+  if (gameState.mulacoinBalance < 50) {
+    showToast('Недостаточно MULACOIN!', 'error');
+    return;
+  }
+
+  gameState.mulacoinBalance -= 50;
+  gameState.spinsLeft += 1;
+  
+  saveGameState();
+  updateDisplay();
+  showToast('Спин куплен за 50 MULACOIN!', 'success');
+}
+
+// Показ призов
+function showPrizes() {
+  let prizesHtml = '<div style="text-align: center; padding: 20px;">';
+  prizesHtml += '<h3 style="color: var(--text-primary); margin-bottom: 20px;">🏆 Доступные призы</h3>';
+  
+  PRIZES_CONFIG.forEach(prize => {
+    prizesHtml += `
+      <div style="background: var(--accent-gold); padding: 15px; margin: 10px 0; border-radius: 10px; border: 2px solid var(--bg-primary);">
+        <div style="font-size: 24px; margin-bottom: 10px;">${prize.icon}</div>
+        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 5px;">${prize.name}</div>
+        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">${prize.description}</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Шанс: ${prize.chance}%</div>
+      </div>
+    `;
+  });
+  
+  prizesHtml += '</div>';
+  
+  // Показываем в модальном окне
+  showModal('Призы', prizesHtml);
+}
+
+// Загрузка призов пользователя
+function loadUserPrizes() {
+  const promoGrid = document.getElementById('promoGrid');
+  if (!promoGrid) return;
+
+  if (gameState.userPrizes.length === 0) {
+    promoGrid.innerHTML = `
+      <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">🎰</div>
+        <h3 style="margin-bottom: 15px;">У вас пока нет выигранных призов</h3>
+        <p>Крутите рулетку, чтобы получить уникальные призы и промокоды!</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  gameState.userPrizes.forEach(prize => {
+    html += `
+      <div class="promo-card">
+        <div class="promo-name">${prize.icon} ${prize.name}</div>
+        <div class="promo-description">
+          ${prize.type === 'discount' ? `Скидка ${prize.value}%` : 
+            prize.type === 'mulacoin' ? `${prize.value} MULACOIN` :
+            prize.type === 'spin' ? `+${prize.value} спин` :
+            prize.type === 'subscription' ? 'Подписка 1 месяц' :
+            prize.type === 'consultation' ? 'Личная консультация' :
+            'Полное обучение ФРОДУ'}
+        </div>
+        <div class="promo-actions">
+          ${prize.action === 'activate' ? 
+            `<button class="btn btn-small btn-activate" onclick="activatePrize('${prize.id}')">Активировать</button>` :
+            `<button class="btn btn-small btn-use" onclick="usePrize('${prize.id}')">Использовать</button>`
+          }
+        </div>
+      </div>
+    `;
+  });
+
+  promoGrid.innerHTML = html;
+}
+
+// Воспроизведение звука
+function playSpinSound() {
+  if (spinAudio) {
+    try {
+      spinAudio.currentTime = 0;
+      spinAudio.play().catch(e => console.log('Не удалось воспроизвести звук:', e));
+    } catch (e) {
+      console.log('Ошибка воспроизведения звука:', e);
+    }
+  }
+}
+
+// Показ модального окна
+function showModal(title, content) {
+  const modal = document.getElementById('winningModal');
+  const icon = document.getElementById('winningIcon');
+  const titleEl = document.getElementById('winningTitle');
+  const description = document.getElementById('winningDescription');
+  const actions = document.getElementById('winningActions');
+
+  if (!modal || !icon || !titleEl || !description || !actions) return;
+
+  icon.textContent = '🏆';
+  titleEl.textContent = title;
+  description.innerHTML = content;
+  actions.innerHTML = '<button class="btn btn-primary btn-small" onclick="closeWinningModal()">Закрыть</button>';
+
+  modal.style.display = 'flex';
+}
+
+// Показ уведомления
+function showToast(message, type = 'info') {
+  // Удаляем существующие уведомления
+  const existingToasts = document.querySelectorAll('.toast-notification');
+  existingToasts.forEach(toast => document.body.removeChild(toast));
+
+  // Создаем новое уведомление
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : type === 'warning' ? '#ff9800' : '#2196F3'};
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    font-weight: 600;
+    max-width: 300px;
+    word-wrap: break-word;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  `;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // Анимация появления
+  setTimeout(() => {
+    toast.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Автоматическое скрытие
+  setTimeout(() => {
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
   }, 3000);
 }
 
-/* ====== Telegram Integration ====== */
-function initTG() {
-  try {
-    tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-    if (tg) {
-      tg.expand();
-      tg.enableClosingConfirmation();
-      document.body.classList.add("tg-ready");
-      
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        userData.telegramId = tg.initDataUnsafe.user.id;
-        console.log('Telegram ID получен:', userData.telegramId);
-      }
-    }
-  } catch (e) {
-    console.log("TG init fail", e);
-  }
-}
-
-/* ====== Supabase Integration ====== */
-async function initSupabase() {
-  try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase инициализирован');
-    return true;
-  } catch (error) {
-    console.error('Ошибка инициализации Supabase:', error);
-    return false;
-  }
-}
-
-async function loadUserData(telegramId) {
-  if (!supabase || !telegramId) return;
-  
-  try {
-    const { data, error } = await supabase
-      .from('bot_user')
-      .select('*')
-      .eq('telegram_id', String(telegramId))
-      .single();
-    
-    if (!error && data) {
-      userData.mulacoin = data.mulacoin || 0;
-      userData.level = data.level || 1;
-      userData.experience = data.experience || 0;
-      updateUI();
-      console.log('Данные пользователя загружены:', userData);
-    }
-  } catch (error) {
-    console.error('Ошибка загрузки данных пользователя:', error);
-  }
-}
-
-async function updateUserData(updates) {
-  if (!supabase || !userData.telegramId) return;
-  
-  try {
-    const { error } = await supabase
-      .from('bot_user')
-      .update(updates)
-      .eq('telegram_id', String(userData.telegramId));
-    
-    if (error) {
-      console.error('Ошибка обновления данных:', error);
-    } else {
-      Object.assign(userData, updates);
-      updateUI();
-    }
-  } catch (error) {
-    console.error('Ошибка обновления данных пользователя:', error);
-  }
-}
-
-/* ====== UI Updates ====== */
-function updateUI() {
-  const mulacoinAmount = $('#mulacoinAmount');
-  if (mulacoinAmount) {
-    mulacoinAmount.textContent = userData.mulacoin || 0;
-  }
-}
-
-/* ====== Case Roulette Functions ====== */
-function createCaseRoulette() {
-  const container = $('#rouletteItems');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  
-  // Create multiple sets of prizes for infinite scrolling (увеличиваем для зацикливания)
-  const totalItems = 150; // Увеличено для лучшего зацикливания
-  const prizeSet = [];
-  
-  // Fill prize set based on probabilities
-  CASE_PRIZES.forEach(prize => {
-    const count = Math.max(2, Math.floor(prize.probability * totalItems));
-    for (let i = 0; i < count; i++) {
-      prizeSet.push(prize);
-    }
-  });
-  
-  // Shuffle the prizes
-  for (let i = prizeSet.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [prizeSet[i], prizeSet[j]] = [prizeSet[j], prizeSet[i]];
-  }
-  
-  // Create 3 copies for infinite scroll effect
-  const tripleSet = [...prizeSet, ...prizeSet, ...prizeSet];
-  
-  // Create roulette items
-  tripleSet.forEach((prize, index) => {
-    const item = document.createElement('div');
-    item.className = 'roulette-item';
-    item.dataset.prize = prize.id;
-    item.innerHTML = prize.icon;
-    item.title = prize.name;
-    container.appendChild(item);
-  });
-  
-  console.log('Кейс рулетка создана с', tripleSet.length, 'призами');
-}
-
-function spinCaseRoulette(isFree = false) {
-  if (isSpinning) return;
-  
-  if (!isFree && userData.mulacoin < SPIN_COST) {
-    toast('Недостаточно MULACOIN для прокрутки!', 'error');
-    return;
-  }
-  
-  isSpinning = true;
-  const spinBtn = $('#spinCase');
-  const buySpinBtn = $('#buySpinCase');
-  
-  // Disable buttons
-  spinBtn.disabled = true;
-  buySpinBtn.disabled = true;
-  spinBtn.textContent = 'Крутим...';
-  
-  // Deduct cost
-  if (!isFree) {
-    updateUserData({ mulacoin: userData.mulacoin - SPIN_COST });
-  }
-  
-  // Play sound
-  const music = $('#caseSpinMusic');
-  if (music) {
-    music.currentTime = 0;
-    music.play().catch(e => console.log('Audio play failed:', e));
-  }
-  
-  // Calculate spin distance
-  const items = $$('.roulette-item');
-  if (items.length === 0) return;
-  
-  const itemWidth = 100; // width + gap
-  const visibleWidth = 400;
-  
-  // Random spin - много оборотов для 15 секунд
-  const rotations = 8 + Math.random() * 4; // 8-12 оборотов
-  const prizesInSet = Math.floor(items.length / 3); // Оригинальный набор призов
-  const finalPosition = Math.random() * prizesInSet; // Позиция в первом наборе
-  const spinDistance = (rotations * prizesInSet + finalPosition) * itemWidth;
-  
-  currentRoulettePosition -= spinDistance;
-  
-  const rouletteItems = $('#rouletteItems');
-  rouletteItems.classList.add('spinning');
-  rouletteItems.style.transform = `translateX(${currentRoulettePosition}px)`;
-  
-  // Determine winner after 15 second spin
-  setTimeout(() => {
-    const winningPrize = selectPrizeByPosition(finalPosition, items);
-    showCasePrize(winningPrize);
-    
-    // Reset buttons
-    isSpinning = false;
-    spinBtn.disabled = false;
-    buySpinBtn.disabled = false;
-    spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутить Кейс</span>';
-    
-    rouletteItems.classList.remove('spinning');
-  }, 15000); // 15 секунд
-}
-
-function selectPrizeByPosition(position, items) {
-  const index = Math.floor(position) % items.length;
-  const prizeId = items[index].dataset.prize;
-  return CASE_PRIZES.find(p => p.id === prizeId);
-}
-
-function showCasePrize(prize) {
-  const modal = $('#prizeModal');
-  const icon = $('#prizeIcon');
-  const title = $('#prizeTitle');
-  const description = $('#prizeDescription');
-  const details = $('#prizeDetails');
-  
-  icon.textContent = prize.icon;
-  title.textContent = 'Ключ к Успеху Найден!';
-  description.textContent = `Вы получили: ${prize.name}`;
-  
-  // Create success-themed description
-  const descriptions = {
-    financial_plan: "Персональный финансовый план, который поможет вам достичь финансовой независимости и создать пассивный доход.",
-    investment_strategy: "Проверенная инвестиционная стратегия от топ-менеджеров, которая приносит стабильный доход на протяжении лет.",
-    golden_opportunity: "Эксклюзивная возможность для инвестирования, доступная только узкому кругу успешных предпринимателей.",
-    business_secrets: "Секретные техники ведения бизнеса от миллионеров, которые помогут вам масштабировать ваше дело.",
-    success_mindset: "Уникальная методика развития мышления успеха, используемая самыми богатыми людьми планеты.",
-    wealth_blueprint: "Пошаговый план создания богатства, разработанный топ-финансовыми консультантами мира.",
-    elite_network: "Доступ к элитной сети успешных предпринимателей и инвесторов для совместных проектов.",
-    millionaire_habits: "Ежедневные привычки и ритуалы миллионеров, которые приведут вас к финансовому успеху.",
-    ultimate_formula: "Легендарная формула успеха, которая помогла сотням людей стать миллионерами."
-  };
-  
-  details.innerHTML = `
-    <div style="background: rgba(255, 215, 0, 0.1); padding: 16px; border-radius: 12px; margin: 16px 0; border: 1px solid var(--conspiracy);">
-      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5;">
-        ${descriptions[prize.id] || "Ценный ресурс для достижения финансового успеха."}
-      </p>
-    </div>
-    <div style="color: var(--conspiracy); font-weight: 600; margin-top: 16px;">
-      🏆 +25 опыта получено!
-    </div>
-  `;
-  
-  modal.classList.add('show');
-  
-  // Save prize to history and give experience
-  saveCasePrize(prize);
-  updateUserData({ experience: userData.experience + 25 });
-}
-
-async function saveCasePrize(prize) {
-  if (!supabase || !userData.telegramId) return;
-  
-  try {
-    await supabase
-      .from('case_history')
-      .insert({
-        user_id: userData.telegramId,
-        prize_id: prize.id,
-        prize_name: prize.name,
-        won_at: new Date().toISOString(),
-        source: 'success_case'
-      });
-  } catch (error) {
-    console.error('Ошибка сохранения приза:', error);
-    // Fallback to roulette_history table if case_history doesn't exist
-    try {
-      await supabase
-        .from('roulette_history')
-        .insert({
-          user_id: userData.telegramId,
-          prize_id: prize.id,
-          prize_name: prize.name,
-          won_at: new Date().toISOString(),
-          source: 'success_case'
-        });
-    } catch (fallbackError) {
-      console.error('Fallback ошибка сохранения приза:', fallbackError);
-    }
-  }
-}
-
-/* ====== Modal Functions ====== */
-function showPrizesModal() {
-  const modal = $('#prizesModal');
-  const grid = $('#prizesGrid');
-  
-  grid.innerHTML = '';
-  
-  CASE_PRIZES.forEach(prize => {
-    const item = document.createElement('div');
-    item.className = 'prize-item';
-    item.innerHTML = `
-      <div class="prize-item-icon">${prize.icon}</div>
-      <div class="prize-item-name">${prize.name}</div>
-    `;
-    grid.appendChild(item);
-  });
-  
-  modal.classList.add('show');
-}
-
-async function showHistoryModal() {
-  const modal = $('#historyModal');
-  const content = $('#historyContent');
-  
-  if (!supabase || !userData.telegramId) {
-    content.innerHTML = '<p style="text-align: center; color: var(--text-muted);">История недоступна</p>';
-    modal.classList.add('show');
-    return;
-  }
-  
-  try {
-    // Try case_history first, fallback to roulette_history
-    let data, error;
-    
-    try {
-      const result = await supabase
-        .from('case_history')
-        .select('*')
-        .eq('user_id', userData.telegramId)
-        .eq('source', 'epstein_case')
-        .order('won_at', { ascending: false })
-        .limit(20);
-      data = result.data;
-      error = result.error;
-    } catch (caseError) {
-      // Fallback to roulette_history
-      const result = await supabase
-        .from('roulette_history')
-        .select('*')
-        .eq('user_id', userData.telegramId)
-        .eq('source', 'epstein_case')
-        .order('won_at', { ascending: false })
-        .limit(20);
-      data = result.data;
-      error = result.error;
-    }
-    
-    if (error) {
-      content.innerHTML = '<p style="text-align: center; color: var(--error);">Ошибка загрузки истории</p>';
-    } else if (!data || data.length === 0) {
-      content.innerHTML = '<p style="text-align: center; color: var(--text-muted);">История пуста. Попробуйте прокрутить кейс!</p>';
-    } else {
-      content.innerHTML = `
-        <div style="display: grid; gap: 12px;">
-          ${data.map(item => {
-            const prize = CASE_PRIZES.find(p => p.id === item.prize_id);
-            const date = new Date(item.won_at).toLocaleString('ru-RU');
-            return `
-              <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--glass); border: 1px solid var(--border); border-radius: 8px;">
-                <div style="font-size: 24px;">${prize ? prize.icon : '🎁'}</div>
-                <div style="flex: 1;">
-                  <div style="font-weight: 600; color: var(--text);">${item.prize_name}</div>
-                  <div style="font-size: 12px; color: var(--text-muted);">${date}</div>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-  } catch (error) {
-    console.error('Ошибка загрузки истории:', error);
-    content.innerHTML = '<p style="text-align: center; color: var(--error);">Ошибка загрузки истории</p>';
-  }
-  
-  modal.classList.add('show');
-}
-
-function closeModal(modalId) {
-  const modal = $(modalId);
-  if (modal) {
-    modal.classList.remove('show');
-  }
-}
-
-/* ====== Page Transition ====== */
-function hidePageTransition() {
-  const transition = $('#pageTransition');
-  setTimeout(() => {
-    transition.classList.add('hidden');
-  }, 1000);
-}
-
-function goBackToQuests() {
-  const transition = $('#pageTransition');
-  transition.classList.remove('hidden');
-  
-  setTimeout(() => {
-    const currentPath = window.location.pathname;
-    const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-    const questsUrl = basePath + '/quests.html';
-    
-    console.log('Возвращаемся к квестам:', questsUrl);
-    window.location.href = questsUrl;
-  }, 500);
-}
-
-function navigateToQuest(questId) {
-  const transition = $('#pageTransition');
-  transition.classList.remove('hidden');
-  
-  setTimeout(() => {
-    const currentPath = window.location.pathname;
-    const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-    const questUrl = basePath + '/quests/' + questId + '.html';
-    
-    console.log('Переходим на квест:', questUrl);
-    window.location.href = questUrl;
-  }, 500);
-}
-
-/* ====== BUSINESS ROULETTE FUNCTIONS ====== */
-function createBusinessRoulette() {
-  const rouletteItems = $('#rouletteItems');
-  if (!rouletteItems) return;
-  
-  rouletteItems.innerHTML = '';
-  
-  BUSINESS_ROULETTE_PRIZES.forEach((prize, index) => {
-    const item = document.createElement('div');
-    item.className = 'roulette-item';
-    item.style.transform = `rotate(${(360 / BUSINESS_ROULETTE_PRIZES.length) * index}deg)`;
-    
-    item.innerHTML = `
-      <div class="prize-content">
-        <div class="prize-icon">${prize.icon}</div>
-        <div class="prize-name">${prize.name}</div>
-      </div>
-    `;
-    
-    rouletteItems.appendChild(item);
-  });
-}
-
-function spinBusinessRoulette() {
-  const rouletteItems = $('#rouletteItems');
-  if (!rouletteItems || isSpinning) return;
-  
-  isSpinning = true;
-  
-  // Отключаем кнопку
-  const spinBtn = $('#spinRoulette');
-  if (spinBtn) {
-    spinBtn.disabled = true;
-    spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутится...</span>';
-  }
-  
-  // Случайный приз
-  const randomPrize = BUSINESS_ROULETTE_PRIZES[Math.floor(Math.random() * BUSINESS_ROULETTE_PRIZES.length)];
-  
-  // Анимация вращения
-  const spins = 5 + Math.random() * 5; // 5-10 оборотов
-  const duration = 3000 + Math.random() * 2000; // 3-5 секунд
-  
-  rouletteItems.style.transition = `transform ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-  rouletteItems.style.transform = `rotate(${spins * 360 + Math.random() * 360}deg)`;
-  
-  setTimeout(() => {
-    // Показываем результат
-    showBusinessRouletteResult(randomPrize);
-    
-    // Восстанавливаем кнопку
-    if (spinBtn) {
-      spinBtn.disabled = false;
-      spinBtn.innerHTML = '<span class="btn-icon">🎯</span><span class="btn-text">Крутить Бизнес-рулетку</span>';
-    }
-    
-    // Сбрасываем анимацию
-    rouletteItems.style.transition = 'none';
-    rouletteItems.style.transform = 'rotate(0deg)';
-    
-    setTimeout(() => {
-      rouletteItems.style.transition = 'transform 0.3s ease';
-    }, 50);
-    
-    isSpinning = false;
-  }, duration);
-}
-
-function showBusinessRouletteResult(prize) {
-  const modal = $('#businessRouletteModal');
-  const resultContent = $('#businessRouletteResult');
-  
-  if (!modal || !resultContent) return;
-  
-  resultContent.innerHTML = `
-    <div class="result-icon">${prize.icon}</div>
-    <h3>${prize.name}</h3>
-    <p>${prize.value}</p>
-  `;
-  
-  modal.classList.add('show');
-  
-  // Применяем приз
-  applyBusinessRoulettePrize(prize);
-}
-
-function applyBusinessRoulettePrize(prize) {
-  switch (prize.id) {
-    case "revenue_boost":
-      toast(`Получен бонус: ${prize.name} - ${prize.value}`, 'success');
-      break;
-    case "growth_acceleration":
-      toast(`Получен бонус: ${prize.name} - ${prize.value}`, 'success');
-      break;
-    case "reputation_boost":
-      toast(`Получен бонус: ${prize.name} - ${prize.value}`, 'success');
-      break;
-    case "mulacoin_bonus":
-      userData.mulacoin += 2;
-      updateUI();
-      toast(`Получен приз: ${prize.name} - ${prize.value}`, 'success');
-      break;
-    case "special_bonus":
-      userData.mulacoin += 5;
-      userData.experience += 100;
-      updateUI();
-      toast(`Получен специальный приз: ${prize.name} - ${prize.value}`, 'success');
-      break;
-  }
-  
-  // Сохраняем данные пользователя
-  if (userData.telegramId) {
-    saveUserData(userData.telegramId);
-  }
-}
-
-function showBusinessPrizes() {
-  const modal = $('#prizesModal');
-  const prizesGrid = $('#prizesGrid');
-  
-  if (!modal || !prizesGrid) return;
-  
-  prizesGrid.innerHTML = '';
-  
-  BUSINESS_ROULETTE_PRIZES.forEach(prize => {
-    const prizeCard = document.createElement('div');
-    prizeCard.className = 'prize-card glass';
-    
-    prizeCard.innerHTML = `
-      <div class="prize-icon">${prize.icon}</div>
-      <h4>${prize.name}</h4>
-      <p>${prize.value}</p>
-      <div class="prize-probability">Шанс: ${Math.round(prize.probability * 100)}%</div>
-    `;
-    
-    prizesGrid.appendChild(prizeCard);
-  });
-  
-  modal.classList.add('show');
-}
-
-function buyBusinessSpin() {
-  if (userData.mulacoin >= 5) {
-    userData.mulacoin -= 5;
-    updateUI();
-    spinBusinessRoulette();
-    
-    // Сохраняем данные пользователя
-    if (userData.telegramId) {
-      saveUserData(userData.telegramId);
-    }
+// Возврат назад
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back();
   } else {
-    toast('Недостаточно MULACOIN для покупки кручения!', 'error');
+    window.location.href = 'quests.html';
   }
 }
 
-/* ====== Event Listeners ====== */
-function bindEvents() {
-  // Back button
-  $('#backToQuests')?.addEventListener('click', goBackToQuests);
-  
-  // Case controls
-  $('#spinCase')?.addEventListener('click', () => spinCaseRoulette(true));
-  $('#buySpinCase')?.addEventListener('click', () => spinCaseRoulette(false));
-  $('#showPrizes')?.addEventListener('click', showPrizesModal);
-  $('#showHistory')?.addEventListener('click', showHistoryModal);
-  
-  // Business roulette controls
-  $('#spinRoulette')?.addEventListener('click', spinBusinessRoulette);
-  $('#showBusinessPrizes')?.addEventListener('click', showBusinessPrizes);
-  $('#buyBusinessSpin')?.addEventListener('click', buyBusinessSpin);
-  
-  // Modal controls
-  $('#closePrizesModal')?.addEventListener('click', () => closeModal('#prizesModal'));
-  $('#closeHistoryModal')?.addEventListener('click', () => closeModal('#historyModal'));
-  $('#closePrize')?.addEventListener('click', () => closeModal('#prizeModal'));
-  $('#closeBusinessRouletteModal')?.addEventListener('click', () => closeModal('#businessRouletteModal'));
-  
-  // Close modals by clicking outside
-  $$('.modal').forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.classList.remove('show');
-      }
-    });
-  });
-  
-  // Lore card navigation
-  $('#islandSecretsCard')?.addEventListener('click', () => {
-    navigateToQuest('world-government');
-  });
-  
-  $('#powerSymbolsCard')?.addEventListener('click', () => {
-    navigateToQuest('bodylang');
-  });
-}
+// Экспорт функций для использования в HTML
+window.spinRoulette = spinRoulette;
+window.buySpin = buySpin;
+window.showPrizes = showPrizes;
+window.activatePrize = activatePrize;
+window.usePrize = usePrize;
+window.closeWinningModal = closeWinningModal;
+window.goBack = goBack;
 
-/* ====== Initialization ====== */
-document.addEventListener('DOMContentLoaded', async function() {
-  console.log('Кейс Финансового Успеха загружается...');
-  
-  // Initialize Telegram
-  initTG();
-  
-  // Initialize Supabase
-  await initSupabase();
-  
-  // Load user data
-  if (userData.telegramId) {
-    await loadUserData(userData.telegramId);
+// Глобальные функции для отладки
+window.gameState = gameState;
+window.resetGame = function() {
+  if (confirm('Сбросить все данные игры?')) {
+    localStorage.removeItem('rouletteGameState');
+    location.reload();
   }
-  
-  // Create roulettes
-  createCaseRoulette();
-  createBusinessRoulette();
-  
-  // Bind events
-  bindEvents();
-  
-  // Hide page transition
-  hidePageTransition();
-  
-  // Update UI
-  updateUI();
-  
-  console.log('Кейс Финансового Успеха готов к использованию');
-  toast('Добро пожаловать в академию успеха!', 'success');
-});
+};
