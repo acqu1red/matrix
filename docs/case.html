@@ -190,29 +190,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border: 2px solid var(--accent-secondary);
             position: relative;
             overflow: hidden;
+            border: 2px solid var(--accent-secondary);
         }
 
         .roulette-item img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .roulette-pointer {
             position: absolute;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 20px solid var(--accent-secondary);
-            border-top: 15px solid transparent;
-            border-bottom: 15px solid transparent;
+            border-top: 20px solid var(--accent-secondary);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
             z-index: 10;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
         }
@@ -863,18 +862,26 @@
             spinBtn.disabled = true;
             spinBtn.textContent = '🎰 Крутится...';
             
+            // Воспроизводим музыку
+            const audio = new Audio('assets/photovideo/kazik.mp3');
+            audio.play();
+            
             // Анимация кручения
             track.classList.add('spinning');
             
             // Определяем выигрышный приз
             const winningPrize = getRandomPrize();
             
-            // Останавливаем рулетку через случайное время
-            const spinDuration = 3000 + Math.random() * 2000;
+            // Останавливаем рулетку ровно через 15 секунд
+            const spinDuration = 15000;
             
             setTimeout(() => {
                 track.classList.remove('spinning');
                 track.style.transition = 'none';
+                
+                // Останавливаем музыку
+                audio.pause();
+                audio.currentTime = 0;
                 
                 // Показываем результат
                 showPrizeResult(winningPrize);
