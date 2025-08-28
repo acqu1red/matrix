@@ -155,24 +155,64 @@
         }
 
         .roulette-section {
-            background: linear-gradient(135deg, rgba(68, 48, 32, 0.9), rgba(91, 86, 67, 0.9));
-            border-radius: 20px;
-            padding: 30px;
+            background: linear-gradient(135deg, rgba(68, 48, 32, 0.95), rgba(91, 86, 67, 0.95));
+            border-radius: 25px;
+            padding: 35px;
             margin-bottom: 40px;
-            box-shadow: var(--shadow-heavy);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             animation: fadeInUp 1s ease 0.4s both;
-            backdrop-filter: blur(10px);
-            border: 2px solid var(--accent-primary);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 146, 26, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .roulette-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
 
         .roulette-container {
             position: relative;
-            height: 200px;
-            background: linear-gradient(90deg, var(--bg-primary), var(--bg-secondary));
-            border-radius: 15px;
+            height: 180px;
+            background: linear-gradient(135deg, 
+                rgba(68, 48, 32, 0.8) 0%, 
+                rgba(91, 86, 67, 0.6) 50%, 
+                rgba(68, 48, 32, 0.8) 100%);
+            border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 30px;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 35px;
+            box-shadow: 
+                inset 0 0 30px rgba(0, 0, 0, 0.4),
+                0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(212, 146, 26, 0.2);
+            position: relative;
+        }
+
+        .roulette-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(212, 146, 26, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(241, 216, 129, 0.1) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .roulette-track {
@@ -182,38 +222,102 @@
             height: 100%;
             display: flex;
             transition: transform var(--transition-slow);
+            will-change: transform;
         }
 
         .roulette-item {
-            min-width: 120px;
+            min-width: 140px;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
-            border: 2px solid var(--accent-secondary);
+            border: 1px solid rgba(212, 146, 26, 0.3);
+            background: linear-gradient(135deg, 
+                rgba(212, 146, 26, 0.1) 0%, 
+                rgba(241, 216, 129, 0.1) 100%);
+            transition: all var(--transition-fast);
+        }
+
+        .roulette-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .roulette-item:hover::before {
+            transform: translateX(100%);
         }
 
         .roulette-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+            transition: all var(--transition-medium);
+        }
+
+        .roulette-item:hover img {
+            transform: scale(1.05);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
         }
 
         .roulette-pointer {
             position: absolute;
-            bottom: -15px;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+        }
+
+        .roulette-pointer::before {
+            content: '';
+            position: absolute;
+            top: -5px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-top: 20px solid var(--accent-secondary);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 20px solid var(--accent-secondary);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .roulette-pointer::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-secondary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: translateX(-50%) scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: translateX(-50%) scale(1.2);
+                opacity: 0.7;
+            }
         }
 
         .roulette-controls {
@@ -227,13 +331,36 @@
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: var(--bg-primary);
             border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
+            padding: 18px 35px;
+            border-radius: 30px;
             font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all var(--transition-medium);
-            box-shadow: var(--shadow-medium);
+            box-shadow: 
+                0 8px 25px rgba(212, 146, 26, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: left 0.5s ease;
+        }
+
+        .control-btn:hover::before {
+            left: 100%;
         }
 
         .control-btn.prizes-btn {
@@ -250,23 +377,52 @@
         }
 
         .control-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-heavy);
+            transform: translateY(-4px);
+            box-shadow: 
+                0 12px 35px rgba(212, 146, 26, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .control-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(212, 146, 26, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .control-btn:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn:disabled::before {
+            display: none;
         }
 
         .spinning {
-            animation: spin 0.1s linear infinite;
+            animation: spin 0.08s linear infinite;
         }
 
         @keyframes spin {
             from { transform: translateX(0); }
-            to { transform: translateX(-200px); }
+            to { transform: translateX(-140px); }
+        }
+
+        .roulette-item.spinning-item {
+            animation: itemGlow 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes itemGlow {
+            from { 
+                box-shadow: 0 0 10px rgba(212, 146, 26, 0.3);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 20px rgba(212, 146, 26, 0.6);
+                transform: scale(1.02);
+            }
         }
 
         .promocodes-section {
@@ -282,10 +438,54 @@
 
         .section-title {
             text-align: center;
-            font-size: 2rem;
+            font-size: 2.2rem;
             color: var(--accent-secondary);
             margin-bottom: 30px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(212, 146, 26, 0.3);
+            position: relative;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--accent-secondary), 
+                transparent);
+            border-radius: 2px;
+            animation: titleLine 2s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            from { 
+                text-shadow: 
+                    0 2px 4px rgba(0, 0, 0, 0.3),
+                    0 0 20px rgba(212, 146, 26, 0.3);
+            }
+            to { 
+                text-shadow: 
+                    0 2px 4px rgba(0, 0, 0, 0.3),
+                    0 0 30px rgba(212, 146, 26, 0.6);
+            }
+        }
+
+        @keyframes titleLine {
+            0%, 100% { 
+                width: 60px;
+                opacity: 0.7;
+            }
+            50% { 
+                width: 100px;
+                opacity: 1;
+            }
         }
 
         .promocodes-grid {
@@ -936,6 +1136,14 @@
             // Анимация кручения начинается сразу
             track.classList.add('spinning');
             
+            // Добавляем анимацию к элементам рулетки
+            const items = track.querySelectorAll('.roulette-item');
+            items.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('spinning-item');
+                }, index * 50);
+            });
+            
             // Воспроизводим музыку сразу
             const audio = new Audio('assets/photovideo/kazik.mp3');
             audio.play().catch(e => console.log('Ошибка воспроизведения:', e));
@@ -949,6 +1157,12 @@
             setTimeout(() => {
                 track.classList.remove('spinning');
                 track.style.transition = 'none';
+                
+                // Убираем анимацию с элементов рулетки
+                const items = track.querySelectorAll('.roulette-item');
+                items.forEach(item => {
+                    item.classList.remove('spinning-item');
+                });
                 
                 // Останавливаем музыку
                 audio.pause();
