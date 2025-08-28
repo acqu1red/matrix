@@ -337,53 +337,100 @@
       transform: none;
     }
 
-    /* ====== BUSINESS ROULETTE ====== */
+    /* ====== HORIZONTAL ROULETTE ====== */
     .business-roulette-section {
       text-align: center;
     }
 
-    .business-roulette-container {
+    .roulette-wrapper {
       position: relative;
-      width: 350px;
-      height: 350px;
+      width: 100%;
+      max-width: 800px;
       margin: 0 auto 2rem;
-      border-radius: 50%;
-      background: conic-gradient(
-        from 0deg,
-        var(--accent-primary) 0deg,
-        var(--accent-secondary) 60deg,
-        var(--accent-primary) 120deg,
-        var(--accent-secondary) 180deg,
-        var(--accent-primary) 240deg,
-        var(--accent-secondary) 300deg,
-        var(--accent-primary) 360deg
-      );
-      padding: 15px;
-      box-shadow: var(--shadow-heavy);
+      overflow: hidden;
     }
 
-    .business-roulette-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: var(--bg-primary);
+    .roulette-container {
+      position: relative;
+      height: 200px;
+      background: linear-gradient(90deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+      border: 3px solid var(--accent-primary);
+      border-radius: 20px;
+      box-shadow: var(--shadow-heavy);
+      overflow: hidden;
+    }
+
+    .roulette-track {
       display: flex;
+      transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      height: 100%;
+    }
+
+    .roulette-item {
+      flex-shrink: 0;
+      width: 150px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      background: var(--glass-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 15px;
+      margin: 0 5px;
+      transition: all var(--transition-fast);
       position: relative;
+      overflow: hidden;
     }
 
-    .business-roulette-pointer {
+    .roulette-item:hover {
+      transform: scale(1.05);
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .roulette-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 10px var(--accent-glow));
+    }
+
+    .roulette-item-name {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.2;
+      font-weight: 600;
+      max-width: 120px;
+    }
+
+    .roulette-pointer {
       position: absolute;
-      top: -25px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -50%);
       width: 0;
       height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-top: 40px solid var(--accent-primary);
+      border-top: 15px solid transparent;
+      border-bottom: 15px solid transparent;
+      border-left: 25px solid var(--accent-primary);
       filter: drop-shadow(0 0 15px var(--accent-glow));
+      z-index: 10;
+    }
+
+    .roulette-pointer::after {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: -25px;
+      width: 0;
+      height: 0;
+      border-top: 15px solid transparent;
+      border-bottom: 15px solid transparent;
+      border-left: 25px solid var(--bg-primary);
+      z-index: 11;
     }
 
     /* ====== ACTIVITY FEED ====== */
@@ -609,37 +656,26 @@
       </div>
     </header>
 
-    <!-- Main Roulette Section -->
-    <section class="section roulette-section">
+
+
+    <!-- Business Roulette Section -->
+    <section class="section business-roulette-section">
       <h2 class="section-title">🎰 Кейс Успеха</h2>
       <p class="section-description">
-        Откройте кейс и получите ценные знания, стратегии и бонусы для достижения финансового успеха!
+        Откройте кейс и получите ценные призы, скидки и бонусы для достижения успеха!
       </p>
       
-      <div class="roulette-container">
-        <div class="roulette-inner">
+            <div class="roulette-wrapper">
+        <div class="roulette-container">
+          <div class="roulette-track" id="rouletteTrack">
+            <!-- Призы будут добавлены динамически -->
+          </div>
           <div class="roulette-pointer"></div>
         </div>
       </div>
       
-      <button id="spinBtn" class="spin-btn">🎯 Крутить кейс</button>
-    </section>
-
-    <!-- Business Roulette Section -->
-    <section class="section business-roulette-section">
-      <h2 class="section-title">🏢 Бизнес-рулетка</h2>
-      <p class="section-description">
-        Специальная рулетка для предпринимателей с уникальными бизнес-призами и возможностями!
-      </p>
-      
-      <div class="business-roulette-container">
-        <div class="business-roulette-inner">
-          <div class="business-roulette-pointer"></div>
-        </div>
-        </div>
-        
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <button id="businessSpinBtn" class="spin-btn">🎯 Крутить бизнес-рулетку</button>
+        <button id="spinBtn" class="spin-btn">🎯 Крутить кейс</button>
         <button id="showPrizesBtn" class="spin-btn">🏆 Показать призы</button>
         <button id="buySpinBtn" class="spin-btn">💎 Купить спин</button>
       </div>
@@ -669,14 +705,6 @@
     </div>
   </div>
 
-  <div id="businessRouletteModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h3>Результат бизнес-рулетки</h3>
-      <div id="businessRouletteResult"></div>
-      <button onclick="closeModal('businessRouletteModal')" class="spin-btn">Закрыть</button>
-    </div>
-  </div>
-
   <div id="prizesModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h3>Доступные призы</h3>
@@ -691,24 +719,16 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
 
     // Prizes data
-    const CASE_PRIZES = [
-      { id: "financial_plan", name: "Финансовый План", icon: "📊", probability: 0.25 },
-      { id: "investment_strategy", name: "Инвестиционная Стратегия", icon: "📈", probability: 0.20 },
-      { id: "golden_opportunity", name: "Золотая Возможность", icon: "💎", probability: 0.15 },
-      { id: "business_secrets", name: "Секреты Бизнеса", icon: "🔐", probability: 0.12 },
-      { id: "success_mindset", name: "Мышление Успеха", icon: "🧠", probability: 0.10 },
-      { id: "wealth_blueprint", name: "Чертеж Богатства", icon: "🗞️", probability: 0.08 },
-      { id: "elite_network", name: "Элитная Сеть", icon: "🤝", probability: 0.06 },
-      { id: "millionaire_habits", name: "Привычки Миллионера", icon: "⭐", probability: 0.03 },
-      { id: "ultimate_formula", name: "Формула Успеха", icon: "🏆", probability: 0.01 }
-    ];
-
-    const BUSINESS_ROULETTE_PRIZES = [
-      { id: "revenue_boost", name: "Бонус к доходу", value: "+20% к доходу", icon: "💰", probability: 0.3 },
-      { id: "growth_acceleration", name: "Ускорение роста", value: "+15% к росту", icon: "📈", probability: 0.25 },
-      { id: "reputation_boost", name: "Повышение репутации", value: "+10 к репутации", icon: "⭐", probability: 0.2 },
-      { id: "mulacoin_bonus", name: "MULACOIN", value: "+2 MULACOIN", icon: "🥇", probability: 0.15 },
-      { id: "special_bonus", name: "Специальный бонус", value: "Уникальная награда", icon: "🎁", probability: 0.1 }
+    const ROULETTE_PRIZES = [
+      { id: "discount_10", name: "Скидка 10% на любую подписку", image: "../assets/ruletka/emoji1.png", probability: 0.40 },
+      { id: "discount_20", name: "Скидка 20% на подписку 6 мес.", image: "../assets/ruletka/emoji2.png", probability: 0.25 },
+      { id: "discount_50", name: "Скидка 50% на подписку 12 мес.", image: "../assets/ruletka/emoji3.png", probability: 0.15 },
+      { id: "free_month", name: "Полная подписка 1 мес.", image: "../assets/ruletka/emoji4.png", probability: 0.05 },
+      { id: "mulacoin_50", name: "50 MULACOIN", image: "../assets/ruletka/emoji5.png", probability: 0.40 },
+      { id: "plus_spin", name: "+1 SPIN", image: "../assets/ruletka/emoji6.png", probability: 0.80 },
+      { id: "mulacoin_10", name: "10 MULACOIN", image: "../assets/ruletka/emoji7.png", probability: 0.60 },
+      { id: "consultation", name: "Личная консультация", image: "../assets/ruletka/emoji8.png", probability: 0.03 },
+      { id: "frod_education", name: "Полное обучение ФРОДУ", image: "../assets/ruletka/emoji9.png", probability: 0.01 }
     ];
 
     // Global variables
@@ -817,6 +837,24 @@
     }
 
     // Roulette functions
+    function createRoulette() {
+      const track = $('#rouletteTrack');
+      track.innerHTML = '';
+      
+      // Создаем бесконечную ленту призов (3 полных цикла для плавности)
+      for (let cycle = 0; cycle < 3; cycle++) {
+        ROULETTE_PRIZES.forEach((prize, index) => {
+          const item = document.createElement('div');
+          item.className = 'roulette-item';
+          item.innerHTML = `
+            <img src="${prize.image}" alt="${prize.name}" onerror="this.src='🎁'">
+            <div class="roulette-item-name">${prize.name}</div>
+          `;
+          track.appendChild(item);
+        });
+      }
+    }
+
     function spinRoulette() {
       if (isSpinning) return;
       
@@ -824,30 +862,45 @@
       $('#spinBtn').disabled = true;
       $('#spinBtn').textContent = '🎯 Крутится...';
       
-      // Simulate spinning animation
+      // Получаем случайный приз с учетом вероятности
+      const prize = getRandomPrize(ROULETTE_PRIZES);
+      
+      // Вычисляем позицию для остановки (центр экрана)
+      const track = $('#rouletteTrack');
+      const itemWidth = 150; // ширина одного приза
+      const centerPosition = (window.innerWidth / 2) - (itemWidth / 2);
+      
+      // Находим позицию приза в ленте
+      let targetPosition = 0;
+      for (let i = 0; i < ROULETTE_PRIZES.length; i++) {
+        if (ROULETTE_PRIZES[i].id === prize.id) {
+          targetPosition = -(i * itemWidth + centerPosition);
+          break;
+        }
+      }
+      
+      // Добавляем случайное смещение для реалистичности
+      const randomOffset = (Math.random() - 0.5) * 50;
+      targetPosition += randomOffset;
+      
+      // Анимация прокрутки
+      track.style.transform = `translateX(${targetPosition}px)`;
+      
       setTimeout(() => {
-        const prize = getRandomPrize(CASE_PRIZES);
         showRouletteResult(prize);
         isSpinning = false;
         $('#spinBtn').disabled = false;
         $('#spinBtn').textContent = '🎯 Крутить кейс';
-      }, 2000);
-    }
-
-    function spinBusinessRoulette() {
-      if (isSpinning) return;
-      
-      isSpinning = true;
-      $('#businessSpinBtn').disabled = true;
-      $('#businessSpinBtn').textContent = '🎯 Крутится...';
-      
-      setTimeout(() => {
-        const prize = getRandomPrize(BUSINESS_ROULETTE_PRIZES);
-        showBusinessRouletteResult(prize);
-        isSpinning = false;
-        $('#businessSpinBtn').disabled = false;
-        $('#businessSpinBtn').textContent = '🎯 Крутить бизнес-рулетку';
-      }, 2000);
+        
+        // Возвращаем рулетку в исходное положение
+        setTimeout(() => {
+          track.style.transition = 'none';
+          track.style.transform = 'translateX(0)';
+          setTimeout(() => {
+            track.style.transition = 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          }, 50);
+        }, 1000);
+      }, 3000);
     }
 
     function getRandomPrize(prizes) {
@@ -867,7 +920,7 @@
     function showRouletteResult(prize) {
       $('#rouletteResult').innerHTML = `
         <div style="text-align: center; padding: 2rem;">
-          <div style="font-size: 4rem; margin-bottom: 1rem;">${prize.icon}</div>
+          <img src="${prize.image}" alt="${prize.name}" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 1rem;" onerror="this.src='🎁'">
           <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
           <p style="color: var(--text-secondary);">Поздравляем! Вы получили ценный приз!</p>
         </div>
@@ -875,25 +928,13 @@
       showModal('rouletteModal');
     }
 
-    function showBusinessRouletteResult(prize) {
-      $('#businessRouletteResult').innerHTML = `
-        <div style="text-align: center; padding: 2rem;">
-          <div style="font-size: 4rem; margin-bottom: 1rem;">${prize.icon}</div>
-          <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 1rem;">${prize.value}</p>
-          <p style="color: var(--text-secondary);">Отличный бизнес-приз!</p>
-        </div>
-      `;
-      showModal('businessRouletteModal');
-    }
-
     function showPrizes() {
-      const prizesList = BUSINESS_ROULETTE_PRIZES.map(prize => `
+      const prizesList = ROULETTE_PRIZES.map(prize => `
         <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);">
-          <div style="font-size: 2rem;">${prize.icon}</div>
+          <img src="${prize.image}" alt="${prize.name}" style="width: 50px; height: 50px; object-fit: contain;" onerror="this.src='🎁'">
           <div>
             <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">${prize.name}</h4>
-            <p style="color: var(--text-secondary);">${prize.value}</p>
+            <p style="color: var(--text-secondary);">Шанс: ${Math.round(prize.probability * 100)}%</p>
           </div>
         </div>
       `).join('');
@@ -907,7 +948,7 @@
         userData.mulacoin -= 13;
         updateUI();
         toast('Спин куплен за 13 MULACOIN!', 'success');
-        spinBusinessRoulette();
+        spinRoulette();
       } else {
         toast('Недостаточно MULACOIN для покупки спина!', 'error');
       }
@@ -976,7 +1017,6 @@
       });
       
       $('#spinBtn').addEventListener('click', spinRoulette);
-      $('#businessSpinBtn').addEventListener('click', spinBusinessRoulette);
       $('#showPrizesBtn').addEventListener('click', showPrizes);
       $('#buySpinBtn').addEventListener('click', buySpin);
     }
@@ -994,6 +1034,9 @@
         if (userData.telegramId) {
           await loadUserData(userData.telegramId);
         }
+        
+        // Create roulette
+        createRoulette();
         
         // Load activity feed
         await loadActivityFeed();
