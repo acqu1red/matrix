@@ -302,35 +302,87 @@
       min-width: 150px;
       height: 100%;
       background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-      border: 2px solid var(--accent-glow);
-      border-radius: 15px;
+      border: 3px solid var(--accent-glow);
+      border-radius: 20px;
       margin: 0 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       color: var(--text-primary);
-      font-weight: 600;
+      font-weight: 700;
       text-align: center;
-      padding: 1rem;
+      padding: 1.5rem 1rem;
       box-shadow: var(--shadow-medium);
-      transition: all var(--transition-fast);
+      transition: all var(--transition-medium);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .case-roulette-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .case-roulette-item:hover::before {
+      left: 100%;
     }
 
     .case-roulette-item:hover {
-      transform: scale(1.05);
+      transform: scale(1.08) translateY(-5px);
       box-shadow: var(--shadow-heavy);
+      border-color: var(--accent-primary);
+      background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
     }
 
     .case-roulette-item .prize-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      filter: drop-shadow(0 0 10px var(--accent-glow));
+      font-size: 3rem;
+      margin-bottom: 0.8rem;
+      filter: drop-shadow(0 0 15px var(--accent-glow));
+      animation: iconFloat 3s ease-in-out infinite;
+      z-index: 2;
+      position: relative;
+    }
+
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-5px) scale(1.1); }
     }
 
     .case-roulette-item .prize-name {
-      font-size: 0.9rem;
-      line-height: 1.2;
+      font-size: 0.85rem;
+      line-height: 1.3;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      z-index: 2;
+      position: relative;
+      max-width: 130px;
+    }
+
+    .case-roulette-item .prize-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, var(--accent-glow), transparent);
+      opacity: 0.3;
+      border-radius: 50%;
+      animation: glowPulse 2s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
     }
 
     .case-roulette-pointer {
@@ -645,11 +697,11 @@
           </div>
         </div>
         <div class="case-roulette-pointer">
-          <div class="pointer-arrow">▼</div>
-          <div class="pointer-glow"></div>
+            <div class="pointer-arrow">▼</div>
+            <div class="pointer-glow"></div>
+          </div>
         </div>
-      </div>
-      
+        
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <button id="spinBtn" class="spin-btn">🎯 Открыть кейс</button>
         <button id="showPrizesBtn" class="spin-btn">🏆 Возможные призы</button>
@@ -725,11 +777,19 @@
     }
 
     function showModal(modalId) {
-      $(modalId).style.display = 'block';
+      const modal = $(modalId);
+      if (modal) {
+        modal.style.display = 'flex';
+      } else {
+        console.error('Modal not found:', modalId);
+      }
     }
 
     function closeModal(modalId) {
-      $(modalId).style.display = 'none';
+      const modal = $(modalId);
+      if (modal) {
+        modal.style.display = 'none';
+      }
     }
 
     function toast(message, type = 'info') {
@@ -771,6 +831,13 @@
       } catch (e) {
         console.log("TG init fail", e);
       }
+      
+      // Multiple fallback attempts
+      if (!tg) {
+        setTimeout(initTG, 100);
+        setTimeout(initTG, 500);
+        setTimeout(initTG, 1000);
+      }
     }
 
     // Supabase integration
@@ -804,6 +871,19 @@
         }
       } catch (error) {
         console.error('Ошибка загрузки данных пользователя:', error);
+        // Try to load from localStorage as fallback
+        const localData = localStorage.getItem('userData');
+        if (localData) {
+          try {
+            const parsed = JSON.parse(localData);
+            userData.mulacoin = parsed.mulacoin || 0;
+            userData.level = parsed.level || 1;
+            userData.experience = parsed.experience || 0;
+            updateUI();
+          } catch (e) {
+            console.error('Error parsing localStorage data:', e);
+          }
+        }
       }
     }
 
@@ -823,7 +903,7 @@
       spinBtn.classList.add('spinning');
       
       // Create audio element for sound
-      const audio = new Audio('../assets/photovideo/kazik.mp3');
+      const audio = new Audio('./assets/photovideo/kazik.mp3');
       audio.volume = 0.7;
       
       // Start playing sound
@@ -861,16 +941,24 @@
             easedProgress = 0.82 + (progress - 0.67) * 0.18 * (1 - Math.pow(progress - 0.67, 2));
           }
           
-          // Calculate current position with infinite loop
-          const totalDistance = 10000; // Large distance for infinite effect
-          const currentPosition = (totalDistance * easedProgress) - finalPosition;
+          // Calculate current position - only move right (negative translateX)
+          const totalDistance = 5000; // Increased speed
+          const currentPosition = totalDistance * easedProgress;
           
           rouletteItems.style.transform = `translateX(-${currentPosition}px)`;
           
           requestAnimationFrame(animate);
         } else {
-          // Animation finished
-          rouletteItems.style.transform = `translateX(-${finalPosition}px)`;
+          // Animation finished - calculate final position
+          const itemWidth = 170; // 150px + 20px margin
+          const centerOffset = 400; // Center of the container
+          const finalPosition = centerOffset - (prizeIndex * itemWidth) - (itemWidth / 2);
+          
+          // Ensure final position is within the visible range
+          const visibleRange = 800; // Width of visible area
+          const adjustedPosition = finalPosition % visibleRange;
+          
+          rouletteItems.style.transform = `translateX(-${adjustedPosition}px)`;
           
           // Stop sound
           audio.pause();
@@ -949,35 +1037,18 @@
       // Create multiple sets of prizes for infinite loop effect
       let html = '';
       
-      // First set (visible at start)
-      CASE_PRIZES.forEach(prize => {
-        html += `
-          <div class="case-roulette-item">
-            <div class="prize-icon">${prize.icon}</div>
-            <div class="prize-name">${prize.name}</div>
-          </div>
-        `;
-      });
-      
-      // Second set (for seamless loop)
-      CASE_PRIZES.forEach(prize => {
-        html += `
-          <div class="case-roulette-item">
-            <div class="prize-icon">${prize.icon}</div>
-            <div class="prize-name">${prize.name}</div>
-          </div>
-        `;
-      });
-      
-      // Third set (for extra smoothness)
-      CASE_PRIZES.forEach(prize => {
-        html += `
-          <div class="case-roulette-item">
-            <div class="prize-icon">${prize.icon}</div>
-            <div class="prize-name">${prize.name}</div>
-          </div>
-        `;
-      });
+      // Create multiple sets for infinite loop effect
+      for (let set = 0; set < 5; set++) { // 5 sets for smooth infinite loop
+        CASE_PRIZES.forEach(prize => {
+          html += `
+            <div class="case-roulette-item">
+              <div class="prize-glow"></div>
+              <div class="prize-icon">${prize.icon}</div>
+              <div class="prize-name">${prize.name}</div>
+            </div>
+          `;
+        });
+      }
       
       container.innerHTML = html;
     }
@@ -1034,8 +1105,8 @@
               <div class="post-info">
                 <h4>${post.author}</h4>
                 <div class="post-date">${post.date}</div>
-              </div>
-            </div>
+    </div>
+  </div>
             <div class="post-content">${post.content}</div>
           </div>
         `).join('');
