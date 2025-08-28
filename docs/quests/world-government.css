@@ -1,67 +1,137 @@
-/* Основные стили для квеста "Мировое тайное правительство" */
+/* ====== PREMIUM BROWN THEME - WORLD GOVERNMENT QUEST ====== */
+:root {
+  /* Color Palette - Premium Brown Harmony */
+  --bg-primary: #1C252C;
+  --bg-secondary: #2a241f;
+  --bg-tertiary: #3d352e;
+  --bg-glass: rgba(88, 84, 91, 0.1);
+  --bg-glass-hover: rgba(88, 84, 91, 0.2);
+  
+  /* Text Colors */
+  --text-primary: #F6F2F6;
+  --text-secondary: #E1D5D9;
+  --text-muted: #B7A7AE;
+  --text-accent: #F6F2F6;
+  
+  /* Accent Colors */
+  --accent-primary: #F6F2F6;
+  --accent-secondary: #E1D5D9;
+  --accent-glow: #B7A7AE;
+  
+  /* Border & Shadow */
+  --border-color: #58545B;
+  --border-hover: #B7A7AE;
+  --shadow-light: 0 4px 20px rgba(28, 37, 44, 0.4);
+  --shadow-medium: 0 8px 40px rgba(28, 37, 44, 0.6);
+  --shadow-heavy: 0 16px 80px rgba(28, 37, 44, 0.8);
+  --shadow: 0 10px 22px rgba(0,0,0,.5), 0 0 24px rgba(246, 242, 246, 0.1);
+  --shadow-hover: 0 16px 28px rgba(0,0,0,.6), 0 0 32px rgba(246, 242, 246, 0.2);
+  
+  /* Glass Effect */
+  --glass-bg: rgba(88, 84, 91, 0.1);
+  --glass-border: #58545B;
+  --glass-shadow: 0 8px 32px rgba(28, 37, 44, 0.4);
+  
+  /* Animation */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.4s ease;
+  --transition-slow: 0.8s ease;
+  --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Success/Error Colors */
+  --success: #4ecdc4;
+  --error: #ff6b6b;
+  --warning: #ffa726;
+  --info: #42a5f5;
+}
+
+/* ====== BASE STYLES ====== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ====== BACKGROUND PATTERN ====== */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('../assets/photovideo/wtf.png') center center;
+  background-size: cover;
+  opacity: 0.03;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ====== WORLD GOVERNMENT QUEST ====== */
 .world-government-quest {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0B1020 0%, #1A2332 100%);
+  background: linear-gradient(135deg, #1C252C 0%, #2a241f 50%, #1C252C 100%);
   overflow: hidden;
   font-family: 'Inter', sans-serif;
 }
 
-/* Кнопка "На главную" */
+/* ====== HEADER CONTROLS ====== */
 .header-controls {
   position: fixed;
   top: 20px;
   left: 20px;
   z-index: 1000;
+  display: flex;
+  gap: 15px;
 }
 
-.back-btn {
+.back-btn, .sound-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: #ffffff;
+  background: rgba(88, 84, 91, 0.2);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-light);
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+.back-btn:hover, .sound-btn:hover {
+  background: rgba(88, 84, 91, 0.4);
+  border-color: var(--border-hover);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
 }
 
-.back-icon {
+.back-icon, .sound-icon {
   font-size: 16px;
   font-weight: 600;
 }
 
-@media (max-width: 768px) {
-  .header-controls {
-    top: 10px;
-    left: 10px;
-  }
-  
-  .back-btn {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-}
-
-/* Модальные окна */
+/* ====== MODAL WINDOWS ====== */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(28, 37, 44, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,6 +139,7 @@
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
 }
 
 .modal.active {
@@ -77,9 +148,9 @@
 }
 
 .modal-content {
-  background: var(--bg0);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
+  background: rgba(88, 84, 91, 0.98);
+  border: 2px solid var(--accent-primary);
+  border-radius: 22px;
   padding: 30px;
   max-width: 500px;
   width: 90%;
@@ -87,6 +158,7 @@
   overflow-y: auto;
   position: relative;
   animation: modalSlideIn 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(246, 242, 246, 0.1);
 }
 
 @keyframes modalSlideIn {
@@ -109,6 +181,7 @@
   color: var(--warning);
   font-size: 24px;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(28, 37, 44, 0.3);
 }
 
 .warning-body {
@@ -118,19 +191,20 @@
 
 .warning-body p {
   margin-bottom: 15px;
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .modal-header {
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 15px;
 }
 
 .modal-header h3 {
-  color: var(--text);
+  color: var(--text-primary);
   margin: 0;
   font-size: 20px;
+  font-weight: 600;
 }
 
 .modal-body {
@@ -145,7 +219,7 @@
 
 .modal-body li {
   margin-bottom: 8px;
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 .modal-footer {
@@ -158,13 +232,13 @@
   background: var(--error);
   color: white;
   padding: 10px 15px;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   margin-bottom: 15px;
   text-align: center;
   font-weight: 600;
 }
 
-/* Основной интерфейс */
+/* ====== MAIN INTERFACE ====== */
 .main-interface {
   position: relative;
   min-height: 100vh;
@@ -177,7 +251,7 @@
   display: none;
 }
 
-/* Контейнер острова */
+/* ====== ISLAND CONTAINER ====== */
 .island-container {
   position: relative;
   min-height: 60vh;
@@ -191,41 +265,44 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: var(--radius);
+  border-radius: 22px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 0 20px rgba(246, 242, 246, 0.1));
 }
 
-/* Секторы */
+/* ====== SECTORS ====== */
 .sector {
   position: absolute;
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
-  padding: 8px;
-  min-width: 70px;
+  background: rgba(28, 37, 44, 0.8);
+  border: 2px solid var(--accent-primary);
+  border-radius: 15px;
+  padding: 12px;
+  min-width: 80px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--shadow-light);
 }
 
 .sector:hover {
-  border-color: var(--glow2);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 25px rgba(246, 242, 246, 0.3);
   transform: scale(1.05);
 }
 
 .sector.drag-over {
   border-color: var(--success);
-  background: rgba(74, 222, 128, 0.2);
+  background: rgba(78, 205, 196, 0.2);
   transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(78, 205, 196, 0.4);
 }
 
 .sector.filled {
   border-color: var(--success);
-  background: rgba(74, 222, 128, 0.1);
+  background: rgba(78, 205, 196, 0.1);
 }
 
 .sector.filled:hover {
@@ -236,15 +313,17 @@
 
 .sector-label {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-primary);
   margin-bottom: 4px;
-  font-size: 9px;
+  font-size: 10px;
+  text-shadow: 0 1px 2px rgba(28, 37, 44, 0.5);
 }
 
 .sector-count {
-  font-size: 8px;
-  color: var(--glow2);
+  font-size: 9px;
+  color: var(--accent-glow);
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .sector-members {
@@ -255,17 +334,18 @@
 }
 
 .member-tag {
-  background: var(--glow1);
-  color: var(--bg0);
-  padding: 1px 4px;
-  border-radius: 8px;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 10px;
   font-size: 8px;
-  font-weight: 500;
+  font-weight: 600;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Позиционирование секторов */
+/* ====== SECTOR POSITIONING ====== */
 .political-sector {
   top: 20%;
   left: 25%;
@@ -291,16 +371,17 @@
   left: 70%;
 }
 
-/* Нижняя панель */
+/* ====== BOTTOM PANEL ====== */
 .bottom-panel {
-  background: var(--bg0);
-  border-top: 2px solid var(--border);
+  background: rgba(88, 84, 91, 0.2);
+  border-top: 2px solid var(--border-color);
   padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   flex-shrink: 0;
+  backdrop-filter: blur(20px);
 }
 
 .character-container {
@@ -311,19 +392,22 @@
 }
 
 .character-card {
-  background: var(--bg1);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
+  background: rgba(88, 84, 91, 0.3);
+  border: 2px solid var(--border-color);
+  border-radius: 15px;
   padding: 20px;
   min-width: 200px;
   cursor: grab;
   transition: all 0.3s ease;
   user-select: none;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-light);
 }
 
 .character-card:hover {
-  border-color: var(--glow1);
+  border-color: var(--accent-primary);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
 .character-card:active {
@@ -336,9 +420,10 @@
   transform: rotate(5deg);
   z-index: 100;
   transition: none !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* Touch device optimizations */
+/* ====== TOUCH DEVICE OPTIMIZATIONS ====== */
 @media (hover: none) and (pointer: coarse) {
   .character-card {
     touch-action: none;
@@ -359,7 +444,7 @@
 
 .character-name {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-primary);
   margin-bottom: 10px;
   font-size: 16px;
 }
@@ -372,8 +457,8 @@
 }
 
 .trait {
-  background: var(--glow2);
-  color: var(--bg0);
+  background: var(--accent-glow);
+  color: var(--bg-primary);
   padding: 3px 8px;
   border-radius: 12px;
   font-size: 11px;
@@ -394,11 +479,11 @@
   line-height: 1.4;
 }
 
-/* Кнопки */
+/* ====== BUTTONS ====== */
 .btn {
   padding: 12px 24px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -420,29 +505,42 @@
 }
 
 .btn-primary {
-  background: var(--glow1);
-  color: var(--bg0);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  box-shadow: var(--shadow-light);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--glow2);
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-medium);
 }
 
 .btn-secondary {
-  background: var(--bg1);
-  color: var(--text);
-  border: 2px solid var(--border);
+  background: rgba(88, 84, 91, 0.2);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--bg2);
-  border-color: var(--glow1);
+  background: rgba(88, 84, 91, 0.4);
+  border-color: var(--border-hover);
   transform: translateY(-2px);
 }
 
-/* Анимации */
+.btn-danger {
+  background: linear-gradient(135deg, var(--error), #d32f2f);
+  color: white;
+  box-shadow: var(--shadow-light);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d32f2f, var(--error));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* ====== ANIMATIONS ====== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -463,6 +561,15 @@
   }
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 .character-card {
   animation: fadeIn 0.5s ease;
 }
@@ -471,45 +578,14 @@
   animation: fadeIn 0.8s ease;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .island-container {
-    padding: 10px;
-  }
-  
-  .sector {
-    min-width: 70px;
-    padding: 8px;
-  }
-  
-  .sector-label {
-    font-size: 9px;
-  }
-  
-  .bottom-panel {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .character-container {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .character-card {
-    width: 100%;
-    min-width: auto;
-  }
-}
-
-/* Модальное окно со списком персонажей */
+/* ====== MEMBERS MODAL ====== */
 .members-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(28, 37, 44, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -517,6 +593,7 @@
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
 }
 
 .members-modal.active {
@@ -525,9 +602,9 @@
 }
 
 .members-modal-content {
-  background: var(--bg0);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
+  background: rgba(88, 84, 91, 0.98);
+  border: 2px solid var(--accent-primary);
+  border-radius: 22px;
   padding: 20px;
   max-width: 400px;
   width: 90%;
@@ -535,6 +612,7 @@
   overflow-y: auto;
   position: relative;
   animation: modalSlideIn 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(246, 242, 246, 0.1);
 }
 
 .members-list {
@@ -545,9 +623,9 @@
 }
 
 .member-item {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: rgba(88, 84, 91, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -556,13 +634,14 @@
 }
 
 .member-item:hover {
-  border-color: var(--glow1);
-  background: var(--bg2);
+  border-color: var(--accent-primary);
+  background: rgba(88, 84, 91, 0.5);
+  transform: translateY(-2px);
 }
 
 .member-item-name {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
@@ -573,22 +652,22 @@
 }
 
 .member-item-trait {
-  background: var(--glow2);
-  color: var(--bg0);
+  background: var(--accent-glow);
+  color: var(--bg-primary);
   padding: 2px 6px;
   border-radius: 8px;
   font-size: 9px;
   font-weight: 500;
 }
 
-/* Модальное окно с характеристиками персонажа */
+/* ====== CHARACTER DETAILS MODAL ====== */
 .character-details-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(28, 37, 44, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -596,6 +675,7 @@
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
 }
 
 .character-details-modal.active {
@@ -604,20 +684,21 @@
 }
 
 .character-details-content {
-  background: var(--bg0);
-  border: 2px solid var(--glow1);
-  border-radius: var(--radius);
+  background: rgba(88, 84, 91, 0.98);
+  border: 2px solid var(--accent-primary);
+  border-radius: 22px;
   padding: 25px;
   max-width: 450px;
   width: 90%;
   position: relative;
   animation: modalSlideIn 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(246, 242, 246, 0.1);
 }
 
 .character-details-name {
   font-size: 20px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-primary);
   margin-bottom: 15px;
   text-align: center;
 }
@@ -631,8 +712,8 @@
 }
 
 .character-details-trait {
-  background: var(--glow1);
-  color: var(--bg0);
+  background: var(--accent-primary);
+  color: var(--bg-primary);
   padding: 5px 10px;
   border-radius: 12px;
   font-size: 12px;
@@ -646,7 +727,7 @@
   margin-bottom: 20px;
 }
 
-/* Модальное окно истребления предателя */
+/* ====== ELIMINATION MODAL ====== */
 .elimination-modal-content {
   max-width: 800px;
   width: 95%;
@@ -657,10 +738,11 @@
   margin-top: 10px;
   padding: 10px;
   background: var(--warning);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   font-size: 14px;
-  color: var(--bg0);
+  color: var(--bg-primary);
   text-align: center;
+  font-weight: 600;
 }
 
 .elimination-container {
@@ -677,9 +759,9 @@
 
 .traitor-cage {
   border: 3px solid var(--error);
-  border-radius: var(--radius);
+  border-radius: 15px;
   padding: 15px;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
 }
 
 .cage-header {
@@ -691,9 +773,9 @@
 }
 
 .traitor-card {
-  background: var(--bg1);
+  background: rgba(88, 84, 91, 0.3);
   border: 2px solid var(--error);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   padding: 15px;
   text-align: center;
 }
@@ -726,15 +808,15 @@
   max-height: 300px;
   overflow-y: auto;
   border: 2px solid var(--success);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   padding: 10px;
-  background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, rgba(0, 255, 0, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.05) 0%, rgba(78, 205, 196, 0.02) 100%);
 }
 
 .ally-card {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: rgba(88, 84, 91, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 10px;
   margin-bottom: 8px;
   cursor: grab;
@@ -743,7 +825,7 @@
 }
 
 .ally-card:hover {
-  background: var(--bg2);
+  background: rgba(88, 84, 91, 0.5);
   border-color: var(--success);
   transform: translateY(-2px);
 }
@@ -755,7 +837,7 @@
 
 .ally-card .ally-name {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
@@ -765,11 +847,11 @@
 }
 
 .elimination-zone {
-  border: 2px dashed var(--accent);
-  border-radius: var(--radius);
+  border: 2px dashed var(--accent-primary);
+  border-radius: 15px;
   padding: 20px;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(246, 242, 246, 0.1) 0%, rgba(246, 242, 246, 0.05) 100%);
   min-height: 100px;
   display: flex;
   flex-direction: column;
@@ -778,7 +860,7 @@
 .zone-header {
   text-align: center;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-primary);
   margin-bottom: 15px;
   font-size: 16px;
 }
@@ -793,10 +875,10 @@
 }
 
 .selected-ally {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
   padding: 8px 12px;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
   display: flex;
@@ -807,14 +889,14 @@
 }
 
 .selected-ally:hover {
-  background: var(--accent-hover);
+  background: var(--accent-secondary);
   transform: scale(1.05);
 }
 
 .remove-ally {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(28, 37, 44, 0.2);
   border: none;
-  color: white;
+  color: var(--bg-primary);
   border-radius: 50%;
   width: 16px;
   height: 16px;
@@ -825,30 +907,108 @@
   font-size: 10px;
 }
 
-.btn-danger {
-  background: var(--error);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* ====== VIDEO BACKGROUND ====== */
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.9);
 }
 
-.btn-danger:hover:not(:disabled) {
-  background: #d32f2f;
-  transform: translateY(-2px);
+.video-background.hidden {
+  display: none;
 }
 
-.btn-danger:disabled {
-  background: var(--bg2);
-  color: var(--text-muted);
-  cursor: not-allowed;
+#background-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Мобильные стили для истребления */
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.story-content {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--accent-primary);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  color: var(--text-primary);
+  backdrop-filter: blur(10px);
+}
+
+.video-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 5001;
+  background: rgba(88, 84, 91, 0.8);
+  border: 2px solid var(--accent-primary);
+  color: var(--text-primary);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* ====== RESPONSIVE DESIGN ====== */
 @media (max-width: 768px) {
+  .header-controls {
+    top: 10px;
+    left: 10px;
+    gap: 10px;
+  }
+  
+  .back-btn, .sound-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .island-container {
+    padding: 10px;
+  }
+  
+  .sector {
+    min-width: 70px;
+    padding: 10px;
+  }
+  
+  .sector-label {
+    font-size: 9px;
+  }
+  
+  .bottom-panel {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .character-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .character-card {
+    width: 100%;
+    min-width: auto;
+  }
+  
   .elimination-container {
     grid-template-columns: 1fr;
     gap: 15px;
@@ -866,9 +1026,120 @@
   .elimination-zone {
     min-height: 80px;
   }
+  
+  .modal-content {
+    padding: 20px;
+    width: 95%;
+  }
+  
+  .story-content {
+    padding: 20px;
+    width: 95%;
+  }
 }
 
-/* Скрытие элементов */
+@media (max-width: 480px) {
+  .header-controls {
+    top: 5px;
+    left: 5px;
+  }
+  
+  .back-btn, .sound-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  
+  .sector {
+    min-width: 60px;
+    padding: 8px;
+  }
+  
+  .sector-label {
+    font-size: 8px;
+  }
+  
+  .character-card {
+    padding: 15px;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+/* ====== UTILITY CLASSES ====== */
 .hidden {
   display: none !important;
 }
+
+/* ====== SCROLLBAR STYLING ====== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(88, 84, 91, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* ====== PERFORMANCE OPTIMIZATIONS ====== */
+.sector, .character-card, .btn {
+  will-change: transform;
+  contain: layout style paint;
+}
+
+/* ====== ANIMATION UTILITIES ====== */
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ====== SPECIAL EFFECTS ====== */
+.sector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(246, 242, 246, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 15px;
+}
+
+.sector:hover::before {
+  opacity: 1;
+}
+
+.character-card::after {
+  content: '✨';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+.character-card:hover::after {
+  opacity: 0.7;
+}
+
