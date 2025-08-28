@@ -5,7 +5,7 @@
   --bg-secondary: #2a241f;
   --bg-tertiary: #3d352e;
   --bg-glass: rgba(90, 71, 58, 0.1);
-  --bg-glass-hover: rgba(90, 71, 58, 0.2);
+  /* Убрана неиспользуемая переменная --bg-glass-hover */
   
   /* Text Colors */
   --text-primary: #ffffff;
@@ -20,7 +20,7 @@
   
   /* Border & Shadow */
   --border-color: #5a473a;
-  --border-hover: #c7bdb1;
+  --border-hover: #5a473a;
   --shadow-light: 0 4px 20px rgba(22, 20, 18, 0.4);
   --shadow-medium: 0 8px 40px rgba(22, 20, 18, 0.6);
   --shadow-heavy: 0 16px 80px rgba(22, 20, 18, 0.8);
@@ -105,8 +105,8 @@ body::before {
 }
 
 .topbar:hover {
-  border-bottom-color: var(--border-hover);
-  box-shadow: var(--shadow-medium);
+  border-bottom-color: var(--border-color);
+  box-shadow: var(--shadow-light);
 }
 
 .brand {
@@ -203,26 +203,13 @@ body::before {
   min-height: 44px;
 }
 
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(221, 217, 214, 0.3), transparent);
-  transition: left var(--transition-medium);
-}
-
-.btn:hover::before {
-  left: 100%;
-}
+/* Убран эффект ::before для кнопок */
 
 .btn:hover {
-  border-color: var(--border-hover);
-  background: linear-gradient(135deg, #ddd9d6, #f0f0f0);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-medium);
+  border-color: var(--border-color);
+  background: linear-gradient(135deg, #c7bdb1, #ddd9d6);
+  transform: none;
+  box-shadow: var(--shadow-light);
 }
 
 .btn:active {
@@ -236,9 +223,9 @@ body::before {
 }
 
 .btn.primary:hover {
-  background: linear-gradient(135deg, #ddd9d6, #f0f0f0);
-  border-color: var(--border-hover);
-  transform: translateY(-2px) scale(1.02);
+  background: linear-gradient(135deg, #c7bdb1, #ddd9d6);
+  border-color: var(--border-color);
+  transform: none;
 }
 
 .btn.secondary {
@@ -249,7 +236,7 @@ body::before {
 
 .btn.secondary:hover {
   background: rgba(199, 189, 177, 0.2);
-  border-color: var(--border-hover);
+  border-color: var(--border-color);
 }
 
 .btn.ghost {
@@ -260,7 +247,7 @@ body::before {
 
 .btn.ghost:hover {
   background: rgba(199, 189, 177, 0.2);
-  border-color: var(--border-hover);
+  border-color: var(--border-color);
 }
 
 .btn.danger {
@@ -270,8 +257,8 @@ body::before {
 }
 
 .btn.danger:hover {
-  background: linear-gradient(135deg, #c82333, #bd2130);
-  border-color: #c82333;
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  border-color: #dc3545;
 }
 
 .btn:disabled {
@@ -293,10 +280,10 @@ body::before {
 }
 
 .glass:hover {
-  background: var(--bg-glass-hover);
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-medium);
-  transform: translateY(-2px);
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transform: none;
 }
 
 /* ===== MODAL ===== */
@@ -631,10 +618,10 @@ body::before {
 }
 
 .sector:hover {
-  background: rgba(199, 189, 177, 0.2);
-  border-color: var(--border-hover);
-  transform: scale(1.05);
-  box-shadow: var(--shadow-medium);
+  background: rgba(90, 71, 58, 0.9);
+  border-color: var(--accent-primary);
+  transform: none;
+  box-shadow: var(--shadow-light);
 }
 
 .sector.drag-over {
@@ -676,7 +663,7 @@ body::before {
 
 .sector-member:hover {
   background: rgba(221, 217, 214, 0.3);
-  border-color: var(--border-hover);
+  border-color: var(--border-color);
 }
 
 /* Позиционирование секторов на карте */
@@ -748,9 +735,9 @@ body::before {
 }
 
 .character-card:hover {
-  border-color: var(--border-hover);
-  background: rgba(90, 71, 58, 0.95);
-  transform: translateY(-2px);
+  border-color: var(--border-color);
+  background: rgba(90, 71, 58, 0.9);
+  transform: none;
   box-shadow: var(--shadow-light);
 }
 
@@ -833,8 +820,8 @@ body::before {
 
 .member-item:hover {
   background: rgba(221, 217, 214, 0.3);
-  border-color: var(--border-hover);
-  transform: translateY(-2px);
+  border-color: var(--border-color);
+  transform: none;
 }
 
 /* ===== CHARACTER DETAILS MODAL ===== */
@@ -973,7 +960,7 @@ body::before {
 
 .ally-card:hover {
   background: rgba(221, 217, 214, 0.3);
-  border-color: var(--border-hover);
+  border-color: var(--border-color);
 }
 
 .ally-card.dragging {
@@ -1216,7 +1203,7 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
+  background: var(--border-color);
 }
 
 /* ===== ANIMATIONS ===== */

@@ -148,7 +148,7 @@
           <p>Это игра-симулятор для развития навыков управления персоналом и стратегического мышления. Чем больше будет ваша сфера влияния - тем больше вы будете получать опыта и MULACOIN!</p>
         </div>
         <div class="warning-footer">
-          <button id="start-quest" class="btn primary">Начать квест</button>
+          <button id="start-quest" class="btn primary" onclick="startWorldGovernmentQuest()">Начать квест</button>
         </div>
       </div>
     </div>
@@ -371,5 +371,33 @@
   <script src="world-government-engine.js"></script>
   <script src="world-government-ui.js"></script>
   <script src="world-government-main.js"></script>
+  
+  <!-- Функция для запуска квеста -->
+  <script>
+    function startWorldGovernmentQuest() {
+      // Скрываем дисклеймер
+      const warningModal = document.getElementById('warning-modal');
+      if (warningModal) {
+        warningModal.classList.remove('active');
+        warningModal.style.display = 'none';
+      }
+      
+      // Показываем основной интерфейс
+      const mainInterface = document.getElementById('main-interface');
+      if (mainInterface) {
+        mainInterface.classList.remove('hidden');
+        mainInterface.style.display = 'block';
+      }
+      
+      // Инициализируем квест, если еще не инициализирован
+      if (window.worldGovernmentMain && !window.worldGovernmentMain.isReady()) {
+        setTimeout(() => {
+          if (window.worldGovernmentMain) {
+            window.worldGovernmentMain.initializeQuest();
+          }
+        }, 100);
+      }
+    }
+  </script>
 </body>
 </html>
