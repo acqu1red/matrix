@@ -3,18 +3,142 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Мировое тайное правительство — Квест‑Хаб</title>
+  <title>🌍 Тайное мировое сообщество — Квест‑Хаб</title>
+  
+  <!-- Критические стили inline для мгновенной загрузки -->
+  <style>
+    /* Базовые стили для мгновенного отображения */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #161412 0%, #2a241f 50%, #161412 100%);
+      color: #ffffff;
+      line-height: 1.6; 
+      overflow-x: hidden; 
+      min-height: 100vh;
+    }
+    .app { opacity: 1 !important; }
+    
+    /* Критические стили для header */
+    .topbar { 
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(22, 20, 18, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 2px solid #5a473a;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(22, 20, 18, 0.8);
+    }
+    .brand h1 { 
+      font-size: 24px; 
+      font-weight: 700; 
+      color: #c7bdb1;
+      text-shadow: 0 2px 4px rgba(22, 20, 18, 0.5);
+    }
+    
+    /* Критические стили для модала */
+    .modal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 20, 18, 0.8);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modalContent {
+      background: rgba(90, 71, 58, 0.98);
+      border: 2px solid #5a473a;
+      border-radius: 20px;
+      box-shadow: 0 16px 80px rgba(22, 20, 18, 0.8);
+    }
+    
+    /* Критические стили для острова */
+    .island-container {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .island-image {
+      width: 100%;
+      height: auto;
+      max-height: 60vh;
+      object-fit: contain;
+    }
+    
+    /* Критические стили для секторов */
+    .sector {
+      position: absolute;
+      background: rgba(90, 71, 58, 0.9);
+      border: 2px solid #c7bdb1;
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .sector:hover {
+      background: rgba(199, 189, 177, 0.2);
+      border-color: #ddd9d6;
+      transform: scale(1.05);
+    }
+    
+    /* Адаптация под 9:16 */
+    @media (max-width: 768px) {
+      .island-container {
+        padding: 10px;
+      }
+      
+      .sector {
+        padding: 8px;
+        font-size: 12px;
+      }
+    }
+  </style>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="quests-black-white.css" />
-  <link rel="stylesheet" href="world-government.css" />
+  <link rel="stylesheet" href="world-government-core.css" />
 </head>
 <body>
-  <div class="world-government-quest">
+  <div id="app" class="app">
+    <!-- Аудио элемент для фоновой музыки -->
+    <audio id="horror-audio" loop>
+      <source src="../assets/politics/horror.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Видео элементы для фоновых роликов -->
+    <video id="meting-video" class="background-video" muted>
+      <source src="../assets/politics/meting.mp4" type="video/mp4">
+    </video>
+    <video id="besporyadki-video" class="background-video" muted>
+      <source src="../assets/politics/besporyadki.mp4" type="video/mp4">
+    </video>
+    <video id="razobla4enie-video" class="background-video" muted>
+      <source src="../assets/politics/razobla4enie.mp4" type="video/mp4">
+    </video>
+    <video id="war-video" class="background-video" muted>
+      <source src="../assets/politics/war.mp4" type="video/mp4">
+    </video>
+    <video id="puteshestvie-video" class="background-video" muted>
+      <source src="../assets/politics/puteshestvie.mp4" type="video/mp4">
+    </video>
+    <video id="experement-video" class="background-video" muted>
+      <source src="../assets/politics/experement.mp4" type="video/mp4">
+    </video>
+
     <!-- Предупреждение -->
     <div id="warning-modal" class="modal active">
-      <div class="modal-content">
+      <div class="modalContent glass">
         <div class="warning-header">
           <h2>⚠️ ВНИМАНИЕ</h2>
         </div>
@@ -24,20 +148,31 @@
           <p>Это игра-симулятор для развития навыков управления персоналом и стратегического мышления. Чем больше будет ваша сфера влияния - тем больше вы будете получать опыта и MULACOIN!</p>
         </div>
         <div class="warning-footer">
-          <button id="start-quest" class="btn btn-primary">Начать квест</button>
+          <button id="start-quest" class="btn primary">Начать квест</button>
         </div>
       </div>
     </div>
 
     <!-- Основной интерфейс -->
     <div id="main-interface" class="main-interface hidden">
-      <!-- Кнопка "На главную" -->
-      <div class="header-controls">
-        <button id="back-to-main" class="btn btn-secondary back-btn">
-          <span class="back-icon">←</span>
-          На главную
-        </button>
-      </div>
+      <!-- Header с кнопкой "На главную" и управлением звуком -->
+      <header class="glass topbar">
+        <div class="brand">
+          <span class="logoGlow"></span>
+          <h1>🌍 Тайное мировое сообщество</h1>
+          <div class="badge">Мастер заговора</div>
+          <div class="overall-score-display">
+            <span class="score-label">Общая эффективность:</span>
+            <span class="overall-score">50%</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="toggle-sound" class="btn ghost sound-btn">
+            <span class="sound-icon">🔊</span>
+          </button>
+          <button id="back-to-main" class="btn ghost">← На главную</button>
+        </div>
+      </header>
       
       <!-- Остров с секторами -->
       <div class="island-container">
@@ -46,21 +181,21 @@
         <!-- Политический сектор -->
         <div class="sector political-sector" data-sector="political">
           <div class="sector-label">Политический штаб</div>
-          <div class="sector-count">0/10</div>
+          <div class="sector-count">0/4</div>
           <div class="sector-members"></div>
         </div>
 
         <!-- Военный сектор -->
         <div class="sector military-sector" data-sector="military">
           <div class="sector-label">Военный штаб</div>
-          <div class="sector-count">0/8</div>
+          <div class="sector-count">0/3</div>
           <div class="sector-members"></div>
         </div>
 
         <!-- Экономический сектор -->
         <div class="sector economic-sector" data-sector="economic">
           <div class="sector-label">Экономический штаб</div>
-          <div class="sector-count">0/6</div>
+          <div class="sector-count">0/2</div>
           <div class="sector-members"></div>
         </div>
 
@@ -74,7 +209,7 @@
         <!-- Пропагандистский сектор -->
         <div class="sector propaganda-sector" data-sector="propaganda">
           <div class="sector-label">Пропагандический штаб</div>
-          <div class="sector-count">0/5</div>
+          <div class="sector-count">0/3</div>
           <div class="sector-members"></div>
         </div>
       </div>
@@ -82,19 +217,24 @@
       <!-- Нижняя панель с персонажами -->
       <div class="bottom-panel">
         <div class="character-container">
-          <div id="current-character" class="character-card">
-            <!-- Персонаж будет загружен динамически -->
-          </div>
-          <button id="skip-character" class="btn btn-secondary">Пропустить</button>
+          <!-- Персонажи будут загружены динамически -->
         </div>
         
-        <button id="finish-creation" class="btn btn-primary" disabled>Завершить создание</button>
+        <div class="bottom-controls">
+          <button class="btn secondary" onclick="showGameStats()">📊 Статистика</button>
+          <button class="btn secondary" onclick="showHelp()">❓ Справка</button>
+          <button class="btn secondary" onclick="showSettings()">⚙️ Настройки</button>
+          <button class="btn secondary" onclick="resetGame()">🔄 Сброс</button>
+          <button class="btn secondary" onclick="exportGame()">💾 Экспорт</button>
+          <button class="btn secondary" onclick="importGame()">📁 Импорт</button>
+          <button class="btn primary finish-creation">🏁 Завершить создание</button>
+        </div>
       </div>
     </div>
 
     <!-- Модальное окно завершения -->
     <div id="finish-modal" class="modal">
-      <div class="modal-content">
+      <div class="modalContent glass">
         <div class="modal-header">
           <h3>Завершить создание мирового правительства?</h3>
         </div>
@@ -110,15 +250,15 @@
           <p><strong>Важно:</strong> Чем больше нужных людей в структурах - тем меньше вероятность того что что-то пойдет не так.</p>
         </div>
         <div class="modal-footer">
-          <button id="confirm-finish" class="btn btn-primary">Подтвердить</button>
-          <button id="cancel-finish" class="btn btn-secondary">Отмена</button>
+          <button id="confirm-finish" class="btn primary">Подтвердить</button>
+          <button id="cancel-finish" class="btn secondary">Отмена</button>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно результатов -->
     <div id="results-modal" class="modal">
-      <div class="modal-content">
+      <div class="modalContent glass">
         <div class="modal-header">
           <h3 id="results-title">Результаты создания</h3>
           <div id="failure-probability" class="failure-probability hidden"></div>
@@ -129,15 +269,15 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button id="next-result" class="btn btn-primary">Далее</button>
-          <button id="finish-results" class="btn btn-secondary hidden">Завершить</button>
+          <button id="next-result" class="btn primary">Далее</button>
+          <button id="finish-results" class="btn secondary hidden">Завершить</button>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно со списком персонажей -->
     <div id="members-modal" class="members-modal">
-      <div class="members-modal-content">
+      <div class="members-modal-content glass">
         <div class="modal-header">
           <h3 id="members-title">Персонажи в штабе</h3>
         </div>
@@ -145,26 +285,26 @@
           <!-- Список персонажей будет загружен динамически -->
         </div>
         <div class="modal-footer">
-          <button id="close-members" class="btn btn-secondary">Закрыть</button>
+          <button id="close-members" class="btn secondary">Закрыть</button>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно с характеристиками персонажа -->
     <div id="character-details-modal" class="character-details-modal">
-      <div class="character-details-content">
+      <div class="character-details-content glass">
         <div class="character-details-name" id="character-details-name"></div>
         <div class="character-details-traits" id="character-details-traits"></div>
         <div class="character-details-description" id="character-details-description"></div>
         <div class="modal-footer">
-          <button id="close-character-details" class="btn btn-primary">Закрыть</button>
+          <button id="close-character-details" class="btn primary">Закрыть</button>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно истребления предателя -->
     <div id="elimination-modal" class="modal">
-      <div class="modal-content elimination-modal-content">
+      <div class="modalContent glass elimination-modal-content">
         <div class="modal-header">
           <h3>Истребление предателя</h3>
           <div class="elimination-instruction">
@@ -200,14 +340,36 @@
         </div>
         
         <div class="modal-footer">
-          <button id="execute-elimination" class="btn btn-danger" disabled>Истребить предателя</button>
-          <button id="cancel-elimination" class="btn btn-secondary">Отмена</button>
+          <button id="execute-elimination" class="btn danger" disabled>Истребить предателя</button>
+          <button id="cancel-elimination" class="btn secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно для видео-сюжетов -->
+    <div id="video-story-modal" class="modal">
+      <div class="video-story-content">
+        <div class="video-background" id="video-background">
+          <!-- Видео будет загружено динамически -->
+        </div>
+        <div class="video-overlay">
+          <div class="story-content glass">
+            <h3 id="video-story-title"></h3>
+            <p id="video-story-text"></p>
+            <div class="story-actions">
+              <button id="continue-story" class="btn primary">Продолжить</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Подключение скриптов -->
+  <script src="world-government-data.js"></script>
   <script src="world-government-stories.js"></script>
-  <script src="world-government.js"></script>
+  <script src="world-government-engine.js"></script>
+  <script src="world-government-ui.js"></script>
+  <script src="world-government-main.js"></script>
 </body>
 </html>
