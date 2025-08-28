@@ -11,30 +11,11 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #161412 0%, #2a1f1a 15%, #5a473a 30%, #8b7d6b 45%, #c7bdb1 60%, #ddd9d6 75%, #f5f3f0 85%, #ffffff 100%);
-      color: #161412;
+      background: #161412; 
+      color: #ffffff; 
       line-height: 1.6; 
       overflow-x: hidden; 
-      min-height: 100vh;
-      position: relative;
     }
-    
-    /* Красивый фоновый узор */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 20% 80%, rgba(199, 189, 177, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(90, 71, 58, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(221, 217, 214, 0.05) 0%, transparent 50%);
-      z-index: -1;
-      pointer-events: none;
-    }
-    
     .app { opacity: 1 !important; }
     .loading-overlay { display: none !important; }
     
@@ -45,105 +26,102 @@
     /* Критические стили для header */
     .topbar { 
       position: sticky; top: 0; z-index: 100;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 243, 240, 0.95) 100%); 
+      background: rgba(22, 20, 18, 0.95); 
       backdrop-filter: blur(20px);
-      border-bottom: 3px solid transparent;
-      background-clip: padding-box;
-      border-image: linear-gradient(90deg, #5a473a, #c7bdb1, #ddd9d6) 1;
-      padding: 20px 24px;
-      box-shadow: 0 8px 32px rgba(22, 20, 18, 0.08);
+      border-bottom: 2px solid #5a473a;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(22, 20, 18, 0.8);
     }
-    
     .brand h1 { 
-      font-size: 28px; 
-      font-weight: 800; 
-      background: linear-gradient(135deg, #161412 0%, #5a473a 50%, #8b7d6b 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: 0 2px 4px rgba(22, 20, 18, 0.1);
+      font-size: 24px; 
+      font-weight: 700; 
+      color: #c7bdb1;
+      text-shadow: 0 2px 4px rgba(22, 20, 18, 0.5);
     }
     
     /* Критические стили для квестов */
     .quests-grid { 
       display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-      gap: 24px; 
-      padding: 24px; 
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 20px; 
+      padding: 20px; 
     }
-    
     .card { 
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 243, 240, 0.95) 100%); 
-      border: 2px solid transparent;
-      background-clip: padding-box;
-      border-image: linear-gradient(135deg, #ddd9d6, #c7bdb1, #5a473a) 1;
-      border-radius: 24px; 
-      padding: 28px; 
+      background: rgba(90, 71, 58, 0.1); 
+      border: 2px solid #5a473a; 
+      border-radius: 20px; 
+      padding: 24px; 
       backdrop-filter: blur(20px);
-      box-shadow: 0 12px 40px rgba(22, 20, 18, 0.08);
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(22, 20, 18, 0.4);
     }
-    
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #5a473a, #8b7d6b, #c7bdb1, #ddd9d6);
-      transform: scaleX(0);
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .card:hover::before {
-      transform: scaleX(1);
-    }
-    
     .btn { 
-      padding: 14px 28px; 
-      border: 2px solid transparent;
-      background: linear-gradient(135deg, #5a473a 0%, #8b7d6b 50%, #c7bdb1 100%); 
+      padding: 12px 24px; 
+      border: 2px solid #5a473a; 
+      border-radius: 12px; 
+      background: rgba(90, 71, 58, 0.2); 
       color: #ffffff; 
       cursor: pointer; 
       font-weight: 600;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(90, 71, 58, 0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(22, 20, 18, 0.3);
     }
-    
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .btn:hover::before {
-      left: 100%;
-    }
-    
     .btn.primary { 
-      background: linear-gradient(135deg, #5a473a 0%, #8b7d6b 50%, #c7bdb1 100%); 
-      color: #ffffff; 
+      background: linear-gradient(135deg, #c7bdb1, #ddd9d6); 
+      color: #161412; 
+      border-color: #c7bdb1;
     }
     
-    .btn:hover {
+    /* Критические стили для валюты */
+    .currency-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .mulacoin-display, .level-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: rgba(90, 71, 58, 0.2);
+      border: 2px solid #5a473a;
+      border-radius: 15px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-width: 140px;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(22, 20, 18, 0.3);
+    }
+    
+    .mulacoin-display:hover, .level-display:hover {
+      background: rgba(90, 71, 58, 0.4);
+      border-color: #c7bdb1;
       transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(90, 71, 58, 0.4);
+      box-shadow: 0 8px 25px rgba(22, 20, 18, 0.5);
+    }
+    
+    .currency-icon, .level-icon {
+      font-size: 20px;
+    }
+    
+    .currency-amount, .level-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: #c7bdb1;
+    }
+    
+    .currency-label, .level-progress {
+      font-size: 12px;
+      color: #ddd9d6;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
   </style>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./quests.css" />
   
   <!-- Preload critical resources -->
@@ -187,105 +165,64 @@
   </script>
 
   <div id="app" class="app">
-    <!-- Современный header с градиентными эффектами -->
     <header class="glass topbar">
       <div class="brand">
-        <div class="logo-container">
-          <span class="logoGlow"></span>
-          <div class="logo-rings">
-            <div class="ring ring-1"></div>
-            <div class="ring ring-2"></div>
-            <div class="ring ring-3"></div>
-          </div>
-        </div>
-        <h1>🚀 Квесты</h1>
+        <span class="logoGlow"></span>
+        <h1>🌟 Квесты</h1>
       </div>
       <div class="actions">
-        <button id="btnHistory" class="btn ghost" aria-label="История">
-          <span class="btn-icon">📊</span>
-          <span class="btn-text">История</span>
-        </button>
+        <button id="btnHistory" class="btn ghost" aria-label="История">📊</button>
       </div>
     </header>
 
-    <!-- Обновленная панель валюты с градиентами -->
     <div class="currency-bar glass">
       <div class="currency-info">
         <button class="currency-button mulacoin-btn" onclick="showMulacoinInfo()">
           <div class="mulacoin-display">
-            <div class="currency-icon-container">
-              <span class="currency-icon">🪙</span>
-              <div class="icon-glow"></div>
-            </div>
-            <div class="currency-text">
-              <span class="currency-amount" id="mulacoinAmount">0</span>
-              <span class="currency-label">MULACOIN</span>
-            </div>
+            <span class="currency-icon">🥇</span>
+            <span class="currency-amount" id="mulacoinAmount">0</span>
+            <span class="currency-label">MULACOIN</span>
           </div>
         </button>
         <button class="currency-button level-btn" onclick="showLevelInfo()">
           <div class="level-display">
-            <div class="level-icon-container">
-              <span class="level-icon">⭐</span>
-              <div class="level-glow"></div>
-            </div>
-            <div class="level-text">
-              <span class="level-text-main">Уровень <span id="currentLevel">1</span></span>
-              <span class="level-progress" id="levelProgress">0/100</span>
-            </div>
+            <span class="level-icon">⭐</span>
+            <span class="level-text">Уровень <span id="currentLevel">1</span></span>
+            <span class="level-progress" id="levelProgress">0/100</span>
           </div>
         </button>
       </div>
     </div>
 
-    <!-- Обновленная секция кейса с градиентными эффектами -->
+    <!-- Кейс секция -->
     <section class="case-section" id="caseSection">
-      <div class="case-background">
-        <div class="case-aura primary"></div>
-        <div class="case-aura secondary"></div>
-        <div class="case-aura tertiary"></div>
-      </div>
+      <div class="case-aura"></div>
       <div class="case-frame">
         <button class="case-button" id="mysteryCaseBtn">
-          <div class="case-image-container">
-            <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
-            <div class="case-overlay"></div>
-          </div>
+          <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
         </button>
         
         <div class="case-caption">
-          <h2 class="case-title">Тайный кейс</h2>
-          <p class="case-description">Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
-          <div class="case-sparkles">
-            <span class="sparkle">●</span>
-            <span class="sparkle">●</span>
-            <span class="sparkle">●</span>
-          </div>
+          <h2>🔮 Тайный кейс</h2>
+          <p>🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
         </div>
       </div>
     </section>
 
-    <!-- Обновленная hero секция с градиентами -->
     <section class="hero">
       <div class="heroCopy glass">
-        <div class="hero-header">
-          <h2 class="hero-title">Добро пожаловать в мир возможностей!</h2>
-          <div class="title-underline"></div>
-        </div>
-        <p class="hero-description">Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
+        <h2>✨ Добро пожаловать в мир возможностей!</h2>
+        <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
           <div class="hero-stat">
-            <div class="stat-icon">●</div>
             <div class="stat-number">7</div>
             <div class="stat-label">Квестов</div>
           </div>
           <div class="hero-stat">
-            <div class="stat-icon">●</div>
             <div class="stat-number">∞</div>
             <div class="stat-label">Возможностей</div>
           </div>
           <div class="hero-stat">
-            <div class="stat-icon">●</div>
             <div class="stat-number">100%</div>
             <div class="stat-label">Успеха</div>
           </div>
@@ -293,24 +230,17 @@
       </div>
     </section>
 
-    <!-- Обновленная сетка квестов с градиентами -->
+    <!-- Квесты прямо в HTML -->
     <section class="quests" id="quests">
-      <div class="quests-header">
-        <h3 class="quests-title">Выбери свой квест</h3>
-        <div class="quests-subtitle">Каждый путь ведет к успеху</div>
-      </div>
       <div class="quests-grid">
         <!-- Первый бизнес -->
-        <div class="card business-card" data-style="neo" data-quest="copy">
-          <div class="card-header">
-            <div class="label business-label">Бизнес</div>
-            <div class="card-icon">●</div>
-          </div>
-          <h3 class="card-title">Твой первый бизнес</h3>
+        <div class="card" data-style="neo" data-quest="copy">
+          <div class="label">Бизнес</div>
+          <h3>🏢 Твой первый бизнес</h3>
           <div class="description">От найма до IPO за 10 минут! Собери команду мечты и преврати стартап в корпорацию. Кто сказал, что нельзя стать миллионером за один квест?</div>
           <div class="meta">
             <div class="tag medium">Средний</div>
-            <div class="tag variation">Вариация #1/7</div>
+            <div class="tag">Вариация #1/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -319,16 +249,13 @@
         </div>
 
         <!-- Мировое правительство -->
-        <div class="card conspiracy-card" data-style="conspiracy" data-quest="world-government">
-          <div class="card-header">
-            <div class="label conspiracy-label">Стратегия</div>
-            <div class="card-icon">●</div>
-          </div>
-          <h3 class="card-title">Мировое тайное правительство</h3>
+        <div class="card" data-style="conspiracy" data-quest="world-government">
+          <div class="label">Стратегия</div>
+          <h3>🌍 Мировое тайное правительство</h3>
           <div class="description">Ты знаешь, что происходит за кулисами? Создай свою тайную организацию и управляй миром из тени.</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag variation">Вариация #2/7</div>
+            <div class="tag">Вариация #2/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -337,16 +264,13 @@
         </div>
 
         <!-- Язык тела -->
-        <div class="card psychology-card" data-style="neo" data-quest="bodylang">
-          <div class="card-header">
-            <div class="label psychology-label">Психология</div>
-            <div class="card-icon">●</div>
-          </div>
-          <h3 class="card-title">Язык тела</h3>
+        <div class="card" data-style="neo" data-quest="bodylang">
+          <div class="label">Психология</div>
+          <h3>🧠 Язык тела</h3>
           <div class="description">Читай мысли по микродвижениям! Стань человеческим детектором лжи и разгадай все тайны собеседника. Шерлок Холмс нервно курит в сторонке.</div>
           <div class="meta">
             <div class="tag medium">Средний</div>
-            <div class="tag variation">Вариация #3/7</div>
+            <div class="tag">Вариация #3/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -355,16 +279,13 @@
         </div>
 
         <!-- Империя влияния -->
-        <div class="card influence-card" data-style="neo" data-quest="funnel">
-          <div class="card-header">
-            <div class="label influence-label">Влияние</div>
-            <div class="card-icon">👑</div>
-          </div>
-          <h3 class="card-title">Империя влияния</h3>
+        <div class="card" data-style="neo" data-quest="funnel">
+          <div class="label">Влияние</div>
+          <h3>👑 Империя влияния</h3>
           <div class="description">Стань медиа-магнатом! Создай контент, который заставит миллионы подписчиков залипать на экранах. От TikTok до Netflix - твоя империя!</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag variation">Вариация #4/7</div>
+            <div class="tag">Вариация #4/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -373,16 +294,13 @@
         </div>
 
         <!-- Психология -->
-        <div class="card psychology-card" data-style="neo" data-quest="psychology">
-          <div class="card-header">
-            <div class="label psychology-label">Психология</div>
-            <div class="card-icon">💭</div>
-          </div>
-          <h3 class="card-title">Психология заработка</h3>
+        <div class="card" data-style="neo" data-quest="psychology">
+          <div class="label">Психология</div>
+          <h3>💭 Психология заработка</h3>
           <div class="description">Заставь клиентов самим просить повысить цену! Мастер-класс по психологическим манипуляциям в переговорах. Деньги сами придут к тебе!</div>
           <div class="meta">
             <div class="tag medium">Средний</div>
-            <div class="tag variation">Вариация #5/7</div>
+            <div class="tag">Вариация #5/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -391,16 +309,13 @@
         </div>
 
         <!-- Анализ конкурентов -->
-        <div class="card strategy-card" data-style="neo" data-quest="competitors">
-          <div class="card-header">
-            <div class="label strategy-label">Стратегия</div>
-            <div class="card-icon">🔍</div>
-          </div>
-          <h3 class="card-title">Анализ конкурентов</h3>
+        <div class="card" data-style="neo" data-quest="competitors">
+          <div class="label">Стратегия</div>
+          <h3>🔍 Анализ конкурентов</h3>
           <div class="description">Разведай вражескую территорию! Изучи слабости конкурентов и нанеси удар в самое сердце. Война за рынок - твоя игра!</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag variation">Вариация #6/7</div>
+            <div class="tag">Вариация #6/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -409,16 +324,13 @@
         </div>
 
         <!-- Анализ трендов -->
-        <div class="card analytics-card" data-style="neo" data-quest="trends">
-          <div class="card-header">
-            <div class="label analytics-label">Аналитика</div>
-            <div class="card-icon">●</div>
-          </div>
-          <h3 class="card-title">Анализ трендов</h3>
+        <div class="card" data-style="neo" data-quest="trends">
+          <div class="label">Аналитика</div>
+          <h3>📊 Анализ трендов</h3>
           <div class="description">Предсказывай будущее рынка! Стань пророком бизнеса и поймай волну тренда до того, как она накроет всех. Гугл будет завидовать твоей интуиции!</div>
           <div class="meta">
             <div class="tag hard">Сложный</div>
-            <div class="tag variation">Вариация #7/7</div>
+            <div class="tag">Вариация #7/7</div>
           </div>
           <div class="cta">
             <button class="btn primary start">Начать квест</button>
@@ -428,17 +340,9 @@
       </div>
     </section>
 
-    <!-- Обновленный footer с градиентами -->
     <footer class="foot glass">
-      <div class="footer-content">
-        <div class="footer-decoration">
-          <span class="decoration-line"></span>
-          <span class="decoration-icon">✨</span>
-          <span class="decoration-line"></span>
-        </div>
-        <div class="hint">
-          <span>Элегантный современный интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
-        </div>
+      <div class="hint">
+        <span>✨ Элегантный интерфейс в стиле премиум для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
       </div>
     </footer>
   </div>
@@ -553,7 +457,7 @@
       const content = `
         <div class="mulacoin-info">
           <div class="info-header">
-            <span class="info-icon">🪙</span>
+            <span class="info-icon">🥇</span>
             <h3>Что такое MULACOIN?</h3>
           </div>
           <div class="info-content">
@@ -562,29 +466,29 @@
             </p>
             
             <div class="info-section">
-              <h4>Как заработать MULACOIN:</h4>
+              <h4>💰 Как заработать MULACOIN:</h4>
               <ul class="earn-list">
-                <li><span class="earn-icon">●</span> Выполнение квестов</li>
-                <li><span class="earn-icon">●</span> Кручение кейса</li>
-                <li><span class="earn-icon">●</span> Достижения и награды</li>
-                <li><span class="earn-icon">●</span> Ежедневные бонусы</li>
-                <li><span class="earn-icon">●</span> Специальные события</li>
+                <li><span class="earn-icon">🎯</span> Выполнение квестов</li>
+                <li><span class="earn-icon">🎰</span> Кручение кейса</li>
+                <li><span class="earn-icon">🏆</span> Достижения и награды</li>
+                <li><span class="earn-icon">🎁</span> Ежедневные бонусы</li>
+                <li><span class="earn-icon">⚡</span> Специальные события</li>
               </ul>
             </div>
             
             <div class="info-section">
-              <h4>На что потратить MULACOIN:</h4>
+              <h4>💎 На что потратить MULACOIN:</h4>
               <ul class="spend-list">
-                <li><span class="spend-icon">●</span> Дополнительные кручения кейса</li>
-                <li><span class="spend-icon">●</span> Разблокировка премиум квестов</li>
-                <li><span class="spend-icon">●</span> Ускорение прогресса</li>
-                <li><span class="spend-icon">●</span> Кастомизация профиля</li>
-                <li><span class="spend-icon">●</span> Эксклюзивные награды</li>
+                <li><span class="spend-icon">🎰</span> Дополнительные кручения кейса</li>
+                <li><span class="spend-icon">🔓</span> Разблокировка премиум квестов</li>
+                <li><span class="spend-icon">⚡</span> Ускорение прогресса</li>
+                <li><span class="spend-icon">🎨</span> Кастомизация профиля</li>
+                <li><span class="spend-icon">🏅</span> Эксклюзивные награды</li>
               </ul>
             </div>
             
             <div class="info-tip">
-              <span class="tip-icon">●</span>
+              <span class="tip-icon">💡</span>
               <strong>Совет:</strong> Накапливай MULACOIN для особых возможностей! Чем больше у тебя золота, тем выше твои шансы на уникальные призы!
             </div>
           </div>
@@ -600,7 +504,7 @@
       const content = `
         <div class="level-info">
           <div class="info-header">
-            <span class="info-icon">●</span>
+            <span class="info-icon">⭐</span>
             <h3>Система уровней</h3>
           </div>
           <div class="info-content">
@@ -619,7 +523,7 @@
             </div>
             
             <div class="info-section">
-              <h4>Всего уровней: 15</h4>
+              <h4>🎯 Всего уровней: 15</h4>
               <div class="levels-grid">
                 ${Array.from({length: 15}, (_, i) => `
                   <div class="level-item ${i < appState.userData.level ? 'completed' : i === appState.userData.level ? 'current' : 'locked'}">
@@ -631,24 +535,24 @@
             </div>
             
             <div class="info-section">
-              <h4>Зачем нужен уровень?</h4>
-                              <ul class="benefits-list">
-                  <li><span class="benefit-icon">●</span> <strong>Выше шанс призов</strong> в рулетке кейса</li>
-                  <li><span class="benefit-icon">●</span> <strong>Лучшие награды</strong> за квесты</li>
-                  <li><span class="benefit-icon">●</span> <strong>Доступ к эксклюзивным</strong> возможностям</li>
-                  <li><span class="benefit-icon">●</span> <strong>Особые достижения</strong> и статусы</li>
-                  <li><span class="benefit-icon">●</span> <strong>Бонусы к опыту</strong> и MULACOIN</li>
-                </ul>
+              <h4>🚀 Зачем нужен уровень?</h4>
+              <ul class="benefits-list">
+                <li><span class="benefit-icon">🎰</span> <strong>Выше шанс призов</strong> в рулетке кейса</li>
+                <li><span class="benefit-icon">💎</span> <strong>Лучшие награды</strong> за квесты</li>
+                <li><span class="benefit-icon">🔓</span> <strong>Доступ к эксклюзивным</strong> возможностям</li>
+                <li><span class="benefit-icon">🏆</span> <strong>Особые достижения</strong> и статусы</li>
+                <li><span class="benefit-icon">⚡</span> <strong>Бонусы к опыту</strong> и MULACOIN</li>
+              </ul>
             </div>
             
             <div class="info-section">
-              <h4>Как поднимать уровень?</h4>
-                              <ul class="level-up-list">
-                  <li><span class="up-icon">●</span> <strong>Выполняй квесты</strong> - получай опыт</li>
-                  <li><span class="up-icon">●</span> <strong>Крути кейс</strong> - случайный опыт</li>
-                  <li><span class="up-icon">●</span> <strong>Достижения</strong> - бонусный опыт</li>
-                  <li><span class="up-icon">●</span> <strong>Ежедневные задания</strong> - стабильный рост</li>
-                                  <li><span class="up-icon">●</span> <strong>Специальные события</strong> - ускорение</li>
+              <h4>📈 Как поднимать уровень?</h4>
+              <ul class="level-up-list">
+                <li><span class="up-icon">🎯</span> <strong>Выполняй квесты</strong> - получай опыт</li>
+                <li><span class="up-icon">🎰</span> <strong>Крути кейс</strong> - случайный опыт</li>
+                <li><span class="up-icon">🏅</span> <strong>Достижения</strong> - бонусный опыт</li>
+                <li><span class="up-icon">⚡</span> <strong>Ежедневные задания</strong> - стабильный рост</li>
+                <li><span class="up-icon">🎁</span> <strong>Специальные события</strong> - ускорение</li>
               </ul>
             </div>
             
