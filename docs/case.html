@@ -185,7 +185,7 @@
         }
 
         .roulette-item {
-            min-width: 200px;
+            min-width: 120px;
             height: 100%;
             display: flex;
             align-items: center;
@@ -234,6 +234,19 @@
             cursor: pointer;
             transition: all var(--transition-medium);
             box-shadow: var(--shadow-medium);
+        }
+
+        .control-btn.prizes-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: 2px solid #ff4757;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .control-btn.prizes-btn:hover {
+            background: linear-gradient(135deg, #ff5252, #ff7676);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.6);
         }
 
         .control-btn:hover {
@@ -401,6 +414,63 @@
             box-shadow: var(--shadow-heavy);
             border: 2px solid var(--accent-primary);
             animation: slideIn 0.3s ease;
+        }
+
+        .prizes-modal {
+            max-width: 700px;
+            max-height: 80vh;
+        }
+
+        .prizes-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(212, 146, 26, 0.1);
+            border-radius: 15px;
+            border: 1px solid var(--accent-primary);
+        }
+
+        .prize-item {
+            background: linear-gradient(135deg, rgba(212, 146, 26, 0.2), rgba(241, 216, 129, 0.2));
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--accent-secondary);
+            transition: all var(--transition-medium);
+        }
+
+        .prize-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+            background: linear-gradient(135deg, rgba(212, 146, 26, 0.3), rgba(241, 216, 129, 0.3));
+        }
+
+        .prize-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .prize-name {
+            font-weight: bold;
+            color: var(--accent-secondary);
+            font-size: 1.1rem;
+        }
+
+        .prize-chance {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .prize-action {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
 
         .modal-header {
@@ -607,7 +677,7 @@
             </div>
             <div class="roulette-controls">
                 <button class="control-btn" id="spinBtn">🎰 Крутить</button>
-                <button class="control-btn" id="showPrizesBtn">🏆 Призы</button>
+                <button class="control-btn prizes-btn" id="showPrizesBtn">🏆 Призы</button>
                 <button class="control-btn" id="buySpinBtn">💎 Купить спин</button>
             </div>
         </div>
@@ -669,12 +739,13 @@
 
     <!-- Модальное окно для списка призов -->
     <div class="modal" id="prizesModal">
-        <div class="modal-content">
+        <div class="modal-content prizes-modal">
             <div class="modal-header">
-                <h3 class="modal-title">🏆 Все призы</h3>
-                <div id="prizesList" style="text-align: left; max-height: 400px; overflow-y: auto;">
-                    <!-- Список призов будет создан динамически -->
-                </div>
+                <h3 class="modal-title">🏆 Все призы рулетки</h3>
+                <p class="modal-description">Изучите все возможные награды и их шансы выпадения</p>
+            </div>
+            <div id="prizesList" class="prizes-list">
+                <!-- Список призов будет создан динамически -->
             </div>
             <div class="modal-actions">
                 <button class="modal-btn btn-secondary" onclick="closeModal()">Закрыть</button>
@@ -862,12 +933,12 @@
             spinBtn.disabled = true;
             spinBtn.textContent = '🎰 Крутится...';
             
-            // Воспроизводим музыку
-            const audio = new Audio('assets/photovideo/kazik.mp3');
-            audio.play();
-            
-            // Анимация кручения
+            // Анимация кручения начинается сразу
             track.classList.add('spinning');
+            
+            // Воспроизводим музыку сразу
+            const audio = new Audio('assets/photovideo/kazik.mp3');
+            audio.play().catch(e => console.log('Ошибка воспроизведения:', e));
             
             // Определяем выигрышный приз
             const winningPrize = getRandomPrize();
@@ -1006,14 +1077,14 @@
 
         // Покупка спина
         function buySpin() {
-            if (gameState.mulacoin >= 100) {
-                gameState.mulacoin -= 100;
+            if (gameState.mulacoin >= 50) {
+                gameState.mulacoin -= 50;
                 gameState.spins++;
                 saveGameState();
                 updateDisplay();
-                showToast('Спин куплен за 100 MULACOIN!');
+                showToast('Спин куплен за 50 MULACOIN!');
             } else {
-                showToast('Недостаточно MULACOIN! Нужно 100.');
+                showToast('Недостаточно MULACOIN! Нужно 50.');
             }
         }
 
@@ -1023,9 +1094,14 @@
             const list = document.getElementById('prizesList');
             
             list.innerHTML = PRIZES.map(prize => `
-                <div style="margin-bottom: 15px; padding: 10px; background: rgba(212, 146, 26, 0.1); border-radius: 10px;">
-                    <strong>${prize.emoji} ${prize.name}</strong><br>
-                    <small>Шанс: ${prize.chance}% | Действие: ${prize.action === 'activate' ? 'Активировать' : 'Использовать'}</small>
+                <div class="prize-item">
+                    <div class="prize-header">
+                        <div class="prize-name">${prize.emoji} ${prize.name}</div>
+                        <div class="prize-chance">${prize.chance}%</div>
+                    </div>
+                    <div class="prize-action">
+                        Действие: <strong>${prize.action === 'activate' ? 'Активировать' : 'Использовать'}</strong>
+                    </div>
                 </div>
             `).join('');
             
