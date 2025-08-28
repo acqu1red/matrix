@@ -1,565 +1,957 @@
-/* ===== BUSINESS QUEST UI - OPTIMIZED FOR MINIAPPS ===== */
+/* ===== BUSINESS QUEST UI MANAGER ===== */
 
-// Основной класс UI для бизнес-квеста
 class BusinessQuestUI {
-  constructor() {
-    this.currentStage = 1;
-    this.selectedNiche = null;
-    this.teamMembers = {};
-    this.businessStats = {
-      revenue: 0,
-      growth: 0,
-      teamSize: 0,
-      reputation: 0
-    };
-    
-    this.initialize();
+  constructor(engine) {
+    this.engine = engine;
+    this.elements = {};
+    this.draggedElement = null;
+    this.touchStartPos = { x: 0, y: 0 };
+    this.isDragging = false;
   }
 
   // Инициализация UI
   initialize() {
-    console.log('🎨 Инициализация UI для бизнес-квеста...');
-    
-    // Инициализируем все компоненты
-    this.initializeIntroModal();
-    this.initializeNicheSelection();
-    this.initializeTeamSelection();
-    this.initializeBusinessManagement();
-    this.initializeResults();
-    this.initializeProgressBar();
-    
-    // Показываем вступительное модальное окно
+    this.cacheElements();
+    this.setupEventListeners();
+    this.setupDragAndDrop();
     this.showIntroModal();
-    
-    console.log('✅ UI для бизнес-квеста инициализирован');
   }
-  
-  // Инициализация вступительного модального окна
-  initializeIntroModal() {
-    const startQuestBtn = document.getElementById('startQuest');
-    if (startQuestBtn) {
-      startQuestBtn.addEventListener('click', () => this.startQuest());
-    }
+
+  // Кэширование элементов DOM
+  cacheElements() {
+    this.elements = {
+      // Модальные окна
+      introModal: document.getElementById('introModal'),
+      resultsModal: document.getElementById('resultsModal'),
+      
+      // Основной интерфейс
+      businessInterface: document.getElementById('businessInterface'),
+      
+      // Панель статуса
+      currentStage: document.getElementById('currentStage'),
+      businessCapital: document.getElementById('businessCapital'),
+      monthlyRevenue: document.getElementById('monthlyRevenue'),
+      teamSize: document.getElementById('teamSize'),
+      
+      // Рабочие области
+      selectionTitle: document.getElementById('selectionTitle'),
+      stageProgress: document.getElementById('stageProgress'),
+      selectionContent: document.getElementById('selectionContent'),
+      businessName: document.getElementById('businessName'),
+      orgStructure: document.getElementById('orgStructure'),
+      financePanel: document.getElementById('financePanel'),
+      
+      // Финансовые показатели
+      monthlyExpenses: document.getElementById('monthlyExpenses'),
+      monthlyProfit: document.getElementById('monthlyProfit'),
+      businessROI: document.getElementById('businessROI'),
+      
+      // Панель действий
+      currentCandidate: document.getElementById('currentCandidate'),
+      actionButtons: document.getElementById('actionButtons'),
+      nextStage: document.getElementById('nextStage'),
+      skipCandidate: document.getElementById('skipCandidate'),
+      hireCandidate: document.getElementById('hireCandidate'),
+      
+      // Кнопки
+      startBusiness: document.getElementById('startBusiness'),
+      btnBack: document.getElementById('btnBack'),
+      restartBusiness: document.getElementById('restartBusiness'),
+      exitBusiness: document.getElementById('exitBusiness'),
+      
+      // Результаты
+      resultsIcon: document.getElementById('resultsIcon'),
+      resultsTitle: document.getElementById('resultsTitle'),
+      resultsContent: document.getElementById('resultsContent'),
+      
+      // Toast
+      toast: document.getElementById('toast')
+    };
   }
-  
-  // Инициализация выбора ниши
-  initializeNicheSelection() {
-    const nicheCards = document.querySelectorAll('.niche-card');
+
+  // Настройка обработчиков событий
+  setupEventListeners() {
+    // Кнопки модальных окон
+    this.elements.startBusiness?.addEventListener('click', () => this.startBusiness());
+    this.elements.restartBusiness?.addEventListener('click', () => this.restartBusiness());
+    this.elements.exitBusiness?.addEventListener('click', () => this.exitBusiness());
+    this.elements.btnBack?.addEventListener('click', () => this.goBack());
     
-    nicheCards.forEach(card => {
-      card.addEventListener('click', () => {
-        this.selectNiche(card);
-      });
+    // Кнопки действий
+    this.elements.nextStage?.addEventListener('click', () => this.nextStage());
+    this.elements.skipCandidate?.addEventListener('click', () => this.skipCandidate());
+    this.elements.hireCandidate?.addEventListener('click', () => this.hireCurrentCandidate());
+    
+    // Закрытие модальных окон по клику вне них
+    this.elements.introModal?.addEventListener('click', (e) => {
+      if (e.target === this.elements.introModal) {
+        this.hideIntroModal();
+      }
     });
     
-    const selectNicheBtn = document.getElementById('selectNiche');
-    if (selectNicheBtn) {
-      selectNicheBtn.addEventListener('click', () => this.confirmNicheSelection());
-    }
-  }
-  
-  // Инициализация подбора команды
-  initializeTeamSelection() {
-    this.initializeCandidates();
-    this.initializePositions();
-    
-    const completeTeamBtn = document.getElementById('completeTeam');
-    if (completeTeamBtn) {
-      completeTeamBtn.addEventListener('click', () => this.completeTeamSelection());
-    }
-  }
-  
-  // Инициализация кандидатов
-  initializeCandidates() {
-    const candidatesGrid = document.querySelector('.candidates-grid');
-    if (!candidatesGrid) return;
-    
-    // Очищаем сетку
-    candidatesGrid.innerHTML = '';
-    
-    // Создаем кандидатов из данных
-    const candidates = window.BUSINESS_QUEST_DATA?.candidates || [
-      { id: 'candidate1', name: 'Алексей Петров', skills: 'Лидерство, Организация', avatar: '👨‍💼' },
-      { id: 'candidate2', name: 'Мария Сидорова', skills: 'Креативность, Аналитика', avatar: '👩‍🎨' },
-      { id: 'candidate3', name: 'Дмитрий Козлов', skills: 'Математика, Планирование', avatar: '👨‍💻' },
-      { id: 'candidate4', name: 'Анна Волкова', skills: 'Экспертиза, Опыт', avatar: '👩‍🔬' }
-    ];
-    
-    candidates.forEach(candidate => {
-      const candidateCard = this.createCandidateCard(candidate);
-      candidatesGrid.appendChild(candidateCard);
+    this.elements.resultsModal?.addEventListener('click', (e) => {
+      if (e.target === this.elements.resultsModal) {
+        this.hideResultsModal();
+      }
     });
   }
-  
-  // Создание карточки кандидата
-  createCandidateCard(candidate) {
-    const card = document.createElement('div');
-    card.className = 'candidate-card';
-    card.dataset.candidateId = candidate.id;
-    card.draggable = true;
+
+  // Настройка drag & drop
+  setupDragAndDrop() {
+    // Поддержка как мыши, так и touch событий
+    document.addEventListener('mousedown', (e) => this.handleDragStart(e));
+    document.addEventListener('mousemove', (e) => this.handleDragMove(e));
+    document.addEventListener('mouseup', (e) => this.handleDragEnd(e));
     
-    card.innerHTML = `
-      <div class="candidate-avatar">${candidate.avatar}</div>
-      <div class="candidate-name">${candidate.name}</div>
-      <div class="candidate-skills">${candidate.skills}</div>
-    `;
-    
-    // Добавляем обработчики drag & drop
-    card.addEventListener('dragstart', this.handleDragStart.bind(this));
-    card.addEventListener('dragend', this.handleDragEnd.bind(this));
-    
-    return card;
+    // Touch события для мобильных устройств
+    document.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+    document.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+    document.addEventListener('touchend', (e) => this.handleTouchEnd(e));
   }
-  
-  // Инициализация должностей
-  initializePositions() {
-    const dropZones = document.querySelectorAll('.candidate-drop-zone');
+
+  // Начало перетаскивания (мышь)
+  handleDragStart(e) {
+    const candidateCard = e.target.closest('.candidate-card');
+    if (candidateCard && !this.isDragging) {
+      this.startDrag(candidateCard, e.clientX, e.clientY);
+      e.preventDefault();
+    }
+  }
+
+  // Движение перетаскивания (мышь)
+  handleDragMove(e) {
+    if (this.isDragging && this.draggedElement) {
+      this.updateDragPosition(e.clientX, e.clientY);
+      this.updateDropZones(e.clientX, e.clientY);
+      e.preventDefault();
+    }
+  }
+
+  // Окончание перетаскивания (мышь)
+  handleDragEnd(e) {
+    if (this.isDragging) {
+      this.endDrag(e.clientX, e.clientY);
+    }
+  }
+
+  // Начало touch
+  handleTouchStart(e) {
+    const candidateCard = e.target.closest('.candidate-card');
+    if (candidateCard && e.touches.length === 1) {
+      const touch = e.touches[0];
+      this.touchStartPos = { x: touch.clientX, y: touch.clientY };
+      
+      // Небольшая задержка перед началом drag
+      this.touchTimeout = setTimeout(() => {
+        this.startDrag(candidateCard, touch.clientX, touch.clientY);
+        e.preventDefault();
+      }, 200);
+    }
+  }
+
+  // Движение touch
+  handleTouchMove(e) {
+    if (this.touchTimeout) {
+      clearTimeout(this.touchTimeout);
+      this.touchTimeout = null;
+    }
+    
+    if (this.isDragging && e.touches.length === 1) {
+      const touch = e.touches[0];
+      this.updateDragPosition(touch.clientX, touch.clientY);
+      this.updateDropZones(touch.clientX, touch.clientY);
+      e.preventDefault();
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const deltaX = Math.abs(touch.clientX - this.touchStartPos.x);
+      const deltaY = Math.abs(touch.clientY - this.touchStartPos.y);
+      
+      // Если движение больше порога, отменяем drag
+      if (deltaX > 10 || deltaY > 10) {
+        if (this.touchTimeout) {
+          clearTimeout(this.touchTimeout);
+          this.touchTimeout = null;
+        }
+      }
+    }
+  }
+
+  // Окончание touch
+  handleTouchEnd(e) {
+    if (this.touchTimeout) {
+      clearTimeout(this.touchTimeout);
+      this.touchTimeout = null;
+    }
+    
+    if (this.isDragging) {
+      const touch = e.changedTouches[0];
+      this.endDrag(touch.clientX, touch.clientY);
+    }
+  }
+
+  // Начало перетаскивания
+  startDrag(element, x, y) {
+    this.isDragging = true;
+    this.draggedElement = element.cloneNode(true);
+    
+    // Стилизуем перетаскиваемый элемент
+    this.draggedElement.classList.add('dragging');
+    this.draggedElement.style.position = 'fixed';
+    this.draggedElement.style.zIndex = '1000';
+    this.draggedElement.style.pointerEvents = 'none';
+    this.draggedElement.style.width = element.offsetWidth + 'px';
+    this.draggedElement.style.left = (x - element.offsetWidth / 2) + 'px';
+    this.draggedElement.style.top = (y - element.offsetHeight / 2) + 'px';
+    
+    document.body.appendChild(this.draggedElement);
+    
+    // Добавляем визуальную обратную связь
+    element.style.opacity = '0.5';
+    
+    // Показываем drop zones
+    this.showDropZones();
+    
+    // Автоматически скроллим к полям для вставки работника
+    this.scrollToDropZones();
+  }
+
+  // Обновление позиции перетаскиваемого элемента
+  updateDragPosition(x, y) {
+    if (this.draggedElement) {
+      this.draggedElement.style.left = (x - this.draggedElement.offsetWidth / 2) + 'px';
+      this.draggedElement.style.top = (y - this.draggedElement.offsetHeight / 2) + 'px';
+    }
+  }
+
+  // Обновление drop zones
+  updateDropZones(x, y) {
+    const dropZones = document.querySelectorAll('.position-slot:not(.occupied)');
     
     dropZones.forEach(zone => {
-      zone.addEventListener('dragover', this.handleDragOver.bind(this));
-      zone.addEventListener('drop', this.handleDrop.bind(this));
-      zone.addEventListener('dragenter', this.handleDragEnter.bind(this));
-      zone.addEventListener('dragleave', this.handleDragLeave.bind(this));
+      const rect = zone.getBoundingClientRect();
+      const isOver = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+      
+      zone.classList.toggle('drag-over', isOver);
+      
+      // Если курсор над зоной, добавляем дополнительную подсветку
+      if (isOver) {
+        zone.classList.add('drag-over-highlight');
+      } else {
+        zone.classList.remove('drag-over-highlight');
+      }
     });
   }
-  
-  // Инициализация управления бизнесом
-  initializeBusinessManagement() {
-    this.initializeDecisions();
+
+  // Показать drop zones
+  showDropZones() {
+    const dropZones = document.querySelectorAll('.position-slot:not(.occupied)');
+    dropZones.forEach(zone => {
+      zone.classList.add('available');
+    });
+  }
+
+  // Скрыть drop zones
+  hideDropZones() {
+    const dropZones = document.querySelectorAll('.position-slot');
+    dropZones.forEach(zone => {
+      zone.classList.remove('drag-over', 'drag-over-highlight', 'available');
+    });
+  }
+
+  // Автоматический скролл к полям для вставки работника
+  scrollToDropZones() {
+    const dropZones = document.querySelectorAll('.position-slot:not(.occupied)');
+    if (dropZones.length === 0) return;
     
-    const nextQuarterBtn = document.getElementById('nextQuarter');
-    if (nextQuarterBtn) {
-      nextQuarterBtn.addEventListener('click', () => this.nextQuarter());
+    // Находим первую доступную позицию
+    const firstAvailableZone = dropZones[0];
+    if (firstAvailableZone) {
+      // Добавляем класс для плавного скролла
+      document.body.classList.add('scroll-to-drop-zone');
+      
+      // Плавно скроллим к позиции
+      firstAvailableZone.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center'
+      });
+      
+      // Добавляем подсветку для привлечения внимания
+      firstAvailableZone.classList.add('highlighted');
+      
+      // Убираем подсветку через 2 секунды
+      setTimeout(() => {
+        if (firstAvailableZone) {
+          firstAvailableZone.classList.remove('highlighted');
+        }
+        document.body.classList.remove('scroll-to-drop-zone');
+      }, 2000);
+      
+      // Показываем toast уведомление
+      this.showToast('📱 Камера автоматически перемещена к полям для найма!', 'info');
     }
   }
-  
-  // Инициализация решений
-  initializeDecisions() {
-    const decisionsGrid = document.querySelector('.decisions-grid');
-    if (!decisionsGrid) return;
+
+  // Окончание перетаскивания
+  endDrag(x, y) {
+    if (!this.isDragging) return;
     
-    // Очищаем сетку
-    decisionsGrid.innerHTML = '';
+    this.isDragging = false;
     
-    // Создаем решения из данных
-    const decisions = window.BUSINESS_QUEST_DATA?.decisions || [
-      {
-        id: 'decision1',
-        title: 'Инвестировать в маркетинг',
-        description: 'Увеличить рекламный бюджет для привлечения новых клиентов',
-        impact: { revenue: '+15%', risk: 'Средний' }
-      },
-      {
-        id: 'decision2',
-        title: 'Расширить команду',
-        description: 'Нанять дополнительных специалистов для роста',
-        impact: { revenue: '+25%', risk: 'Высокий' }
-      },
-      {
-        id: 'decision3',
-        title: 'Оптимизировать процессы',
-        description: 'Улучшить внутренние бизнес-процессы',
-        impact: { revenue: '+10%', risk: 'Низкий' }
-      },
-      {
-        id: 'decision4',
-        title: 'Развивать партнерства',
-        description: 'Найти стратегических партнеров',
-        impact: { revenue: '+20%', risk: 'Средний' }
+    // Находим drop zone под курсором
+    const dropZone = this.getDropZoneAt(x, y);
+    
+    if (dropZone && !dropZone.classList.contains('occupied')) {
+      const position = dropZone.dataset.position;
+      const candidateId = this.engine.getCurrentCandidate()?.id;
+      
+      if (candidateId && this.engine.hireEmployee(candidateId, position)) {
+        this.showToast(`Сотрудник нанят на позицию ${position}!`, 'success');
+        this.updateBusinessInterface();
+        this.loadNextCandidate();
+      } else {
+        this.showToast('Не удалось нанять сотрудника', 'error');
       }
-    ];
+    }
     
-    decisions.forEach(decision => {
-      const decisionCard = this.createDecisionCard(decision);
-      decisionsGrid.appendChild(decisionCard);
-    });
+    // Очистка
+    this.cleanupDrag();
   }
-  
-  // Создание карточки решения
-  createDecisionCard(decision) {
-    const card = document.createElement('div');
-    card.className = 'decision-card';
-    card.dataset.decisionId = decision.id;
+
+  // Получение drop zone в точке
+  getDropZoneAt(x, y) {
+    const dropZones = document.querySelectorAll('.position-slot:not(.occupied)');
     
-    card.innerHTML = `
-      <div class="decision-title">${decision.title}</div>
-      <div class="decision-description">${decision.description}</div>
-      <div class="decision-impact">
-        <span>Доход: ${decision.impact.revenue}</span>
-        <span>Риск: ${decision.impact.risk}</span>
+    for (let zone of dropZones) {
+      const rect = zone.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return zone;
+      }
+    }
+    
+    return null;
+  }
+
+  // Очистка после drag
+  cleanupDrag() {
+    if (this.draggedElement) {
+      document.body.removeChild(this.draggedElement);
+      this.draggedElement = null;
+    }
+    
+    // Восстанавливаем прозрачность оригинального элемента
+    const candidateCards = document.querySelectorAll('.candidate-card');
+    candidateCards.forEach(card => {
+      card.style.opacity = '';
+    });
+    
+    this.hideDropZones();
+  }
+
+  // Показать модальное окно введения
+  showIntroModal() {
+    this.elements.introModal?.classList.add('show');
+  }
+
+  // Скрыть модальное окно введения
+  hideIntroModal() {
+    this.elements.introModal?.classList.remove('show');
+  }
+
+  // Запуск бизнеса
+  startBusiness() {
+    this.hideIntroModal();
+    this.elements.businessInterface.style.display = 'flex';
+    
+    // Запускаем движок
+    this.engine.startBusiness();
+    
+    // Инициализируем UI
+    this.updateBusinessInterface();
+    this.loadNiches();
+    
+    this.showToast('Начинаем создание бизнеса!', 'success');
+  }
+
+  // Загрузка ниш бизнеса
+  loadNiches() {
+    if (!this.elements.selectionContent) return;
+    
+    const niches = BusinessDataService.getNiches();
+    
+    this.elements.selectionContent.innerHTML = `
+      <div class="niches-grid">
+        ${niches.map(niche => `
+          <div class="niche-card" data-niche-id="${niche.id}">
+            <div class="niche-header">
+              <div class="niche-icon">${niche.icon}</div>
+              <div class="niche-info">
+                <h4>${niche.name}</h4>
+                <div class="niche-category">${niche.category}</div>
+              </div>
+            </div>
+            <div class="niche-description">${niche.description}</div>
+            <div class="niche-metrics">
+              <div class="niche-metric">
+                <div class="metric-value">$${niche.metrics.startupCost / 1000}K</div>
+                <div class="metric-label">Старт</div>
+              </div>
+              <div class="niche-metric">
+                <div class="metric-value">$${niche.metrics.monthlyRevenue / 1000}K</div>
+                <div class="metric-label">Доход/мес</div>
+              </div>
+              <div class="niche-metric">
+                <div class="metric-value">${niche.metrics.difficulty}</div>
+                <div class="metric-label">Сложность</div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
     
-    card.addEventListener('click', () => {
-      this.applyDecision(decision);
-      
-      // Показываем анимацию
-      card.classList.add('success-animation');
-      setTimeout(() => card.classList.remove('success-animation'), 600);
+    // Добавляем обработчики клика
+    const nicheCards = this.elements.selectionContent.querySelectorAll('.niche-card');
+    nicheCards.forEach(card => {
+      card.addEventListener('click', () => this.selectNiche(card.dataset.nicheId));
     });
-    
-    return card;
-  }
-  
-  // Инициализация результатов
-  initializeResults() {
-    const finishQuestBtn = document.getElementById('finishQuest');
-    if (finishQuestBtn) {
-      finishQuestBtn.addEventListener('click', () => this.finishQuest());
-    }
-  }
-  
-  // Инициализация прогресс-бара
-  initializeProgressBar() {
-    // Скрываем прогресс-бар изначально
-    const questProgress = document.querySelector('.quest-progress');
-    if (questProgress) {
-      questProgress.style.display = 'none';
-    }
-  }
-  
-  // Основные функции квеста
-  startQuest() {
-    // Скрываем вступительное модальное окно
-    this.hideIntroModal();
-    
-    // Показываем основной контент
-    const questContent = document.querySelector('.quest-content');
-    if (questContent) {
-      questContent.style.display = 'block';
-    }
-    
-    // Показываем прогресс-бар
-    const questProgress = document.querySelector('.quest-progress');
-    if (questProgress) {
-      questProgress.style.display = 'block';
-    }
-    
-    // Показываем первый этап
-    this.showStage(1);
-    
-    this.showToast('🚀 Квест начался! Выберите нишу для вашего бизнеса.', 'success');
   }
 
   // Выбор ниши
-  selectNiche(card) {
-    // Убираем выделение со всех карточек
-    const allCards = document.querySelectorAll('.niche-card');
-    allCards.forEach(c => c.classList.remove('selected'));
+  selectNiche(nicheId) {
+    // Убираем выделение с других карточек
+    document.querySelectorAll('.niche-card').forEach(card => {
+      card.classList.remove('selected');
+    });
     
     // Выделяем выбранную карточку
-    card.classList.add('selected');
-    
-    // Сохраняем выбранную нишу
-    this.selectedNiche = card.dataset.niche;
-    
-    // Активируем кнопку выбора
-    const selectBtn = document.getElementById('selectNiche');
-    if (selectBtn) {
-      selectBtn.disabled = false;
-      selectBtn.classList.add('success-animation');
-      setTimeout(() => selectBtn.classList.remove('success-animation'), 600);
+    const selectedCard = document.querySelector(`[data-niche-id="${nicheId}"]`);
+    if (selectedCard) {
+      selectedCard.classList.add('selected');
     }
     
-    // Показываем toast
-    const nicheName = card.querySelector('h3').textContent;
-    this.showToast(`Выбрана ниша: ${nicheName}`, 'success');
+    // Выбираем нишу в движке
+    if (this.engine.selectNiche(nicheId)) {
+      this.updateBusinessInterface();
+      this.loadCandidatesInterface();
+      this.showToast('Ниша выбрана! Теперь формируйте команду.', 'success');
+    }
   }
-  
-  // Подтверждение выбора ниши
-  confirmNicheSelection() {
-    if (!this.selectedNiche) {
-      this.showToast('Сначала выберите нишу!', 'error');
+
+  // Загрузка интерфейса кандидатов
+  loadCandidatesInterface() {
+    if (!this.elements.selectionTitle || !this.elements.selectionContent) return;
+    
+    this.elements.selectionTitle.textContent = '👥 Найм сотрудников';
+    this.elements.stageProgress.textContent = 'Этап 2: Формирование команды';
+    
+    this.loadNextCandidate();
+  }
+
+  // Загрузка следующего кандидата
+  loadNextCandidate() {
+    const candidate = this.engine.getCurrentCandidate();
+    
+    if (!candidate) {
+      this.elements.selectionContent.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+          <h3>Кандидаты закончились</h3>
+          <p>Вы можете продолжить с текущей командой</p>
+        </div>
+      `;
       return;
     }
     
-    // Переходим ко второму этапу
-    this.showStage(2);
+    this.elements.selectionContent.innerHTML = `
+      <div class="candidates-list">
+        <div class="candidate-card" data-candidate-id="${candidate.id}">
+          <div class="candidate-header">
+            <div class="candidate-avatar">${candidate.avatar}</div>
+            <div class="candidate-info">
+              <h5>${candidate.name}</h5>
+              <div class="candidate-role">${this.getRoleDisplayName(candidate.role)}</div>
+            </div>
+          </div>
+          <div class="candidate-skills">
+            ${candidate.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+          </div>
+          <div class="candidate-stats">
+            <div class="candidate-stat">
+              <div class="stat-value">${candidate.stats.efficiency}</div>
+              <div class="stat-label">Эффективность</div>
+            </div>
+            <div class="candidate-stat">
+              <div class="stat-value">${candidate.stats.creativity}</div>
+              <div class="stat-label">Креативность</div>
+            </div>
+            <div class="candidate-stat">
+              <div class="stat-value">${candidate.stats.leadership}</div>
+              <div class="stat-label">Лидерство</div>
+            </div>
+          </div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">
+              Опыт: ${candidate.experience} лет • Зарплата: $${candidate.salary}/мес
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">
+              ${candidate.background}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1);">
+        <h4 style="margin-bottom: 8px; color: var(--text);">💡 Как нанять:</h4>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">
+          Перетащите кандидата на нужную позицию в организационной структуре справа
+        </p>
+        <p style="font-size: 12px; color: var(--text-muted);">
+          📱 На мобильном: нажмите и удерживайте кандидата, затем перетащите его на позицию
+        </p>
+      </div>
+    `;
     
-    this.showToast('✅ Ниша выбрана! Теперь соберите команду.', 'success');
+    this.updateActionButtons();
   }
-  
-  // Завершение подбора команды
-  completeTeamSelection() {
-    const dropZones = document.querySelectorAll('.candidate-drop-zone');
-    let filledPositions = 0;
-    
-    dropZones.forEach(zone => {
-      if (zone.querySelector('.candidate-card')) {
-        filledPositions++;
-      }
-    });
-    
-    if (filledPositions < 4) {
-      this.showToast('Нужно заполнить все должности!', 'error');
-      return;
-    }
-    
-    // Переходим к третьему этапу
-    this.showStage(3);
-    
-    this.showToast('👥 Команда собрана! Теперь управляйте бизнесом.', 'success');
-  }
-  
-  // Следующий квартал
-  nextQuarter() {
-    // Обновляем статистику
-    this.businessStats.revenue += this.businessStats.revenue * 0.1; // +10% к доходу
-    this.businessStats.growth += 5; // +5% к росту
-    this.businessStats.reputation += 2; // +2 к репутации
-    
-    // Обновляем отображение
-    this.updateBusinessStats();
-    
-    // Показываем toast
-    this.showToast('📈 Квартал завершен! Бизнес растет.', 'success');
-    
-    // Проверяем, можно ли перейти к результатам
-    if (this.businessStats.revenue >= 100000) {
-      setTimeout(() => {
-        this.showStage(4);
-        this.showToast('🏆 Цель достигнута! Переходим к результатам.', 'success');
-      }, 1000);
-    }
-  }
-  
-  // Завершение квеста
-  finishQuest() {
-    // Обновляем финальную статистику
-    this.updateFinalStats();
-    
-    // Показываем toast
-    this.showToast('🎉 Квест завершен! Поздравляем с успешным бизнесом!', 'success');
-    
-    // Возвращаемся к основным квестам
-    setTimeout(() => {
-      this.goBack();
-    }, 2000);
-  }
-  
-  // Показать этап
-  showStage(stageNumber) {
-    // Скрываем все этапы
-    const stages = document.querySelectorAll('.quest-stage');
-    stages.forEach(stage => stage.classList.remove('active'));
-    
-    // Показываем нужный этап
-    const targetStage = document.getElementById(this.getStageId(stageNumber));
-    if (targetStage) {
-      targetStage.classList.add('active');
-    }
-    
-    // Обновляем прогресс
-    this.updateProgress(stageNumber);
-    
-    // Обновляем текущий этап
-    this.currentStage = stageNumber;
-  }
-  
-  // Получить ID этапа
-  getStageId(stageNumber) {
-    const stageIds = {
-      1: 'nicheSelection',
-      2: 'teamSelection',
-      3: 'businessManagement',
-      4: 'results'
+
+  // Получение отображаемого названия роли
+  getRoleDisplayName(role) {
+    const roleNames = {
+      marketing: 'Маркетинг',
+      sales: 'Продажи',
+      tech: 'IT/Техника',
+      finance: 'Финансы',
+      operations: 'Операции',
+      hr: 'HR',
+      legal: 'Юрист',
+      creative: 'Креатив',
+      analytics: 'Аналитика'
     };
-    return stageIds[stageNumber] || 'nicheSelection';
+    
+    return roleNames[role] || role;
   }
-  
-  // Обновление прогресса
-  updateProgress(stageNumber) {
-    const progressFill = document.getElementById('progressFill');
-    const steps = document.querySelectorAll('.step');
+
+  // Обновление кнопок действий
+  updateActionButtons() {
+    const candidate = this.engine.getCurrentCandidate();
+    const gameState = this.engine.getGameState();
     
-    if (progressFill) {
-      progressFill.style.width = `${stageNumber * 25}%`;
-    }
-    
-    steps.forEach((step, index) => {
-      const stepNumber = index + 1;
-      
-      if (stepNumber < stageNumber) {
-        step.classList.add('completed');
-        step.classList.remove('active');
-      } else if (stepNumber === stageNumber) {
-        step.classList.add('active');
-        step.classList.remove('completed');
-      } else {
-        step.classList.remove('active', 'completed');
-      }
-    });
-  }
-  
-  // Обновление бизнес-статистики
-  updateBusinessStats() {
-    const revenueEl = document.getElementById('revenue');
-    const growthEl = document.getElementById('growth');
-    const teamSizeEl = document.getElementById('teamSize');
-    const reputationEl = document.getElementById('reputation');
-    
-    if (revenueEl) revenueEl.textContent = `${this.businessStats.revenue.toLocaleString()} ₽`;
-    if (growthEl) growthEl.textContent = `${this.businessStats.growth}%`;
-    if (teamSizeEl) teamSizeEl.textContent = this.businessStats.teamSize;
-    if (reputationEl) reputationEl.textContent = this.businessStats.reputation;
-  }
-  
-  // Обновление финальной статистики
-  updateFinalStats() {
-    const finalRevenue = document.getElementById('finalRevenue');
-    const finalTeamSize = document.getElementById('finalTeamSize');
-    const finalReputation = document.getElementById('finalReputation');
-    const finalGrowth = document.getElementById('finalGrowth');
-    
-    if (finalRevenue) finalRevenue.textContent = `${this.businessStats.revenue.toLocaleString()} ₽`;
-    if (finalTeamSize) finalTeamSize.textContent = this.businessStats.teamSize;
-    if (finalReputation) finalReputation.textContent = this.businessStats.reputation;
-    if (finalGrowth) finalGrowth.textContent = `${this.businessStats.growth}%`;
-  }
-  
-  // Применение решения
-  applyDecision(decision) {
-    // Обновляем статистику на основе решения
-    if (decision.impact.revenue.includes('+')) {
-      const increase = parseInt(decision.impact.revenue);
-      this.businessStats.revenue += this.businessStats.revenue * (increase / 100);
-      this.businessStats.growth += increase;
-    }
-    
-    if (decision.impact.risk === 'Низкий') {
-      this.businessStats.reputation += 5;
-    } else if (decision.impact.risk === 'Средний') {
-      this.businessStats.reputation += 3;
+    if (candidate) {
+      this.elements.skipCandidate.style.display = 'inline-block';
+      this.elements.hireCandidate.style.display = 'none'; // Найм только через drag & drop
     } else {
-      this.businessStats.reputation += 1;
+      this.elements.skipCandidate.style.display = 'none';
+      this.elements.hireCandidate.style.display = 'none';
     }
     
-    // Обновляем отображение
-    this.updateBusinessStats();
+    // Кнопка перехода к следующему этапу
+    const canProceed = this.engine.canProceedToNextStage();
+    this.elements.nextStage.disabled = !canProceed;
     
-    // Показываем toast
-    this.showToast(`Решение применено: ${decision.title}`, 'success');
-  }
-  
-  // Drag & Drop обработчики
-  handleDragStart(e) {
-    e.target.classList.add('dragging');
-    e.dataTransfer.setData('text/plain', e.target.dataset.candidateId);
-    e.dataTransfer.effectAllowed = 'move';
-  }
-  
-  handleDragEnd(e) {
-    e.target.classList.remove('dragging');
-  }
-  
-  handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
-  
-  handleDragEnter(e) {
-    e.preventDefault();
-    const dropZone = e.target.closest('.candidate-drop-zone');
-    if (dropZone) {
-      dropZone.classList.add('drag-over');
+    if (canProceed) {
+      this.elements.nextStage.textContent = gameState.currentStage === 4 ? 'Завершить бизнес' : 'Следующий этап';
+    } else {
+      this.elements.nextStage.textContent = 'Нужно больше сотрудников';
     }
   }
-  
-  handleDragLeave(e) {
-    const dropZone = e.target.closest('.candidate-drop-zone');
-    if (dropZone) {
-      dropZone.classList.remove('drag-over');
+
+  // Пропуск кандидата
+  skipCandidate() {
+    this.engine.skipCandidate();
+    this.loadNextCandidate();
+    this.showToast('Кандидат пропущен', 'info');
+  }
+
+  // Найм текущего кандидата (через кнопку - резервный способ)
+  hireCurrentCandidate() {
+    const candidate = this.engine.getCurrentCandidate();
+    if (!candidate) return;
+    
+    const availablePositions = this.engine.getAvailablePositions();
+    if (availablePositions.length === 0) {
+      this.showToast('Нет свободных позиций', 'warning');
+      return;
+    }
+    
+    // Автоматически назначаем на первую подходящую позицию
+    const position = availablePositions.includes(candidate.role) ? 
+                   candidate.role : availablePositions[0];
+    
+    if (this.engine.hireEmployee(candidate.id, position)) {
+      this.showToast(`${candidate.name} нанят на позицию ${position}!`, 'success');
+      this.updateBusinessInterface();
+      this.loadNextCandidate();
     }
   }
-  
-  handleDrop(e) {
-    e.preventDefault();
-    const dropZone = e.target.closest('.candidate-drop-zone');
-    const candidateId = e.dataTransfer.getData('text/plain');
-    const candidateCard = document.querySelector(`[data-candidate-id="${candidateId}"]`);
-    
-    if (dropZone && candidateCard) {
-      // Убираем классы drag-over
-      dropZone.classList.remove('drag-over');
+
+  // Переход к следующему этапу
+  nextStage() {
+    if (this.engine.canProceedToNextStage()) {
+      const gameState = this.engine.getGameState();
       
-      // Проверяем, что позиция свободна
-      if (!dropZone.querySelector('.candidate-card')) {
-        // Клонируем карточку кандидата
-        const clonedCard = candidateCard.cloneNode(true);
-        clonedCard.draggable = false;
-        clonedCard.classList.remove('dragging');
-        
-        // Добавляем кнопку удаления
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'btn ghost';
-        removeBtn.innerHTML = '❌ Убрать';
-        removeBtn.style.fontSize = '12px';
-        removeBtn.style.padding = '4px 8px';
-        removeBtn.addEventListener('click', () => {
-          clonedCard.remove();
-          this.updateTeamStatus();
-        });
-        
-        clonedCard.appendChild(removeBtn);
-        
-        // Очищаем drop zone
-        dropZone.innerHTML = '';
-        dropZone.appendChild(clonedCard);
-        
-        // Обновляем статус команды
-        this.updateTeamStatus();
-        
-        // Показываем toast
-        const positionTitle = dropZone.closest('.position-slot').querySelector('.position-title').textContent;
-        this.showToast(`Кандидат назначен на должность: ${positionTitle}`, 'success');
+      if (gameState.currentStage === 4) {
+        // Завершаем бизнес
+        this.completeBusiness();
       } else {
-        this.showToast('Эта должность уже занята!', 'error');
+        // Переходим к следующему этапу
+        this.engine.nextStage();
+        this.updateBusinessInterface();
+        this.handleStageTransition();
       }
     }
   }
-  
-  // Обновление статуса команды
-  updateTeamStatus() {
-    const dropZones = document.querySelectorAll('.candidate-drop-zone');
-    let filledPositions = 0;
+
+  // Обработка перехода между этапами
+  handleStageTransition() {
+    const gameState = this.engine.getGameState();
     
-    dropZones.forEach(zone => {
-      if (zone.querySelector('.candidate-card')) {
-        zone.closest('.position-slot').classList.add('filled');
-        filledPositions++;
+    switch (gameState.currentStage) {
+      case 3:
+        this.elements.selectionTitle.textContent = '📈 Развитие бизнеса';
+        this.elements.stageProgress.textContent = 'Этап 3: Стратегические решения';
+        this.loadBusinessDevelopmentInterface();
+        break;
+      
+      case 4:
+        this.elements.selectionTitle.textContent = '🚀 Масштабирование';
+        this.elements.stageProgress.textContent = 'Этап 4: Рост и оптимизация';
+        this.loadScalingInterface();
+        break;
+    }
+  }
+
+  // Интерфейс развития бизнеса
+  loadBusinessDevelopmentInterface() {
+    this.elements.selectionContent.innerHTML = `
+      <div style="padding: 20px;">
+        <h3 style="margin-bottom: 16px; color: var(--text);">📊 Аналитика бизнеса</h3>
+        
+        <div style="display: grid; gap: 16px; margin-bottom: 24px;">
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="margin-bottom: 8px; color: var(--text);">💰 Финансовые показатели</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+              <div>
+                <div style="font-size: 12px; color: var(--text-muted);">Месячная прибыль</div>
+                <div style="font-size: 18px; font-weight: 600; color: ${this.getMonthlyProfit() > 0 ? '#00ff88' : '#ff4444'};">
+                  $${Math.round(this.getMonthlyProfit()).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 12px; color: var(--text-muted);">ROI</div>
+                <div style="font-size: 18px; font-weight: 600; color: var(--text);">
+                  ${this.calculateROI()}%
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1);">
+            <h4 style="margin-bottom: 8px; color: var(--text);">👥 Команда</h4>
+            <div style="font-size: 14px; color: var(--text-muted);">
+              Размер команды: ${this.engine.getGameState().employees.length} человек<br>
+              Средняя производительность: ${this.calculateTeamPerformance()}%
+            </div>
+          </div>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.08); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.15);">
+          <h4 style="margin-bottom: 12px; color: var(--text);">🎯 Рекомендации</h4>
+          <div style="font-size: 14px; color: var(--text-muted); line-height: 1.5;">
+            ${this.generateBusinessRecommendations()}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Интерфейс масштабирования
+  loadScalingInterface() {
+    this.elements.selectionContent.innerHTML = `
+      <div style="padding: 20px;">
+        <h3 style="margin-bottom: 16px; color: var(--text);">🚀 Готовность к запуску</h3>
+        
+        <div style="background: rgba(255,255,255,0.08); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.15); margin-bottom: 20px;">
+          <h4 style="margin-bottom: 12px; color: var(--text);">✅ Чек-лист готовности</h4>
+          ${this.generateReadinessChecklist()}
+        </div>
+        
+        <div style="background: rgba(0,255,136,0.1); padding: 20px; border-radius: var(--radius-sm); border: 1px solid rgba(0,255,136,0.3);">
+          <h4 style="margin-bottom: 12px; color: #00ff88;">🎉 Поздравляем!</h4>
+          <p style="color: var(--text-muted); line-height: 1.5;">
+            Ваш бизнес готов к запуску! Вы собрали команду профессионалов и создали жизнеспособную бизнес-модель.
+            Нажмите "Завершить бизнес" чтобы увидеть финальные результаты.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  // Генерация рекомендаций для бизнеса
+  generateBusinessRecommendations() {
+    const gameState = this.engine.getGameState();
+    const recommendations = [];
+    
+    if (this.getMonthlyProfit() <= 0) {
+      recommendations.push('• Оптимизируйте расходы или увеличьте доходы для достижения прибыльности');
+    }
+    
+    if (gameState.employees.length < 5) {
+      recommendations.push('• Рассмотрите найм дополнительных специалистов для ускорения роста');
+    }
+    
+    const requiredRoles = gameState.selectedNiche?.requiredRoles || [];
+    const currentRoles = gameState.employees.map(emp => emp.role);
+    const missingRoles = requiredRoles.filter(role => !currentRoles.includes(role));
+    
+    if (missingRoles.length > 0) {
+      recommendations.push(`• Необходимы специалисты: ${missingRoles.map(role => this.getRoleDisplayName(role)).join(', ')}`);
+    }
+    
+    if (this.calculateTeamPerformance() < 70) {
+      recommendations.push('• Инвестируйте в обучение команды для повышения производительности');
+    }
+    
+    if (recommendations.length === 0) {
+      recommendations.push('• Отличная работа! Ваш бизнес показывает хорошие результаты');
+      recommendations.push('• Продолжайте мониторить ключевые метрики и развивайте команду');
+    }
+    
+    return recommendations.join('<br>');
+  }
+
+  // Генерация чек-листа готовности
+  generateReadinessChecklist() {
+    const gameState = this.engine.getGameState();
+    const checklist = [];
+    
+    // Проверка команды
+    const hasTeam = gameState.employees.length >= 2;
+    checklist.push(`${hasTeam ? '✅' : '❌'} Собрана команда (${gameState.employees.length}/10)`);
+    
+    // Проверка ключевых ролей
+    const requiredRoles = gameState.selectedNiche?.requiredRoles || [];
+    const currentRoles = gameState.employees.map(emp => emp.role);
+    const hasRequiredRoles = requiredRoles.every(role => currentRoles.includes(role));
+    checklist.push(`${hasRequiredRoles ? '✅' : '❌'} Ключевые роли закрыты`);
+    
+    // Проверка финансов
+    const isProfitable = this.getMonthlyProfit() > 0;
+    checklist.push(`${isProfitable ? '✅' : '❌'} Бизнес прибыльный`);
+    
+    // Проверка капитала
+    const hasCapital = gameState.capital > 0;
+    checklist.push(`${hasCapital ? '✅' : '❌'} Есть оборотный капитал`);
+    
+    return checklist.map(item => `<div style="margin-bottom: 8px; font-size: 14px;">${item}</div>`).join('');
+  }
+
+  // Завершение бизнеса
+  completeBusiness() {
+    const results = this.engine.completeBusiness();
+    this.showResultsModal(results);
+  }
+
+  // Обновление интерфейса бизнеса
+  updateBusinessInterface() {
+    const gameState = this.engine.getGameState();
+    
+    // Обновляем статус
+    if (this.elements.currentStage) {
+      this.elements.currentStage.textContent = `${gameState.currentStage}/${BUSINESS_CONFIG.stages}`;
+    }
+    
+    if (this.elements.businessCapital) {
+      this.elements.businessCapital.textContent = `$${Math.round(gameState.capital / 1000)}K`;
+    }
+    
+    if (this.elements.monthlyRevenue) {
+      this.elements.monthlyRevenue.textContent = `$${Math.round(gameState.monthlyRevenue / 1000)}K`;
+    }
+    
+    if (this.elements.teamSize) {
+      this.elements.teamSize.textContent = `${gameState.employees.length}/${BUSINESS_CONFIG.maxEmployees}`;
+    }
+    
+    // Обновляем название бизнеса
+    if (this.elements.businessName && gameState.selectedNiche) {
+      this.elements.businessName.textContent = gameState.selectedNiche.name;
+    }
+    
+    // Обновляем организационную структуру
+    this.updateOrgStructure();
+    
+    // Обновляем финансовую панель
+    this.updateFinancePanel();
+    
+    // Обновляем кнопки действий
+    this.updateActionButtons();
+  }
+
+  // Обновление организационной структуры
+  updateOrgStructure() {
+    const gameState = this.engine.getGameState();
+    const employees = gameState.employees;
+    
+    // Обновляем позиции с сотрудниками
+    const positionSlots = document.querySelectorAll('.position-slot[data-position]');
+    
+    positionSlots.forEach(slot => {
+      const position = slot.dataset.position;
+      const employee = employees.find(emp => emp.position === position);
+      
+      if (employee) {
+        slot.classList.add('occupied');
+        
+        const occupiedDiv = slot.querySelector('.position-occupied');
+        if (occupiedDiv) {
+          occupiedDiv.innerHTML = `
+            <div class="employee-card">
+              <div class="employee-avatar">${employee.avatar}</div>
+              <div class="employee-name">${employee.name}</div>
+              <div class="employee-salary">$${employee.salary}/мес</div>
+            </div>
+          `;
+        }
+        
+        // Скрываем drop zone
+        const dropZone = slot.querySelector('.drop-zone');
+        if (dropZone) {
+          dropZone.style.display = 'none';
+        }
       } else {
-        zone.closest('.position-slot').classList.remove('filled');
+        slot.classList.remove('occupied');
+        
+        // Показываем drop zone
+        const dropZone = slot.querySelector('.drop-zone');
+        if (dropZone) {
+          dropZone.style.display = 'flex';
+        }
       }
     });
+  }
+
+  // Обновление финансовой панели
+  updateFinancePanel() {
+    const gameState = this.engine.getGameState();
     
-    // Активируем кнопку завершения команды
-    const completeTeamBtn = document.getElementById('completeTeam');
-    if (completeTeamBtn) {
-      completeTeamBtn.disabled = filledPositions < 4;
+    if (this.elements.monthlyExpenses) {
+      this.elements.monthlyExpenses.textContent = `$${gameState.monthlyExpenses.toLocaleString()}`;
     }
     
-    // Обновляем статистику
-    this.businessStats.teamSize = filledPositions;
-    this.updateBusinessStats();
-  }
-  
-  // Показать вступительное модальное окно
-  showIntroModal() {
-    const introModal = document.getElementById('introModal');
-    if (introModal) {
-      introModal.classList.add('show');
+    if (this.elements.monthlyProfit) {
+      const profit = gameState.monthlyRevenue - gameState.monthlyExpenses;
+      this.elements.monthlyProfit.textContent = `$${profit.toLocaleString()}`;
+      this.elements.monthlyProfit.className = `finance-value ${profit >= 0 ? 'profit' : 'loss'}`;
+    }
+    
+    if (this.elements.businessROI) {
+      const roi = this.calculateROI();
+      this.elements.businessROI.textContent = `${roi}%`;
     }
   }
-  
-  // Скрыть вступительное модальное окно
-  hideIntroModal() {
-    const introModal = document.getElementById('introModal');
-    if (introModal) {
-      introModal.classList.remove('show');
-    }
+
+  // Расчет месячной прибыли
+  getMonthlyProfit() {
+    const gameState = this.engine.getGameState();
+    return gameState.monthlyRevenue - gameState.monthlyExpenses;
   }
-  
-  // Возврат назад
+
+  // Расчет ROI
+  calculateROI() {
+    const gameState = this.engine.getGameState();
+    return BusinessDataService.calculateROI(
+      gameState.monthlyRevenue,
+      gameState.monthlyExpenses,
+      BUSINESS_CONFIG.startingCapital
+    );
+  }
+
+  // Расчет производительности команды
+  calculateTeamPerformance() {
+    const gameState = this.engine.getGameState();
+    if (gameState.employees.length === 0) return 0;
+    
+    const totalPerformance = gameState.employees.reduce((sum, emp) => sum + emp.performance, 0);
+    return Math.round(totalPerformance / gameState.employees.length);
+  }
+
+  // Показать модальное окно результатов
+  showResultsModal(results) {
+    if (!this.elements.resultsModal) return;
+    
+    // Устанавливаем иконку и заголовок
+    if (this.elements.resultsIcon) {
+      this.elements.resultsIcon.textContent = results.finalMetrics.score >= 80 ? '🏆' : 
+                                             results.finalMetrics.score >= 60 ? '🥈' : 
+                                             results.finalMetrics.score >= 40 ? '🥉' : '📊';
+    }
+    
+    if (this.elements.resultsTitle) {
+      this.elements.resultsTitle.textContent = results.finalMetrics.score >= 80 ? 'Выдающийся успех!' :
+                                               results.finalMetrics.score >= 60 ? 'Отличный результат!' :
+                                               results.finalMetrics.score >= 40 ? 'Хороший старт!' : 'Бизнес создан!';
+    }
+    
+    // Заполняем содержимое результатов
+    if (this.elements.resultsContent) {
+      const completionTimeMinutes = Math.round(results.completionTime / 60000);
+      
+      this.elements.resultsContent.innerHTML = `
+        <div class="result-stat">
+          <span class="result-stat-label">Общая оценка</span>
+          <span class="result-stat-value">${results.finalMetrics.score}/100</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">Месячная прибыль</span>
+          <span class="result-stat-value" style="color: ${results.finalMetrics.monthlyProfit >= 0 ? '#00ff88' : '#ff4444'}">
+            $${results.finalMetrics.monthlyProfit.toLocaleString()}
+          </span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">ROI</span>
+          <span class="result-stat-value">${results.finalMetrics.roi}%</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">Размер команды</span>
+          <span class="result-stat-value">${results.finalMetrics.teamSize} человек</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">Время создания</span>
+          <span class="result-stat-value">${completionTimeMinutes} мин</span>
+        </div>
+        <div class="result-stat" style="border-top: 1px solid rgba(255,255,255,0.2); margin-top: 16px; padding-top: 16px;">
+          <span class="result-stat-label">MULACOIN</span>
+          <span class="result-stat-value" style="color: #ffd700;">+${results.rewards.mulacoin}</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">Опыт</span>
+          <span class="result-stat-value" style="color: #00ff88;">+${results.rewards.experience}</span>
+        </div>
+      `;
+    }
+    
+    this.elements.resultsModal.classList.add('show');
+  }
+
+  // Скрыть модальное окно результатов
+  hideResultsModal() {
+    this.elements.resultsModal?.classList.remove('show');
+  }
+
+  // Перезапуск бизнеса
+  restartBusiness() {
+    this.hideResultsModal();
+    this.engine.resetGameState();
+    this.engine.initialize();
+    this.startBusiness();
+  }
+
+  // Выход из квеста
+  exitBusiness() {
+    this.goBack();
+  }
+
+  // Возврат на главную
   goBack() {
     if (window.history.length > 1) {
       window.history.back();
@@ -570,54 +962,13 @@ class BusinessQuestUI {
 
   // Показать toast уведомление
   showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
+    if (!this.elements.toast) return;
     
-    // Очищаем предыдущее содержимое
-    toast.innerHTML = '';
+    this.elements.toast.textContent = message;
+    this.elements.toast.className = `toast ${type} show`;
     
-    // Добавляем иконку в зависимости от типа
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '❌';
-    if (type === 'warning') icon = '⚠️';
-    
-    // Устанавливаем содержимое
-    toast.innerHTML = `${icon} ${message}`;
-    
-    // Добавляем классы в зависимости от типа
-    toast.className = `toast ${type}`;
-    
-    // Показываем toast
-    toast.classList.add('show');
-    
-    // Скрываем через 3 секунды
     setTimeout(() => {
-      toast.classList.remove('show');
+      this.elements.toast.classList.remove('show');
     }, 3000);
   }
-  
-  // Получить прогресс квеста
-  getQuestProgress() {
-    return {
-      currentStage: this.currentStage,
-      selectedNiche: this.selectedNiche,
-      teamMembers: this.teamMembers,
-      businessStats: this.businessStats,
-      isCompleted: this.currentStage === 4
-    };
-  }
 }
-
-// Создаем экземпляр UI при загрузке страницы
-let businessUI = null;
-
-document.addEventListener('DOMContentLoaded', function() {
-  businessUI = new BusinessQuestUI();
-});
-
-// Экспортируем для использования в других модулях
-window.BusinessQuestUI = BusinessQuestUI;
-window.businessUI = businessUI;
-
-console.log('Business Quest UI system loaded successfully!');
