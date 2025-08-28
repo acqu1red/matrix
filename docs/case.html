@@ -7,7 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // Проверяем, не загружен ли уже Supabase
+    if (!window.supabase) {
+      const script = document.createElement('script');
+      script.src = "https://unpkg.com/@supabase/supabase-js@2";
+      document.head.appendChild(script);
+    }
+  </script>
   
   <style>
     /* ====== GOLDEN THEME ====== */
@@ -720,15 +727,15 @@
 
     // Prizes data
     const ROULETTE_PRIZES = [
-      { id: "discount_10", name: "Скидка 10% на любую подписку", image: "../assets/ruletka/emoji1.png", probability: 0.40 },
-      { id: "discount_20", name: "Скидка 20% на подписку 6 мес.", image: "../assets/ruletka/emoji2.png", probability: 0.25 },
-      { id: "discount_50", name: "Скидка 50% на подписку 12 мес.", image: "../assets/ruletka/emoji3.png", probability: 0.15 },
-      { id: "free_month", name: "Полная подписка 1 мес.", image: "../assets/ruletka/emoji4.png", probability: 0.05 },
-      { id: "mulacoin_50", name: "50 MULACOIN", image: "../assets/ruletka/emoji5.png", probability: 0.40 },
-      { id: "plus_spin", name: "+1 SPIN", image: "../assets/ruletka/emoji6.png", probability: 0.80 },
-      { id: "mulacoin_10", name: "10 MULACOIN", image: "../assets/ruletka/emoji7.png", probability: 0.60 },
-      { id: "consultation", name: "Личная консультация", image: "../assets/ruletka/emoji8.png", probability: 0.03 },
-      { id: "frod_education", name: "Полное обучение ФРОДУ", image: "../assets/ruletka/emoji9.png", probability: 0.01 }
+      { id: "discount_10", name: "Скидка 10% на любую подписку", image: "./assets/ruletka/emoji1.png", probability: 0.40 },
+      { id: "discount_20", name: "Скидка 20% на подписку 6 мес.", image: "./assets/ruletka/emoji2.png", probability: 0.25 },
+      { id: "discount_50", name: "Скидка 50% на подписку 12 мес.", image: "./assets/ruletka/emoji3.png", probability: 0.15 },
+      { id: "free_month", name: "Полная подписка 1 мес.", image: "./assets/ruletka/emoji4.png", probability: 0.05 },
+      { id: "mulacoin_50", name: "50 MULACOIN", image: "./assets/ruletka/emoji5.png", probability: 0.40 },
+      { id: "plus_spin", name: "+1 SPIN", image: "./assets/ruletka/emoji6.png", probability: 0.80 },
+      { id: "mulacoin_10", name: "10 MULACOIN", image: "./assets/ruletka/emoji7.png", probability: 0.60 },
+      { id: "consultation", name: "Личная консультация", image: "./assets/ruletka/emoji8.png", probability: 0.03 },
+      { id: "frod_education", name: "Полное обучение ФРОДУ", image: "./assets/ruletka/emoji9.png", probability: 0.01 }
     ];
 
     // Global variables
@@ -846,10 +853,27 @@
         ROULETTE_PRIZES.forEach((prize, index) => {
           const item = document.createElement('div');
           item.className = 'roulette-item';
-          item.innerHTML = `
-            <img src="${prize.image}" alt="${prize.name}" onerror="this.src='🎁'">
-            <div class="roulette-item-name">${prize.name}</div>
-          `;
+          
+          // Создаем изображение с обработкой ошибок
+          const img = document.createElement('img');
+          img.src = prize.image;
+          img.alt = prize.name;
+          img.onerror = function() {
+            this.style.display = 'none';
+            // Создаем fallback эмодзи
+            const emoji = document.createElement('div');
+            emoji.style.cssText = 'font-size: 3rem; margin-bottom: 0.5rem;';
+            emoji.textContent = '🎁';
+            this.parentNode.insertBefore(emoji, this);
+          };
+          
+          item.appendChild(img);
+          
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'roulette-item-name';
+          nameDiv.textContent = prize.name;
+          item.appendChild(nameDiv);
+          
           track.appendChild(item);
         });
       }
@@ -918,26 +942,75 @@
     }
 
     function showRouletteResult(prize) {
-      $('#rouletteResult').innerHTML = `
-        <div style="text-align: center; padding: 2rem;">
-          <img src="${prize.image}" alt="${prize.name}" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 1rem;" onerror="this.src='🎁'">
-          <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">${prize.name}</h3>
-          <p style="color: var(--text-secondary);">Поздравляем! Вы получили ценный приз!</p>
-        </div>
-      `;
+      const resultDiv = document.createElement('div');
+      resultDiv.style.cssText = 'text-align: center; padding: 2rem;';
+      
+      // Создаем изображение с обработкой ошибок
+      const img = document.createElement('img');
+      img.src = prize.image;
+      img.alt = prize.name;
+      img.style.cssText = 'width: 100px; height: 100px; object-fit: contain; margin-bottom: 1rem;';
+      img.onerror = function() {
+        this.style.display = 'none';
+        // Создаем fallback эмодзи
+        const emoji = document.createElement('div');
+        emoji.style.cssText = 'font-size: 5rem; margin-bottom: 1rem;';
+        emoji.textContent = '🎁';
+        this.parentNode.insertBefore(emoji, this);
+      };
+      
+      resultDiv.appendChild(img);
+      
+      const title = document.createElement('h3');
+      title.style.cssText = 'color: var(--accent-primary); margin-bottom: 1rem;';
+      title.textContent = prize.name;
+      resultDiv.appendChild(title);
+      
+      const message = document.createElement('p');
+      message.style.cssText = 'color: var(--text-secondary);';
+      message.textContent = 'Поздравляем! Вы получили ценный приз!';
+      resultDiv.appendChild(message);
+      
+      $('#rouletteResult').innerHTML = '';
+      $('#rouletteResult').appendChild(resultDiv);
       showModal('rouletteModal');
     }
 
     function showPrizes() {
-      const prizesList = ROULETTE_PRIZES.map(prize => `
-        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);">
-          <img src="${prize.image}" alt="${prize.name}" style="width: 50px; height: 50px; object-fit: contain;" onerror="this.src='🎁'">
-          <div>
-            <h4 style="color: var(--accent-primary); margin-bottom: 0.5rem;">${prize.name}</h4>
-            <p style="color: var(--text-secondary);">Шанс: ${Math.round(prize.probability * 100)}%</p>
-          </div>
-        </div>
-      `).join('');
+      const prizesList = ROULETTE_PRIZES.map(prize => {
+        const prizeDiv = document.createElement('div');
+        prizeDiv.style.cssText = 'display: flex; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--border-color);';
+        
+        // Создаем изображение с обработкой ошибок
+        const img = document.createElement('img');
+        img.src = prize.image;
+        img.alt = prize.name;
+        img.style.cssText = 'width: 50px; height: 50px; object-fit: contain;';
+        img.onerror = function() {
+          this.style.display = 'none';
+          // Создаем fallback эмодзи
+          const emoji = document.createElement('div');
+          emoji.style.cssText = 'font-size: 2rem; width: 50px; text-align: center;';
+          emoji.textContent = '🎁';
+          this.parentNode.insertBefore(emoji, this);
+        };
+        
+        prizeDiv.appendChild(img);
+        
+        const infoDiv = document.createElement('div');
+        const title = document.createElement('h4');
+        title.style.cssText = 'color: var(--accent-primary); margin-bottom: 0.5rem;';
+        title.textContent = prize.name;
+        infoDiv.appendChild(title);
+        
+        const chance = document.createElement('p');
+        chance.style.cssText = 'color: var(--text-secondary);';
+        chance.textContent = `Шанс: ${Math.round(prize.probability * 100)}%`;
+        infoDiv.appendChild(chance);
+        
+        prizeDiv.appendChild(infoDiv);
+        return prizeDiv.outerHTML;
+      }).join('');
       
       $('#prizesList').innerHTML = prizesList;
       showModal('prizesModal');
