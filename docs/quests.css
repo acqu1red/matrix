@@ -5,7 +5,7 @@
   --bg-secondary: #2a241f;
   --bg-tertiary: #3d352e;
   --bg-glass: rgba(90, 71, 58, 0.1);
-  --bg-glass-hover: rgba(90, 71, 58, 0.2);
+  --bg-glass-hover: rgba(90, 71, 58, 0.1);
   
   /* Text Colors */
   --text-primary: #ffffff;
@@ -20,7 +20,7 @@
   
   /* Border & Shadow */
   --border-color: #5a473a;
-  --border-hover: #c7bdb1;
+  --border-hover: #5a473a;
   --shadow-light: 0 4px 20px rgba(22, 20, 18, 0.4);
   --shadow-medium: 0 8px 40px rgba(22, 20, 18, 0.6);
   --shadow-heavy: 0 16px 80px rgba(22, 20, 18, 0.8);
@@ -93,8 +93,8 @@ body::before {
 }
 
 .topbar:hover {
-  border-bottom-color: var(--border-hover);
-  box-shadow: var(--shadow-medium);
+  border-bottom-color: var(--border-color);
+  box-shadow: var(--shadow-light);
 }
 
 .brand {
@@ -160,8 +160,8 @@ body::before {
 }
 
 .currency-button:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-medium);
+  transform: none;
+  box-shadow: var(--shadow-light);
 }
 
 .currency-button:active {
@@ -185,10 +185,10 @@ body::before {
 }
 
 .mulacoin-display:hover, .level-display:hover {
-  background: rgba(90, 71, 58, 0.4);
-  border-color: var(--border-hover);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(22, 20, 18, 0.5);
+  background: rgba(90, 71, 58, 0.3);
+  border-color: var(--border-color);
+  transform: none;
+  box-shadow: 0 4px 15px rgba(22, 20, 18, 0.3);
 }
 
 .currency-icon, .level-icon {
@@ -406,9 +406,9 @@ body::before {
 }
 
 .card:hover {
-  border-color: var(--border-hover);
+  border-color: var(--border-color);
   box-shadow: var(--shadow-medium);
-  transform: translateY(-5px) translateZ(0);
+  transform: none;
 }
 
 .card[data-style="conspiracy"] {
@@ -519,10 +519,10 @@ body::before {
 }
 
 .btn:hover {
-  border-color: var(--border-hover);
-  background: linear-gradient(135deg, #ddd9d6, #f0f0f0);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-medium);
+  border-color: var(--border-color);
+  background: linear-gradient(135deg, #c7bdb1, #ddd9d6);
+  transform: none;
+  box-shadow: var(--shadow-light);
 }
 
 .btn.primary {
@@ -532,9 +532,9 @@ body::before {
 }
 
 .btn.primary:hover {
-  background: linear-gradient(135deg, #ddd9d6, #f0f0f0);
-  border-color: var(--border-hover);
-  transform: translateY(-2px) scale(1.02);
+  background: linear-gradient(135deg, #c7bdb1, #ddd9d6);
+  border-color: var(--border-color);
+  transform: none;
 }
 
 .btn.ghost {
@@ -545,7 +545,7 @@ body::before {
 
 .btn.ghost:hover {
   background: rgba(199, 189, 177, 0.2);
-  border-color: var(--border-hover);
+  border-color: var(--border-color);
 }
 
 /* ====== GLASS EFFECT ====== */
@@ -561,10 +561,10 @@ body::before {
 }
 
 .glass:hover {
-  background: var(--bg-glass-hover);
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-medium);
-  transform: translateY(-2px);
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transform: none;
 }
 
 /* ====== FOOTER ====== */
@@ -644,7 +644,7 @@ body::before {
 
 .close:hover {
   background: rgba(221, 217, 214, 0.3);
-  transform: rotate(90deg);
+  transform: none;
 }
 
 /* ====== TOAST ====== */
@@ -747,7 +747,7 @@ body::before {
 
 .earn-list li:hover, .spend-list li:hover, .benefits-list li:hover, .level-up-list li:hover {
   background: rgba(221, 217, 214, 0.4);
-  transform: translateX(5px);
+  transform: none;
   box-shadow: var(--shadow-light);
 }
 
@@ -1140,7 +1140,7 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
+  background: var(--border-color);
 }
 
 /* ====== SPECIAL EFFECTS ====== */
@@ -1154,9 +1154,9 @@ body::before {
 }
 
 .card:hover .label {
-  background: linear-gradient(90deg, #c7bdb1, #ddd9d6, #f0f0f0, #ddd9d6, #c7bdb1);
-  background-size: 200% 100%;
-  animation: brownShimmer 2s ease-in-out infinite;
+  background: linear-gradient(135deg, #c7bdb1, #ddd9d6);
+  background-size: 100% 100%;
+  animation: none;
 }
 
 /* ====== ENHANCED ANIMATIONS ====== */
@@ -1201,5 +1201,5 @@ body::before {
 }
 
 .card:hover::after {
-  opacity: 1;
+  opacity: 0.5;
 }

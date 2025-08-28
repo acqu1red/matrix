@@ -148,7 +148,7 @@
           <p>Это игра-симулятор для развития навыков управления персоналом и стратегического мышления. Чем больше будет ваша сфера влияния - тем больше вы будете получать опыта и MULACOIN!</p>
         </div>
         <div class="warning-footer">
-          <button id="start-quest" class="btn primary" onclick="startWorldGovernmentQuest()">Начать квест</button>
+          <button id="start-quest" class="btn primary">Начать квест</button>
         </div>
       </div>
     </div>
@@ -375,11 +375,14 @@
   <!-- Функция для запуска квеста -->
   <script>
     function startWorldGovernmentQuest() {
+      console.log('Запуск квеста...');
+      
       // Скрываем дисклеймер
       const warningModal = document.getElementById('warning-modal');
       if (warningModal) {
         warningModal.classList.remove('active');
         warningModal.style.display = 'none';
+        console.log('Дисклеймер скрыт');
       }
       
       // Показываем основной интерфейс
@@ -387,17 +390,32 @@
       if (mainInterface) {
         mainInterface.classList.remove('hidden');
         mainInterface.style.display = 'block';
+        console.log('Основной интерфейс показан');
       }
       
-      // Инициализируем квест, если еще не инициализирован
-      if (window.worldGovernmentMain && !window.worldGovernmentMain.isReady()) {
-        setTimeout(() => {
-          if (window.worldGovernmentMain) {
-            window.worldGovernmentMain.initializeQuest();
+      // Инициализируем квест
+      setTimeout(() => {
+        if (window.worldGovernmentMain) {
+          console.log('Инициализация квеста...');
+          window.worldGovernmentMain.initializeQuest();
+        } else {
+          console.log('worldGovernmentMain не найден, создаем новый экземпляр...');
+          // Создаем новый экземпляр, если он не существует
+          if (window.WorldGovernmentMain) {
+            window.worldGovernmentMain = new window.WorldGovernmentMain();
           }
-        }, 100);
-      }
+        }
+      }, 500);
     }
+    
+    // Добавляем обработчик для кнопки при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+      const startButton = document.getElementById('start-quest');
+      if (startButton) {
+        startButton.addEventListener('click', startWorldGovernmentQuest);
+        console.log('Обработчик для кнопки "Начать квест" добавлен');
+      }
+    });
   </script>
 </body>
 </html>
