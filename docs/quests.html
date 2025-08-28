@@ -11,8 +11,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #42100d 0%, #b95c1a 25%, #e7af3e 50%, #fdd77a 75%, #f3dcb3 100%);
-      color: #42100d;
+      background: linear-gradient(135deg, #161412 0%, #5a473a 25%, #c7bdb1 50%, #ddd9d6 75%, #ffffff 100%);
+      color: #161412;
       line-height: 1.6; 
       overflow-x: hidden; 
       min-height: 100vh;
@@ -27,17 +27,17 @@
     /* Критические стили для header */
     .topbar { 
       position: sticky; top: 0; z-index: 100;
-      background: rgba(243, 220, 179, 0.95); 
+      background: rgba(255, 255, 255, 0.95); 
       backdrop-filter: blur(20px);
-      border-bottom: 2px solid #fdd77a;
+      border-bottom: 2px solid #c7bdb1;
       padding: 16px 20px;
-      box-shadow: 0 4px 20px rgba(231, 175, 62, 0.3);
+      box-shadow: 0 4px 20px rgba(22, 20, 18, 0.1);
     }
     .brand h1 { 
       font-size: 24px; 
       font-weight: 700; 
-      color: #42100d;
-      text-shadow: 0 2px 4px rgba(66, 16, 13, 0.2);
+      color: #161412;
+      text-shadow: 0 2px 4px rgba(22, 20, 18, 0.1);
     }
     
     /* Критические стили для квестов */
@@ -48,26 +48,26 @@
       padding: 20px; 
     }
     .card { 
-      background: rgba(243, 220, 179, 0.9); 
-      border: 2px solid #fdd77a; 
+      background: rgba(255, 255, 255, 0.95); 
+      border: 2px solid #ddd9d6; 
       border-radius: 20px; 
       padding: 24px; 
       backdrop-filter: blur(20px);
-      box-shadow: 0 8px 25px rgba(231, 175, 62, 0.2);
+      box-shadow: 0 8px 25px rgba(22, 20, 18, 0.1);
     }
     .btn { 
       padding: 12px 24px; 
-      border: 2px solid #e7af3e; 
+      border: 2px solid #5a473a; 
       border-radius: 12px; 
-      background: linear-gradient(135deg, #e7af3e, #fdd77a); 
-      color: #42100d; 
+      background: linear-gradient(135deg, #5a473a, #c7bdb1); 
+      color: #ffffff; 
       cursor: pointer; 
       font-weight: 600;
-      box-shadow: 0 4px 15px rgba(231, 175, 62, 0.3);
+      box-shadow: 0 4px 15px rgba(90, 71, 58, 0.3);
     }
     .btn.primary { 
-      background: linear-gradient(135deg, #e7af3e, #fdd77a); 
-      color: #42100d; 
+      background: linear-gradient(135deg, #5a473a, #c7bdb1); 
+      color: #ffffff; 
     }
   </style>
   
@@ -75,7 +75,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./quests.css" />
-  <link rel="stylesheet" href="./case.css" />
   
   <!-- Preload critical resources -->
   <link rel="preload" href="./assets/rulette/case_open.png" as="image">
@@ -118,64 +117,62 @@
   </script>
 
   <div id="app" class="app">
+    <!-- Современный header с новой цветовой схемой -->
     <header class="glass topbar">
       <div class="brand">
         <span class="logoGlow"></span>
-        <h1>🌟 Квесты</h1>
+        <h1>🚀 Квесты</h1>
       </div>
       <div class="actions">
         <button id="btnHistory" class="btn ghost" aria-label="История">📊</button>
       </div>
     </header>
 
+    <!-- Обновленная панель валюты -->
     <div class="currency-bar glass">
       <div class="currency-info">
         <button class="currency-button mulacoin-btn" onclick="showMulacoinInfo()">
-        <div class="mulacoin-display">
+          <div class="mulacoin-display">
             <span class="currency-icon">🥇</span>
-          <span class="currency-amount" id="mulacoinAmount">0</span>
+            <span class="currency-amount" id="mulacoinAmount">0</span>
             <span class="currency-label">MULACOIN</span>
-        </div>
+          </div>
         </button>
         <button class="currency-button level-btn" onclick="showLevelInfo()">
           <div class="level-display">
-          <span class="level-icon">⭐</span>
-          <span class="level-text">Уровень <span id="currentLevel">1</span></span>
-          <span class="level-progress" id="levelProgress">0/100</span>
-        </div>
+            <span class="level-icon">⭐</span>
+            <span class="level-text">Уровень <span id="currentLevel">1</span></span>
+            <span class="level-progress" id="levelProgress">0/100</span>
+          </div>
         </button>
       </div>
     </div>
 
-    <!-- Кейс секция -->
+    <!-- Обновленная секция кейса -->
     <section class="case-section" id="caseSection">
       <div class="case-aura"></div>
       <div class="case-frame">
         <button class="case-button" id="mysteryCaseBtn">
           <img src="assets/rulette/case_open.png" alt="Тайный кейс" class="case-image" id="caseImage">
-          <div class="case-glow"></div>
         </button>
         
         <div class="case-caption">
-          <h2>🎰 Тайный кейс</h2>
+          <h2>🔮 Тайный кейс</h2>
           <p>🎁 Что скрывается внутри? Открой и получи сюрприз, который взорвет твой мозг! Рискни или потеряй награду навсегда...</p>
-          <div class="case-stats">
-            <span class="case-stat">🎯 Шанс выигрыша: 100%</span>
-            <span class="case-stat">💰 Призы: MULACOIN, подписки, скидки</span>
-          </div>
         </div>
       </div>
     </section>
 
+    <!-- Обновленная hero секция -->
     <section class="hero">
       <div class="heroCopy glass">
         <h2>✨ Добро пожаловать в мир возможностей!</h2>
         <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
-                  <div class="hero-stat">
-          <div class="stat-number">7</div>
-          <div class="stat-label">Квестов</div>
-        </div>
+          <div class="hero-stat">
+            <div class="stat-number">7</div>
+            <div class="stat-label">Квестов</div>
+          </div>
           <div class="hero-stat">
             <div class="stat-number">∞</div>
             <div class="stat-label">Возможностей</div>
@@ -188,7 +185,7 @@
       </div>
     </section>
 
-    <!-- Квесты прямо в HTML -->
+    <!-- Обновленная сетка квестов -->
     <section class="quests" id="quests">
       <div class="quests-grid">
         <!-- Первый бизнес -->
@@ -298,9 +295,10 @@
       </div>
     </section>
 
+    <!-- Обновленный footer -->
     <footer class="foot glass">
       <div class="hint">
-        <span>✨ Элегантный золотой интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
+        <span>✨ Элегантный современный интерфейс для максимальной концентрации. Никаких отвлекающих факторов - только твои цели и амбиции!</span>
       </div>
     </footer>
   </div>
@@ -530,7 +528,7 @@
     function openCase() {
       try {
         // Плавный переход на страницу кейса
-      window.location.href = 'case.html';
+        window.location.href = 'case.html';
       } catch (error) {
         console.error('Ошибка перехода на квест:', error);
         showToast('Ошибка открытия кейса', 'error');
@@ -574,7 +572,7 @@
             </div>
           </div>
           <div class="quest-actions">
-          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
+            <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
             <button class="btn ghost" onclick="hideModal()">Закрыть</button>
           </div>
         </div>
