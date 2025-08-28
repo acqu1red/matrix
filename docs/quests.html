@@ -11,8 +11,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #161412; 
-      color: #ffffff; 
+      background: #1C252C; 
+      color: #F6F2F6; 
       line-height: 1.6; 
       overflow-x: hidden; 
     }
@@ -26,17 +26,17 @@
     /* Критические стили для header */
     .topbar { 
       position: sticky; top: 0; z-index: 100;
-      background: rgba(22, 20, 18, 0.95); 
+      background: rgba(28, 37, 44, 0.95); 
       backdrop-filter: blur(20px);
-      border-bottom: 2px solid #5a473a;
+      border-bottom: 2px solid #58545B;
       padding: 16px 20px;
-      box-shadow: 0 4px 20px rgba(22, 20, 18, 0.8);
+      box-shadow: 0 4px 20px rgba(28, 37, 44, 0.8);
     }
     .brand h1 { 
       font-size: 24px; 
       font-weight: 700; 
-      color: #c7bdb1;
-      text-shadow: 0 2px 4px rgba(22, 20, 18, 0.5);
+      color: #F6F2F6;
+      text-shadow: 0 2px 4px rgba(28, 37, 44, 0.5);
     }
     
     /* Критические стили для квестов */
@@ -47,27 +47,27 @@
       padding: 20px; 
     }
     .card { 
-      background: rgba(90, 71, 58, 0.1); 
-      border: 2px solid #5a473a; 
+      background: rgba(88, 84, 91, 0.1); 
+      border: 2px solid #58545B; 
       border-radius: 20px; 
       padding: 24px; 
       backdrop-filter: blur(20px);
-      box-shadow: 0 8px 25px rgba(22, 20, 18, 0.4);
+      box-shadow: 0 8px 25px rgba(28, 37, 44, 0.4);
     }
     .btn { 
       padding: 12px 24px; 
-      border: 2px solid #5a473a; 
+      border: 2px solid #58545B; 
       border-radius: 12px; 
-      background: rgba(90, 71, 58, 0.2); 
-      color: #ffffff; 
+      background: rgba(88, 84, 91, 0.2); 
+      color: #F6F2F6; 
       cursor: pointer; 
       font-weight: 600;
-      box-shadow: 0 4px 15px rgba(22, 20, 18, 0.3);
+      box-shadow: 0 4px 15px rgba(28, 37, 44, 0.3);
     }
     .btn.primary { 
-      background: linear-gradient(135deg, #c7bdb1, #ddd9d6); 
-      color: #161412; 
-      border-color: #c7bdb1;
+      background: linear-gradient(135deg, #F6F2F6, #E1D5D9); 
+      color: #1C252C; 
+      border-color: #F6F2F6;
     }
     
     /* Критические стили для валюты */
@@ -83,22 +83,22 @@
       align-items: center;
       gap: 8px;
       padding: 12px 20px;
-      background: rgba(90, 71, 58, 0.2);
-      border: 2px solid #5a473a;
+      background: rgba(88, 84, 91, 0.2);
+      border: 2px solid #58545B;
       border-radius: 15px;
       font-weight: 600;
       transition: all 0.3s ease;
       cursor: pointer;
       min-width: 140px;
       justify-content: center;
-      box-shadow: 0 4px 15px rgba(22, 20, 18, 0.3);
+      box-shadow: 0 4px 15px rgba(28, 37, 44, 0.3);
     }
     
     .mulacoin-display:hover, .level-display:hover {
-      background: rgba(90, 71, 58, 0.4);
-      border-color: #c7bdb1;
+      background: rgba(88, 84, 91, 0.4);
+      border-color: #B7A7AE;
       transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(22, 20, 18, 0.5);
+      box-shadow: 0 8px 25px rgba(28, 37, 44, 0.5);
     }
     
     .currency-icon, .level-icon {
@@ -108,14 +108,14 @@
     .currency-amount, .level-text {
       font-size: 16px;
       font-weight: 700;
-      color: #c7bdb1;
+      color: #F6F2F6;
     }
     
     .currency-label, .level-progress {
       font-size: 12px;
-      color: #ddd9d6;
+      color: #B7A7AE;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
     }
   </style>
   
@@ -179,7 +179,7 @@
       <div class="currency-info">
         <button class="currency-button mulacoin-btn" onclick="showMulacoinInfo()">
           <div class="mulacoin-display">
-            <span class="currency-icon">🥇</span>
+            <span class="currency-icon">🪙</span>
             <span class="currency-amount" id="mulacoinAmount">0</span>
             <span class="currency-label">MULACOIN</span>
           </div>
@@ -457,7 +457,7 @@
       const content = `
         <div class="mulacoin-info">
           <div class="info-header">
-            <span class="info-icon">🥇</span>
+            <span class="info-icon">🪙</span>
             <h3>Что такое MULACOIN?</h3>
           </div>
           <div class="info-content">
@@ -612,7 +612,7 @@
             </div>
             <div class="stat">
               <span class="label">Награда:</span>
-              <span class="value">${quest.rewards.mulacoin} 🥇 + ${quest.rewards.exp} XP</span>
+              <span class="value">${quest.rewards.mulacoin} 🪙 + ${quest.rewards.exp} XP</span>
             </div>
           </div>
           <div class="quest-actions">
