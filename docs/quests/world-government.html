@@ -7,34 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quests-black-white.css" />
   <link rel="stylesheet" href="world-government.css" />
 </head>
 <body>
-  <!-- Аудио элемент для horror.mp3 -->
-  <audio id="horror-audio" loop>
-    <source src="../politics/horror.mp3" type="audio/mpeg">
-  </audio>
-
-  <!-- Видео элементы для фоновых роликов -->
-  <video id="meeting-video" class="background-video" muted loop>
-    <source src="../politics/meeting.mp4" type="video/mp4">
-  </video>
-  <video id="disorder-video" class="background-video" muted loop>
-    <source src="../politics/besporyadki.mp4" type="video/mp4">
-  </video>
-  <video id="exposure-video" class="background-video" muted loop>
-    <source src="../politics/razobla4enie.mp4" type="video/mp4">
-  </video>
-  <video id="war-video" class="background-video" muted loop>
-    <source src="../politics/war.mp4" type="video/mp4">
-  </video>
-  <video id="time-travel-video" class="background-video" muted loop>
-    <source src="../politics/puteshestvie.mp4" type="video/mp4">
-  </video>
-  <video id="experiment-video" class="background-video" muted loop>
-    <source src="../politics/experement.mp4" type="video/mp4">
-  </video>
-
   <div class="world-government-quest">
     <!-- Предупреждение -->
     <div id="warning-modal" class="modal active">
@@ -70,21 +46,21 @@
         <!-- Политический сектор -->
         <div class="sector political-sector" data-sector="political">
           <div class="sector-label">Политический штаб</div>
-          <div class="sector-count">0/4</div>
+          <div class="sector-count">0/10</div>
           <div class="sector-members"></div>
         </div>
 
         <!-- Военный сектор -->
         <div class="sector military-sector" data-sector="military">
           <div class="sector-label">Военный штаб</div>
-          <div class="sector-count">0/3</div>
+          <div class="sector-count">0/8</div>
           <div class="sector-members"></div>
         </div>
 
         <!-- Экономический сектор -->
         <div class="sector economic-sector" data-sector="economic">
           <div class="sector-label">Экономический штаб</div>
-          <div class="sector-count">0/2</div>
+          <div class="sector-count">0/6</div>
           <div class="sector-members"></div>
         </div>
 
@@ -98,7 +74,7 @@
         <!-- Пропагандистский сектор -->
         <div class="sector propaganda-sector" data-sector="propaganda">
           <div class="sector-label">Пропагандический штаб</div>
-          <div class="sector-count">0/3</div>
+          <div class="sector-count">0/5</div>
           <div class="sector-members"></div>
         </div>
       </div>
@@ -230,29 +206,98 @@
       </div>
     </div>
 
-    <!-- Модальное окно сюжета с видео фоном -->
+    <!-- Новые модальные окна для сюжетов -->
+    
+    <!-- Модальное окно сюжета с видео-фоном -->
     <div id="story-modal" class="modal story-modal">
-      <div class="modal-content story-modal-content">
-        <div class="story-header">
-          <h3 id="story-title">Сюжет</h3>
-          <div class="story-controls">
-            <button id="toggle-audio" class="btn btn-secondary audio-btn">
-              <span class="audio-icon">🔊</span>
-            </button>
-            <button id="close-story" class="btn btn-secondary">✕</button>
+      <div class="story-modal-content">
+        <!-- Видео-фон -->
+        <div id="story-video-bg" class="story-video-bg hidden">
+          <video id="story-video" autoplay muted loop>
+            <source src="" type="video/mp4">
+          </video>
+        </div>
+        
+        <!-- Контент сюжета -->
+        <div class="story-content">
+          <div class="story-header">
+            <h2 id="story-title"></h2>
+            <div class="story-controls">
+              <button id="toggle-sound" class="btn btn-sound" title="Включить/выключить звук">
+                <span class="sound-icon">🔊</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="story-body">
+            <div id="story-text"></div>
+            
+            <!-- Дополнительные элементы сюжета -->
+            <div id="story-elements" class="story-elements"></div>
+          </div>
+          
+          <div class="story-footer">
+            <div id="story-choices" class="story-choices"></div>
+            <button id="continue-story" class="btn btn-primary">Продолжить</button>
           </div>
         </div>
-        <div class="story-body">
-          <div id="story-content">
-            <!-- Сюжет будет загружен динамически -->
-          </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно выбора действий -->
+    <div id="action-modal" class="modal action-modal">
+      <div class="action-modal-content">
+        <div class="action-header">
+          <h3>Выберите действие</h3>
         </div>
-        <div class="story-footer">
-          <button id="story-next" class="btn btn-primary">Далее</button>
+        <div class="action-body">
+          <div id="action-options" class="action-options"></div>
+        </div>
+        <div class="action-footer">
+          <button id="confirm-action" class="btn btn-primary">Подтвердить</button>
+          <button id="cancel-action" class="btn btn-secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно результатов действий -->
+    <div id="result-modal" class="modal result-modal">
+      <div class="result-modal-content">
+        <div class="result-header">
+          <h3 id="result-title"></h3>
+        </div>
+        <div class="result-body">
+          <div id="result-content"></div>
+          <div id="result-effects" class="result-effects"></div>
+        </div>
+        <div class="result-footer">
+          <button id="next-result-action" class="btn btn-primary">Далее</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно финальных результатов -->
+    <div id="final-results-modal" class="modal final-results-modal">
+      <div class="final-results-content">
+        <div class="final-header">
+          <h2>🎭 Финальные результаты</h2>
+        </div>
+        <div class="final-body">
+          <div id="final-summary"></div>
+          <div id="final-stats"></div>
+          <div id="final-rewards"></div>
+        </div>
+        <div class="final-footer">
+          <button id="return-to-main" class="btn btn-primary">Вернуться на главную</button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Аудио элемент для фоновой музыки -->
+  <audio id="horror-audio" loop>
+    <source src="../../politics/horror.mp3" type="audio/mpeg">
+  </audio>
 
   <script src="world-government-stories.js"></script>
   <script src="world-government.js"></script>
