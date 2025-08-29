@@ -11,11 +11,6 @@
   <link rel="stylesheet" href="world-government.css" />
 </head>
 <body>
-  <!-- Аудио элемент для фоновой музыки -->
-  <audio id="horror-audio" loop>
-    <source src="../assets/politics/horror.mp3" type="audio/mpeg">
-  </audio>
-
   <div class="world-government-quest">
     <!-- Предупреждение -->
     <div id="warning-modal" class="modal active">
@@ -36,15 +31,11 @@
 
     <!-- Основной интерфейс -->
     <div id="main-interface" class="main-interface hidden">
-      <!-- Кнопка "На главную" и управление звуком -->
+      <!-- Кнопка "На главную" -->
       <div class="header-controls">
         <button id="back-to-main" class="btn btn-secondary back-btn">
           <span class="back-icon">←</span>
           На главную
-        </button>
-        <button id="toggle-sound" class="btn btn-secondary sound-btn">
-          <span class="sound-icon">🔊</span>
-          <span class="sound-text">Звук ВКЛ</span>
         </button>
       </div>
       
@@ -211,27 +202,6 @@
         <div class="modal-footer">
           <button id="execute-elimination" class="btn btn-danger" disabled>Истребить предателя</button>
           <button id="cancel-elimination" class="btn btn-secondary">Отмена</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Модальное окно для сюжетов с видео фоном -->
-    <div id="story-modal" class="modal">
-      <div class="modal-content story-modal-content">
-        <div class="story-video-background" id="story-video-background">
-          <!-- Видео фон будет загружен динамически -->
-        </div>
-        <div class="story-content">
-          <div class="story-header">
-            <h3 id="story-title">Заголовок сюжета</h3>
-          </div>
-          <div class="story-body">
-            <div id="story-text">Текст сюжета будет загружен динамически</div>
-          </div>
-          <div class="story-footer">
-            <button id="continue-story" class="btn btn-primary">Продолжить</button>
-            <button id="skip-story" class="btn btn-secondary">Пропустить</button>
-          </div>
         </div>
       </div>
     </div>
