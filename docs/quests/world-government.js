@@ -66,6 +66,8 @@ class WorldGovernmentQuest {
     // Оптимизация: используем делегирование событий и кэшированные элементы
     const eventHandlers = {
       'start-quest': () => this.hideWarning(),
+      'start-quest-final': () => this.startQuestFinal(),
+      'close-quest-info': () => this.hideQuestInfo(),
       'back-to-main': () => this.goToMain(),
       'skip-character': () => this.skipCharacter(),
       'finish-creation': () => this.showFinishModal(),
@@ -115,12 +117,25 @@ class WorldGovernmentQuest {
 
   hideWarning() {
     document.getElementById('warning-modal').classList.remove('active');
-    document.getElementById('main-interface').classList.remove('hidden');
+    document.getElementById('quest-info-modal').classList.add('active');
   }
 
   goToMain() {
     // Возвращаемся на главную страницу квестов
     window.location.href = '../quests.html';
+  }
+
+  showQuestInfo() {
+    document.getElementById('quest-info-modal').classList.add('active');
+  }
+
+  hideQuestInfo() {
+    document.getElementById('quest-info-modal').classList.remove('active');
+  }
+
+  startQuestFinal() {
+    this.hideQuestInfo();
+    document.getElementById('main-interface').classList.remove('hidden');
   }
 
   showFinishModal() {

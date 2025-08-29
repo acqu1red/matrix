@@ -43,6 +43,11 @@
   --error: #ff6b6b;
   --warning: #ffa726;
   --info: #42a5f5;
+  
+  /* Additional Colors for Quest Info */
+  --success-bg: rgba(78, 205, 196, 0.1);
+  --warning-bg: rgba(255, 167, 38, 0.1);
+  --danger-bg: rgba(255, 107, 107, 0.1);
 }
 
 /* ====== BASE STYLES ====== */
@@ -966,6 +971,390 @@ body::before {
   border-radius: 50%;
   font-size: 20px;
   font-weight: bold;
+}
+
+/* ====== QUEST INFO MODAL ====== */
+.quest-info-content {
+  max-width: 700px;
+  max-height: 85vh;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.quest-info-header {
+  background: linear-gradient(135deg, rgba(246, 242, 246, 0.1), rgba(225, 209, 217, 0.05));
+  padding: 30px;
+  text-align: center;
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+}
+
+.quest-info-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../assets/photovideo/wtf.png') center/cover;
+  opacity: 0.03;
+  z-index: -1;
+}
+
+.quest-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  display: block;
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+.quest-info-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 20px;
+  text-shadow: 0 2px 4px rgba(28, 37, 44, 0.3);
+}
+
+.quest-difficulty {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  align-items: center;
+}
+
+.difficulty-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.difficulty-badge.hard {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+}
+
+.quest-type {
+  background: rgba(88, 84, 91, 0.3);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+}
+
+.quest-info-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.quest-section {
+  margin-bottom: 35px;
+}
+
+.quest-section:last-child {
+  margin-bottom: 0;
+}
+
+.quest-section h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 20px;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(28, 37, 44, 0.2);
+}
+
+/* Skills Grid */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: rgba(88, 84, 91, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.skill-item:hover {
+  background: rgba(88, 84, 91, 0.2);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.skill-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.skill-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Gameplay Steps */
+.gameplay-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px;
+  background: rgba(88, 84, 91, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+.step:hover {
+  background: rgba(88, 84, 91, 0.1);
+  border-color: var(--accent-primary);
+  transform: translateX(5px);
+}
+
+.step-number {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--bg-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.step-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Outcomes Grid */
+.outcomes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.outcome-item {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 15px;
+  border: 2px solid;
+  transition: all 0.3s ease;
+}
+
+.outcome-item.success {
+  background: var(--success-bg);
+  border-color: var(--success);
+}
+
+.outcome-item.warning {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+}
+
+.outcome-item.danger {
+  background: var(--danger-bg);
+  border-color: var(--error);
+}
+
+.outcome-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.outcome-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.outcome-content h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.outcome-content p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Rewards Info */
+.rewards-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(246, 242, 246, 0.1), rgba(225, 209, 217, 0.05));
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.reward-item:hover {
+  background: linear-gradient(135deg, rgba(246, 242, 246, 0.2), rgba(225, 209, 217, 0.1));
+  border-color: var(--accent-primary);
+  transform: translateX(5px);
+}
+
+.reward-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.reward-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Quest Info Footer */
+.quest-info-footer {
+  padding: 25px 30px;
+  border-top: 2px solid var(--border-color);
+  background: rgba(88, 84, 91, 0.1);
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+/* Responsive Design for Quest Info */
+@media (max-width: 768px) {
+  .quest-info-content {
+    max-width: 95%;
+    max-height: 90vh;
+  }
+  
+  .quest-info-header {
+    padding: 20px;
+  }
+  
+  .quest-icon {
+    font-size: 48px;
+  }
+  
+  .quest-info-header h2 {
+    font-size: 24px;
+  }
+  
+  .quest-info-body {
+    padding: 20px;
+  }
+  
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .gameplay-steps {
+    gap: 15px;
+  }
+  
+  .step {
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .step-number {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+  
+  .outcomes-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .quest-info-footer {
+    padding: 20px;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .quest-info-header {
+    padding: 15px;
+  }
+  
+  .quest-icon {
+    font-size: 40px;
+  }
+  
+  .quest-info-header h2 {
+    font-size: 20px;
+  }
+  
+  .quest-info-body {
+    padding: 15px;
+  }
+  
+  .skill-item {
+    padding: 12px;
+  }
+  
+  .step {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .step-number {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+  
+  .outcome-item {
+    padding: 15px;
+    gap: 12px;
+  }
+  
+  .reward-item {
+    padding: 15px;
+    gap: 12px;
+  }
 }
 
 /* ====== RESPONSIVE DESIGN ====== */
