@@ -72,6 +72,17 @@ class WorldGovernmentQuest {
 
     // Обработчики для секторов
     this.initializeSectorEventListeners();
+    
+    // Обработчики для модального окна сюжетов
+    document.getElementById('continue-story').addEventListener('click', () => {
+      this.hideStory();
+      this.showNextStory();
+    });
+    
+    document.getElementById('skip-story').addEventListener('click', () => {
+      this.hideStory();
+      this.showNextStory();
+    });
   }
 
   // Инициализация обработчиков для секторов
@@ -98,24 +109,133 @@ class WorldGovernmentQuest {
     const audio = document.getElementById('horror-audio');
     if (audio && this.isAudioEnabled) {
       audio.volume = 0.3;
-      audio.play().catch(e => console.log('Автовоспроизведение заблокировано'));
+      audio.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+      
+      // Автоматический перезапуск при окончании
+      audio.addEventListener('ended', () => {
+        if (this.isAudioEnabled) {
+          audio.currentTime = 0;
+          audio.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+        }
+      });
     }
   }
 
-  // Переключение аудио
+  // Переключение звука
   toggleAudio() {
     this.isAudioEnabled = !this.isAudioEnabled;
     const audio = document.getElementById('horror-audio');
-    const soundIcon = document.querySelector('.sound-icon');
+    const soundBtn = document.getElementById('toggle-sound');
+    const soundIcon = soundBtn.querySelector('.sound-icon');
+    const soundText = soundBtn.querySelector('.sound-text');
     
     if (this.isAudioEnabled) {
-      audio.play();
       soundIcon.textContent = '🔊';
-      audio.volume = 0.3;
+      soundText.textContent = 'Звук ВКЛ';
+      if (audio) {
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+      }
     } else {
-      audio.pause();
       soundIcon.textContent = '🔇';
+      soundText.textContent = 'Звук ВЫКЛ';
+      if (audio) {
+        audio.pause();
+      }
     }
+  }
+
+  // Показ сюжета с видео фоном
+  showStoryWithVideo(story) {
+    const storyModal = document.getElementById('story-modal');
+    const storyTitle = document.getElementById('story-title');
+    const storyText = document.getElementById('story-text');
+    const videoBackground = document.getElementById('story-video-background');
+    
+    // Устанавливаем заголовок и текст
+    storyTitle.textContent = story.title;
+    storyText.textContent = story.content;
+    
+    // Настраиваем видео фон
+    if (story.video && this.stories.getVideoBackground(story)) {
+      const video = document.createElement('video');
+      video.src = this.stories.getVideoBackground(story);
+      video.autoplay = true;
+      video.muted = true;
+      video.loop = true;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
+      
+      // Очищаем предыдущее видео
+      videoBackground.innerHTML = '';
+      videoBackground.appendChild(video);
+      videoBackground.style.display = 'block';
+    } else {
+      videoBackground.style.display = 'none';
+    }
+    
+    // Показываем модальное окно
+    storyModal.classList.add('show');
+    
+    // Останавливаем фоновую музыку на время показа сюжета
+    if (this.isAudioEnabled) {
+      const audio = document.getElementById('horror-audio');
+      if (audio) {
+        audio.pause();
+      }
+    }
+  }
+
+  // Скрытие сюжета
+  hideStory() {
+    const storyModal = document.getElementById('story-modal');
+    storyModal.classList.remove('show');
+    
+    // Возобновляем фоновую музыку
+    if (this.isAudioEnabled) {
+      const audio = document.getElementById('horror-audio');
+      if (audio) {
+        audio.play().catch(e => console.log('Аудио не может быть воспроизведено:', e));
+      }
+    }
+  }
+
+  // Показ следующего сюжета
+  showNextStory() {
+    if (this.storyQueue.length > 0) {
+      const nextStory = this.storyQueue.shift();
+      this.showStoryWithVideo(nextStory);
+    } else {
+      // Все сюжеты показаны, показываем финальные результаты
+      this.showFinalResults();
+    }
+  }
+
+  // Показ финальных результатов
+  showFinalResults() {
+    // Здесь можно добавить логику для показа финальных результатов
+    console.log('Все сюжеты показаны, показываем финальные результаты');
+  }
+
+  // Получение данных секторов
+  getSectorsData() {
+    const sectors = {};
+    const sectorElements = document.querySelectorAll('.sector');
+    
+    sectorElements.forEach(sector => {
+      const sectorType = sector.dataset.sector;
+      const members = Array.from(sector.querySelectorAll('.sector-member')).map(member => {
+        return {
+          name: member.dataset.name,
+          isCorrect: member.dataset.isCorrect === 'true'
+        };
+      });
+      
+      sectors[sectorType] = { members };
+    });
+    
+    return sectors;
   }
 
   // Загрузка персонажей
@@ -259,11 +379,15 @@ class WorldGovernmentQuest {
   finishCreation() {
     this.hideFinishModal();
     
-    // Генерируем все сюжеты
-    this.storyQueue = this.stories.generateFullStorySequence(this.assignments);
+    // Генерируем последовательность сюжетов
+    const sectors = this.getSectorsData();
+    this.storyQueue = this.stories.generateFullStorySequence(sectors, this.assignments);
     
-    // Начинаем показ сюжетов
-    this.startStorySequence();
+    // Показываем первый сюжет
+    if (this.storyQueue.length > 0) {
+      const firstStory = this.storyQueue.shift();
+      this.showStoryWithVideo(firstStory);
+    }
   }
 
   // Начало последовательности сюжетов
