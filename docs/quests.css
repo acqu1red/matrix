@@ -1522,7 +1522,7 @@ html {
   }
   100% { 
     transform: translateY(-100px) rotate(360deg);
-    opacity: 0;
+  opacity: 0;
   }
 }
 

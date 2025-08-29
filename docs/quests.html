@@ -178,18 +178,18 @@
     <div class="currency-bar glass">
       <div class="currency-info">
         <button class="currency-button mulacoin-btn" onclick="showMulacoinInfo()">
-          <div class="mulacoin-display">
-            <span class="currency-icon">🪙</span>
-            <span class="currency-amount" id="mulacoinAmount">0</span>
+        <div class="mulacoin-display">
+          <span class="currency-icon">🪙</span>
+          <span class="currency-amount" id="mulacoinAmount">0</span>
             <span class="currency-label">MULACOIN</span>
-          </div>
+        </div>
         </button>
         <button class="currency-button level-btn" onclick="showLevelInfo()">
           <div class="level-display">
-            <span class="level-icon">⭐</span>
-            <span class="level-text">Уровень <span id="currentLevel">1</span></span>
-            <span class="level-progress" id="levelProgress">0/100</span>
-          </div>
+          <span class="level-icon">⭐</span>
+          <span class="level-text">Уровень <span id="currentLevel">1</span></span>
+          <span class="level-progress" id="levelProgress">0/100</span>
+        </div>
         </button>
       </div>
     </div>
@@ -214,10 +214,10 @@
         <h2>✨ Добро пожаловать в мир возможностей!</h2>
         <p>Выбери свой путь к успеху! Каждый квест - это новая ступенька к вершине. Готов стать легендой?</p>
         <div class="hero-stats">
-          <div class="hero-stat">
-            <div class="stat-number">7</div>
-            <div class="stat-label">Квестов</div>
-          </div>
+                  <div class="hero-stat">
+          <div class="stat-number">7</div>
+          <div class="stat-label">Квестов</div>
+        </div>
           <div class="hero-stat">
             <div class="stat-number">∞</div>
             <div class="stat-label">Возможностей</div>
@@ -572,7 +572,7 @@
     function openCase() {
       try {
         // Плавный переход на страницу кейса
-        window.location.href = 'case.html';
+      window.location.href = 'case.html';
       } catch (error) {
         console.error('Ошибка перехода на квест:', error);
         showToast('Ошибка открытия кейса', 'error');
@@ -616,7 +616,7 @@
             </div>
           </div>
           <div class="quest-actions">
-            <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
+          <button class="btn primary" onclick="startQuest('${questId}')">Начать квест</button>
             <button class="btn ghost" onclick="hideModal()">Закрыть</button>
           </div>
         </div>
