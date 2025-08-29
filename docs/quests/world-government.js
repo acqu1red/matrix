@@ -152,6 +152,10 @@ class WorldGovernmentQuest {
     `;
 
     this.domCache.currentCharacter.dataset.characterId = character.id;
+    
+    // ВАЖНО: Делаем карточку перетаскиваемой
+    this.domCache.currentCharacter.draggable = true;
+    
     this.updateFinishButton();
   }
 
@@ -234,6 +238,7 @@ class WorldGovernmentQuest {
         this.draggedElement = e.target;
         e.target.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.currentCharacterIndex);
       });
 
       this.domCache.currentCharacter.addEventListener('dragend', (e) => {
@@ -393,11 +398,11 @@ class WorldGovernmentQuest {
 
   isTraitRelevantForSector(traitName, sectorType) {
     const traitRelevance = {
-      political: ['Лидерство', 'Дипломатия', 'Ораторство', 'Харизма'],
-      military: ['Стратегия', 'Тактика', 'Командование', 'Храбрость'],
-      economic: ['Финансы', 'Аналитика', 'Переговоры', 'Инвестиции'],
-      research: ['Интеллект', 'Креативность', 'Логика', 'Инновации'],
-      propaganda: ['Креативность', 'Коммуникация', 'Психология', 'Медиа']
+      political: ['Лидерство', 'Дипломатия', 'Ораторство', 'Харизма', 'Политика'],
+      military: ['Стратегия', 'Тактика', 'Командование', 'Храбрость', 'Военное дело'],
+      economic: ['Финансы', 'Аналитика', 'Переговоры', 'Инвестиции', 'Экономика'],
+      research: ['Интеллект', 'Креативность', 'Логика', 'Инновации', 'Наука', 'Эксперименты'],
+      propaganda: ['Креативность', 'Коммуникация', 'Психология', 'Медиа', 'Пропаганда']
     };
     
     return traitRelevance[sectorType]?.includes(traitName) || false;
@@ -742,7 +747,7 @@ class WorldGovernmentQuest {
     }, 3000);
   }
 
-  // Генерация персонажей
+  // Генерация персонажей с правильными характеристиками и принадлежностью к штабам
   generateCharacters() {
     return [
       {
@@ -750,100 +755,154 @@ class WorldGovernmentQuest {
         name: "Александр Петров",
         traits: [
           { name: "Лидерство", correct: true },
-          { name: "Стратегия", correct: true },
+          { name: "Дипломатия", correct: true },
           { name: "Харизма", correct: true }
         ],
-        description: "Природный лидер с выдающимися стратегическими способностями. Идеально подходит для политического или военного сектора."
+        description: "Природный лидер с выдающимися дипломатическими способностями. Идеально подходит для политического сектора.",
+        correctSector: "political"
       },
       {
         id: 2,
         name: "Елена Соколова",
         traits: [
           { name: "Интеллект", correct: true },
-          { name: "Креативность", correct: true },
-          { name: "Логика", correct: true }
+          { name: "Наука", correct: true },
+          { name: "Эксперименты", correct: true }
         ],
-        description: "Гениальный ученый с нестандартным мышлением. Отлично подходит для исследовательского сектора."
+        description: "Гениальный ученый с нестандартным мышлением. Отлично подходит для исследовательского сектора.",
+        correctSector: "research"
       },
       {
         id: 3,
         name: "Дмитрий Козлов",
         traits: [
           { name: "Финансы", correct: true },
-          { name: "Аналитика", correct: true },
-          { name: "Переговоры", correct: false }
+          { name: "Экономика", correct: true },
+          { name: "Аналитика", correct: true }
         ],
-        description: "Опытный финансист с аналитическим складом ума. Хорошо подходит для экономического сектора."
+        description: "Опытный финансист с аналитическим складом ума. Идеально подходит для экономического сектора.",
+        correctSector: "economic"
       },
       {
         id: 4,
         name: "Мария Иванова",
         traits: [
           { name: "Креативность", correct: true },
-          { name: "Коммуникация", correct: true },
-          { name: "Медиа", correct: true }
+          { name: "Медиа", correct: true },
+          { name: "Пропаганда", correct: true }
         ],
-        description: "Творческая личность с отличными коммуникативными навыками. Идеальна для пропагандистского сектора."
+        description: "Творческая личность с отличными навыками работы с медиа. Идеальна для пропагандистского сектора.",
+        correctSector: "propaganda"
       },
       {
         id: 5,
         name: "Сергей Волков",
         traits: [
-          { name: "Тактика", correct: true },
-          { name: "Командование", correct: true },
-          { name: "Храбрость", correct: false }
+          { name: "Стратегия", correct: true },
+          { name: "Военное дело", correct: true },
+          { name: "Командование", correct: true }
         ],
-        description: "Опытный военный с тактическим мышлением. Подходит для военного сектора."
+        description: "Опытный военный стратег с тактическим мышлением. Идеально подходит для военного сектора.",
+        correctSector: "military"
       },
       {
         id: 6,
         name: "Анна Морозова",
         traits: [
           { name: "Дипломатия", correct: true },
-          { name: "Ораторство", correct: true },
-          { name: "Харизма", correct: true }
+          { name: "Политика", correct: true },
+          { name: "Ораторство", correct: true }
         ],
-        description: "Прирожденный дипломат с выдающимися ораторскими способностями. Отлично подходит для политического сектора."
+        description: "Прирожденный дипломат с выдающимися ораторскими способностями. Отлично подходит для политического сектора.",
+        correctSector: "political"
       },
       {
         id: 7,
         name: "Виктор Смирнов",
         traits: [
+          { name: "Интеллект", correct: true },
           { name: "Инновации", correct: true },
-          { name: "Логика", correct: true },
-          { name: "Эксперименты", correct: true }
+          { name: "Логика", correct: true }
         ],
-        description: "Инновационный исследователь с логическим мышлением. Идеален для исследовательского сектора."
+        description: "Инновационный исследователь с логическим мышлением. Идеален для исследовательского сектора.",
+        correctSector: "research"
       },
       {
         id: 8,
         name: "Ольга Новикова",
         traits: [
           { name: "Психология", correct: true },
-          { name: "Медиа", correct: true },
-          { name: "Креативность", correct: false }
+          { name: "Коммуникация", correct: true },
+          { name: "Пропаганда", correct: true }
         ],
-        description: "Психолог с пониманием медиа-процессов. Хорошо подходит для пропагандистского сектора."
+        description: "Психолог с пониманием медиа-процессов и коммуникации. Идеальна для пропагандистского сектора.",
+        correctSector: "propaganda"
       },
       {
         id: 9,
         name: "Игорь Лебедев",
         traits: [
           { name: "Инвестиции", correct: true },
-          { name: "Аналитика", correct: true },
-          { name: "Риски", correct: true }
+          { name: "Экономика", correct: true },
+          { name: "Финансы", correct: true }
         ],
-        description: "Смелый инвестор с аналитическим мышлением. Отлично подходит для экономического сектора."
+        description: "Смелый инвестор с глубоким пониманием экономики. Отлично подходит для экономического сектора.",
+        correctSector: "economic"
       },
       {
         id: 10,
         name: "Наталья Козлова",
         traits: [
           { name: "Стратегия", correct: true },
-          { name: "Планирование", correct: true },
-          { name: "Координация", correct: true }
+          { name: "Тактика", correct: true },
+          { name: "Военное дело", correct: true }
         ],
-        description: "Стратегический планировщик с отличными координационными навыками. Идеальна для военного сектора."
+        description: "Стратегический планировщик с отличными тактическими навыками. Идеальна для военного сектора.",
+        correctSector: "military"
+      },
+      {
+        id: 11,
+        name: "Михаил Соколов",
+        traits: [
+          { name: "Политика", correct: true },
+          { name: "Харизма", correct: true },
+          { name: "Лидерство", correct: true }
+        ],
+        description: "Харизматичный политик с природными лидерскими качествами. Отлично подходит для политического сектора.",
+        correctSector: "political"
+      },
+      {
+        id: 12,
+        name: "Татьяна Воробьева",
+        traits: [
+          { name: "Креативность", correct: true },
+          { name: "Медиа", correct: true },
+          { name: "Коммуникация", correct: true }
+        ],
+        description: "Креативный медиа-специалист с отличными коммуникативными навыками. Идеальна для пропагандистского сектора.",
+        correctSector: "propaganda"
+      },
+      {
+        id: 13,
+        name: "Андрей Медведев",
+        traits: [
+          { name: "Тактика", correct: true },
+          { name: "Командование", correct: true },
+          { name: "Храбрость", correct: true }
+        ],
+        description: "Храбрый военный командир с тактическим мышлением. Отлично подходит для военного сектора.",
+        correctSector: "military"
+      },
+      {
+        id: 14,
+        name: "Екатерина Романова",
+        traits: [
+          { name: "Наука", correct: true },
+          { name: "Эксперименты", correct: true },
+          { name: "Креативность", correct: true }
+        ],
+        description: "Креативный ученый с любовью к экспериментам. Идеальна для исследовательского сектора.",
+        correctSector: "research"
       }
     ];
   }
