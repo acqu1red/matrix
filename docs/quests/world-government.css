@@ -179,6 +179,33 @@
   box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
 }
 
+/* Состояния модального окна сюжетов */
+#story-modal {
+  display: none;
+}
+
+#story-modal.show {
+  display: flex;
+}
+
+/* Стили для персонажей в секторах */
+.sector-member {
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 4px 0;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sector-member:hover {
+  background: rgba(52, 152, 219, 0.4);
+  transform: translateX(5px);
+}
+
 /* Модальные окна */
 .modal {
   position: fixed;

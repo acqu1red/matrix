@@ -40,34 +40,9 @@ class WorldGovernmentQuest {
       this.hideFinishModal();
     });
 
-    // Кнопка продолжения в сюжете
-    document.getElementById('continue-story').addEventListener('click', () => {
-      this.continueStory();
-    });
-
     // Переключение звука
     document.getElementById('toggle-sound').addEventListener('click', () => {
       this.toggleAudio();
-    });
-
-    // Подтверждение действия
-    document.getElementById('confirm-action').addEventListener('click', () => {
-      this.confirmAction();
-    });
-
-    // Отмена действия
-    document.getElementById('cancel-action').addEventListener('click', () => {
-      this.hideActionModal();
-    });
-
-    // Следующий результат действия
-    document.getElementById('next-result-action').addEventListener('click', () => {
-      this.showNextResultAction();
-    });
-
-    // Возврат на главную из финальных результатов
-    document.getElementById('return-to-main').addEventListener('click', () => {
-      this.returnToMain();
     });
 
     // Обработчики для секторов
@@ -82,6 +57,15 @@ class WorldGovernmentQuest {
     document.getElementById('skip-story').addEventListener('click', () => {
       this.hideStory();
       this.showNextStory();
+    });
+
+    // Обработчики для модальных окон
+    document.getElementById('close-members').addEventListener('click', () => {
+      document.getElementById('members-modal').classList.remove('active');
+    });
+
+    document.getElementById('close-character-details').addEventListener('click', () => {
+      document.getElementById('character-details-modal').classList.remove('active');
     });
   }
 
@@ -277,6 +261,36 @@ class WorldGovernmentQuest {
         traits: ["Военная стратегия", "Тактика", "Командование"],
         description: "Опытный военный стратег с опытом спецопераций. Идеален для военного сектора.",
         correctSector: "military"
+      },
+      {
+        name: "Анна Ковалева",
+        traits: ["Дипломатия", "Международные отношения", "Языки"],
+        description: "Дипломат высокого уровня с обширными международными связями. Подходит для политического сектора.",
+        correctSector: "political"
+      },
+      {
+        name: "Виктор Соколов",
+        traits: ["Кибербезопасность", "Программирование", "Анализ данных"],
+        description: "Эксперт по кибербезопасности и информационным технологиям. Идеален для исследовательского сектора.",
+        correctSector: "research"
+      },
+      {
+        name: "Ирина Медведева",
+        traits: ["Маркетинг", "Брендинг", "Социальные сети"],
+        description: "Специалист по маркетингу и управлению общественным мнением. Подходит для пропагандистского сектора.",
+        correctSector: "propaganda"
+      },
+      {
+        name: "Павел Волков",
+        traits: ["Логистика", "Снабжение", "Операции"],
+        description: "Опытный специалист по логистике и операционному управлению. Идеален для военного сектора.",
+        correctSector: "military"
+      },
+      {
+        name: "Ольга Новикова",
+        traits: ["Банковское дело", "Инвестиции", "Риск-менеджмент"],
+        description: "Финансовый эксперт с опытом работы в крупнейших банках мира. Подходит для экономического сектора.",
+        correctSector: "economic"
       }
     ];
   }
@@ -349,7 +363,7 @@ class WorldGovernmentQuest {
     
     // Показываем имена персонажей
     membersElement.innerHTML = this.assignments[sector]
-      .map(char => `<div class="member-name">${char.name}</div>`)
+      .map(char => `<div class="sector-member" data-name="${char.name}" data-is-correct="true">${char.name}</div>`)
       .join('');
   }
 
@@ -654,10 +668,9 @@ class WorldGovernmentQuest {
 
   // Возврат на главную
   returnToMain() {
-    // Останавливаем аудио и видео
+    // Останавливаем аудио
     const audio = document.getElementById('horror-audio');
     if (audio) audio.pause();
-    this.stopVideoBackground();
     
     window.location.href = '../quests.html';
   }
