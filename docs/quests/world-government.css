@@ -453,6 +453,26 @@ body::before {
   z-index: 101;
 }
 
+/* Стили для состояния "нет больше персонажей" */
+.character-card.no-more-characters {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #00ff00;
+  cursor: default;
+  opacity: 0.8;
+}
+
+.character-card.no-more-characters .character-name {
+  color: #00ff00;
+  font-weight: 700;
+  text-align: center;
+}
+
+.character-card.no-more-characters .character-description {
+  color: #00ff00;
+  text-align: center;
+  font-style: italic;
+}
+
 /* Улучшенные стили для drag-over на мобильных устройствах */
 .sector.drag-over {
   background: rgba(255, 255, 255, 0.2);

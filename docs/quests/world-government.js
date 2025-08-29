@@ -158,18 +158,31 @@ class WorldGovernmentQuest {
     const character = this.characters[this.currentCharacterIndex];
     if (!character || !this.domCache.currentCharacter) return;
 
-    this.domCache.currentCharacter.innerHTML = `
-      <div class="character-name">${character.name}</div>
-      <div class="character-traits">
-        ${character.traits.map(trait => `<span class="trait ${trait.correct ? 'correct' : 'incorrect'}">${trait.name}</span>`).join('')}
-      </div>
-      <div class="character-description">${character.description}</div>
-    `;
-
-    this.domCache.currentCharacter.dataset.characterId = character.id;
+    // Проверяем, есть ли еще люди для назначения
+    const totalMembers = Object.values(this.sectors).reduce((sum, sector) => sum + sector.members.length, 0);
+    const totalMax = Object.values(this.sectors).reduce((sum, sector) => sum + sector.max, 0);
     
-    // ВАЖНО: Делаем карточку перетаскиваемой
-    this.domCache.currentCharacter.draggable = true;
+    if (totalMembers >= totalMax) {
+      // Все штабы заполнены
+      this.domCache.currentCharacter.innerHTML = `
+        <div class="character-name">🎯 Все штабы заполнены!</div>
+        <div class="character-description">Больше нет людей для назначения. Можно завершать создание мирового правительства.</div>
+      `;
+      this.domCache.currentCharacter.draggable = false;
+      this.domCache.currentCharacter.classList.add('no-more-characters');
+    } else {
+      // Показываем текущего персонажа
+      this.domCache.currentCharacter.innerHTML = `
+        <div class="character-name">${character.name}</div>
+        <div class="character-traits">
+          ${character.traits.map(trait => `<span class="trait ${trait.correct ? 'correct' : 'incorrect'}">${trait.name}</span>`).join('')}
+        </div>
+        <div class="character-description">${character.description}</div>
+      `;
+      this.domCache.currentCharacter.dataset.characterId = character.id;
+      this.domCache.currentCharacter.draggable = true;
+      this.domCache.currentCharacter.classList.remove('no-more-characters');
+    }
     
     this.updateFinishButton();
   }
@@ -274,11 +287,17 @@ class WorldGovernmentQuest {
         e.target.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', this.currentCharacterIndex);
+        
+        // Поднимаем камеру для лучшего обзора карты
+        this.raiseCamera();
       });
 
       this.domCache.currentCharacter.addEventListener('dragend', (e) => {
         e.target.classList.remove('dragging');
         this.draggedElement = null;
+        
+        // Возвращаем камеру в нормальное положение
+        this.lowerCamera();
       });
 
       // Touch events для мобильных устройств
@@ -297,6 +316,9 @@ class WorldGovernmentQuest {
         
         // Добавляем визуальный эффект начала перетаскивания
         e.target.classList.add('touch-dragging');
+        
+        // Поднимаем камеру при касании
+        this.raiseCamera();
       }, { passive: false });
 
       this.domCache.currentCharacter.addEventListener('touchmove', (e) => {
@@ -340,6 +362,9 @@ class WorldGovernmentQuest {
           // Простое касание - убираем эффект
           e.target.classList.remove('touch-dragging');
         }
+        
+        // Возвращаем камеру в нормальное положение
+        this.lowerCamera();
       }, { passive: false });
     }
 
@@ -390,16 +415,16 @@ class WorldGovernmentQuest {
   }
 
   addCharacterToSector(sectorType) {
-    const character = this.characters[this.currentCharacterIndex];
+      const character = this.characters[this.currentCharacterIndex];
     if (!character || !this.canAddToSector(sectorType)) return;
 
     // Добавляем персонажа в сектор
     this.sectors[sectorType].members.push(character);
     
     // Переходим к следующему персонажу
-    this.currentCharacterIndex++;
-    if (this.currentCharacterIndex >= this.characters.length) {
-      this.currentCharacterIndex = 0;
+      this.currentCharacterIndex++;
+      if (this.currentCharacterIndex >= this.characters.length) {
+        this.currentCharacterIndex = 0;
     }
     
     // Обновляем отображение
@@ -447,7 +472,7 @@ class WorldGovernmentQuest {
     this.currentResultIndex = 0;
     
     if (this.results.length > 0) {
-      this.showResult();
+    this.showResult();
     }
   }
 
@@ -479,7 +504,7 @@ class WorldGovernmentQuest {
             sector: sectorType,
             canContinue: true
           });
-        } else {
+    } else {
           // Проблемная история для сектора
           const problemStory = this.generateProblemStory(sectorType, sector.members);
           results.push({
@@ -624,10 +649,10 @@ class WorldGovernmentQuest {
         ${result.type === 'problem' && result.canEliminate ? `
           <div class="elimination-option">
             <p><strong>Для решения проблемы требуется истребление ${result.eliminationRequirement} предателей.</strong></p>
-            <button class="btn btn-danger" onclick="this.startElimination('${result.sector}', ${result.eliminationRequirement})">
+            <button class="btn btn-danger" id="start-elimination-btn" data-sector="${result.sector}" data-requirement="${result.eliminationRequirement}">
               Начать истребление
             </button>
-          </div>
+        </div>
         ` : ''}
       </div>
     `;
@@ -644,6 +669,16 @@ class WorldGovernmentQuest {
         nextBtn.style.display = 'none';
         finishBtn.style.display = 'inline-flex';
       }
+    }
+
+    // Добавляем обработчик для кнопки истребления
+    const eliminationBtn = document.getElementById('start-elimination-btn');
+    if (eliminationBtn) {
+      eliminationBtn.addEventListener('click', () => {
+        const sector = eliminationBtn.dataset.sector;
+        const requirement = parseInt(eliminationBtn.dataset.requirement);
+        this.startElimination(sector, requirement);
+      });
     }
   }
 
@@ -724,7 +759,7 @@ class WorldGovernmentQuest {
       });
 
       eliminationZone.addEventListener('drop', (e) => {
-        e.preventDefault();
+          e.preventDefault();
         const memberId = e.dataTransfer.getData('text/plain');
         this.addAllyToEliminationZone(memberId);
       });
@@ -775,8 +810,8 @@ class WorldGovernmentQuest {
     // Показываем анимацию истребления
     this.showEliminationAnimation(() => {
       // Скрываем модальное окно
-      this.hideEliminationModal();
-      
+    this.hideEliminationModal();
+    
       // Показываем уведомление об успехе
       this.showToast('Предатель успешно истреблен!', 'success');
       
@@ -1014,6 +1049,25 @@ class WorldGovernmentQuest {
         correctSector: "research"
       }
     ];
+  }
+
+  // Функции для управления камерой
+  raiseCamera() {
+    const islandContainer = document.querySelector('.island-container');
+    if (islandContainer) {
+      islandContainer.style.transform = 'scale(1.2) translateY(-50px)';
+      islandContainer.style.transition = 'all 0.3s ease';
+      islandContainer.style.zIndex = '10';
+    }
+  }
+
+  lowerCamera() {
+    const islandContainer = document.querySelector('.island-container');
+    if (islandContainer) {
+      islandContainer.style.transform = 'scale(1) translateY(0)';
+      islandContainer.style.transition = 'all 0.3s ease';
+      islandContainer.style.zIndex = '1';
+    }
   }
 }
 
