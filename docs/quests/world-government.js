@@ -177,10 +177,26 @@ class WorldGovernmentQuest {
   updateFinishButton() {
     if (!this.domCache.finishButton) return;
     
-    const totalMembers = Object.values(this.sectors).reduce((sum, sector) => sum + sector.members.length, 0);
-    const isEnabled = totalMembers > 0;
+    // Проверяем, заполнены ли ВСЕ штабы
+    const allSectorsFilled = Object.values(this.sectors).every(sector => 
+      sector.members.length >= sector.max
+    );
     
-    this.domCache.finishButton.disabled = !isEnabled;
+    // Кнопка активна только когда все штабы заполнены
+    this.domCache.finishButton.disabled = !allSectorsFilled;
+    
+    // Обновляем текст кнопки для лучшего UX
+    if (this.domCache.finishButton) {
+      if (allSectorsFilled) {
+        this.domCache.finishButton.textContent = '🚀 Завершить создание';
+        this.domCache.finishButton.title = 'Все штабы заполнены! Можно завершать создание мирового правительства.';
+      } else {
+        const totalMembers = Object.values(this.sectors).reduce((sum, sector) => sum + sector.members.length, 0);
+        const totalMax = Object.values(this.sectors).reduce((sum, sector) => sum + sector.max, 0);
+        this.domCache.finishButton.textContent = `⏳ Заполните все штабы (${totalMembers}/${totalMax})`;
+        this.domCache.finishButton.title = `Необходимо заполнить все штабы. Текущий прогресс: ${totalMembers}/${totalMax}`;
+      }
+    }
   }
 
   updateSectorCounts() {
@@ -199,6 +215,9 @@ class WorldGovernmentQuest {
         this.updateSectorMembers(sectorType);
       }
     });
+    
+    // Обновляем состояние кнопки "Завершить создание"
+    this.updateFinishButton();
   }
 
   updateSectorMembers(sectorType) {
@@ -314,6 +333,9 @@ class WorldGovernmentQuest {
     // Обновляем отображение
     this.loadCurrentCharacter();
     this.updateSectorCounts();
+    
+    // Обновляем состояние кнопки "Завершить создание"
+    this.updateFinishButton();
     
     // Показываем уведомление
     this.showToast(`Персонаж ${character.name} добавлен в ${this.sectors[sectorType].name} штаб`, 'success');
