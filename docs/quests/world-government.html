@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="world-government.css" />
 </head>
 <body>
+  <!-- Аудио элемент для фоновой музыки -->
+  <audio id="horror-audio" loop>
+    <source src="../politics/horror.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Видео-фоны для сюжетов -->
+  <div id="video-background" class="video-background hidden">
+    <video id="background-video" autoplay muted loop>
+      <source src="" type="video/mp4">
+    </video>
+    <div class="video-overlay"></div>
+  </div>
+
   <div class="world-government-quest">
     <!-- Предупреждение -->
     <div id="warning-modal" class="modal active">
@@ -31,11 +44,14 @@
 
     <!-- Основной интерфейс -->
     <div id="main-interface" class="main-interface hidden">
-      <!-- Кнопка "На главную" -->
+      <!-- Кнопка "На главную" и управление звуком -->
       <div class="header-controls">
         <button id="back-to-main" class="btn btn-secondary back-btn">
           <span class="back-icon">←</span>
           На главную
+        </button>
+        <button id="toggle-sound" class="btn btn-secondary sound-btn">
+          <span class="sound-icon">🔊</span>
         </button>
       </div>
       
@@ -112,6 +128,61 @@
         <div class="modal-footer">
           <button id="confirm-finish" class="btn btn-primary">Подтвердить</button>
           <button id="cancel-finish" class="btn btn-secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно сюжета -->
+    <div id="story-modal" class="modal story-modal">
+      <div class="modal-content story-content">
+        <div class="modal-header">
+          <h3 id="story-title">Заголовок сюжета</h3>
+        </div>
+        <div class="modal-body">
+          <div id="story-text" class="story-text">
+            <!-- Текст сюжета будет загружен динамически -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="continue-story" class="btn btn-primary">Продолжить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно действий -->
+    <div id="action-modal" class="modal action-modal">
+      <div class="modal-content action-content">
+        <div class="modal-header">
+          <h3 id="action-title">Требуется действие</h3>
+        </div>
+        <div class="modal-body">
+          <div id="action-text" class="action-text">
+            <!-- Текст действия будет загружен динамически -->
+          </div>
+          <div id="action-options" class="action-options">
+            <!-- Опции действий будут загружены динамически -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="confirm-action" class="btn btn-primary">Подтвердить</button>
+          <button id="cancel-action" class="btn btn-secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно результатов действий -->
+    <div id="result-modal" class="modal result-modal">
+      <div class="modal-content result-content">
+        <div class="modal-header">
+          <h3 id="result-title">Результат действия</h3>
+        </div>
+        <div class="modal-body">
+          <div id="result-text" class="result-text">
+            <!-- Текст результата будет загружен динамически -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="next-result-action" class="btn btn-primary">Далее</button>
         </div>
       </div>
     </div>
@@ -206,98 +277,29 @@
       </div>
     </div>
 
-    <!-- Новые модальные окна для сюжетов -->
-    
-    <!-- Модальное окно сюжета с видео-фоном -->
-    <div id="story-modal" class="modal story-modal">
-      <div class="story-modal-content">
-        <!-- Видео-фон -->
-        <div id="story-video-bg" class="story-video-bg hidden">
-          <video id="story-video" autoplay muted loop>
-            <source src="" type="video/mp4">
-          </video>
+    <!-- Финальные результаты -->
+    <div id="final-results-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Финальные результаты</h3>
         </div>
-        
-        <!-- Контент сюжета -->
-        <div class="story-content">
-          <div class="story-header">
-            <h2 id="story-title"></h2>
-            <div class="story-controls">
-              <button id="toggle-sound" class="btn btn-sound" title="Включить/выключить звук">
-                <span class="sound-icon">🔊</span>
-              </button>
-            </div>
+        <div class="modal-body">
+          <div id="final-summary" class="final-summary">
+            <!-- Сводка будет загружена динамически -->
           </div>
-          
-          <div class="story-body">
-            <div id="story-text"></div>
-            
-            <!-- Дополнительные элементы сюжета -->
-            <div id="story-elements" class="story-elements"></div>
+          <div id="final-stats" class="final-stats">
+            <!-- Статистика будет загружена динамически -->
           </div>
-          
-          <div class="story-footer">
-            <div id="story-choices" class="story-choices"></div>
-            <button id="continue-story" class="btn btn-primary">Продолжить</button>
+          <div id="final-rewards" class="final-rewards">
+            <!-- Награды будут загружены динамически -->
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Модальное окно выбора действий -->
-    <div id="action-modal" class="modal action-modal">
-      <div class="action-modal-content">
-        <div class="action-header">
-          <h3>Выберите действие</h3>
-        </div>
-        <div class="action-body">
-          <div id="action-options" class="action-options"></div>
-        </div>
-        <div class="action-footer">
-          <button id="confirm-action" class="btn btn-primary">Подтвердить</button>
-          <button id="cancel-action" class="btn btn-secondary">Отмена</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Модальное окно результатов действий -->
-    <div id="result-modal" class="modal result-modal">
-      <div class="result-modal-content">
-        <div class="result-header">
-          <h3 id="result-title"></h3>
-        </div>
-        <div class="result-body">
-          <div id="result-content"></div>
-          <div id="result-effects" class="result-effects"></div>
-        </div>
-        <div class="result-footer">
-          <button id="next-result-action" class="btn btn-primary">Далее</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Модальное окно финальных результатов -->
-    <div id="final-results-modal" class="modal final-results-modal">
-      <div class="final-results-content">
-        <div class="final-header">
-          <h2>🎭 Финальные результаты</h2>
-        </div>
-        <div class="final-body">
-          <div id="final-summary"></div>
-          <div id="final-stats"></div>
-          <div id="final-rewards"></div>
-        </div>
-        <div class="final-footer">
-          <button id="return-to-main" class="btn btn-primary">Вернуться на главную</button>
+        <div class="modal-footer">
+          <button id="return-to-main" class="btn btn-primary">На главную</button>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Аудио элемент для фоновой музыки -->
-  <audio id="horror-audio" loop>
-    <source src="../../politics/horror.mp3" type="audio/mpeg">
-  </audio>
 
   <script src="world-government-stories.js"></script>
   <script src="world-government.js"></script>

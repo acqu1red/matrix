@@ -6,6 +6,8 @@ class WorldGovernmentQuest {
     this.storyIndex = 0;
     this.isAudioEnabled = true;
     this.currentVideo = null;
+    this.storyQueue = [];
+    this.assignments = {};
     
     this.initializeEventListeners();
     this.loadCharacters();
@@ -36,16 +38,6 @@ class WorldGovernmentQuest {
     // Отмена завершения
     document.getElementById('cancel-finish').addEventListener('click', () => {
       this.hideFinishModal();
-    });
-
-    // Кнопка продолжения в результатах
-    document.getElementById('next-result').addEventListener('click', () => {
-      this.showNextResult();
-    });
-
-    // Завершение результатов
-    document.getElementById('finish-results').addEventListener('click', () => {
-      this.finishResults();
     });
 
     // Кнопка продолжения в сюжете
@@ -105,6 +97,7 @@ class WorldGovernmentQuest {
   startBackgroundAudio() {
     const audio = document.getElementById('horror-audio');
     if (audio && this.isAudioEnabled) {
+      audio.volume = 0.3;
       audio.play().catch(e => console.log('Автовоспроизведение заблокировано'));
     }
   }
@@ -118,6 +111,7 @@ class WorldGovernmentQuest {
     if (this.isAudioEnabled) {
       audio.play();
       soundIcon.textContent = '🔊';
+      audio.volume = 0.3;
     } else {
       audio.pause();
       soundIcon.textContent = '🔇';
@@ -126,8 +120,6 @@ class WorldGovernmentQuest {
 
   // Загрузка персонажей
   loadCharacters() {
-    // Здесь должна быть логика загрузки персонажей
-    // Пока используем заглушку
     this.characters = this.getDefaultCharacters();
     this.currentCharacterIndex = 0;
     this.showCurrentCharacter();
@@ -211,7 +203,6 @@ class WorldGovernmentQuest {
       const character = this.characters[this.currentCharacterIndex];
       
       // Добавляем персонажа в сектор
-      if (!this.assignments) this.assignments = {};
       if (!this.assignments[sector]) this.assignments[sector] = [];
       
       this.assignments[sector].push(character);
@@ -269,16 +260,15 @@ class WorldGovernmentQuest {
     this.hideFinishModal();
     
     // Генерируем все сюжеты
-    const allStories = this.stories.generateAllStories(this.assignments);
+    this.storyQueue = this.stories.generateFullStorySequence(this.assignments);
     
     // Начинаем показ сюжетов
-    this.startStorySequence(allStories);
+    this.startStorySequence();
   }
 
   // Начало последовательности сюжетов
-  startStorySequence(stories) {
+  startStorySequence() {
     this.storyIndex = 0;
-    this.stories.resetStoryIndex();
     
     // Показываем первый сюжет
     this.showNextStory();
@@ -286,9 +276,8 @@ class WorldGovernmentQuest {
 
   // Показать следующий сюжет
   showNextStory() {
-    const story = this.stories.getNextStory();
-    
-    if (story) {
+    if (this.storyIndex < this.storyQueue.length) {
+      const story = this.storyQueue[this.storyIndex];
       this.currentStory = story;
       this.showStoryModal(story);
     } else {
@@ -308,12 +297,36 @@ class WorldGovernmentQuest {
     
     // Воспроизводим видео-фон если есть
     if (story.video) {
-      this.stories.playVideoBackground(story.video);
+      this.playVideoBackground(story.video);
+      storyModal.classList.add('with-video');
     } else {
-      this.stories.playVideoBackground(null);
+      this.stopVideoBackground();
+      storyModal.classList.remove('with-video');
     }
     
     storyModal.classList.add('active');
+  }
+
+  // Воспроизведение видео-фона
+  playVideoBackground(videoPath) {
+    const videoBackground = document.getElementById('video-background');
+    const video = document.getElementById('background-video');
+    
+    video.src = videoPath;
+    video.play().catch(e => console.log('Видео не может быть воспроизведено'));
+    
+    videoBackground.classList.remove('hidden');
+    videoBackground.classList.add('active');
+  }
+
+  // Остановка видео-фона
+  stopVideoBackground() {
+    const videoBackground = document.getElementById('video-background');
+    const video = document.getElementById('background-video');
+    
+    video.pause();
+    videoBackground.classList.add('hidden');
+    videoBackground.classList.remove('active');
   }
 
   // Продолжить сюжет
@@ -321,7 +334,116 @@ class WorldGovernmentQuest {
     const storyModal = document.getElementById('story-modal');
     storyModal.classList.remove('active');
     
-    // Показываем следующий сюжет
+    // Если сюжет требует действия, показываем модальное окно действия
+    if (this.currentStory.requiresAction) {
+      this.showActionModal(this.currentStory);
+    } else {
+      // Переходим к следующему сюжету
+      this.storyIndex++;
+      this.showNextStory();
+    }
+  }
+
+  // Показать модальное окно действия
+  showActionModal(story) {
+    const actionModal = document.getElementById('action-modal');
+    const actionTitle = document.getElementById('action-title');
+    const actionText = document.getElementById('action-text');
+    const actionOptions = document.getElementById('action-options');
+    
+    actionTitle.textContent = story.actionTitle || 'Требуется действие';
+    actionText.innerHTML = story.actionText || story.content;
+    
+    // Генерируем опции действий
+    if (story.actionOptions) {
+      actionOptions.innerHTML = story.actionOptions.map(option => `
+        <div class="action-option">
+          <input type="radio" name="action" value="${option.value}" id="option-${option.value}">
+          <label for="option-${option.value}">${option.label}</label>
+        </div>
+      `).join('');
+    } else {
+      actionOptions.innerHTML = `
+        <div class="action-option">
+          <input type="radio" name="action" value="confirm" id="option-confirm" checked>
+          <label for="option-confirm">Подтвердить</label>
+        </div>
+      `;
+    }
+    
+    actionModal.classList.add('active');
+  }
+
+  // Скрыть модальное окно действия
+  hideActionModal() {
+    document.getElementById('action-modal').classList.remove('active');
+  }
+
+  // Подтвердить действие
+  confirmAction() {
+    const selectedAction = document.querySelector('input[name="action"]:checked');
+    
+    if (selectedAction) {
+      const actionValue = selectedAction.value;
+      this.processAction(actionValue);
+    }
+    
+    this.hideActionModal();
+  }
+
+  // Обработка действия
+  processAction(actionValue) {
+    // Генерируем результат действия
+    const result = this.generateActionResult(actionValue);
+    
+    // Показываем результат
+    this.showActionResult(result);
+  }
+
+  // Генерация результата действия
+  generateActionResult(actionValue) {
+    const story = this.currentStory;
+    
+    if (actionValue === 'eliminate' && story.canEliminate) {
+      return {
+        title: 'Предатель устранен',
+        content: 'Ваши агенты успешно устранили угрозу. Организация спасена от внутреннего раскола.',
+        type: 'success'
+      };
+    } else if (actionValue === 'negotiate') {
+      return {
+        title: 'Переговоры проведены',
+        content: 'Вам удалось договориться с оппозицией. Кризис разрешен мирным путем.',
+        type: 'success'
+      };
+    } else {
+      return {
+        title: 'Действие выполнено',
+        content: 'Ваше решение принято и выполнено. Последствия будут видны в ближайшее время.',
+        type: 'neutral'
+      };
+    }
+  }
+
+  // Показать результат действия
+  showActionResult(result) {
+    const resultModal = document.getElementById('result-modal');
+    const resultTitle = document.getElementById('result-title');
+    const resultText = document.getElementById('result-text');
+    
+    resultTitle.textContent = result.title;
+    resultText.innerHTML = result.content;
+    
+    resultModal.classList.add('active');
+  }
+
+  // Показать следующий результат действия
+  showNextResultAction() {
+    const resultModal = document.getElementById('result-modal');
+    resultModal.classList.remove('active');
+    
+    // Переходим к следующему сюжету
+    this.storyIndex++;
     this.showNextStory();
   }
 
@@ -334,7 +456,7 @@ class WorldGovernmentQuest {
     
     // Анализируем результаты
     const totalPersonnel = Object.values(this.assignments).reduce((sum, arr) => sum + (arr?.length || 0), 0);
-    const hasCrises = this.stories.storyQueue.some(story => story.type === "crisis" || story.type === "error");
+    const hasCrises = this.storyQueue.some(story => story.type === "error");
     
     let resultType, resultText, rewards;
     
@@ -408,24 +530,12 @@ class WorldGovernmentQuest {
 
   // Возврат на главную
   returnToMain() {
+    // Останавливаем аудио и видео
+    const audio = document.getElementById('horror-audio');
+    if (audio) audio.pause();
+    this.stopVideoBackground();
+    
     window.location.href = '../quests.html';
-  }
-
-  // Скрыть модальное окно действия
-  hideActionModal() {
-    document.getElementById('action-modal').classList.remove('active');
-  }
-
-  // Подтвердить действие
-  confirmAction() {
-    // Логика подтверждения действия
-    this.hideActionModal();
-  }
-
-  // Показать следующий результат действия
-  showNextResultAction() {
-    // Логика показа следующего результата
-    document.getElementById('result-modal').classList.remove('active');
   }
 }
 
