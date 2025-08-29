@@ -428,6 +428,50 @@ body::before {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
+/* Touch dragging styles для мобильных устройств */
+.character-card.touch-dragging {
+  opacity: 0.9;
+  transform: scale(1.05);
+  z-index: 100;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  cursor: grabbing;
+}
+
+.character-card.touch-dragging::after {
+  content: '👆 Перетащите';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 101;
+}
+
+/* Улучшенные стили для drag-over на мобильных устройствах */
+.sector.drag-over {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+/* Анимация для touch-событий */
+@keyframes touchPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.character-card:active {
+  animation: touchPulse 0.3s ease;
+}
+
 /* ====== TOUCH DEVICE OPTIMIZATIONS ====== */
 @media (hover: none) and (pointer: coarse) {
   .character-card {

@@ -266,8 +266,9 @@ class WorldGovernmentQuest {
   }
 
   setupDragAndDrop() {
-    // Перетаскивание персонажей
+    // Перетаскивание персонажей (поддержка как десктопа, так и мобильных устройств)
     if (this.domCache.currentCharacter) {
+      // Desktop drag-and-drop
       this.domCache.currentCharacter.addEventListener('dragstart', (e) => {
         this.draggedElement = e.target;
         e.target.classList.add('dragging');
@@ -279,10 +280,72 @@ class WorldGovernmentQuest {
         e.target.classList.remove('dragging');
         this.draggedElement = null;
       });
+
+      // Touch events для мобильных устройств
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isDragging = false;
+      let draggedElement = null;
+
+      this.domCache.currentCharacter.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        isDragging = false;
+        draggedElement = e.target;
+        
+        // Добавляем визуальный эффект начала перетаскивания
+        e.target.classList.add('touch-dragging');
+      }, { passive: false });
+
+      this.domCache.currentCharacter.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        const deltaY = Math.abs(touch.clientY - touchStartY);
+        
+        // Начинаем перетаскивание после небольшого движения
+        if (!isDragging && (deltaX > 10 || deltaY > 10)) {
+          isDragging = true;
+          e.target.classList.add('dragging');
+          e.target.classList.remove('touch-dragging');
+        }
+        
+        if (isDragging) {
+          // Показываем визуальную обратную связь
+          e.target.style.transform = `translate(${touch.clientX - touchStartX}px, ${touch.clientY - touchStartY}px)`;
+        }
+      }, { passive: false });
+
+      this.domCache.currentCharacter.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        
+        if (isDragging) {
+          // Находим сектор под пальцем
+          const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+          const sectorElement = elementBelow?.closest('.sector');
+          
+          if (sectorElement && this.canAddToSector(sectorElement.dataset.sector)) {
+            this.addCharacterToSector(sectorElement.dataset.sector);
+          }
+          
+          // Сбрасываем состояние
+          e.target.classList.remove('dragging', 'touch-dragging');
+          e.target.style.transform = '';
+          isDragging = false;
+          draggedElement = null;
+        } else {
+          // Простое касание - убираем эффект
+          e.target.classList.remove('touch-dragging');
+        }
+      }, { passive: false });
     }
 
     // Обработка перетаскивания над секторами
     this.domCache.sectors.forEach(sector => {
+      // Desktop events
       sector.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
@@ -305,9 +368,18 @@ class WorldGovernmentQuest {
         }
       });
 
-      // Клик по сектору для просмотра членов
-      sector.addEventListener('click', () => {
-        this.showSectorMembers(sector.dataset.sector);
+      // Touch events для секторов
+      sector.addEventListener('touchstart', (e) => {
+        // Предотвращаем конфликт с drag-and-drop
+        e.stopPropagation();
+      });
+
+      // Клик по сектору для просмотра членов (только для десктопа)
+      sector.addEventListener('click', (e) => {
+        // Проверяем, что это не touch событие
+        if (e.pointerType !== 'touch') {
+          this.showSectorMembers(sector.dataset.sector);
+        }
       });
     });
   }
