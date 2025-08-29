@@ -32,12 +32,6 @@ class WorldGovernmentQuest {
     this.bindEvents();
     this.loadCurrentCharacter();
     this.updateSectorCounts();
-    
-    // Инициализируем систему историй
-    this.storySystem.init();
-    
-    // Начинаем воспроизведение фоновой музыки
-    this.storySystem.playHorrorMusic();
   }
 
   cacheDOMElements() {
@@ -56,9 +50,10 @@ class WorldGovernmentQuest {
       eliminationZone: document.getElementById('elimination-zone'),
       selectedAllies: document.getElementById('selected-allies'),
       executeButton: document.getElementById('execute-elimination'),
-      soundToggle: document.getElementById('sound-toggle'),
-      videoBackground: document.getElementById('video-background'),
-      closeVideo: document.getElementById('close-video')
+      storyModal: document.getElementById('story-modal'),
+      storyTitle: document.getElementById('story-title'),
+      storyContent: document.getElementById('story-content'),
+      toggleAudio: document.getElementById('toggle-audio')
     };
   }
 
@@ -66,8 +61,6 @@ class WorldGovernmentQuest {
     // Оптимизация: используем делегирование событий и кэшированные элементы
     const eventHandlers = {
       'start-quest': () => this.hideWarning(),
-      'start-quest-final': () => this.startQuestFinal(),
-      'close-quest-info': () => this.hideQuestInfo(),
       'back-to-main': () => this.goToMain(),
       'skip-character': () => this.skipCharacter(),
       'finish-creation': () => this.showFinishModal(),
@@ -82,8 +75,9 @@ class WorldGovernmentQuest {
       'close-character-details': () => this.hideCharacterDetailsModal(),
       'cancel-elimination': () => this.hideEliminationModal(),
       'execute-elimination': () => this.executeElimination(),
-      'sound-toggle': () => this.toggleSound(),
-      'close-video': () => this.storySystem.hideVideoBackground()
+      'toggle-audio': () => this.storySystem.toggleAudio(),
+      'story-next': () => this.nextStory(),
+      'close-story': () => this.closeStory()
     };
 
     // Привязываем события с сохранением ссылок для возможности удаления
@@ -100,42 +94,14 @@ class WorldGovernmentQuest {
     this.setupDragAndDrop();
   }
 
-  // Управление звуком
-  toggleSound() {
-    const isEnabled = this.storySystem.toggleSound();
-    const soundIcon = this.domCache.soundToggle?.querySelector('.sound-icon');
-    
-    if (soundIcon) {
-      soundIcon.textContent = isEnabled ? '🔊' : '🔇';
-    }
-    
-    // Обновляем текст кнопки
-    if (this.domCache.soundToggle) {
-      this.domCache.soundToggle.title = isEnabled ? 'Отключить звук' : 'Включить звук';
-    }
-  }
-
   hideWarning() {
     document.getElementById('warning-modal').classList.remove('active');
-    document.getElementById('quest-info-modal').classList.add('active');
+    document.getElementById('main-interface').classList.remove('hidden');
   }
 
   goToMain() {
     // Возвращаемся на главную страницу квестов
     window.location.href = '../quests.html';
-  }
-
-  showQuestInfo() {
-    document.getElementById('quest-info-modal').classList.add('active');
-  }
-
-  hideQuestInfo() {
-    document.getElementById('quest-info-modal').classList.remove('active');
-  }
-
-  startQuestFinal() {
-    this.hideQuestInfo();
-    document.getElementById('main-interface').classList.remove('hidden');
   }
 
   showFinishModal() {
@@ -146,6 +112,346 @@ class WorldGovernmentQuest {
     document.getElementById('finish-modal').classList.remove('active');
   }
 
+  startResults() {
+    this.generateResults();
+    this.showResultsModal();
+  }
+
+  generateResults() {
+    this.results = [];
+    this.currentResultIndex = 0;
+    
+    // Генерируем сюжеты для каждого сектора
+    Object.entries(this.sectors).forEach(([sectorType, sector]) => {
+      if (sector.members.length > 0) {
+        // Успешные сюжеты для правильных назначений
+        const correctMembers = sector.members.filter(m => m.isCorrect);
+        if (correctMembers.length > 0) {
+          const successStory = this.storySystem.getRandomStory(sectorType);
+          if (successStory) {
+            successStory.sector = sectorType;
+            this.results.push(successStory);
+          }
+        }
+
+        // Проблемные сюжеты для неправильных назначений
+        const incorrectMembers = sector.members.filter(m => !m.isCorrect);
+        incorrectMembers.forEach(member => {
+          const errorStory = this.storySystem.getRandomStory(sectorType);
+          if (errorStory) {
+            errorStory.sector = sectorType;
+            errorStory.member = member;
+            this.results.push(errorStory);
+          }
+        });
+      }
+    });
+
+    // Добавляем комбинированные сюжеты
+    const combinationStories = this.storySystem.getStoriesByType('success');
+    combinationStories.forEach(story => {
+      if (story.sectors && story.sectors.length > 1) {
+        const hasMembers = story.sectors.some(sector => 
+          this.sectors[sector] && this.sectors[sector].members.length > 0
+        );
+        if (hasMembers) {
+          this.results.push(story);
+        }
+      }
+    });
+
+    // Перемешиваем результаты
+    this.results = this.shuffleArray(this.results);
+    
+    // Вычисляем вероятность неудачи
+    this.calculateFailureProbability();
+  }
+
+  calculateFailureProbability() {
+    let totalErrors = 0;
+    let totalMembers = 0;
+    
+    Object.values(this.sectors).forEach(sector => {
+      totalMembers += sector.members.length;
+      const incorrectMembers = sector.members.filter(m => !m.isCorrect);
+      totalErrors += incorrectMembers.length;
+    });
+    
+    if (totalMembers > 0) {
+      this.failureProbability = Math.round((totalErrors / totalMembers) * 100);
+    } else {
+      this.failureProbability = 0;
+    }
+  }
+
+  showResultsModal() {
+    if (this.results.length === 0) {
+      this.finishQuest();
+      return;
+    }
+    
+    this.showCurrentResult();
+    document.getElementById('results-modal').classList.add('active');
+  }
+
+  showCurrentResult() {
+    const currentResult = this.results[this.currentResultIndex];
+    if (!currentResult) return;
+    
+    const title = document.getElementById('results-title');
+    const content = document.getElementById('results-content');
+    const failureProb = document.getElementById('failure-probability');
+    
+    // Показываем вероятность неудачи
+    if (this.failureProbability > 0) {
+      failureProb.textContent = `Вероятность неудачи: ${this.failureProbability}%`;
+      failureProb.classList.remove('hidden');
+    } else {
+      failureProb.classList.add('hidden');
+    }
+    
+    // Формируем заголовок
+    let titleText = currentResult.title;
+    if (currentResult.sector) {
+      const sectorName = this.sectors[currentResult.sector].name;
+      titleText += ` - ${sectorName} сектор`;
+    }
+    title.textContent = titleText;
+    
+    // Формируем содержимое
+    let contentHTML = `<div class="story-content">`;
+    contentHTML += `<h4>${currentResult.title}</h4>`;
+    contentHTML += `<p>${currentResult.content}</p>`;
+    
+    if (currentResult.member) {
+      contentHTML += `<div class="member-info">`;
+      contentHTML += `<strong>Проблемный агент:</strong> ${currentResult.member.name}`;
+      contentHTML += `<div class="member-traits">`;
+      currentResult.member.traits.forEach(trait => {
+        contentHTML += `<span class="trait incorrect">${trait}</span>`;
+      });
+      contentHTML += `</div>`;
+      contentHTML += `</div>`;
+    }
+    
+    if (currentResult.canEliminate) {
+      contentHTML += `<div class="elimination-info">`;
+      contentHTML += `<p><strong>Возможность устранения:</strong> Требуется ${currentResult.eliminationRequirement} агента для устранения угрозы.</p>`;
+      contentHTML += `<button class="btn btn-danger" onclick="quest.eliminateThreat('${currentResult.sector}')">Устранить угрозу</button>`;
+      contentHTML += `</div>`;
+    }
+    
+    contentHTML += `</div>`;
+    content.innerHTML = contentHTML;
+    
+    // Показываем/скрываем кнопки
+    const nextBtn = document.getElementById('next-result');
+    const finishBtn = document.getElementById('finish-results');
+    
+    if (this.currentResultIndex < this.results.length - 1) {
+      nextBtn.classList.remove('hidden');
+      finishBtn.classList.add('hidden');
+    } else {
+      nextBtn.classList.add('hidden');
+      finishBtn.classList.remove('hidden');
+    }
+  }
+
+  nextResult() {
+    this.currentResultIndex++;
+    if (this.currentResultIndex < this.results.length) {
+      this.showCurrentResult();
+    } else {
+      this.finishResults();
+    }
+  }
+
+  finishResults() {
+    this.hideResultsModal();
+    this.showFinalSummary();
+  }
+
+  showFinalSummary() {
+    const summary = this.generateFinalSummary();
+    
+    const content = `
+      <div class="final-summary">
+        <h3>🎯 Итоги создания мирового правительства</h3>
+        <div class="summary-content">
+          ${summary.content}
+        </div>
+        <div class="summary-stats">
+          <div class="stat">
+            <span class="stat-label">Общая численность:</span>
+            <span class="stat-value">${summary.totalMembers}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Правильные назначения:</span>
+            <span class="stat-value">${summary.correctMembers}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Ошибки:</span>
+            <span class="stat-value">${summary.incorrectMembers}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Вероятность неудачи:</span>
+            <span class="stat-value">${this.failureProbability}%</span>
+          </div>
+        </div>
+        <div class="summary-rating">
+          <span class="rating-label">Общий рейтинг:</span>
+          <span class="rating-value ${summary.ratingClass}">${summary.rating}</span>
+        </div>
+      </div>
+    `;
+    
+    this.showStoryModal(summary.title, content);
+  }
+
+  generateFinalSummary() {
+    let totalMembers = 0;
+    let correctMembers = 0;
+    let incorrectMembers = 0;
+    
+    Object.values(this.sectors).forEach(sector => {
+      totalMembers += sector.members.length;
+      correctMembers += sector.members.filter(m => m.isCorrect).length;
+      incorrectMembers += sector.members.filter(m => !m.isCorrect).length;
+    });
+    
+    let rating, ratingClass, content;
+    
+    if (incorrectMembers === 0 && totalMembers > 0) {
+      rating = "S+ - Идеально";
+      ratingClass = "rating-perfect";
+      content = `
+        <p>🎉 Поздравляем! Вы создали идеальное мировое правительство. Все агенты назначены на правильные позиции, 
+        система работает безупречно. Мир полностью под вашим контролем.</p>
+        <p>🌟 Ваши достижения:</p>
+        <ul>
+          <li>100% эффективность всех секторов</li>
+          <li>Полный контроль над мировой политикой, экономикой и вооруженными силами</li>
+          <li>Технологическое превосходство</li>
+          <li>Информационная монополия</li>
+        </ul>
+      `;
+    } else if (incorrectMembers <= 2) {
+      rating = "A - Отлично";
+      ratingClass = "rating-excellent";
+      content = `
+        <p>🏆 Отличный результат! Ваше мировое правительство работает очень эффективно. 
+        Несколько мелких ошибок не влияют на общую эффективность системы.</p>
+        <p>✅ Ваши достижения:</p>
+        <ul>
+          <li>Высокая эффективность всех секторов</li>
+          <li>Стабильный контроль над миром</li>
+          <li>Минимальные риски</li>
+        </ul>
+      `;
+    } else if (incorrectMembers <= 5) {
+      rating = "B - Хорошо";
+      ratingClass = "rating-good";
+      content = `
+        <p>👍 Хороший результат! Ваше мировое правительство функционирует, но есть области для улучшения. 
+        Система стабильна, но требует внимания.</p>
+        <p>⚠️ Рекомендации:</p>
+        <ul>
+          <li>Улучшить подбор кадров</li>
+          <li>Усилить контроль над проблемными секторами</li>
+          <li>Провести реорганизацию</li>
+        </ul>
+      `;
+    } else {
+      rating = "C - Удовлетворительно";
+      ratingClass = "rating-satisfactory";
+      content = `
+        <p>⚠️ Удовлетворительный результат. Ваше мировое правительство работает нестабильно. 
+        Требуются серьезные изменения для улучшения ситуации.</p>
+        <p>🔧 Необходимые действия:</p>
+        <ul>
+          <li>Полная реорганизация структуры</li>
+          <li>Замена неэффективных агентов</li>
+          <li>Усиление системы контроля</li>
+        </ul>
+      `;
+    }
+    
+    return {
+      title: "🏛️ Итоги создания мирового правительства",
+      content,
+      totalMembers,
+      correctMembers,
+      incorrectMembers,
+      rating,
+      ratingClass
+    };
+  }
+
+  showStoryModal(title, content) {
+    this.storySystem.playAudio();
+    
+    // Проверяем, есть ли видео в контенте
+    const hasVideo = content.includes('video:');
+    if (hasVideo) {
+      // Извлекаем название видео из контента
+      const videoMatch = content.match(/video:(\w+)/);
+      if (videoMatch) {
+        const videoId = this.storySystem.getVideoForStory({ video: videoMatch[1] });
+        if (videoId) {
+          this.storySystem.showVideoBackground(videoId);
+        }
+      }
+    }
+    
+    document.getElementById('story-title').textContent = title;
+    document.getElementById('story-content').innerHTML = content;
+    document.getElementById('story-modal').classList.add('active');
+  }
+
+  closeStory() {
+    document.getElementById('story-modal').classList.remove('active');
+    this.storySystem.hideVideoBackground();
+    this.storySystem.stopAudio();
+  }
+
+  nextStory() {
+    // Здесь можно добавить логику для следующего сюжета
+    this.closeStory();
+  }
+
+  hideResultsModal() {
+    document.getElementById('results-modal').classList.remove('active');
+  }
+
+  finishQuest() {
+    // Возвращаемся на главную страницу квестов
+    window.location.href = '../quests.html';
+  }
+
+  // Методы для работы с персонажами
+  loadCurrentCharacter() {
+    if (this.currentCharacterIndex >= this.characters.length) {
+      this.currentCharacterIndex = 0;
+    }
+    
+    const character = this.characters[this.currentCharacterIndex];
+    if (!character) return;
+    
+    const characterCard = this.domCache.currentCharacter;
+    characterCard.innerHTML = `
+      <div class="character-name">${character.name}</div>
+      <div class="character-traits">
+        ${character.traits.map(trait => `<span class="trait">${trait}</span>`).join('')}
+      </div>
+      <div class="character-description">${character.description}</div>
+    `;
+    
+    characterCard.setAttribute('data-character-id', character.id);
+    characterCard.draggable = true;
+    
+    this.updateFinishButton();
+  }
+
   skipCharacter() {
     this.currentCharacterIndex++;
     if (this.currentCharacterIndex >= this.characters.length) {
@@ -154,62 +460,11 @@ class WorldGovernmentQuest {
     this.loadCurrentCharacter();
   }
 
-  loadCurrentCharacter() {
-    const character = this.characters[this.currentCharacterIndex];
-    if (!character || !this.domCache.currentCharacter) return;
-
-    // Проверяем, есть ли еще люди для назначения
+  updateFinishButton() {
     const totalMembers = Object.values(this.sectors).reduce((sum, sector) => sum + sector.members.length, 0);
     const totalMax = Object.values(this.sectors).reduce((sum, sector) => sum + sector.max, 0);
     
-    if (totalMembers >= totalMax) {
-      // Все штабы заполнены
-      this.domCache.currentCharacter.innerHTML = `
-        <div class="character-name">🎯 Все штабы заполнены!</div>
-        <div class="character-description">Больше нет людей для назначения. Можно завершать создание мирового правительства.</div>
-      `;
-      this.domCache.currentCharacter.draggable = false;
-      this.domCache.currentCharacter.classList.add('no-more-characters');
-    } else {
-      // Показываем текущего персонажа
-      this.domCache.currentCharacter.innerHTML = `
-        <div class="character-name">${character.name}</div>
-        <div class="character-traits">
-          ${character.traits.map(trait => `<span class="trait ${trait.correct ? 'correct' : 'incorrect'}">${trait.name}</span>`).join('')}
-        </div>
-        <div class="character-description">${character.description}</div>
-      `;
-      this.domCache.currentCharacter.dataset.characterId = character.id;
-      this.domCache.currentCharacter.draggable = true;
-      this.domCache.currentCharacter.classList.remove('no-more-characters');
-    }
-    
-    this.updateFinishButton();
-  }
-
-  updateFinishButton() {
-    if (!this.domCache.finishButton) return;
-    
-    // Проверяем, заполнены ли ВСЕ штабы
-    const allSectorsFilled = Object.values(this.sectors).every(sector => 
-      sector.members.length >= sector.max
-    );
-    
-    // Кнопка активна только когда все штабы заполнены
-    this.domCache.finishButton.disabled = !allSectorsFilled;
-    
-    // Обновляем текст кнопки для лучшего UX
-    if (this.domCache.finishButton) {
-      if (allSectorsFilled) {
-        this.domCache.finishButton.textContent = '🚀 Завершить создание';
-        this.domCache.finishButton.title = 'Все штабы заполнены! Можно завершать создание мирового правительства.';
-      } else {
-        const totalMembers = Object.values(this.sectors).reduce((sum, sector) => sum + sector.members.length, 0);
-        const totalMax = Object.values(this.sectors).reduce((sum, sector) => sum + sector.max, 0);
-        this.domCache.finishButton.textContent = `⏳ Заполните все штабы (${totalMembers}/${totalMax})`;
-        this.domCache.finishButton.title = `Необходимо заполнить все штабы. Текущий прогресс: ${totalMembers}/${totalMax}`;
-      }
-    }
+    this.domCache.finishButton.disabled = totalMembers < totalMax;
   }
 
   updateSectorCounts() {
@@ -221,857 +476,516 @@ class WorldGovernmentQuest {
           countElement.textContent = `${sector.members.length}/${sector.max}`;
         }
         
-        // Обновляем классы сектора
-        sectorElement.classList.toggle('filled', sector.members.length >= sector.max);
-        
         // Обновляем список членов
-        this.updateSectorMembers(sectorType);
+        const membersElement = sectorElement.querySelector('.sector-members');
+        if (membersElement) {
+          membersElement.innerHTML = sector.members.map(member => 
+            `<div class="member-tag" data-member-id="${member.id}">${member.name}</div>`
+          ).join('');
+        }
+        
+        // Обновляем стили
+        if (sector.members.length >= sector.max) {
+          sectorElement.classList.add('filled');
+        } else {
+          sectorElement.classList.remove('filled');
+        }
       }
     });
-    
-    // Обновляем состояние кнопки "Завершить создание"
-    this.updateFinishButton();
   }
 
-  updateSectorMembers(sectorType) {
-    const sectorElement = document.querySelector(`[data-sector="${sectorType}"]`);
-    if (!sectorElement) return;
-
-    const membersContainer = sectorElement.querySelector('.sector-members');
-    if (!membersContainer) return;
-
-    const sector = this.sectors[sectorType];
-    membersContainer.innerHTML = '';
-
-    sector.members.forEach((member, index) => {
-      const memberTag = document.createElement('div');
-      memberTag.className = 'member-tag';
-      memberTag.textContent = member.name.charAt(0);
-      memberTag.title = member.name;
-      memberTag.dataset.memberIndex = index;
+  // Методы для drag & drop
+  setupDragAndDrop() {
+    const characterCard = this.domCache.currentCharacter;
+    if (!characterCard) return;
+    
+    this.dragDropHandlers = {
+      characterCard: {
+        dragStartHandler: (e) => this.handleDragStart(e),
+        dragEndHandler: (e) => this.handleDragEnd(e),
+        touchStartHandler: (e) => this.handleTouchStart(e),
+        touchMoveHandler: (e) => this.handleTouchMove(e),
+        touchEndHandler: (e) => this.handleTouchEnd(e),
+        clickHandler: (e) => this.handleCharacterClick(e)
+      }
+    };
+    
+    // Добавляем обработчики для drag & drop
+    characterCard.addEventListener('dragstart', this.dragDropHandlers.characterCard.dragStartHandler);
+    characterCard.addEventListener('dragend', this.dragDropHandlers.characterCard.dragEndHandler);
+    
+    // Добавляем обработчики для touch устройств
+    characterCard.addEventListener('touchstart', this.dragDropHandlers.characterCard.touchStartHandler);
+    characterCard.addEventListener('touchmove', this.dragDropHandlers.characterCard.touchMoveHandler);
+    characterCard.addEventListener('touchend', this.dragDropHandlers.characterCard.touchEndHandler);
+    
+    // Добавляем обработчик клика для показа деталей
+    characterCard.addEventListener('click', this.dragDropHandlers.characterCard.clickHandler);
+    
+    // Добавляем обработчики для секторов
+    this.domCache.sectors.forEach(sector => {
+      sector.addEventListener('dragover', (e) => this.handleDragOver(e));
+      sector.addEventListener('drop', (e) => this.handleDrop(e));
+      sector.addEventListener('dragenter', (e) => this.handleDragEnter(e));
+      sector.addEventListener('dragleave', (e) => this.handleDragLeave(e));
       
-      // Добавляем обработчик для показа деталей
-      memberTag.addEventListener('click', () => this.showCharacterDetails(member));
-      
-      membersContainer.appendChild(memberTag);
+      // Добавляем обработчик клика для показа списка членов
+      sector.addEventListener('click', (e) => this.handleSectorClick(e));
     });
   }
 
-  showCharacterDetails(character) {
-    const modal = document.getElementById('character-details-modal');
-    const nameEl = document.getElementById('character-details-name');
-    const traitsEl = document.getElementById('character-details-traits');
-    const descriptionEl = document.getElementById('character-details-description');
+  handleDragStart(e) {
+    this.draggedElement = e.target;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.outerHTML);
+  }
 
-    if (modal && nameEl && traitsEl && descriptionEl) {
-      nameEl.textContent = character.name;
-      traitsEl.innerHTML = character.traits.map(trait => 
-        `<span class="character-details-trait ${trait.correct ? 'correct' : 'incorrect'}">${trait.name}</span>`
-      ).join('');
-      descriptionEl.textContent = character.description;
-      
-      modal.classList.add('active');
+  handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    this.draggedElement = null;
+  }
+
+  handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  handleDrop(e) {
+    e.preventDefault();
+    
+    if (!this.draggedElement) return;
+    
+    const sector = e.currentTarget;
+    const sectorType = sector.getAttribute('data-sector');
+    const characterId = this.draggedElement.getAttribute('data-character-id');
+    
+    if (sectorType && characterId) {
+      this.assignCharacterToSector(characterId, sectorType);
     }
+  }
+
+  handleDragEnter(e) {
+    e.currentTarget.classList.add('drag-over');
+  }
+
+  handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+
+  handleTouchStart(e) {
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+    this.touchStartTime = Date.now();
+  }
+
+  handleTouchMove(e) {
+    if (!this.touchStartX) return;
+    
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+    const deltaX = touchX - this.touchStartX;
+    const deltaY = touchY - this.touchStartY;
+    
+    // Если движение достаточно большое, считаем это drag операцией
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      e.preventDefault();
+      this.draggedElement = e.currentTarget;
+      e.currentTarget.classList.add('dragging');
+    }
+  }
+
+  handleTouchEnd(e) {
+    if (!this.draggedElement) return;
+    
+    const touchEndTime = Date.now();
+    const touchDuration = touchEndTime - this.touchStartTime;
+    
+    // Если касание было коротким, это клик
+    if (touchDuration < 200) {
+      this.handleCharacterClick(e);
+    }
+    
+    this.draggedElement.classList.remove('dragging');
+    this.draggedElement = null;
+    this.touchStartX = null;
+    this.touchStartY = null;
+    this.touchStartTime = null;
+  }
+
+  handleCharacterClick(e) {
+    const characterId = e.currentTarget.getAttribute('data-character-id');
+    if (characterId) {
+      this.showCharacterDetails(characterId);
+    }
+  }
+
+  handleSectorClick(e) {
+    const sectorType = e.currentTarget.getAttribute('data-sector');
+    if (sectorType) {
+      this.showSectorMembers(sectorType);
+    }
+  }
+
+  assignCharacterToSector(characterId, sectorType) {
+    const character = this.characters.find(c => c.id === characterId);
+    const sector = this.sectors[sectorType];
+    
+    if (!character || !sector) return;
+    
+    // Проверяем, не превышен ли лимит сектора
+    if (sector.members.length >= sector.max) {
+      alert(`Сектор ${sector.name} уже заполнен!`);
+      return;
+    }
+    
+    // Проверяем, не назначен ли уже этот персонаж
+    const isAlreadyAssigned = Object.values(this.sectors).some(s => 
+      s.members.some(m => m.id === characterId)
+    );
+    
+    if (isAlreadyAssigned) {
+      alert('Этот персонаж уже назначен в другой сектор!');
+      return;
+    }
+    
+    // Определяем, правильно ли назначен персонаж
+    const isCorrect = this.isCharacterCorrectForSector(character, sectorType);
+    
+    // Добавляем персонажа в сектор
+    sector.members.push({
+      ...character,
+      isCorrect,
+      assignedSector: sectorType
+    });
+    
+    // Обновляем отображение
+    this.updateSectorCounts();
+    this.updateFinishButton();
+    
+    // Загружаем следующего персонажа
+    this.skipCharacter();
+    
+    // Показываем уведомление
+    this.showAssignmentNotification(character, sector, isCorrect);
+  }
+
+  isCharacterCorrectForSector(character, sectorType) {
+    // Логика определения правильности назначения
+    const sectorRequirements = {
+      political: ['Лидерство', 'Дипломатия', 'Харизма'],
+      military: ['Стратегия', 'Тактика', 'Дисциплина'],
+      economic: ['Финансы', 'Аналитика', 'Планирование'],
+      research: ['Интеллект', 'Креативность', 'Логика'],
+      propaganda: ['Коммуникация', 'Психология', 'Творчество']
+    };
+    
+    const requirements = sectorRequirements[sectorType] || [];
+    const characterTraits = character.traits.map(t => t.toLowerCase());
+    
+    return requirements.some(req => 
+      characterTraits.some(trait => 
+        trait.includes(req.toLowerCase()) || req.toLowerCase().includes(trait)
+      )
+    );
+  }
+
+  showAssignmentNotification(character, sector, isCorrect) {
+    const message = isCorrect 
+      ? `✅ ${character.name} успешно назначен в ${sector.name} сектор!`
+      : `⚠️ ${character.name} назначен в ${sector.name} сектор, но это может быть ошибкой.`;
+    
+    this.showToast(message, isCorrect ? 'success' : 'warning');
+  }
+
+  showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+
+  // Методы для модальных окон
+  showCharacterDetails(characterId) {
+    const character = this.characters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    document.getElementById('character-details-name').textContent = character.name;
+    document.getElementById('character-details-traits').innerHTML = 
+      character.traits.map(trait => `<span class="character-details-trait">${trait}</span>`).join('');
+    document.getElementById('character-details-description').textContent = character.description;
+    
+    document.getElementById('character-details-modal').classList.add('active');
   }
 
   hideCharacterDetailsModal() {
     document.getElementById('character-details-modal').classList.remove('active');
   }
 
-  setupDragAndDrop() {
-    // Перетаскивание персонажей (поддержка как десктопа, так и мобильных устройств)
-    if (this.domCache.currentCharacter) {
-      // Desktop drag-and-drop
-      this.domCache.currentCharacter.addEventListener('dragstart', (e) => {
-        this.draggedElement = e.target;
-        e.target.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', this.currentCharacterIndex);
-        
-        // Поднимаем камеру для лучшего обзора карты
-        this.raiseCamera();
-      });
-
-      this.domCache.currentCharacter.addEventListener('dragend', (e) => {
-        e.target.classList.remove('dragging');
-        this.draggedElement = null;
-        
-        // Возвращаем камеру в нормальное положение
-        this.lowerCamera();
-      });
-
-      // Touch events для мобильных устройств
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let isDragging = false;
-      let draggedElement = null;
-
-      this.domCache.currentCharacter.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-        isDragging = false;
-        draggedElement = e.target;
-        
-        // Добавляем визуальный эффект начала перетаскивания
-        e.target.classList.add('touch-dragging');
-        
-        // Поднимаем камеру при касании
-        this.raiseCamera();
-      }, { passive: false });
-
-      this.domCache.currentCharacter.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const deltaX = Math.abs(touch.clientX - touchStartX);
-        const deltaY = Math.abs(touch.clientY - touchStartY);
-        
-        // Начинаем перетаскивание после небольшого движения
-        if (!isDragging && (deltaX > 10 || deltaY > 10)) {
-          isDragging = true;
-          e.target.classList.add('dragging');
-          e.target.classList.remove('touch-dragging');
-        }
-        
-        if (isDragging) {
-          // Показываем визуальную обратную связь
-          e.target.style.transform = `translate(${touch.clientX - touchStartX}px, ${touch.clientY - touchStartY}px)`;
-        }
-      }, { passive: false });
-
-      this.domCache.currentCharacter.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        const touch = e.changedTouches[0];
-        
-        if (isDragging) {
-          // Находим сектор под пальцем
-          const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-          const sectorElement = elementBelow?.closest('.sector');
-          
-          if (sectorElement && this.canAddToSector(sectorElement.dataset.sector)) {
-            this.addCharacterToSector(sectorElement.dataset.sector);
-          }
-          
-          // Сбрасываем состояние
-          e.target.classList.remove('dragging', 'touch-dragging');
-          e.target.style.transform = '';
-          isDragging = false;
-          draggedElement = null;
-        } else {
-          // Простое касание - убираем эффект
-          e.target.classList.remove('touch-dragging');
-        }
-        
-        // Возвращаем камеру в нормальное положение
-        this.lowerCamera();
-      }, { passive: false });
-    }
-
-    // Обработка перетаскивания над секторами
-    this.domCache.sectors.forEach(sector => {
-      // Desktop events
-      sector.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        
-        if (this.draggedElement && this.canAddToSector(sector.dataset.sector)) {
-          sector.classList.add('drag-over');
-        }
-      });
-
-      sector.addEventListener('dragleave', (e) => {
-        sector.classList.remove('drag-over');
-      });
-
-      sector.addEventListener('drop', (e) => {
-        e.preventDefault();
-        sector.classList.remove('drag-over');
-        
-        if (this.draggedElement && this.canAddToSector(sector.dataset.sector)) {
-          this.addCharacterToSector(sector.dataset.sector);
-        }
-      });
-
-      // Touch events для секторов
-      sector.addEventListener('touchstart', (e) => {
-        // Предотвращаем конфликт с drag-and-drop
-        e.stopPropagation();
-      });
-
-      // Клик по сектору для просмотра членов (только для десктопа)
-      sector.addEventListener('click', (e) => {
-        // Проверяем, что это не touch событие
-        if (e.pointerType !== 'touch') {
-          this.showSectorMembers(sector.dataset.sector);
-        }
-      });
-    });
-  }
-
-  canAddToSector(sectorType) {
-    const sector = this.sectors[sectorType];
-    return sector && sector.members.length < sector.max;
-  }
-
-  addCharacterToSector(sectorType) {
-      const character = this.characters[this.currentCharacterIndex];
-    if (!character || !this.canAddToSector(sectorType)) return;
-
-    // Добавляем персонажа в сектор
-    this.sectors[sectorType].members.push(character);
-    
-    // Переходим к следующему персонажу
-      this.currentCharacterIndex++;
-      if (this.currentCharacterIndex >= this.characters.length) {
-        this.currentCharacterIndex = 0;
-    }
-    
-    // Обновляем отображение
-    this.loadCurrentCharacter();
-    this.updateSectorCounts();
-    
-    // Обновляем состояние кнопки "Завершить создание"
-    this.updateFinishButton();
-    
-    // Показываем уведомление
-    this.showToast(`Персонаж ${character.name} добавлен в ${this.sectors[sectorType].name} штаб`, 'success');
-  }
-
   showSectorMembers(sectorType) {
     const sector = this.sectors[sectorType];
-    if (!sector || sector.members.length === 0) return;
-
-    const modal = document.getElementById('members-modal');
-    const titleEl = document.getElementById('members-title');
-    const listEl = document.getElementById('members-list');
-
-    if (modal && titleEl && listEl) {
-      titleEl.textContent = `Персонажи в ${sector.name} штабе`;
-      
-      listEl.innerHTML = sector.members.map(member => `
-        <div class="member-item" onclick="this.showCharacterDetails(${JSON.stringify(member)})">
+    if (!sector) return;
+    
+    document.getElementById('members-title').textContent = `Персонажи в ${sector.name} секторе`;
+    
+    const membersList = document.getElementById('members-list');
+    if (sector.members.length === 0) {
+      membersList.innerHTML = '<p>В этом секторе пока нет персонажей.</p>';
+    } else {
+      membersList.innerHTML = sector.members.map(member => `
+        <div class="member-item" data-member-id="${member.id}">
           <div class="member-item-name">${member.name}</div>
           <div class="member-item-traits">
-            ${member.traits.map(trait => `<span class="member-item-trait ${trait.correct ? 'correct' : 'incorrect'}">${trait.name}</span>`).join('')}
+            ${member.traits.map(trait => `<span class="member-item-trait">${trait}</span>`).join('')}
           </div>
         </div>
       `).join('');
-      
-      modal.classList.add('active');
     }
+    
+    document.getElementById('members-modal').classList.add('active');
   }
 
   hideMembersModal() {
     document.getElementById('members-modal').classList.remove('active');
   }
 
-  startResults() {
-    // Генерируем последовательность историй
-    this.results = this.generateResults();
-    this.currentResultIndex = 0;
-    
-    if (this.results.length > 0) {
-    this.showResult();
-    }
-  }
-
-  generateResults() {
-    const results = [];
-    
-    // Добавляем вступительную историю
-    const introStory = this.storySystem.getStory([], 'intro');
-    results.push({
-      type: 'story',
-      content: introStory,
-      canContinue: true
-    });
-
-    // Анализируем каждый сектор и генерируем соответствующие истории
-    Object.entries(this.sectors).forEach(([sectorType, sector]) => {
-      if (sector.members.length > 0) {
-        // Определяем, правильно ли заполнен сектор
-        const correctMembers = sector.members.filter(member => 
-          member.traits.some(trait => trait.correct && this.isTraitRelevantForSector(trait.name, sectorType))
-        );
-        
-        if (correctMembers.length > 0) {
-          // Успешная история для сектора
-          const story = this.storySystem.getStory([sectorType], 'random');
-          results.push({
-            type: 'story',
-            content: story,
-            sector: sectorType,
-            canContinue: true
-          });
-    } else {
-          // Проблемная история для сектора
-          const problemStory = this.generateProblemStory(sectorType, sector.members);
-          results.push({
-            type: 'problem',
-            content: problemStory,
-            sector: sectorType,
-            canContinue: true,
-            canEliminate: problemStory.canEliminate,
-            eliminationRequirement: problemStory.eliminationRequirement
-          });
-        }
-      }
-    });
-
-    // Добавляем финальную историю
-    const finalStory = this.generateFinalStory();
-    results.push({
-      type: 'final',
-      content: finalStory,
-      canContinue: false
-    });
-
-    return results;
-  }
-
-  isTraitRelevantForSector(traitName, sectorType) {
-    const traitRelevance = {
-      political: ['Лидерство', 'Дипломатия', 'Ораторство', 'Харизма', 'Политика'],
-      military: ['Стратегия', 'Тактика', 'Командование', 'Храбрость', 'Военное дело'],
-      economic: ['Финансы', 'Аналитика', 'Переговоры', 'Инвестиции', 'Экономика'],
-      research: ['Интеллект', 'Креативность', 'Логика', 'Инновации', 'Наука', 'Эксперименты'],
-      propaganda: ['Креативность', 'Коммуникация', 'Психология', 'Медиа', 'Пропаганда']
-    };
-    
-    return traitRelevance[sectorType]?.includes(traitName) || false;
-  }
-
-  generateProblemStory(sectorType, members) {
-    const problemStories = {
-      political: {
-        title: "⚔️ Политический заговор",
-        content: `Неправильно назначенные агенты в ${this.sectors[sectorType].name} штабе организовали тайный заговор против вашей власти. Они используют свои навыки для подрыва авторитета правительства изнутри.`,
-        canEliminate: true,
-        eliminationRequirement: Math.min(members.length, 3)
-      },
-      military: {
-        title: "💥 Военный мятеж",
-        content: `Военные лидеры в ${this.sectors[sectorType].name} штабе, недовольные вашими методами, организовали мятеж. Они захватили стратегические объекты и угрожают применить оружие.`,
-        canEliminate: true,
-        eliminationRequirement: Math.min(members.length, 2)
-      },
-      economic: {
-        title: "💸 Экономический саботаж",
-        content: `Агенты в ${this.sectors[sectorType].name} штабе намеренно подрывают финансовую стабильность организации. Они используют свои экономические знания для скрытого саботажа.`,
-        canEliminate: true,
-        eliminationRequirement: Math.min(members.length, 2)
-      },
-      research: {
-        title: "🔬 Опасные эксперименты",
-        content: `Исследователи в ${this.sectors[sectorType].name} штабе проводят опасные эксперименты, которые могут выйти из-под контроля. Их научные амбиции угрожают безопасности всего мира.`,
-        canEliminate: true,
-        eliminationRequirement: Math.min(members.length, 2)
-      },
-      propaganda: {
-        title: "📢 Информационная диверсия",
-        content: `Агенты в ${this.sectors[sectorType].name} штабе распространяют дезинформацию, подрывая доверие к правительству. Они используют СМИ против ваших интересов.`,
-        canEliminate: true,
-        eliminationRequirement: Math.min(members.length, 2)
-      }
-    };
-
-    return problemStories[sectorType] || problemStories.political;
-  }
-
-  generateFinalStory() {
-    // Подсчитываем общую эффективность
-    let totalEfficiency = 0;
-    let totalSectors = 0;
-
-    Object.entries(this.sectors).forEach(([sectorType, sector]) => {
-      if (sector.members.length > 0) {
-        totalSectors++;
-        const correctMembers = sector.members.filter(member => 
-          member.traits.some(trait => trait.correct && this.isTraitRelevantForSector(trait.name, sectorType))
-        );
-        totalEfficiency += (correctMembers.length / sector.members.length) * 100;
-      }
-    });
-
-    const averageEfficiency = totalSectors > 0 ? totalEfficiency / totalSectors : 0;
-
-    if (averageEfficiency >= 80) {
-      return {
-        title: "🌍 Мировое господство достигнуто!",
-        content: "Ваше тайное правительство успешно установило контроль над миром! Все секторы работают в идеальной гармонии, агенты выполняют свои задачи безупречно. Мир теперь принадлежит вам, и ничто не может противостоять вашей власти.",
-        type: "ultimate_success"
-      };
-    } else if (averageEfficiency >= 60) {
-      return {
-        title: "🎯 Значительное влияние",
-        content: "Ваше тайное правительство установило значительное влияние в мире. Большинство секторов работают эффективно, хотя есть области для улучшения. Ваша власть прочна и продолжает расширяться.",
-        type: "major_success"
-      };
-    } else if (averageEfficiency >= 40) {
-      return {
-        title: "⚠️ Частичный контроль",
-        content: "Ваше тайное правительство установило частичный контроль над миром. Некоторые секторы работают хорошо, но есть серьезные проблемы, которые требуют решения. Ваша власть нестабильна.",
-        type: "partial_success"
-      };
-    } else {
-      return {
-        title: "💥 Критическая ситуация",
-        content: "Ваше тайное правительство находится в критическом состоянии. Большинство секторов работают неэффективно, агенты не справляются с задачами. Ваша власть под угрозой краха.",
-        type: "critical_failure"
-      };
-    }
-  }
-
-  showResult() {
-    if (this.currentResultIndex >= this.results.length) {
-      this.finishResults();
-      return;
-    }
-
-    const result = this.results[this.currentResultIndex];
-    const modal = this.domCache.resultsModal;
-    const titleEl = this.domCache.resultsTitle;
-    const contentEl = this.domCache.resultsContent;
-
-    if (!modal || !titleEl || !contentEl) return;
-
-    // Показываем модальное окно
-    modal.classList.add('active');
-
-    // Обновляем заголовок
-    titleEl.textContent = result.content.title;
-
-    // Обновляем контент
-    contentEl.innerHTML = `
-      <div class="result-content">
-        <p>${result.content.content}</p>
-        ${result.type === 'problem' && result.canEliminate ? `
-          <div class="elimination-option">
-            <p><strong>Для решения проблемы требуется истребление ${result.eliminationRequirement} предателей.</strong></p>
-            <button class="btn btn-danger" id="start-elimination-btn" data-sector="${result.sector}" data-requirement="${result.eliminationRequirement}">
-              Начать истребление
-            </button>
-        </div>
-        ` : ''}
-      </div>
-    `;
-
-    // Обновляем кнопки
-    const nextBtn = document.getElementById('next-result');
-    const finishBtn = document.getElementById('finish-results');
-
-    if (nextBtn && finishBtn) {
-      if (result.canContinue) {
-        nextBtn.style.display = 'inline-flex';
-        finishBtn.style.display = 'none';
-      } else {
-        nextBtn.style.display = 'none';
-        finishBtn.style.display = 'inline-flex';
-      }
-    }
-
-    // Добавляем обработчик для кнопки истребления
-    const eliminationBtn = document.getElementById('start-elimination-btn');
-    if (eliminationBtn) {
-      eliminationBtn.addEventListener('click', () => {
-        const sector = eliminationBtn.dataset.sector;
-        const requirement = parseInt(eliminationBtn.dataset.requirement);
-        this.startElimination(sector, requirement);
-      });
-    }
-  }
-
-  nextResult() {
-    this.currentResultIndex++;
-    this.showResult();
-  }
-
-  finishResults() {
-    this.domCache.resultsModal.classList.remove('active');
-    this.showToast('Квест завершен!', 'success');
-  }
-
-  startElimination(sectorType, requirement) {
+  // Методы для истребления предателей
+  eliminateThreat(sectorType) {
     const sector = this.sectors[sectorType];
-    if (!sector || sector.members.length === 0) return;
-
+    if (!sector) return;
+    
+    // Находим предателя
+    const traitor = sector.members.find(m => !m.isCorrect);
+    if (!traitor) return;
+    
     // Показываем модальное окно истребления
-    this.showEliminationModal(sector.members, requirement);
+    this.showEliminationModal(traitor, sectorType);
   }
 
-  showEliminationModal(members, requirement) {
-    const modal = this.domCache.eliminationModal;
+  showEliminationModal(traitor, sectorType) {
+    // Заполняем информацию о предателе
     const traitorCard = document.getElementById('traitor-card');
-    const alliesContainer = document.getElementById('allies-container');
-
-    if (!modal || !traitorCard || !alliesContainer) return;
-
-    // Выбираем случайного предателя
-    const traitor = members[Math.floor(Math.random() * members.length)];
-    
-    // Показываем предателя
     traitorCard.innerHTML = `
       <div class="character-name">${traitor.name}</div>
       <div class="character-traits">
-        ${traitor.traits.map(trait => `<span class="trait">${trait.name}</span>`).join('')}
+        ${traitor.traits.map(trait => `<span class="trait">${trait}</span>`).join('')}
       </div>
     `;
-
-    // Показываем доступных союзников
-    alliesContainer.innerHTML = members
-      .filter(member => member !== traitor)
-      .map(member => `
-        <div class="ally-card" draggable="true" data-member-id="${member.id}">
-          <div class="ally-name">${member.name}</div>
-          <div class="ally-traits">
-            ${member.traits.map(trait => `<span class="trait">${trait.name}</span>`).join('')}
-          </div>
+    
+    // Заполняем список доступных союзников
+    const alliesContainer = document.getElementById('allies-container');
+    const availableAllies = Object.values(this.sectors)
+      .flatMap(s => s.members)
+      .filter(m => m.isCorrect && m.id !== traitor.id);
+    
+    alliesContainer.innerHTML = availableAllies.map(ally => `
+      <div class="ally-card" data-ally-id="${ally.id}" draggable="true">
+        <div class="ally-name">${ally.name}</div>
+        <div class="ally-traits">
+          ${ally.traits.map(trait => `<span class="trait">${trait}</span>`).join('')}
         </div>
-      `).join('');
-
-    // Настраиваем перетаскивание союзников
-    this.setupEliminationDragAndDrop();
-
+      </div>
+    `).join('');
+    
+    // Добавляем обработчики для союзников
+    alliesContainer.querySelectorAll('.ally-card').forEach(allyCard => {
+      allyCard.addEventListener('dragstart', (e) => this.handleAllyDragStart(e));
+      allyCard.addEventListener('dragend', (e) => this.handleAllyDragEnd(e));
+    });
+    
     // Показываем модальное окно
-    modal.classList.add('active');
-  }
-
-  setupEliminationDragAndDrop() {
-    const allyCards = document.querySelectorAll('.ally-card');
-    const eliminationZone = this.domCache.eliminationZone;
-
-    allyCards.forEach(card => {
-      card.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', card.dataset.memberId);
-        card.classList.add('dragging');
-      });
-
-      card.addEventListener('dragend', (e) => {
-        card.classList.remove('dragging');
-      });
-    });
-
-    if (eliminationZone) {
-      eliminationZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      });
-
-      eliminationZone.addEventListener('drop', (e) => {
-          e.preventDefault();
-        const memberId = e.dataTransfer.getData('text/plain');
-        this.addAllyToEliminationZone(memberId);
-      });
-    }
-  }
-
-  addAllyToEliminationZone(memberId) {
-    const selectedAllies = this.domCache.selectedAllies;
-    if (!selectedAllies) return;
-
-    const allyCard = document.querySelector(`[data-member-id="${memberId}"]`);
-    if (!allyCard) return;
-
-    const selectedAlly = document.createElement('div');
-    selectedAlly.className = 'selected-ally';
-    selectedAlly.dataset.memberId = memberId;
-    selectedAlly.innerHTML = `
-      ${allyCard.querySelector('.ally-name').textContent}
-      <button class="remove-ally" onclick="this.removeAllyFromEliminationZone('${memberId}')">×</button>
-    `;
-
-    selectedAllies.appendChild(selectedAlly);
-    this.updateExecuteButton();
-  }
-
-  removeAllyFromEliminationZone(memberId) {
-    const selectedAlly = document.querySelector(`[data-member-id="${memberId}"]`);
-    if (selectedAlly) {
-      selectedAlly.remove();
-      this.updateExecuteButton();
-    }
-  }
-
-  updateExecuteButton() {
-    if (!this.domCache.executeButton) return;
+    document.getElementById('elimination-modal').classList.add('active');
     
-    const selectedAllies = this.domCache.selectedAllies;
-    const requiredCount = parseInt(document.querySelector('.elimination-option .btn-danger')?.textContent.match(/\d+/)?.[0] || 1);
-    
-    const isEnabled = selectedAllies && selectedAllies.children.length >= requiredCount;
-    this.domCache.executeButton.disabled = !isEnabled;
-  }
-
-  executeElimination() {
-    const selectedAllies = this.domCache.selectedAllies;
-    if (!selectedAllies || selectedAllies.children.length === 0) return;
-
-    // Показываем анимацию истребления
-    this.showEliminationAnimation(() => {
-      // Скрываем модальное окно
-    this.hideEliminationModal();
-    
-      // Показываем уведомление об успехе
-      this.showToast('Предатель успешно истреблен!', 'success');
-      
-      // Продолжаем показ результатов
-      this.nextResult();
-    });
-  }
-
-  showEliminationAnimation(callback) {
-    // Простая анимация истребления
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 0, 0, 0.8);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 48px;
-      font-weight: bold;
-    `;
-    overlay.textContent = '⚔️ ИСТРЕБЛЕНИЕ ⚔️';
-    
-    document.body.appendChild(overlay);
-    
-    setTimeout(() => {
-      document.body.removeChild(overlay);
-      if (callback) callback();
-    }, 2000);
+    // Сохраняем контекст
+    this.currentElimination = { traitor, sectorType, allies: [] };
   }
 
   hideEliminationModal() {
-    this.domCache.eliminationModal.classList.remove('active');
+    document.getElementById('elimination-modal').classList.remove('active');
+    this.currentElimination = null;
+  }
+
+  handleAllyDragStart(e) {
+    e.dataTransfer.setData('text/plain', e.currentTarget.getAttribute('data-ally-id'));
+  }
+
+  handleAllyDragEnd(e) {
+    // Обработка завершения перетаскивания
+  }
+
+  executeElimination() {
+    if (!this.currentElimination) return;
     
-    // Очищаем зону истребления
-    if (this.domCache.selectedAllies) {
-      this.domCache.selectedAllies.innerHTML = '';
+    const { traitor, sectorType, allies } = this.currentElimination;
+    
+    // Удаляем предателя из сектора
+    const sector = this.sectors[sectorType];
+    const traitorIndex = sector.members.findIndex(m => m.id === traitor.id);
+    if (traitorIndex !== -1) {
+      sector.members.splice(traitorIndex, 1);
     }
-  }
-
-  finishQuest() {
-    // Возвращаемся на главную страницу
-    window.location.href = '../quests.html';
-  }
-
-  showToast(message, type = 'info') {
-    // Создаем простой toast
-    const toast = document.createElement('div');
-    toast.className = `toast show ${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(88, 84, 91, 0.98);
-      color: #F6F2F6;
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: 2px solid #F6F2F6;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-      z-index: 10000;
-      font-weight: 500;
-    `;
     
-    document.body.appendChild(toast);
+    // Обновляем отображение
+    this.updateSectorCounts();
+    this.updateFinishButton();
     
-    setTimeout(() => {
-      if (document.body.contains(toast)) {
-        document.body.removeChild(toast);
-      }
-    }, 3000);
+    // Скрываем модальное окно
+    this.hideEliminationModal();
+    
+    // Показываем уведомление
+    this.showToast(`✅ Предатель ${traitor.name} успешно устранен!`, 'success');
   }
 
-  // Генерация персонажей с правильными характеристиками и принадлежностью к штабам
+  // Вспомогательные методы
+  shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   generateCharacters() {
     return [
       {
-        id: 1,
-        name: "Александр Петров",
-        traits: [
-          { name: "Лидерство", correct: true },
-          { name: "Дипломатия", correct: true },
-          { name: "Харизма", correct: true }
-        ],
-        description: "Природный лидер с выдающимися дипломатическими способностями. Идеально подходит для политического сектора.",
-        correctSector: "political"
+        id: 'char1',
+        name: 'Александр Волков',
+        traits: ['Лидерство', 'Стратегия', 'Харизма'],
+        description: 'Опытный политик с военным прошлым. Обладает природным авторитетом и способностью принимать сложные решения.'
       },
       {
-        id: 2,
-        name: "Елена Соколова",
-        traits: [
-          { name: "Интеллект", correct: true },
-          { name: "Наука", correct: true },
-          { name: "Эксперименты", correct: true }
-        ],
-        description: "Гениальный ученый с нестандартным мышлением. Отлично подходит для исследовательского сектора.",
-        correctSector: "research"
+        id: 'char2',
+        name: 'Елена Соколова',
+        traits: ['Интеллект', 'Аналитика', 'Логика'],
+        description: 'Гениальный ученый-исследователь. Специализируется на квантовой физике и искусственном интеллекте.'
       },
       {
-        id: 3,
-        name: "Дмитрий Козлов",
-        traits: [
-          { name: "Финансы", correct: true },
-          { name: "Экономика", correct: true },
-          { name: "Аналитика", correct: true }
-        ],
-        description: "Опытный финансист с аналитическим складом ума. Идеально подходит для экономического сектора.",
-        correctSector: "economic"
+        id: 'char3',
+        name: 'Дмитрий Козлов',
+        traits: ['Финансы', 'Планирование', 'Аналитика'],
+        description: 'Финансовый гений с опытом работы в крупнейших банках мира. Мастер манипуляций на финансовых рынках.'
       },
       {
-        id: 4,
-        name: "Мария Иванова",
-        traits: [
-          { name: "Креативность", correct: true },
-          { name: "Медиа", correct: true },
-          { name: "Пропаганда", correct: true }
-        ],
-        description: "Творческая личность с отличными навыками работы с медиа. Идеальна для пропагандистского сектора.",
-        correctSector: "propaganda"
+        id: 'char4',
+        name: 'Мария Петрова',
+        traits: ['Коммуникация', 'Психология', 'Творчество'],
+        description: 'Эксперт по массовым коммуникациям и психологическому воздействию. Создает эффективные пропагандистские кампании.'
       },
       {
-        id: 5,
-        name: "Сергей Волков",
-        traits: [
-          { name: "Стратегия", correct: true },
-          { name: "Военное дело", correct: true },
-          { name: "Командование", correct: true }
-        ],
-        description: "Опытный военный стратег с тактическим мышлением. Идеально подходит для военного сектора.",
-        correctSector: "military"
+        id: 'char5',
+        name: 'Сергей Иванов',
+        traits: ['Тактика', 'Дисциплина', 'Стратегия'],
+        description: 'Высокопоставленный военный офицер с опытом спецопераций. Мастер военной стратегии и тактики.'
       },
       {
-        id: 6,
-        name: "Анна Морозова",
-        traits: [
-          { name: "Дипломатия", correct: true },
-          { name: "Политика", correct: true },
-          { name: "Ораторство", correct: true }
-        ],
-        description: "Прирожденный дипломат с выдающимися ораторскими способностями. Отлично подходит для политического сектора.",
-        correctSector: "political"
+        id: 'char6',
+        name: 'Анна Сидорова',
+        traits: ['Дипломатия', 'Харизма', 'Коммуникация'],
+        description: 'Дипломат международного класса. Умеет находить общий язык с любыми лидерами и вести сложные переговоры.'
       },
       {
-        id: 7,
-        name: "Виктор Смирнов",
-        traits: [
-          { name: "Интеллект", correct: true },
-          { name: "Инновации", correct: true },
-          { name: "Логика", correct: true }
-        ],
-        description: "Инновационный исследователь с логическим мышлением. Идеален для исследовательского сектора.",
-        correctSector: "research"
+        id: 'char7',
+        name: 'Виктор Морозов',
+        traits: ['Креативность', 'Интеллект', 'Логика'],
+        description: 'Инновационный исследователь в области биотехнологий. Создает революционные научные решения.'
       },
       {
-        id: 8,
-        name: "Ольга Новикова",
-        traits: [
-          { name: "Психология", correct: true },
-          { name: "Коммуникация", correct: true },
-          { name: "Пропаганда", correct: true }
-        ],
-        description: "Психолог с пониманием медиа-процессов и коммуникации. Идеальна для пропагандистского сектора.",
-        correctSector: "propaganda"
+        id: 'char8',
+        name: 'Ольга Новикова',
+        traits: ['Психология', 'Творчество', 'Коммуникация'],
+        description: 'Эксперт по социальной психологии и массовому сознанию. Специализируется на управлении общественным мнением.'
       },
       {
-        id: 9,
-        name: "Игорь Лебедев",
-        traits: [
-          { name: "Инвестиции", correct: true },
-          { name: "Экономика", correct: true },
-          { name: "Финансы", correct: true }
-        ],
-        description: "Смелый инвестор с глубоким пониманием экономики. Отлично подходит для экономического сектора.",
-        correctSector: "economic"
+        id: 'char9',
+        name: 'Игорь Лебедев',
+        traits: ['Стратегия', 'Лидерство', 'Дисциплина'],
+        description: 'Бывший генерал спецслужб. Обладает уникальными навыками в области разведки и контрразведки.'
       },
       {
-        id: 10,
-        name: "Наталья Козлова",
-        traits: [
-          { name: "Стратегия", correct: true },
-          { name: "Тактика", correct: true },
-          { name: "Военное дело", correct: true }
-        ],
-        description: "Стратегический планировщик с отличными тактическими навыками. Идеальна для военного сектора.",
-        correctSector: "military"
+        id: 'char10',
+        name: 'Наталья Воробьева',
+        traits: ['Аналитика', 'Планирование', 'Логика'],
+        description: 'Экономист-аналитик с глубоким пониманием мировой экономики. Специалист по экономическому планированию.'
       },
       {
-        id: 11,
-        name: "Михаил Соколов",
-        traits: [
-          { name: "Политика", correct: true },
-          { name: "Харизма", correct: true },
-          { name: "Лидерство", correct: true }
-        ],
-        description: "Харизматичный политик с природными лидерскими качествами. Отлично подходит для политического сектора.",
-        correctSector: "political"
+        id: 'char11',
+        name: 'Артем Соловьев',
+        traits: ['Тактика', 'Дисциплина', 'Стратегия'],
+        description: 'Командир элитного подразделения спецназа. Мастер проведения сложных военных операций.'
       },
       {
-        id: 12,
-        name: "Татьяна Воробьева",
-        traits: [
-          { name: "Креативность", correct: true },
-          { name: "Медиа", correct: true },
-          { name: "Коммуникация", correct: true }
-        ],
-        description: "Креативный медиа-специалист с отличными коммуникативными навыками. Идеальна для пропагандистского сектора.",
-        correctSector: "propaganda"
+        id: 'char12',
+        name: 'Юлия Климова',
+        traits: ['Креативность', 'Интеллект', 'Творчество'],
+        description: 'Гениальный изобретатель и инженер. Создает технологии будущего, опережающие время на десятилетия.'
       },
       {
-        id: 13,
-        name: "Андрей Медведев",
-        traits: [
-          { name: "Тактика", correct: true },
-          { name: "Командование", correct: true },
-          { name: "Храбрость", correct: true }
-        ],
-        description: "Храбрый военный командир с тактическим мышлением. Отлично подходит для военного сектора.",
-        correctSector: "military"
+        id: 'char13',
+        name: 'Роман Соколов',
+        traits: ['Финансы', 'Аналитика', 'Стратегия'],
+        description: 'Инвестиционный банкир с глобальным мышлением. Специалист по международным финансовым операциям.'
       },
       {
-        id: 14,
-        name: "Екатерина Романова",
-        traits: [
-          { name: "Наука", correct: true },
-          { name: "Эксперименты", correct: true },
-          { name: "Креативность", correct: true }
-        ],
-        description: "Креативный ученый с любовью к экспериментам. Идеальна для исследовательского сектора.",
-        correctSector: "research"
+        id: 'char14',
+        name: 'Татьяна Морозова',
+        traits: ['Психология', 'Коммуникация', 'Харизма'],
+        description: 'Эксперт по нейролингвистическому программированию. Мастер манипуляции сознанием и подсознанием.'
+      },
+      {
+        id: 'char15',
+        name: 'Андрей Волков',
+        traits: ['Лидерство', 'Дипломатия', 'Стратегия'],
+        description: 'Бывший посол в ООН. Обладает уникальными связями в международных организациях и дипломатических кругах.'
       }
     ];
-  }
-
-  // Функции для управления камерой
-  raiseCamera() {
-    const islandContainer = document.querySelector('.island-container');
-    if (islandContainer) {
-      islandContainer.style.transform = 'scale(1.2) translateY(-50px)';
-      islandContainer.style.transition = 'all 0.3s ease';
-      islandContainer.style.zIndex = '10';
-    }
-  }
-
-  lowerCamera() {
-    const islandContainer = document.querySelector('.island-container');
-    if (islandContainer) {
-      islandContainer.style.transform = 'scale(1) translateY(0)';
-      islandContainer.style.transition = 'all 0.3s ease';
-      islandContainer.style.zIndex = '1';
-    }
   }
 }
 
 // Инициализация квеста при загрузке страницы
+let quest;
 document.addEventListener('DOMContentLoaded', () => {
-  new WorldGovernmentQuest();
+  quest = new WorldGovernmentQuest();
+});
+
+// Оптимизация: очистка ресурсов при уходе со страницы
+window.addEventListener('beforeunload', () => {
+  if (quest) {
+    // Очищаем все обработчики событий
+    if (quest.eventListeners) {
+      quest.eventListeners.forEach(({ element, handler }) => {
+        element.removeEventListener('click', handler);
+      });
+    }
+    
+    // Очищаем анимации
+    if (quest.animationFrameId) {
+      cancelAnimationFrame(quest.animationFrameId);
+    }
+    
+    // Очищаем drag & drop обработчики
+    if (quest.dragDropHandlers) {
+      const characterCard = quest.domCache.currentCharacter;
+      if (characterCard) {
+        characterCard.removeEventListener('dragstart', quest.dragDropHandlers.characterCard.dragStartHandler);
+        characterCard.removeEventListener('dragend', quest.dragDropHandlers.characterCard.dragEndHandler);
+        characterCard.removeEventListener('touchstart', quest.dragDropHandlers.characterCard.touchStartHandler);
+        characterCard.removeEventListener('touchmove', quest.dragDropHandlers.characterCard.touchMoveHandler);
+        characterCard.removeEventListener('touchend', quest.dragDropHandlers.characterCard.touchEndHandler);
+        characterCard.removeEventListener('click', quest.dragDropHandlers.characterCard.clickHandler);
+      }
+    }
+  }
 });

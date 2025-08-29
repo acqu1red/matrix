@@ -3,120 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>🌍 Тайное мировое сообщество — Квест‑Хаб</title>
-  
-  <!-- Критические стили inline для мгновенной загрузки -->
-  <style>
-    /* Базовые стили для мгновенного отображения */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1C252C; 
-      color: #F6F2F6; 
-      line-height: 1.6; 
-      overflow-x: hidden; 
-    }
-    
-    /* Критические стили для квеста */
-    .world-government-quest {
-      position: relative;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #1C252C 0%, #2a241f 50%, #1C252C 100%);
-      overflow: hidden;
-      font-family: 'Inter', sans-serif;
-    }
-    
-    /* Критические стили для модальных окон */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(28, 37, 44, 0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(20px);
-    }
-    
-    .modal.active {
-      opacity: 1;
-      visibility: visible;
-    }
-    
-    .modal-content {
-      background: rgba(88, 84, 91, 0.98);
-      border: 2px solid #F6F2F6;
-      border-radius: 22px;
-      padding: 30px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-      animation: modalSlideIn 0.3s ease;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(246, 242, 246, 0.1);
-    }
-    
-    @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-50px) scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-    
-    /* Критические стили для кнопок */
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #F6F2F6, #E1D5D9);
-      color: #1C252C;
-    }
-    
-    .btn-secondary {
-      background: rgba(88, 84, 91, 0.2);
-      color: #F6F2F6;
-      border: 2px solid #58545B;
-    }
-    
-    .btn-danger {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-      color: white;
-    }
-  </style>
-  
+  <title>Мировое тайное правительство — Квест‑Хаб</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="world-government.css" />
 </head>
 <body>
+  <!-- Аудио элемент для horror.mp3 -->
+  <audio id="horror-audio" loop>
+    <source src="../politics/horror.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Видео элементы для фоновых роликов -->
+  <video id="meeting-video" class="background-video" muted loop>
+    <source src="../politics/meeting.mp4" type="video/mp4">
+  </video>
+  <video id="disorder-video" class="background-video" muted loop>
+    <source src="../politics/besporyadki.mp4" type="video/mp4">
+  </video>
+  <video id="exposure-video" class="background-video" muted loop>
+    <source src="../politics/razobla4enie.mp4" type="video/mp4">
+  </video>
+  <video id="war-video" class="background-video" muted loop>
+    <source src="../politics/war.mp4" type="video/mp4">
+  </video>
+  <video id="time-travel-video" class="background-video" muted loop>
+    <source src="../politics/puteshestvie.mp4" type="video/mp4">
+  </video>
+  <video id="experiment-video" class="background-video" muted loop>
+    <source src="../politics/experement.mp4" type="video/mp4">
+  </video>
+
   <div class="world-government-quest">
     <!-- Предупреждение -->
     <div id="warning-modal" class="modal active">
@@ -135,187 +53,6 @@
       </div>
     </div>
 
-    <!-- Информационное окно квеста -->
-    <div id="quest-info-modal" class="modal">
-      <div class="modal-content quest-info-content">
-        <div class="quest-info-header">
-          <div class="quest-icon">🌍</div>
-          <h2>🌍 Мировое тайное правительство</h2>
-          <div class="quest-difficulty">
-            <span class="difficulty-badge hard">Смертельно опасно</span>
-            <span class="quest-type">Конспирология</span>
-          </div>
-        </div>
-        
-        <div class="quest-info-body">
-          <div class="quest-section">
-            <h3>🎯 Что вы развиваете</h3>
-            <div class="skills-grid">
-              <div class="skill-item">
-                <span class="skill-icon">🧠</span>
-                <span class="skill-name">Стратегическое мышление</span>
-              </div>
-              <div class="skill-item">
-                <span class="skill-icon">👥</span>
-                <span class="skill-name">Управление персоналом</span>
-              </div>
-              <div class="skill-item">
-                <span class="skill-icon">⚖️</span>
-                <span class="skill-name">Анализ рисков</span>
-              </div>
-              <div class="skill-item">
-                <span class="skill-icon">🎭</span>
-                <span class="skill-name">Психология власти</span>
-              </div>
-              <div class="skill-item">
-                <span class="skill-icon">🌐</span>
-                <span class="skill-name">Глобальное планирование</span>
-              </div>
-              <div class="skill-item">
-                <span class="skill-icon">🔒</span>
-                <span class="skill-name">Конспирология</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="quest-section">
-            <h3>🚨 ВНИМАНИЕ: Высокий уровень опасности</h3>
-            <div class="danger-warning">
-              <p><strong>⚠️ ПРЕДУПРЕЖДЕНИЕ:</strong> Этот квест содержит элементы конспирологии, политических интриг и потенциально опасных сценариев. Ваши решения могут привести к глобальным последствиям, включая раскрытие, преследование и даже смерть.</p>
-              <p><strong>🎭 ИГРА ВЛАСТИ:</strong> Вы становитесь архитектором мирового порядка, но помните - за каждым троном стоит тень, а за каждой тенью - нож.</p>
-            </div>
-          </div>
-
-          <div class="quest-section">
-            <h3>🎮 Как играть</h3>
-            <div class="gameplay-steps">
-              <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                  <h4>🏛️ Распределение агентов</h4>
-                  <p>Изучите характеристики каждого персонажа и распределите их по 5 секторам: Политический, Военный, Экономический, Исследовательский и Пропагандистский. <strong>Каждое назначение - это шаг к власти или к пропасти.</strong></p>
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                  <h4>⚡ Активация правительства</h4>
-                  <p>После завершения распределения ваше тайное правительство начнет работать и развиваться, влияя на мировые события. <strong>Но помните - чем больше власти, тем больше врагов.</strong></p>
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                  <h4>🌍 Мировые последствия</h4>
-                  <p>Каждое ваше решение повлияет на развитие событий. Правильные назначения приведут к успеху, ошибки - к хаосу. <strong>А некоторые ошибки могут стоить вам жизни.</strong></p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="quest-section">
-            <h3>🎭 Возможные исходы</h3>
-            <div class="outcomes-grid">
-              <div class="outcome-item success">
-                <div class="outcome-icon">👑</div>
-                <div class="outcome-content">
-                  <h4>Мировое господство</h4>
-                  <p>Все секторы работают идеально. Мир полностью под вашим контролем! Вы стали невидимым правителем планеты.</p>
-                </div>
-              </div>
-              <div class="outcome-item warning">
-                <div class="outcome-icon">⚖️</div>
-                <div class="outcome-content">
-                  <h4>Частичный контроль</h4>
-                  <p>Некоторые секторы эффективны, но есть области для улучшения. Ваша власть нестабильна, но пока безопасна.</p>
-                </div>
-              </div>
-              <div class="outcome-item danger">
-                <div class="outcome-icon">💥</div>
-                <div class="outcome-content">
-                  <h4>Критическая ситуация</h4>
-                  <p>Неправильные назначения привели к хаосу. Ваша власть под угрозой, враги наступают со всех сторон.</p>
-                </div>
-              </div>
-              <div class="outcome-item danger">
-                <div class="outcome-icon">🔍</div>
-                <div class="outcome-content">
-                  <h4>Раскрытие и преследование</h4>
-                  <p>Кто-то раскрыл вашу организацию. Теперь вас разыскивают спецслужбы всего мира. Бегите, пока не поздно!</p>
-                </div>
-              </div>
-              <div class="outcome-item danger">
-                <div class="outcome-icon">💀</div>
-                <div class="outcome-content">
-                  <h4>Смерть на пути к аэропорту</h4>
-                  <p>Попытка сбежать провалилась. Вы были ликвидированы по пути к аэропорту. Ваше тело никогда не найдут.</p>
-                </div>
-              </div>
-              <div class="outcome-item danger">
-                <div class="outcome-icon">🏚️</div>
-                <div class="outcome-content">
-                  <h4>Распад мирового сообщества</h4>
-                  <p>Ваша организация развалилась изнутри. Предатели захватили власть, а вы стали изгоем в собственном мире.</p>
-                </div>
-              </div>
-              <div class="outcome-item danger">
-                <div class="outcome-icon">🌋</div>
-                <div class="outcome-content">
-                  <h4>Глобальный хаос</h4>
-                  <p>Ваши ошибки привели к мировому кризису. Экономика рухнула, начались войны, а вы стали главным виновником.</p>
-                </div>
-              </div>
-              <div class="outcome-item danger">
-                <div class="outcome-icon">🔒</div>
-                <div class="outcome-content">
-                  <h4>Пожизненное заключение</h4>
-                  <p>Вас поймали и судили как военного преступника. Теперь вы проведете остаток жизни в самой секретной тюрьме мира.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="quest-section">
-            <h3>💎 Награды и последствия</h3>
-            <div class="rewards-info">
-              <div class="reward-item">
-                <span class="reward-icon">🪙</span>
-                <span class="reward-text">MULACOIN за успешное управление (или потеря всех монет при провале)</span>
-              </div>
-              <div class="reward-item">
-                <span class="reward-icon">⭐</span>
-                <span class="reward-text">Опыт стратегического планирования и конспирологии</span>
-              </div>
-              <div class="reward-item">
-                <span class="reward-icon">🏆</span>
-                <span class="reward-text">Достижение "Тень мира" или "Жертва заговора"</span>
-              </div>
-              <div class="reward-item">
-                <span class="reward-icon">⚰️</span>
-                <span class="reward-text">Возможность стать легендой или исчезнуть навсегда</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="quest-section">
-            <h3>🎬 Сюжетные особенности</h3>
-            <div class="story-features">
-              <p><strong>🎭 Множественные концовки:</strong> Более 15 различных исходов в зависимости от ваших решений</p>
-              <p><strong>🔊 Атмосферная музыка:</strong> Нагнетающая фоновая музыка для полного погружения</p>
-              <p><strong>🎥 Видео-сцены:</strong> Кинематографические моменты для ключевых событий</p>
-              <p><strong>🌍 Реалистичные последствия:</strong> Каждое решение влияет на развитие мировых событий</p>
-              <p><strong>⚡ Динамичный геймплей:</strong> От спокойного планирования до бешеной погони за выживанием</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="quest-info-footer">
-          <button id="start-quest-final" class="btn btn-primary">🚀 Начать квест</button>
-          <button id="close-quest-info" class="btn btn-secondary">Закрыть</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Основной интерфейс -->
     <div id="main-interface" class="main-interface hidden">
       <!-- Кнопка "На главную" -->
@@ -323,11 +60,6 @@
         <button id="back-to-main" class="btn btn-secondary back-btn">
           <span class="back-icon">←</span>
           На главную
-        </button>
-        
-        <!-- Кнопка управления звуком -->
-        <button id="sound-toggle" class="btn btn-secondary sound-btn">
-          <span class="sound-icon">🔊</span>
         </button>
       </div>
       
@@ -374,7 +106,7 @@
       <!-- Нижняя панель с персонажами -->
       <div class="bottom-panel">
         <div class="character-container">
-          <div id="current-character" class="character-card" draggable="true">
+          <div id="current-character" class="character-card">
             <!-- Персонаж будет загружен динамически -->
           </div>
           <button id="skip-character" class="btn btn-secondary">Пропустить</button>
@@ -498,23 +230,28 @@
       </div>
     </div>
 
-    <!-- Видео фон для сюжетов -->
-    <div id="video-background" class="video-background hidden">
-      <video id="background-video" autoplay muted loop>
-        <!-- Видео будет загружено динамически -->
-      </video>
-      <div class="video-overlay">
-        <div class="story-content">
-          <!-- Сюжетный контент поверх видео -->
+    <!-- Модальное окно сюжета с видео фоном -->
+    <div id="story-modal" class="modal story-modal">
+      <div class="modal-content story-modal-content">
+        <div class="story-header">
+          <h3 id="story-title">Сюжет</h3>
+          <div class="story-controls">
+            <button id="toggle-audio" class="btn btn-secondary audio-btn">
+              <span class="audio-icon">🔊</span>
+            </button>
+            <button id="close-story" class="btn btn-secondary">✕</button>
+          </div>
+        </div>
+        <div class="story-body">
+          <div id="story-content">
+            <!-- Сюжет будет загружен динамически -->
+          </div>
+        </div>
+        <div class="story-footer">
+          <button id="story-next" class="btn btn-primary">Далее</button>
         </div>
       </div>
-      <button id="close-video" class="btn btn-secondary video-close-btn">✕</button>
     </div>
-
-    <!-- Аудио элемент для фоновой музыки -->
-    <audio id="horror-audio" loop>
-      <source src="../../politics/horror.mp3" type="audio/mpeg">
-    </audio>
   </div>
 
   <script src="world-government-stories.js"></script>
