@@ -22,6 +22,7 @@ class WorldGovernmentQuest {
     
     // Аудио система
     this.isAudioEnabled = true;
+    this.audioStarted = false;
     
     // Оптимизация: используем requestAnimationFrame для плавных анимаций
     this.animationFrameId = null;
