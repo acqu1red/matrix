@@ -1031,6 +1031,24 @@ body {
     width: 95vw;
     padding: var(--spacing-lg);
     max-height: 85vh;
+    max-width: none;
+  }
+  
+  .rewards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .reward-item {
+    padding: var(--spacing-sm);
+    min-width: 0;
+    width: 100%;
+  }
+  
+  .reward-amount {
+    font-size: 14px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   .btn {

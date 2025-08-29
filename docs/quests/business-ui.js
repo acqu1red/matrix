@@ -398,16 +398,27 @@ class BusinessQuestUI {
   
   // Запуск квеста
   startQuest() {
+    console.log('🚀 Запуск квеста...');
+    
+    // Скрываем модальное окно
     if (this.elements.introModal) {
-      this.elements.introModal.classList.remove('show');
+      this.elements.introModal.style.display = 'none';
+      console.log('✅ Модальное окно скрыто');
     }
     
+    // Показываем основной контент квеста
     if (this.elements.questContent) {
       this.elements.questContent.style.display = 'block';
+      console.log('✅ Контент квеста показан');
     }
     
-    this.showToast('Квест начался! Выберите нишу для бизнеса.', 'info');
+    // Обновляем прогресс
     this.updateProgress();
+    
+    // Показываем уведомление
+    this.showToast('Квест начался! Выберите нишу для бизнеса.', 'success');
+    
+    console.log('🎯 Квест успешно запущен');
   }
   
   // Переход к следующему этапу
