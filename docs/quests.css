@@ -201,7 +201,7 @@ html {
   padding: 12px 16px;
   background: rgba(88, 84, 91, 0.2);
   border: 2px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 15px;
   font-weight: 600;
   transition: all 0.3s ease;
   color: var(--text-primary);
@@ -224,17 +224,17 @@ html {
 }
 
 .currency-icon, .level-icon {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .currency-amount {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--accent-primary);
 }
 
 .currency-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -242,13 +242,13 @@ html {
 }
 
 .level-text {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--accent-primary);
   font-weight: 600;
 }
 
 .level-progress {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   background: rgba(28, 37, 44, 0.2);
   padding: 2px 6px;
@@ -470,54 +470,6 @@ html {
     gap: 16px;
     padding: 16px;
   }
-  
-  /* Мобильные стили для кнопок MULACOIN и уровня */
-  .currency-bar {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 15px;
-    padding: 15px;
-  }
-  
-  .currency-info {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .mulacoin-btn {
-    margin-right: auto;
-  }
-  
-  .level-btn {
-    margin-left: auto;
-  }
-  
-  .mulacoin-display, .level-display {
-    min-width: 100px;
-    padding: 10px 14px;
-    font-size: 14px;
-  }
-  
-  .currency-icon, .level-icon {
-    font-size: 18px;
-  }
-  
-  .currency-amount {
-    font-size: 14px;
-  }
-  
-  .currency-label {
-    font-size: 10px;
-  }
-  
-  .level-text {
-    font-size: 12px;
-  }
-  
-  .level-progress {
-    font-size: 10px;
-  }
 }
 
 .card {
@@ -592,6 +544,20 @@ html {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 20px;
+}
+
+.card:hover .label {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  border-radius: 25px;
+  padding: 6px 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(246, 242, 246, 0.3);
+  transform: scale(1.05);
 }
 
 .card h3 {
@@ -1251,13 +1217,16 @@ html {
     margin: 12px;
   }
   
+  .heroCopy h2 {
+    font-size: 24px;
+  }
+  
   .hero-stats {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 20px;
   }
   
   .stat-number {
-    font-size: 20px;
+    font-size: 28px;
   }
   
   .case-section {
@@ -1280,14 +1249,36 @@ html {
   }
   
   .currency-info {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 15px;
+    align-items: center;
   }
   
   .mulacoin-display, .level-display {
-    min-width: auto;
-    width: 100%;
+    min-width: 100px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .currency-icon, .level-icon {
+    font-size: 18px;
+  }
+  
+  .currency-amount {
+    font-size: 14px;
+  }
+  
+  .currency-label {
+    font-size: 10px;
+  }
+  
+  .level-text {
+    font-size: 12px;
+  }
+  
+  .level-progress {
+    font-size: 10px;
   }
   
   .card {
@@ -1350,6 +1341,54 @@ html {
   
   .levels-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Мобильные стили для кнопок MULACOIN и уровня */
+  .currency-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .currency-info {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .mulacoin-btn {
+    margin-right: auto;
+  }
+  
+  .level-btn {
+    margin-left: auto;
+  }
+  
+  .mulacoin-display, .level-display {
+    min-width: 100px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .currency-icon, .level-icon {
+    font-size: 18px;
+  }
+  
+  .currency-amount {
+    font-size: 14px;
+  }
+  
+  .currency-label {
+    font-size: 10px;
+  }
+  
+  .level-text {
+    font-size: 12px;
+  }
+  
+  .level-progress {
+    font-size: 10px;
   }
 }
 
