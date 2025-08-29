@@ -415,15 +415,105 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    cursor: grab;
   }
   
   .sector {
     touch-action: none;
+    cursor: pointer;
   }
   
   .character-card.dragging {
     transform: scale(1.1) rotate(5deg);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: none !important;
+  }
+  
+  .character-card.touch-active {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(246, 242, 246, 0.3);
+    transition: all 0.2s ease;
+  }
+  
+  .sector.drag-over {
+    border-color: var(--accent-primary);
+    background: rgba(246, 242, 246, 0.2);
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(246, 242, 246, 0.6);
+    transition: all 0.3s ease;
+  }
+  
+  /* Улучшенные touch-зоны */
+  .character-card {
+    min-height: 60px;
+    padding: 25px;
+  }
+  
+  .sector {
+    min-width: 80px;
+    padding: 12px;
+  }
+  
+  /* Визуальная обратная связь для touch */
+  .character-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  .sector:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Улучшенные стили для drag & drop */
+.character-card.dragging {
+  opacity: 0.8;
+  transform: rotate(5deg) scale(1.1);
+  z-index: 100;
+  transition: none !important;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  cursor: grabbing;
+}
+
+.sector.drag-over {
+  border-color: var(--accent-primary);
+  background: rgba(246, 242, 246, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(246, 242, 246, 0.6);
+  transition: all 0.3s ease;
+}
+
+/* Анимации для touch взаимодействий */
+@keyframes touchPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.character-card.touch-active {
+  animation: touchPulse 0.3s ease;
+}
+
+/* Улучшенные hover эффекты для мобильных */
+@media (hover: hover) {
+  .character-card:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .sector:hover {
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 20px rgba(246, 242, 246, 0.5);
+    transform: scale(1.05);
   }
 }
 

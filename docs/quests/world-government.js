@@ -515,8 +515,8 @@ class WorldGovernmentQuest {
     characterCard.addEventListener('dragend', this.dragDropHandlers.characterCard.dragEndHandler);
     
     // Добавляем обработчики для touch устройств
-    characterCard.addEventListener('touchstart', this.dragDropHandlers.characterCard.touchStartHandler);
-    characterCard.addEventListener('touchmove', this.dragDropHandlers.characterCard.touchMoveHandler);
+    characterCard.addEventListener('touchstart', this.dragDropHandlers.characterCard.touchStartHandler, { passive: false });
+    characterCard.addEventListener('touchmove', this.dragDropHandlers.characterCard.touchMoveHandler, { passive: false });
     characterCard.addEventListener('touchend', this.dragDropHandlers.characterCard.touchEndHandler);
     
     // Добавляем обработчик клика для показа деталей
@@ -528,6 +528,11 @@ class WorldGovernmentQuest {
       sector.addEventListener('drop', (e) => this.handleDrop(e));
       sector.addEventListener('dragenter', (e) => this.handleDragEnter(e));
       sector.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+      
+      // Добавляем touch обработчики для секторов
+      sector.addEventListener('touchstart', (e) => this.handleSectorTouchStart(e));
+      sector.addEventListener('touchmove', (e) => this.handleSectorTouchMove(e), { passive: false });
+      sector.addEventListener('touchend', (e) => this.handleSectorTouchEnd(e));
       
       // Добавляем обработчик клика для показа списка членов
       sector.addEventListener('click', (e) => this.handleSectorClick(e));
@@ -574,9 +579,14 @@ class WorldGovernmentQuest {
   }
 
   handleTouchStart(e) {
+    e.preventDefault();
     this.touchStartX = e.touches[0].clientX;
     this.touchStartY = e.touches[0].clientY;
     this.touchStartTime = Date.now();
+    this.isDragging = false;
+    
+    // Добавляем класс для визуальной обратной связи
+    e.currentTarget.classList.add('touch-active');
   }
 
   handleTouchMove(e) {
@@ -588,10 +598,15 @@ class WorldGovernmentQuest {
     const deltaY = touchY - this.touchStartY;
     
     // Если движение достаточно большое, считаем это drag операцией
-    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+    if (Math.abs(deltaX) > 15 || Math.abs(deltaY) > 15) {
       e.preventDefault();
+      this.isDragging = true;
       this.draggedElement = e.currentTarget;
       e.currentTarget.classList.add('dragging');
+      
+      // Показываем визуальную обратную связь
+      e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+      e.currentTarget.style.opacity = '0.8';
     }
   }
 
@@ -601,16 +616,74 @@ class WorldGovernmentQuest {
     const touchEndTime = Date.now();
     const touchDuration = touchEndTime - this.touchStartTime;
     
-    // Если касание было коротким, это клик
-    if (touchDuration < 200) {
+    // Убираем визуальные эффекты
+    e.currentTarget.classList.remove('touch-active', 'dragging');
+    e.currentTarget.style.transform = '';
+    e.currentTarget.style.opacity = '';
+    
+    // Если это был drag, а не клик
+    if (this.isDragging) {
+      // Находим сектор под пальцем
+      const touch = e.changedTouches[0];
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const sector = elementBelow?.closest('.sector');
+      
+      if (sector) {
+        const sectorType = sector.getAttribute('data-sector');
+        const characterId = this.draggedElement.getAttribute('data-character-id');
+        
+        if (sectorType && characterId) {
+          this.assignCharacterToSector(characterId, sectorType);
+        }
+      }
+    } else if (touchDuration < 200) {
+      // Если касание было коротким, это клик
       this.handleCharacterClick(e);
     }
     
-    this.draggedElement.classList.remove('dragging');
+    // Сбрасываем состояние
     this.draggedElement = null;
     this.touchStartX = null;
     this.touchStartY = null;
     this.touchStartTime = null;
+    this.isDragging = false;
+  }
+
+  // Touch обработчики для секторов
+  handleSectorTouchStart(e) {
+    e.preventDefault();
+    this.sectorTouchStartX = e.touches[0].clientX;
+    this.sectorTouchStartY = e.touches[0].clientY;
+    this.sectorTouchStartTime = Date.now();
+  }
+
+  handleSectorTouchMove(e) {
+    if (!this.sectorTouchStartX) return;
+    
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+    const deltaX = touchX - this.sectorTouchStartX;
+    const deltaY = touchY - this.sectorTouchStartY;
+    
+    // Если движение достаточно большое, предотвращаем скролл
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      e.preventDefault();
+    }
+  }
+
+  handleSectorTouchEnd(e) {
+    const touchEndTime = Date.now();
+    const touchDuration = touchEndTime - this.sectorTouchStartTime;
+    
+    // Если касание было коротким, это клик
+    if (touchDuration < 200) {
+      this.handleSectorClick(e);
+    }
+    
+    // Сбрасываем состояние
+    this.sectorTouchStartX = null;
+    this.sectorTouchStartY = null;
+    this.sectorTouchStartTime = null;
   }
 
   handleCharacterClick(e) {
