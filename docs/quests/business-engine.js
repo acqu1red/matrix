@@ -101,7 +101,8 @@ class BusinessQuestEngine {
 
   // Найм кандидата на должность
   hireCandidate(candidateId, positionId) {
-    const candidate = this.candidates.find(c => c.id === candidateId);
+    const numericId = Number(candidateId);
+    const candidate = this.candidates.find(c => c.id === numericId);
     const position = this.getPositionById(positionId);
     
     if (candidate && position && this.canHireCandidate(candidate, position)) {
@@ -133,18 +134,9 @@ class BusinessQuestEngine {
 
   // Проверка возможности найма кандидата
   canHireCandidate(candidate, position) {
-    // Проверяем, что должность свободна
-    if (this.gameState.hiredTeam[position.id]) {
-      return false;
-    }
-    
-    // Проверяем, что у кандидата есть нужные навыки
-    const requiredSkills = position.requiredSkills || [];
-    const candidateSkills = candidate.skills || [];
-    
-    return requiredSkills.every(skill => 
-      candidateSkills.includes(skill)
-    );
+    // должность должна быть свободна, и роль кандидата должна совпадать с id должности
+    if (this.gameState.hiredTeam[position.id]) return false;
+    return (candidate.role === position.id);
   }
 
   // Получение должности по ID
@@ -570,15 +562,7 @@ class BusinessQuestEngine {
   getCandidatesForPosition(positionId) {
     const position = this.getPositionById(positionId);
     if (!position) return [];
-    
-    return this.candidates.filter(candidate => {
-      const requiredSkills = position.requiredSkills || [];
-      const candidateSkills = candidate.skills || [];
-      
-      return requiredSkills.every(skill => 
-        candidateSkills.includes(skill)
-      );
-    });
+    return this.candidates.filter(candidate => candidate.role === positionId);
   }
 
   // Получение статистики команды

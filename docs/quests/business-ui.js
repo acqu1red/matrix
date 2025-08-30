@@ -230,7 +230,7 @@ class BusinessQuestUI {
       this.dragOverPosition = positionSlot;
       
       // Показываем красивое уведомление вверху экрана
-      this.showDragNotification('Отпустите для найма кандидата');
+      this.showDragNotification('Отпустите для найма работника');
     }
   }
 
@@ -239,7 +239,7 @@ class BusinessQuestUI {
     e.preventDefault();
     
     if (this.draggedCandidate && this.dragOverPosition === positionSlot) {
-      const candidateId = this.draggedCandidate.dataset.candidateId;
+      const candidateId = Number(this.draggedCandidate.dataset.candidateId);
       const positionId = positionSlot.dataset.position;
       
       // Проверяем, что позиция свободна
@@ -272,6 +272,7 @@ class BusinessQuestUI {
     if (this.dragOverPosition === positionSlot) {
       positionSlot.classList.remove('drag-over');
       this.dragOverPosition = null;
+      this.hideDragNotification();
     }
   }
 
@@ -442,7 +443,8 @@ class BusinessQuestUI {
 
   // Получение данных кандидата
   getCandidateData(candidateId) {
-    return this.engine.candidates.find(c => c.id === candidateId) || {};
+    const id = Number(candidateId);
+    return this.engine.candidates.find(c => c.id === id) || {};
   }
 
   // Выбор ниши
@@ -522,7 +524,7 @@ class BusinessQuestUI {
     }
     
     // Увеличиваем индекс кандидата
-    if (!this.currentCandidateIndex) {
+    if (typeof this.currentCandidateIndex !== 'number') {
       this.currentCandidateIndex = 0;
     } else {
       this.currentCandidateIndex = (this.currentCandidateIndex + 1) % availableCandidates.length;
@@ -739,8 +741,9 @@ class BusinessQuestUI {
   // Инициализация этапа найма команды
   initializeTeamHiring() {
     // Инициализируем индекс кандидата
-    if (!this.currentCandidateIndex) {
-      this.currentCandidateIndex = 0;
+    if (typeof this.currentCandidateIndex !== 'number') {
+      // ставим -1, чтобы первый вызов showNextCandidate показал индекс 0
+      this.currentCandidateIndex = -1;
     }
     
     // Показываем первого кандидата
@@ -752,7 +755,8 @@ class BusinessQuestUI {
 
   // Найм кандидата на должность
   hireCandidate(candidateId, positionId) {
-    const candidate = this.engine.candidates.find(c => c.id === candidateId);
+    const numericId = Number(candidateId);
+    const candidate = this.engine.candidates.find(c => c.id === numericId);
     const position = this.getPositionById(positionId);
     
     if (candidate && position && this.canHireCandidate(candidate, position)) {
@@ -860,18 +864,11 @@ class BusinessQuestUI {
 
   // Проверка возможности найма кандидата
   canHireCandidate(candidate, position) {
-    // Проверяем, что должность свободна
+    // должность должна быть свободна и роль кандидата должна совпадать с id должности
     if (this.engine.gameState.hiredTeam[position.id]) {
       return false;
     }
-    
-    // Проверяем, что у кандидата есть нужные навыки
-    const requiredSkills = position.requiredSkills || [];
-    const candidateSkills = candidate.skills || [];
-    
-    return requiredSkills.every(skill => 
-      candidateSkills.includes(skill)
-    );
+    return candidate.role === position.id;
   }
 
   // Получение должности по ID
