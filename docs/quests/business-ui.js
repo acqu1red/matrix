@@ -163,6 +163,20 @@ class BusinessQuestUI {
     });
   }
 
+  // Настройка drag & drop для текущего кандидата
+  setupCurrentCandidateDrag() {
+    const currentCandidateCard = document.querySelector('.current-candidate .candidate-card');
+    if (!currentCandidateCard) return;
+    
+    currentCandidateCard.addEventListener('dragstart', (e) => {
+      this.handleDragStart(e, currentCandidateCard);
+    });
+    
+    currentCandidateCard.addEventListener('dragend', (e) => {
+      this.handleDragEnd(e);
+    });
+  }
+
   // Настройка drop зон для должностей
   setupPositionDrop() {
     const positionSlots = document.querySelectorAll('.position-slot');
@@ -211,7 +225,7 @@ class BusinessQuestUI {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     
-    if (this.draggedCandidate && !positionSlot.dataset.occupied === 'true') {
+    if (this.draggedCandidate && positionSlot.dataset.occupied !== 'true') {
       positionSlot.classList.add('drag-over');
       this.dragOverPosition = positionSlot;
     }
@@ -228,9 +242,10 @@ class BusinessQuestUI {
       // Проверяем, что позиция свободна
       if (positionSlot.dataset.occupied === 'false') {
         // Нанимаем кандидата
-        if (this.engine.hireCandidate(candidateId, positionId)) {
+        if (this.hireCandidate(candidateId, positionId)) {
           this.renderHiredCandidate(positionSlot, this.draggedCandidate);
           this.updateConfirmTeamButton();
+          this.showNextCandidate(); // Показываем следующего кандидата
           this.showToast('Кандидат успешно нанят!', 'success');
         } else {
           this.showToast('Не удалось нанять кандидата', 'error');
@@ -456,11 +471,15 @@ class BusinessQuestUI {
     const currentCandidate = this.getNextCandidate();
     if (currentCandidate) {
       this.renderCurrentCandidate(currentCandidate);
+      this.showToast('Новый кандидат готов к рассмотрению', 'info');
     } else {
       // Если нет доступных кандидатов, показываем случайного из всех 50
       const randomCandidate = this.getRandomCandidate();
       if (randomCandidate) {
         this.renderCurrentCandidate(randomCandidate);
+        this.showToast('Показываем случайного кандидата', 'info');
+      } else {
+        this.showToast('Нет доступных кандидатов', 'warning');
       }
     }
   }
@@ -468,12 +487,13 @@ class BusinessQuestUI {
   // Получение следующего кандидата
   getNextCandidate() {
     const availableCandidates = this.getAvailableCandidates();
+    
+    // Если нет доступных кандидатов, возвращаем случайного из всех 50
     if (availableCandidates.length === 0) {
-      // Если нет доступных кандидатов, возвращаем случайного из всех
       return this.getRandomCandidate();
     }
     
-    // Простая логика - берем следующего по кругу
+    // Увеличиваем индекс кандидата
     if (!this.currentCandidateIndex) {
       this.currentCandidateIndex = 0;
     } else {
@@ -498,20 +518,29 @@ class BusinessQuestUI {
     if (!currentCandidateContainer) return;
     
     currentCandidateContainer.innerHTML = `
-      <div class="candidate-avatar">${candidate.avatar || '👤'}</div>
-      <div class="candidate-name">${candidate.name || 'Неизвестный'}</div>
-      <div class="candidate-specialty">${candidate.specialty || 'Специалист'}</div>
-      <div class="candidate-stats">
-        <div class="candidate-stat">
-          <span class="stat-label">Опыт</span>
-          <span class="stat-value">${candidate.experience || 0}</span>
+      <div class="candidate-card" data-candidate-id="${candidate.id}" draggable="true">
+        <div class="candidate-avatar">${candidate.avatar || '👤'}</div>
+        <div class="candidate-name">${candidate.name || 'Неизвестный'}</div>
+        <div class="candidate-specialty">${candidate.specialty || 'Специалист'}</div>
+        <div class="candidate-stats">
+          <div class="candidate-stat">
+            <span class="stat-label">Опыт</span>
+            <span class="stat-value">${candidate.experience || 0} лет</span>
+          </div>
+          <div class="candidate-stat">
+            <span class="stat-label">Зарплата</span>
+            <span class="stat-value">${(candidate.salary || 5000).toLocaleString()} ₽</span>
+          </div>
         </div>
-        <div class="candidate-stat">
-          <span class="stat-label">Навыки</span>
-          <span class="stat-value">${(candidate.skills || []).length}</span>
+        <div class="candidate-description">${candidate.description || 'Опытный специалист'}</div>
+        <div class="candidate-skills">
+          ${(candidate.skills || []).map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
         </div>
       </div>
     `;
+    
+    // Настраиваем drag & drop для текущего кандидата
+    this.setupCurrentCandidateDrag();
     
     // Обновляем кнопки
     this.updateCandidateButtons();
@@ -681,11 +710,16 @@ class BusinessQuestUI {
 
   // Инициализация этапа найма команды
   initializeTeamHiring() {
-    const availableCandidates = this.getAvailableCandidates();
-    if (availableCandidates.length > 0) {
+    // Инициализируем индекс кандидата
+    if (!this.currentCandidateIndex) {
       this.currentCandidateIndex = 0;
-      this.renderCurrentCandidate(availableCandidates[0]);
     }
+    
+    // Показываем первого кандидата
+    this.showNextCandidate();
+    
+    // Настраиваем drag & drop для позиций
+    this.setupPositionDrop();
   }
 
   // Найм кандидата на должность
