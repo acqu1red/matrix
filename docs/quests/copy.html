@@ -78,68 +78,6 @@
   <link rel="stylesheet" href="business-core.css" />
 </head>
 <body>
-  <!-- Информационное модальное окно -->
-  <div id="introModal" class="modal show">
-    <div class="modalContent glass">
-      <div class="modal-header">
-        <h3>🚀 Добро пожаловать в "Твой первый бизнес"</h3>
-        <p>Создайте успешный бизнес с нуля и станьте миллионером!</p>
-      </div>
-      
-      <div class="intro-content">
-        <div class="intro-section">
-          <h4>🎯 Суть квеста</h4>
-          <p>Вы — начинающий предприниматель с небольшим стартовым капиталом. Ваша цель — выбрать перспективную нишу, собрать команду профессионалов и построить прибыльный бизнес, который будет приносить стабильный доход.</p>
-        </div>
-
-        <div class="intro-section">
-          <h4>💪 Что вы прокачаете</h4>
-          <ul>
-            <li>Предпринимательское мышление и бизнес-интуицию</li>
-            <li>Навыки управления персоналом и командообразования</li>
-            <li>Финансовое планирование и бюджетирование</li>
-            <li>Стратегическое планирование и принятие решений</li>
-            <li>Понимание рыночных механизмов и конкуренции</li>
-          </ul>
-        </div>
-
-        <div class="intro-section">
-          <h4>🎮 Как играть</h4>
-          <p>Квест состоит из 4 этапов:</p>
-          <ol>
-            <li><strong>Выбор ниши</strong> — определитесь с направлением бизнеса</li>
-            <li><strong>Подбор команды</strong> — наймите лучших специалистов</li>
-            <li><strong>Управление</strong> — принимайте стратегические решения</li>
-            <li><strong>Результат</strong> — получите прибыль и опыт</li>
-          </ol>
-        </div>
-
-        <div class="rewards-section">
-          <h4>🏆 Награды за прохождение</h4>
-          <div class="rewards-grid">
-            <div class="reward-item">
-              <span class="reward-icon">🪙</span>
-              <span class="reward-amount">3 MULACOIN</span>
-            </div>
-            <div class="reward-item">
-              <span class="reward-icon">⭐</span>
-              <span class="reward-amount">200 XP</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="disclaimer">
-          <h4>⚠️ Важно</h4>
-          <p>Это обучающий симулятор. Все решения и результаты помогут вам лучше понять принципы ведения бизнеса в реальной жизни.</p>
-        </div>
-      </div>
-      
-      <div class="modal-actions">
-        <button id="startQuest" class="btn primary">🚀 Начать квест</button>
-      </div>
-    </div>
-  </div>
-
   <div id="app" class="app">
     <header class="glass topbar">
       <div class="brand">
@@ -151,23 +89,83 @@
       </div>
     </header>
 
-    <!-- Основной контент квеста -->
-    <main class="quest-content" style="display: none;">
-      <!-- Этап 1: Выбор ниши -->
-      <section id="nicheSelection" class="quest-stage active">
-        <div class="stage-header">
-          <h2>🎯 Этап 1: Выбор ниши</h2>
-          <p>Выберите направление для вашего бизнеса. От этого выбора зависит успех всего предприятия!</p>
+    <!-- Информационное модальное окно -->
+    <div id="introModal" class="modal show">
+      <div class="modalContent glass">
+        <div class="modal-header">
+          <h3>🚀 Добро пожаловать в "Твой первый бизнес"</h3>
+          <p>Создайте успешный бизнес с нуля и станьте миллионером!</p>
         </div>
         
-        <div class="niche-grid">
+        <div class="intro-content">
+          <div class="intro-section">
+            <h4>🎯 Цель квеста</h4>
+            <p>Выберите нишу бизнеса, наймите команду профессионалов и развивайте компанию до успеха!</p>
+          </div>
+          
+          <div class="intro-section">
+            <h4>📋 Этапы прохождения</h4>
+            <ol>
+              <li><strong>Выбор ниши</strong> - определитесь с направлением бизнеса</li>
+              <li><strong>Найм команды</strong> - подберите специалистов на ключевые позиции</li>
+              <li><strong>Управление</strong> - принимайте решения и развивайте бизнес</li>
+              <li><strong>Результат</strong> - достигните цели и получите награды</li>
+            </ol>
+          </div>
+          
+          <div class="intro-section">
+            <h4>💰 Награды</h4>
+            <div class="rewards-grid">
+              <div class="reward-item">
+                <span class="reward-icon">🪙</span>
+                <span class="reward-amount">50 MULACOIN</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">⭐</span>
+                <span class="reward-amount">200 XP</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="disclaimer">
+            <h4>⚠️ Важно</h4>
+            <p>Каждое решение влияет на успех вашего бизнеса. Выбирайте с умом!</p>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button id="startQuest" class="btn primary">Начать квест</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Основной контент квеста -->
+    <main class="quest-content">
+      <!-- Этап 1: Выбор ниши бизнеса -->
+      <section id="businessNiche" class="quest-stage">
+        <div class="stage-header">
+          <h2>🎯 Выберите нишу для вашего бизнеса</h2>
+          <p>Каждая ниша имеет свои особенности, риски и потенциал роста</p>
+        </div>
+        
+        <div class="niches-grid">
           <div class="niche-card" data-niche="marketplace">
             <div class="niche-icon">🛒</div>
             <h3>Онлайн-маркетплейс</h3>
             <p>Платформа для продажи товаров с комиссией</p>
-            <div class="niche-stats">
-              <span class="stat">Риск: Средний</span>
-              <span class="stat">Потенциал: Высокий</span>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">25,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+180%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-high">Высокая</span>
+              </div>
             </div>
           </div>
           
@@ -175,9 +173,19 @@
             <div class="niche-icon">🍔</div>
             <h3>Ресторан быстрого питания</h3>
             <p>Заведение с доставкой и самовывозом</p>
-            <div class="niche-stats">
-              <span class="stat">Риск: Низкий</span>
-              <span class="stat">Потенциал: Средний</span>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">35,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+85%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-medium">Средняя</span>
+              </div>
             </div>
           </div>
           
@@ -185,218 +193,230 @@
             <div class="niche-icon">💻</div>
             <h3>SaaS платформа</h3>
             <p>Программное обеспечение как услуга</p>
-            <div class="niche-stats">
-              <span class="stat">Риск: Высокий</span>
-              <span class="stat">Потенциал: Очень высокий</span>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">20,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+220%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-very-high">Очень высокая</span>
+              </div>
             </div>
           </div>
           
           <div class="niche-card" data-niche="agency">
             <div class="niche-icon">📱</div>
             <h3>Digital-агентство</h3>
-            <p>Цифровой маркетинг и разработка</p>
-            <div class="niche-stats">
-              <span class="stat">Риск: Средний</span>
-              <span class="stat">Потенциал: Высокий</span>
+            <p>Услуги цифрового маркетинга</p>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">22,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+160%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-high">Высокая</span>
+              </div>
             </div>
           </div>
         </div>
         
         <div class="stage-actions">
-          <button id="selectNiche" class="btn primary" disabled>Выбрать нишу</button>
+          <button id="confirmNiche" class="btn primary" disabled>Подтвердить выбор</button>
         </div>
       </section>
 
-      <!-- Этап 2: Подбор команды -->
-      <section id="teamSelection" class="quest-stage">
+      <!-- Этап 2: Найм команды -->
+      <section id="teamHiring" class="quest-stage">
         <div class="stage-header">
-          <h2>👥 Этап 2: Подбор команды</h2>
-          <p>Теперь нужно собрать команду профессионалов. Перетаскивайте кандидатов в нужные позиции!</p>
+          <h2>👥 Соберите команду профессионалов</h2>
+          <p>Перетащите кандидатов на соответствующие должности</p>
         </div>
         
-        <div class="team-selection-container">
-          <!-- Левая часть: кандидаты и кнопка пропуска -->
-          <div class="left-panel">
-            <div class="candidates-section">
-              <h3>🎯 Кандидаты</h3>
-              <div class="candidates-grid">
-                <!-- Кандидаты будут добавлены динамически -->
+        <div class="hiring-container">
+          <!-- Доступные должности -->
+          <div class="positions-section">
+            <h3>📋 Требуемые должности</h3>
+            <div class="positions-grid">
+              <div class="position-slot" data-position="tech" data-occupied="false">
+                <div class="position-icon">💻</div>
+                <div class="position-info">
+                  <h4>Технический директор</h4>
+                  <p>Управление разработкой и IT</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+              
+              <div class="position-slot" data-position="marketing" data-occupied="false">
+                <div class="position-icon">📢</div>
+                <div class="position-info">
+                  <h4>Маркетинг-директор</h4>
+                  <p>Продвижение и реклама</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+              
+              <div class="position-slot" data-position="finance" data-occupied="false">
+                <div class="position-icon">💰</div>
+                <div class="position-info">
+                  <h4>Финансовый директор</h4>
+                  <p>Управление финансами</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+              
+              <div class="position-slot" data-position="operations" data-occupied="false">
+                <div class="position-icon">⚙️</div>
+                <div class="position-info">
+                  <h4>Операционный директор</h4>
+                  <p>Управление процессами</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
               </div>
             </div>
-            
-            <button id="skipTeam" class="btn secondary skip-btn">
-              <span class="skip-icon">⏭️</span>
-              Пропустить
-            </button>
           </div>
           
-          <!-- Правая часть: должности -->
-          <div class="right-panel">
-            <h3>🏢 Должности</h3>
-            <div class="positions-grid">
-              <div class="position-slot" data-position="tech">
-                <div class="position-title">Технолог</div>
-                <div class="position-requirements">
-                  <span>Разработка</span>
-                  <span>Инновации</span>
-                </div>
-                <div class="candidate-drop-zone" data-position="tech">
-                  <div class="drop-hint">Перетащите кандидата сюда</div>
-                </div>
-              </div>
-              
-              <div class="position-slot" data-position="marketing">
-                <div class="position-title">Маркетолог</div>
-                <div class="position-requirements">
-                  <span>Креативность</span>
-                  <span>Аналитика</span>
-                </div>
-                <div class="candidate-drop-zone" data-position="marketing">
-                  <div class="drop-hint">Перетащите кандидата сюда</div>
-                </div>
-              </div>
-              
-              <div class="position-slot" data-position="operations">
-                <div class="position-title">Операционщик</div>
-                <div class="position-requirements">
-                  <span>Организация</span>
-                  <span>Эффективность</span>
-                </div>
-                <div class="candidate-drop-zone" data-position="operations">
-                  <div class="drop-hint">Перетащите кандидата сюда</div>
-                </div>
-              </div>
-              
-              <div class="position-slot" data-position="finance">
-                <div class="position-title">Финансист</div>
-                <div class="position-requirements">
-                  <span>Математика</span>
-                  <span>Планирование</span>
-                </div>
-                <div class="candidate-drop-zone" data-position="finance">
-                  <div class="drop-hint">Перетащите кандидата сюда</div>
-                </div>
-              </div>
-              
-              <div class="position-slot" data-position="sales">
-                <div class="position-title">Продажник</div>
-                <div class="position-requirements">
-                  <span>Коммуникация</span>
-                  <span>Убеждение</span>
-                </div>
-                <div class="candidate-drop-zone" data-position="sales">
-                  <div class="drop-hint">Перетащите кандидата сюда</div>
-                </div>
-              </div>
-              
-              <div class="position-slot" data-position="creative">
-                <div class="position-title">Креативщик</div>
-                <div class="position-requirements">
-                  <span>Дизайн</span>
-                  <span>Идеи</span>
-                </div>
-                <div class="candidate-drop-zone" data-position="creative">
-                  <div class="drop-hint">Перетащите кандидата сюда</div>
-                </div>
-              </div>
+          <!-- Кандидаты -->
+          <div class="candidates-section">
+            <h3>👤 Доступные кандидаты</h3>
+            <div class="candidates-grid">
+              <!-- Кандидаты будут добавлены динамически -->
             </div>
           </div>
         </div>
         
         <div class="stage-actions">
-          <button id="completeTeam" class="btn primary" disabled>Завершить подбор</button>
+          <button id="confirmTeam" class="btn primary" disabled>Подтвердить команду</button>
         </div>
       </section>
 
       <!-- Этап 3: Управление бизнесом -->
       <section id="businessManagement" class="quest-stage">
         <div class="stage-header">
-          <h2>⚡ Этап 3: Управление бизнесом</h2>
-          <p>Принимайте стратегические решения и управляйте развитием вашего предприятия!</p>
+          <h2>📊 Управление вашим бизнесом</h2>
+          <p>Принимайте решения и следите за результатами</p>
         </div>
         
         <div class="business-dashboard">
           <div class="business-stats">
             <div class="stat-card">
               <div class="stat-icon">💰</div>
-              <div class="stat-value" id="revenue">0 ₽</div>
-              <div class="stat-label">Доход</div>
+              <div class="stat-info">
+                <span class="stat-label">Капитал</span>
+                <span class="stat-value" id="capitalValue">50,000 ₽</span>
+              </div>
             </div>
             
             <div class="stat-card">
               <div class="stat-icon">📈</div>
-              <div class="stat-value" id="growth">0%</div>
-              <div class="stat-label">Рост</div>
+              <div class="stat-info">
+                <span class="stat-label">Доход</span>
+                <span class="stat-value" id="revenueValue">0 ₽</span>
+              </div>
             </div>
             
             <div class="stat-card">
               <div class="stat-icon">👥</div>
-              <div class="stat-value" id="teamSize">0</div>
-              <div class="stat-label">Команда</div>
+              <div class="stat-info">
+                <span class="stat-label">Команда</span>
+                <span class="stat-value" id="teamSize">0/4</span>
+              </div>
             </div>
             
             <div class="stat-card">
-              <div class="stat-icon">⭐</div>
-              <div class="stat-value" id="reputation">0</div>
-              <div class="stat-label">Репутация</div>
+              <div class="stat-icon">🎯</span>
+              <div class="stat-info">
+                <span class="stat-label">Прогресс</span>
+                <span class="stat-value" id="progressValue">0%</span>
+              </div>
             </div>
           </div>
           
-          <div class="decision-cards">
-            <h3>🎯 Принять решение</h3>
-            <div class="decisions-grid">
-              <!-- Решения будут добавлены динамически -->
+          <div class="business-actions">
+            <h3>🎯 Доступные действия</h3>
+            <div class="actions-grid">
+              <button class="action-btn" data-action="marketing">
+                <span class="action-icon">📢</span>
+                <span class="action-text">Маркетинг</span>
+              </button>
+              
+              <button class="action-btn" data-action="development">
+                <span class="action-icon">💻</span>
+                <span class="action-text">Разработка</span>
+              </button>
+              
+              <button class="action-btn" data-action="finance">
+                <span class="action-icon">💰</span>
+                <span class="action-text">Финансы</span>
+              </button>
+              
+              <button class="action-btn" data-action="operations">
+                <span class="action-icon">⚙️</span>
+                <span class="action-text">Операции</span>
+              </button>
             </div>
           </div>
         </div>
         
         <div class="stage-actions">
-          <button id="nextQuarter" class="btn primary">Следующий квартал</button>
+          <button id="nextMonth" class="btn primary">Следующий месяц</button>
         </div>
       </section>
 
       <!-- Этап 4: Результаты -->
-      <section id="results" class="quest-stage">
+      <section id="questResults" class="quest-stage">
         <div class="stage-header">
-          <h2>🏆 Этап 4: Результаты</h2>
-          <p>Время подвести итоги и получить заслуженные награды!</p>
+          <h2>🏆 Результаты вашего бизнеса</h2>
+          <p>Посмотрите, как вы справились с задачей!</p>
         </div>
         
         <div class="results-summary">
           <div class="result-card success">
             <div class="result-icon">🎉</div>
             <h3>Поздравляем!</h3>
-            <p>Вы успешно создали и развили свой бизнес!</p>
+            <p>Вы успешно создали и развили бизнес!</p>
           </div>
           
           <div class="final-stats">
             <h3>📊 Итоговая статистика</h3>
             <div class="stats-grid">
-              <div class="stat-item">
-                <span class="stat-label">Финальный доход</span>
-                <span class="stat-value" id="finalRevenue">0 ₽</span>
+              <div class="final-stat">
+                <span class="stat-label">Финальный капитал</span>
+                <span class="stat-value" id="finalCapital">0 ₽</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">Размер команды</span>
-                <span class="stat-value" id="finalTeamSize">0</span>
+              
+              <div class="final-stat">
+                <span class="stat-label">Общий доход</span>
+                <span class="stat-value" id="totalRevenue">0 ₽</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">Репутация</span>
-                <span class="stat-value" id="finalReputation">0</span>
+              
+              <div class="final-stat">
+                <span class="stat-label">Рост бизнеса</span>
+                <span class="stat-value" id="businessGrowth">0%</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">Общий рост</span>
-                <span class="stat-value" id="finalGrowth">0%</span>
+              
+              <div class="final-stat">
+                <span class="stat-label">Качество команды</span>
+                <span class="stat-value" id="teamQuality">0%</span>
               </div>
             </div>
           </div>
           
-          <div class="rewards-display">
-            <h3>🎁 Награды</h3>
+          <div class="rewards-section">
+            <h3>🎁 Награды за прохождение</h3>
             <div class="rewards-list">
               <div class="reward-item">
                 <span class="reward-icon">🪙</span>
-                <span class="reward-text">+3 MULACOIN</span>
+                <span class="reward-text">+50 MULACOIN</span>
               </div>
               <div class="reward-item">
                 <span class="reward-icon">⭐</span>
@@ -415,25 +435,9 @@
         </div>
       </section>
     </main>
-
-    <!-- Toast уведомления -->
-    <div id="toast" class="toast"></div>
-
-    <!-- Прогресс-бар -->
-    <div class="quest-progress">
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-      <div class="progress-steps">
-        <div class="step active" data-step="1">1</div>
-        <div class="step" data-step="2">2</div>
-        <div class="step" data-step="3">3</div>
-        <div class="step" data-step="4">4</div>
-      </div>
-    </div>
   </div>
 
-  <!-- Подключение скриптов -->
+  <!-- Скрипты -->
   <script src="business-data.js"></script>
   <script src="business-engine.js"></script>
   <script src="business-ui.js"></script>
