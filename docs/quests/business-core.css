@@ -178,6 +178,10 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
+.modal:not(.show) {
+  display: none;
+}
+
 .modalContent {
   background: rgba(88, 84, 91, 0.98);
   border: 2px solid var(--border-color);
@@ -209,11 +213,128 @@ body {
   font-size: 16px;
 }
 
+/* Контент модального окна */
+.intro-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0 4px;
+  margin-bottom: 24px;
+}
+
+.intro-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.intro-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.intro-section h4 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intro-section p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.intro-section ul, .intro-section ol {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  padding-left: 20px;
+}
+
+.intro-section li {
+  margin-bottom: 4px;
+}
+
+.disclaimer {
+  background: rgba(88, 84, 91, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.disclaimer h4 {
+  color: var(--accent-warning);
+  margin-bottom: 8px;
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(88, 84, 91, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.reward-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.reward-amount {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-actions .btn {
+  min-width: 200px;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-md);
+}
+
+.modal-actions .btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
 /* Контент квеста */
 .quest-content {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  display: none; /* По умолчанию скрыт */
+}
+
+.quest-content.show {
+  display: block;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .quest-stage {

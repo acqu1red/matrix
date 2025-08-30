@@ -474,15 +474,22 @@ class BusinessQuestUI {
     // Скрываем модальное окно
     if (this.elements.introModal) {
       this.elements.introModal.classList.remove('show');
+      this.elements.introModal.style.display = 'none';
     }
     
     // Показываем контент квеста
     if (this.elements.questContent) {
       this.elements.questContent.style.display = 'block';
+      this.elements.questContent.classList.add('show');
     }
     
     // Переходим к первому этапу
     this.engine.setStage(0);
+    
+    // Обновляем UI
+    this.renderCurrentStage();
+    
+    console.log('🚀 Квест запущен!');
   }
 
   // Возврат назад
