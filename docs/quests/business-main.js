@@ -149,3 +149,13 @@ document.addEventListener('visibilitychange', function() {
 });
 
 console.log('📱 Бизнес-квест готов к работе!');
+
+
+// Надёжный делегированный обработчик (fallback)
+document.addEventListener('click', function(ev) {
+  const t = ev.target;
+  if (t && t.id === 'startQuest' && window.businessUI && typeof window.businessUI.startQuest === 'function') {
+    ev.preventDefault();
+    window.businessUI.startQuest();
+  }
+}, { capture: true });
