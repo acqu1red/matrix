@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>Оплата — Мини-приложение</title>
+<title>Заявка на подписку — Мини-приложение</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -297,7 +297,7 @@
 </head>
 <body>
 <header>
-  <h1>💳 Оплата доступа
+  <h1>📝 Заявка на подписку
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
       <line x1="1" y1="10" x2="23" y2="10"/>
@@ -316,7 +316,7 @@
       </div>
       <div class="content-block">
         <div class="content-text">Ты сделал верный выбор.</div>
-        <div class="content-text">Выбери тариф по стоимости подписки на Формулу:</div>
+        <div class="content-text">Выбери тариф для заявки на подписку Формула:</div>
       </div>
       <div class="tariff-grid">
         <div class="tariff-option" data-tariff="1_month" data-price="790" data-periodicity="MONTHLY">
@@ -361,7 +361,7 @@
         </div>
       </div>
       <div class="content-block">
-        <div class="content-text"><em>*цена в долларах/евро конвертируется по нынешнему курсу</em><br><em>*оплачивай любой картой в долларах/евро/рублях, бот сконвертирует сам</em></div>
+        <div class="content-text"><em>*выберите подходящий тариф для заявки</em><br><em>*администратор свяжется с вами для уточнения деталей оплаты</em></div>
       </div>
     </div>
 
@@ -374,8 +374,8 @@
       </div>
       <div class="tariff-title-block"><div class="tariff-badge">ВЫБРАН</div><div class="tariff-title-text" id="selectedTariffTitle">ФОРМУЛА / 1 месяц</div></div>
       <div class="content-block">
-        <div class="content-text"><em>*если вы из Украины, включите VPN</em><br><em>*при оплате картой — оформляется автосписание каждые 30 дней</em><br><em>*далее — вы сможете управлять подпиской в Меню</em></div>
-        <div class="content-text">Теперь тебе осталось выбрать способ оплаты (банк):</div>
+        <div class="content-text"><em>*выберите предпочитаемый способ оплаты</em><br><em>*администратор свяжется с вами для уточнения деталей</em><br><em>*после подтверждения — вы получите доступ к закрытому каналу</em></div>
+        <div class="content-text">Теперь тебе осталось выбрать предпочитаемый способ оплаты:</div>
       </div>
       <div class="payment-methods">
         <div class="payment-method" data-method="card" data-bank="russian">
@@ -395,11 +395,11 @@
         <div class="progress-step active"></div>
         <div class="progress-step"></div>
       </div>
-      <div class="tariff-title-block"><div class="tariff-badge">ТОВАР</div><div class="tariff-title-text" id="productTitle">ФОРМУЛА / 1 мес.</div></div>
+      <div class="tariff-title-block"><div class="tariff-badge">ТАРИФ</div><div class="tariff-title-text" id="productTitle">ФОРМУЛА / 1 мес.</div></div>
       <div class="content-block">
-        <div class="content-text"><strong>Наименование товара</strong><br><span id="productNameText">ФОРМУЛА / 1 мес.</span></div>
+        <div class="content-text"><strong>Выбранный тариф</strong><br><span id="productNameText">ФОРМУЛА / 1 мес.</span></div>
         <div class="form-group">
-          <label class="form-label">Метод оплаты</label>
+          <label class="form-label">Предпочитаемый способ оплаты</label>
           <div class="payment-method-display"><div class="payment-icon">💳</div><div class="payment-info"><div class="payment-title" id="bankTitle">Банк РФ</div><div class="payment-subtitle" id="bankSubtitle">Любая банковская карта</div></div></div>
         </div>
         <div class="form-group">
@@ -407,7 +407,7 @@
           <input type="email" class="form-input" id="userEmail" placeholder="example@email.com" required>
           <div id="emailError" class="error" style="display:none;">Введите корректный email</div>
         </div>
-        <div class="content-text"><strong>Стоимость</strong><br><span id="finalPrice">790 RUB</span></div>
+        <div class="content-text"><strong>Стоимость подписки</strong><br><span id="finalPrice">790 RUB</span></div>
       </div>
       <div class="button-group"><button class="btn btn-primary" id="toConfirmBtn">Далее</button><button class="btn btn-secondary" onclick="goToStep(2)">Назад</button></div>
     </div>
@@ -421,13 +421,13 @@
       </div>
       <div class="content-block" id="summaryBlock">
         <div class="content-text">Убедитесь, что введённые данные верны:</div>
-        <div class="summary-item"><span class="summary-label">Наименование товара</span><span class="summary-value" id="confirmProductName">ФОРМУЛА / 1 мес.</span></div>
-        <div class="summary-item"><span class="summary-label">Метод оплаты</span><span class="summary-value" id="confirmPaymentMethod">Банк РФ</span></div>
+        <div class="summary-item"><span class="summary-label">Выбранный тариф</span><span class="summary-value" id="confirmProductName">ФОРМУЛА / 1 мес.</span></div>
+        <div class="summary-item"><span class="summary-label">Способ оплаты</span><span class="summary-value" id="confirmPaymentMethod">Банк РФ</span></div>
         <div class="summary-item"><span class="summary-label">Ваш E-mail</span><span class="summary-value" id="confirmEmail">example@email.com</span></div>
-        <div class="summary-item"><span class="summary-label">Стоимость</span><span class="summary-value" id="confirmPrice">790 RUB</span></div>
+        <div class="summary-item"><span class="summary-label">Стоимость подписки</span><span class="summary-value" id="confirmPrice">790 RUB</span></div>
         <div id="apiError" class="error" style="margin-top:8px;"></div>
       </div>
-      <div class="button-group" id="payBtnGroup"><button class="btn btn-primary" id="payBtn">Оплатить</button><button class="btn btn-secondary" onclick="goToStep(3)">Назад</button></div>
+      <div class="button-group" id="payBtnGroup"><button class="btn btn-primary" id="payBtn">Отправить заявку</button><button class="btn btn-secondary" onclick="goToStep(3)">Назад</button></div>
     </div>
   </div>
 </main>
@@ -525,40 +525,92 @@ function validateEmail(email){ return !!email && email.includes('@') && email.in
 function goToStep(step){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(`step${step}`).classList.add('active'); updateProgress(step); state.currentStep=step; }
 function updateProgress(step){ const dots=document.querySelectorAll('.progress-step'); dots.forEach((d,i)=>{d.classList.remove('active','completed'); if(i+1<step) d.classList.add('completed'); else if(i+1===step) d.classList.add('active');}); }
 
-async function createAndOpenInvoice(){
-  const apiBase = "https://formulaprivate-production.up.railway.app";
-  const btn = document.getElementById('payBtn');
-  const apiError = document.getElementById('apiError'); apiError.textContent='';
+async function createAndOpenInvoice(){9:16  const btn = document.getElementById('payBtn');
+  const apiError = document.getElementById('apiError'); 
+  apiError.textContent='';
 
   if(!state.selectedPaymentMethod) state.selectedPaymentMethod='card';
   if(!state.selectedBank) state.selectedBank='russian';
   if(!state.selectedTariff){ alert('Выберите тариф'); goToStep(1); return; }
   if(!validateEmail(state.userEmail)){ alert('Введите корректный email'); goToStep(3); return; }
 
-  const tariffCode = 'basic';
-  const telegram_id = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id : null;
-  const username = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) ? tg.initDataUnsafe.user.username : null;
-  const init_data = tg ? tg.initData : null;
-
-  const payload = { 
-    email: state.userEmail, 
-    tariff: tariffCode, 
-    bank: state.selectedBank, 
-    telegram_id, 
-    username, 
-    init_data,
-    periodicity: state.selectedPeriodicity
-  };
-
   try{
-    btn.disabled = true; btn.textContent = "Создание счёта...";
-    const r = await fetch(apiBase + "/api/pay/create", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
-    const resp = await r.json();
-    if(!resp.ok) throw new Error(resp.error || "Ошибка API");
-    if(!resp.payment_url) throw new Error("Не получена ссылка на оплату");
-    window.location.href = resp.payment_url;
-  }catch(e){
-    console.error(e); apiError.textContent = "❌ " + e.message; btn.disabled=false; btn.textContent="Оплатить";
+    btn.disabled = true; 
+    btn.textContent = "Отправка запроса...";
+    
+    // Получаем данные пользователя из Telegram
+    const telegram_id = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id : null;
+    const username = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) ? tg.initDataUnsafe.user.username : null;
+    
+    if (!telegram_id) {
+      throw new Error("Не удалось получить ID пользователя Telegram");
+    }
+
+    // Формируем сообщение для пользователя
+    const tariffName = state.tariffNames[state.selectedTariff] || 'Базовый';
+    const price = document.getElementById('finalPrice').textContent;
+    const periodicity = state.selectedPeriodicity;
+    
+    const message = `🎯 *ЗАЯВКА НА ПОДПИСКУ ФОРМУЛА*\n\n` +
+                   `📋 *Тариф:* ${tariffName}\n` +
+                   `💰 *Стоимость:* ${price}\n` +
+                   `📅 *Периодичность:* ${periodicity}\n` +
+                   `🏦 *Банк:* ${state.selectedBank === 'russian' ? 'Банк РФ' : 'Иностранный банк'}\n` +
+                   `📧 *Email:* ${state.userEmail}\n\n` +
+                   `👤 *Пользователь:* @${username || 'Не указан'}\n` +
+                   `🆔 *Telegram ID:* ${telegram_id}\n\n` +
+                   `✅ Ваша заявка принята! Администратор свяжется с вами в ближайшее время для оформления подписки.`;
+
+    // Отправляем сообщение пользователю через Telegram Bot API
+    const botToken = '7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc';
+    const chatId = telegram_id;
+    
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Ошибка отправки сообщения');
+    }
+
+    // Показываем успешное сообщение
+    btn.textContent = "✅ Заявка отправлена!";
+    btn.style.background = "#4CAF50";
+    
+    // Сохраняем заявку в localStorage для истории
+    const application = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      tariff: tariffName,
+      price: price,
+      periodicity: periodicity,
+      bank: state.selectedBank === 'russian' ? 'Банк РФ' : 'Иностранный банк',
+      email: state.userEmail,
+      status: 'pending'
+    };
+    
+    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+    applications.push(application);
+    localStorage.setItem('applications', JSON.stringify(applications));
+    
+    // Показываем уведомление об успехе
+    setTimeout(() => {
+      alert('🎉 Ваша заявка успешно отправлена! Администратор свяжется с вами в ближайшее время.');
+    }, 500);
+
+  } catch(e){
+    console.error(e); 
+    apiError.textContent = "❌ " + e.message; 
+    btn.disabled = false; 
+    btn.textContent = "Оплатить";
   }
 }
 </script>

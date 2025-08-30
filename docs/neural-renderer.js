@@ -1,4 +1,4 @@
-// Модуль рендеринга с оптимизированной отрисовкой
+// Модуль рендеринга с оптимизированной отрисовкойизменил 
 class NeuralRenderer {
   constructor(canvas) {
     this.canvas = canvas;
