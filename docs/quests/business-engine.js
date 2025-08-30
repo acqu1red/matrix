@@ -353,6 +353,64 @@ class BusinessQuestEngine {
     this.emit('finalCalculated', outcome);
     return outcome;
   }
+
+
+  initialize() {
+    // Доп. инициализация: подхват сохранений и вычисление derived-статов
+    try { this.loadProgress(); } catch(e) {}
+    this.updateBusinessStats();
+    this.emit('initialized', this.gameState);
+    return true;
+  }
+
+
+
+  getGameState() {
+    return this.gameState;
+  }
+
+
+
+  getTeamStats() {
+    const team = this.gameState.hiredTeam;
+    const count = Object.keys(team).length;
+    const roles = Object.keys(team);
+    return { count, roles };
+  }
+
+
+
+  getQuestProgress() {
+    const current = this.gameState.currentStage + 1;
+    const total = this.stages.length;
+    return { current, total, stageId: this.getCurrentStage() };
+  }
+
+
+
+  resetQuest() {
+    this.gameState = {
+      currentStage: 0,
+      selectedNiche: null,
+      hiredTeam: {},
+      businessStats: {
+        capital: 50000,
+        revenue: 0,
+        expenses: 0,
+        profit: 0,
+        month: 1,
+        maxMonths: 12
+      },
+      isRunning: false,
+      isCompleted: false,
+      passiveBusiness: null,
+      eventsLog: []
+    };
+    this.saveProgress();
+    this.emit('stageChanged', this.getCurrentStage());
+    return true;
+  }
+
 }
 
 /* Экспорт для использования в других модулях */
