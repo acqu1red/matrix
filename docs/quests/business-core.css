@@ -1328,20 +1328,34 @@ body {
   position: relative;
 }
 
-.drag-over::before {
-  content: 'Отпустите для найма';
-  position: absolute;
-  top: 50%;
+/* Красивое уведомление вверху экрана */
+.drag-notification {
+  position: fixed;
+  top: 20px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(81, 207, 102, 0.9);
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(81, 207, 102, 0.95), rgba(76, 175, 80, 0.95));
   color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  z-index: 1001;
-  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 8px 32px rgba(81, 207, 102, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .drop-zone {

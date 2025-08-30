@@ -228,6 +228,9 @@ class BusinessQuestUI {
     if (this.draggedCandidate && positionSlot.dataset.occupied !== 'true') {
       positionSlot.classList.add('drag-over');
       this.dragOverPosition = positionSlot;
+      
+      // Показываем красивое уведомление вверху экрана
+      this.showDragNotification('Отпустите для найма кандидата');
     }
   }
 
@@ -243,7 +246,8 @@ class BusinessQuestUI {
       if (positionSlot.dataset.occupied === 'false') {
         // Нанимаем кандидата
         if (this.hireCandidate(candidateId, positionId)) {
-          this.renderHiredCandidate(positionSlot, this.draggedCandidate);
+          // Обновляем позицию как занятую
+          positionSlot.dataset.occupied = 'true';
           this.updateConfirmTeamButton();
           this.showNextCandidate(); // Показываем следующего кандидата
           this.showToast('Кандидат успешно нанят!', 'success');
@@ -281,6 +285,30 @@ class BusinessQuestUI {
     if (this.dragOverPosition) {
       this.dragOverPosition.classList.remove('drag-over');
       this.dragOverPosition = null;
+    }
+    
+    // Скрываем уведомление о перетаскивании
+    this.hideDragNotification();
+  }
+
+  // Показать уведомление о перетаскивании
+  showDragNotification(message) {
+    // Удаляем предыдущее уведомление если есть
+    this.hideDragNotification();
+    
+    const notification = document.createElement('div');
+    notification.className = 'drag-notification';
+    notification.textContent = message;
+    notification.id = 'dragNotification';
+    
+    document.body.appendChild(notification);
+  }
+
+  // Скрыть уведомление о перетаскивании
+  hideDragNotification() {
+    const notification = document.getElementById('dragNotification');
+    if (notification) {
+      notification.remove();
     }
   }
 
