@@ -6,15 +6,15 @@ class BusinessQuestEngine {
     this.stages = ['businessNiche', 'teamHiring', 'businessManagement', 'questResults'];
 
     // Данные (кандидаты и позиции) могут приходить из business-data.js; подстрахуемся дефолтами
-    this.candidates = Array.isArray(window?.BUSINESS_CANDIDATES) ? window.BUSINESS_CANDIDATES : [];
-    this.positions  = Array.isArray(window?.BUSINESS_POSITIONS)  ? window.BUSINESS_POSITIONS  : [
+    this.candidates = Array.isArray(window.BUSINESS_CANDIDATES) ? window.BUSINESS_CANDIDATES : [];
+    this.positions  = Array.isArray(window.BUSINESS_POSITIONS)  ? window.BUSINESS_POSITIONS  : [
       { id: 'marketing',  title: 'Маркетинг' },
       { id: 'sales',      title: 'Продажи' },
       { id: 'tech',       title: 'Технологии' },
       { id: 'finance',    title: 'Финансы' },
       { id: 'operations', title: 'Операции' }
     ];
-    this.niches     = Array.isArray(window?.BUSINESS_NICHES) ? window.BUSINESS_NICHES : [
+    this.niches     = Array.isArray(window.BUSINESS_NICHES) ? window.BUSINESS_NICHES : [
       { id: 'onlinestore', name: 'Онлайн-магазин', metrics: { monthlyRevenue: 5000, monthlyExpenses: 3000 } },
       { id: 'fitness', name: 'Фитнес-клуб', metrics: { monthlyRevenue: 7000, monthlyExpenses: 4500 } },
       { id: 'apps', name: 'MiniApps студия', metrics: { monthlyRevenue: 9000, monthlyExpenses: 6000 } }
@@ -142,7 +142,7 @@ class BusinessQuestEngine {
 
   calculateSalary(candidate, position) {
     const base = 4000;
-    const bonus = candidate?.level ? candidate.level * 500 : 0;
+    const bonus = (candidate && candidate.level ? candidate.level * 500 : 0);
     return base + bonus;
   }
 
@@ -161,11 +161,10 @@ class BusinessQuestEngine {
     const candidate = this.candidates.find(c => c.id === candidateId);
     const position = this.getPositionById(positionId);
     if (candidate && position && this.canHireCandidate(candidate, position)) {
-      this.gameState.hiredTeam[positionId] = {
-        ...candidate,
+      this.gameState.hiredTeam[positionId] = Object.assign({}, candidate, {
         hiredAt: this.gameState.businessStats.month,
         salary: this.calculateSalary(candidate, position)
-      };
+      });
       this.saveProgress();
       this.emit('candidateHired', { candidate, position });
       return true;
