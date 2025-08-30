@@ -525,7 +525,8 @@ function validateEmail(email){ return !!email && email.includes('@') && email.in
 function goToStep(step){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active')); document.getElementById(`step${step}`).classList.add('active'); updateProgress(step); state.currentStep=step; }
 function updateProgress(step){ const dots=document.querySelectorAll('.progress-step'); dots.forEach((d,i)=>{d.classList.remove('active','completed'); if(i+1<step) d.classList.add('completed'); else if(i+1===step) d.classList.add('active');}); }
 
-async function createAndOpenInvoice(){9:16  const btn = document.getElementById('payBtn');
+async function createAndOpenInvoice() {
+  const btn = document.getElementById('payBtn');
   const apiError = document.getElementById('apiError'); 
   apiError.textContent='';
 
