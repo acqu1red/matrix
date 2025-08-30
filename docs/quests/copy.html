@@ -85,6 +85,7 @@
         <div class="badge">Предприниматель</div>
       </div>
       <div class="actions">
+        <button id="btnMyBusiness" class="btn ghost">Мой бизнес</button>
         <button id="btnBack" class="btn ghost">← Назад</button>
       </div>
     </header>
@@ -411,6 +412,7 @@
             </div>
           </div>
           
+          <div class="results-actions"><button id="sellBusiness" class="btn primary">Продать бизнес</button> <button id="passiveBusiness" class="btn">Включить пассивный доход (+10 MULACOIN/день)</button></div>
           <div class="rewards-section">
             <h3>🎁 Награды за прохождение</h3>
             <div class="rewards-list">
@@ -434,6 +436,26 @@
           <button id="finishQuest" class="btn primary">Завершить квест</button>
         </div>
       </section>
+    
+      <!-- Мой бизнес (для пассивного дохода) -->
+      <section id="myBusiness" class="quest-stage">
+        <div class="stage-header">
+          <h2>🏦 Мой бизнес</h2>
+          <p>Состояние вашего пассивного бизнеса</p>
+        </div>
+        <div class="business-dashboard">
+          <div class="business-stats">
+            <div class="stat-card"><div class="stat-icon">🪙</div><div class="stat-info"><span class="stat-label">Всего заработано</span><span class="stat-value" id="passiveTotal">0 MULACOIN</span></div></div>
+            <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-info"><span class="stat-label">Дней в работе</span><span class="stat-value" id="passiveDays">0</span></div></div>
+            <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-info"><span class="stat-label">Статус</span><span class="stat-value" id="passiveStatus">Активен</span></div></div>
+          </div>
+          <div class="events-timeline">
+            <h3>🧯 Проблемы и события</h3>
+            <ul id="passiveIssues" class="events-list"></ul>
+          </div>
+        </div>
+      </section>
+    
     </main>
   </div>
 

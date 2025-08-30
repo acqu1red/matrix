@@ -1430,21 +1430,10 @@ body {
   }
 }
 
-/* Отступы и оформление тегов навыков у кандидатов */
-.candidate-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 12px;
-}
 
-.skill-tag {
-  padding: 6px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: rgba(88, 84, 91, 0.2);
-  font-size: 12px;
-  line-height: 1;
-  white-space: nowrap;
-}
+/* Автовыбор ниши: кнопку подтверждения прячем */
+#confirmNiche { display: none !important; }
+
+/* Секция 'Мой бизнес' */
+#myBusiness .events-list { list-style: none; padding: 0; }
+#myBusiness .events-list li { margin: 6px 0; opacity: 0.9; }

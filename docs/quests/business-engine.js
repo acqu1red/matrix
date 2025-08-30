@@ -15,7 +15,9 @@ class BusinessQuestEngine {
         maxMonths: 12
       },
       isRunning: false,
-      isCompleted: false
+      isCompleted: false,
+      passiveBusiness: null,
+      eventsLog: []
     };
     
     this.stages = [
@@ -99,10 +101,16 @@ class BusinessQuestEngine {
     return this.gameState.selectedNiche;
   }
 
-  // Найм кандидата на должность
+  
+  // Запуск бизнеса
+  startBusiness() {
+    this.gameState.isRunning = true;
+    this.saveProgress();
+    this.emit('businessStarted', null);
+  }
+// Найм кандидата на должность
   hireCandidate(candidateId, positionId) {
-    const numericId = Number(candidateId);
-    const candidate = this.candidates.find(c => c.id === numericId);
+    const candidate = this.candidates.find(c => c.id === candidateId);
     const position = this.getPositionById(positionId);
     
     if (candidate && position && this.canHireCandidate(candidate, position)) {
@@ -134,9 +142,12 @@ class BusinessQuestEngine {
 
   // Проверка возможности найма кандидата
   canHireCandidate(candidate, position) {
-    // должность должна быть свободна, и роль кандидата должна совпадать с id должности
-    if (this.gameState.hiredTeam[position.id]) return false;
-    return (candidate.role === position.id);
+    // Разрешаем нанимать любого кандидата на любую должность, если слот свободен
+    if (this.gameState.hiredTeam[position.id]) {
+      return false;
+    }
+    return true;
+  }
   }
 
   // Получение должности по ID
@@ -508,7 +519,9 @@ class BusinessQuestEngine {
         maxMonths: 12
       },
       isRunning: false,
-      isCompleted: false
+      isCompleted: false,
+      passiveBusiness: null,
+      eventsLog: []
     };
     
     this.saveProgress();
@@ -560,9 +573,10 @@ class BusinessQuestEngine {
 
   // Получение доступных кандидатов для должности
   getCandidatesForPosition(positionId) {
-    const position = this.getPositionById(positionId);
-    if (!position) return [];
-    return this.candidates.filter(candidate => candidate.role === positionId);
+    // Возвращаем всех кандидатов, которые еще не наняты на любую позицию
+    const hiredIds = Object.values(this.gameState.hiredTeam).map(c => c.id);
+    return this.candidates.filter(c => !hiredIds.includes(c.id));
+  });
   }
 
   // Получение статистики команды
@@ -596,6 +610,128 @@ class BusinessQuestEngine {
     };
   }
 }
+
+  // Оценка совместимости команды: +1 за совпадение роли, -1 за несоответствие
+  evaluateTeamCompatibility() {
+    const team = this.gameState.hiredTeam || {};
+    let score = 0;
+    Object.entries(team).forEach(([positionId, employee]) => {
+      score += (employee.role === positionId) ? 1 : -1;
+    });
+    return score;
+  }
+
+  // Генерация одного сюжетного события
+  generateMonthlyEvent() {
+    if (!this.gameState.isRunning) return null;
+    const score = this.evaluateTeamCompatibility();
+    const negative = score < 0;
+    const id = 'evt_' + Date.now();
+    const title = negative ? '🔥 Незапланированный кризис' : '✨ Возможность для рывка';
+    const description = negative
+      ? 'Слабое соответствие ролей в команде вылилось в проблему. Как отреагируете?'
+      : 'Сильные компетенции команды открыли шанс ускорить рост. Как использовать?';
+    const choices = negative
+      ? [{id:'a', text:'Потушить кризис деньгами (-5000 ₽)'},
+         {id:'b', text:'Перераспределить обязанности (риск уронить качество)'}]
+      : [{id:'a', text:'Инвестировать в масштабирование (-3000 ₽, шанс +доход)'},
+         {id:'b', text:'Осторожно протестировать (меньше риск, меньше выгода)'}];
+    const outcomes = {
+      a: negative
+        ? { deltaCapital:-5000, deltaRevenue:+0, toast:'Кризис погашен деньгами' }
+        : { deltaCapital:-3000, deltaRevenue:+(2000+Math.floor(Math.random()*3000)), toast:'Сделали шаг к росту' },
+      b: negative
+        ? { deltaCapital:0, deltaRevenue:-(1000+Math.floor(Math.random()*2000)), toast:'Качество просело' }
+        : { deltaCapital:0, deltaRevenue:+(800+Math.floor(Math.random()*1200)), toast:'Аккуратный тест дал эффект' }
+    };
+    const event = { id, title, description, choices, outcomes };
+    this.gameState.eventsLog.push({ id, month:this.gameState.businessStats.month, title, negative });
+    this.saveProgress();
+    return event;
+  }
+
+  applyEventChoice(eventId, choiceId) {
+    const month = this.gameState.businessStats.month;
+    const eventLog = (this.gameState.eventsLog || []).find(e=>e.id===eventId);
+    if (!eventLog) return false;
+    // Воспользуемся шаблоном текущего месяца для простоты
+    const tmp = this.generateMonthlyEvent();
+    if (!tmp) return false;
+    const outcome = tmp.outcomes?.[choiceId];
+    if (!outcome) return false;
+    this.gameState.businessStats.capital += outcome.deltaCapital || 0;
+    this.gameState.businessStats.revenue += outcome.deltaRevenue || 0;
+    this.updateBusinessStats();
+    this.saveProgress();
+    this.emit('eventResolved', {eventId, choiceId, outcome, month, negative: eventLog.negative});
+    return true;
+  }
+
+  calculateSalePrice() {
+    const cap = this.gameState.businessStats.capital || 0;
+    const base = Math.max(50, Math.min(1000, Math.floor(cap / 1000)));
+    return base;
+  }
+
+  completeSale(price) {
+    this.gameState.isCompleted = true;
+    this.gameState.isRunning = false;
+    this.gameState.salePrice = price;
+    this.saveProgress();
+    this.emit('questCompleted', { sale: price });
+    return true;
+  }
+
+  async enablePassiveBusiness() {
+    const now = new Date();
+    const crisisDays = 7 + Math.floor(Math.random()*8); // 7-14 дней
+    const pb = {
+      startedAt: now.toISOString(),
+      perDay: 10,
+      totalEarned: 0,
+      issues: [],
+      crisisAt: new Date(now.getTime() + crisisDays*24*3600*1000).toISOString(),
+      isInCrisis: false
+    };
+    this.gameState.passiveBusiness = pb;
+    this.saveProgress();
+
+    try {
+      if (window?.supabase && window?.SUPABASE_URL && window?.SUPABASE_KEY) {
+        const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+        await client.from('businesses').upsert({
+          user_id: window.USER_ID || null,
+          started_at: pb.startedAt,
+          per_day: pb.perDay,
+          total_earned: pb.totalEarned,
+          crisis_at: pb.crisisAt,
+          is_in_crisis: pb.isInCrisis,
+          issues: pb.issues
+        });
+      }
+    } catch (e) {
+      console.warn('Supabase недоступен, используется локальное сохранение', e);
+    }
+    this.emit('passiveEnabled', pb);
+    return true;
+  }
+
+  generatePassiveIncome() {
+    const pb = this.gameState.passiveBusiness;
+    if (!pb) return;
+    const days = Math.floor((Date.now() - new Date(pb.startedAt).getTime()) / (1000*60*60*24));
+    const expected = days * (pb.perDay || 10);
+    const delta = expected - (pb.totalEarned || 0);
+    if (delta > 0) {
+      pb.totalEarned = expected;
+    }
+    if (!pb.isInCrisis && Date.now() > new Date(pb.crisisAt).getTime()) {
+      pb.isInCrisis = true;
+      pb.issues = pb.issues || [];
+      pb.issues.push({ when: new Date().toISOString(), text: 'Кризис ликвидности: падение спроса и рост расходов' });
+    }
+    this.saveProgress();
+  }
 
 // Экспорт для использования в других модулях
 window.BusinessQuestEngine = BusinessQuestEngine;
