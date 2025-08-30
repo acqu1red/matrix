@@ -201,6 +201,9 @@ class BusinessQuestUI {
     
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', candidateCard.outerHTML);
+    
+    // Автоматическое перемещение камеры к блокам должностей
+    this.scrollToPositions();
   }
 
   // Обработка перетаскивания над drop зоной
@@ -222,10 +225,18 @@ class BusinessQuestUI {
       const candidateId = this.draggedCandidate.dataset.candidateId;
       const positionId = positionSlot.dataset.position;
       
-      // Нанимаем кандидата
-      if (this.engine.hireCandidate(candidateId, positionId)) {
-        this.renderHiredCandidate(positionSlot, this.draggedCandidate);
-        this.updateConfirmTeamButton();
+      // Проверяем, что позиция свободна
+      if (positionSlot.dataset.occupied === 'false') {
+        // Нанимаем кандидата
+        if (this.engine.hireCandidate(candidateId, positionId)) {
+          this.renderHiredCandidate(positionSlot, this.draggedCandidate);
+          this.updateConfirmTeamButton();
+          this.showToast('Кандидат успешно нанят!', 'success');
+        } else {
+          this.showToast('Не удалось нанять кандидата', 'error');
+        }
+      } else {
+        this.showToast('Эта позиция уже занята', 'warning');
       }
     }
     
@@ -255,6 +266,18 @@ class BusinessQuestUI {
     if (this.dragOverPosition) {
       this.dragOverPosition.classList.remove('drag-over');
       this.dragOverPosition = null;
+    }
+  }
+
+  // Автоматическое перемещение камеры к блокам должностей
+  scrollToPositions() {
+    const positionsSection = document.querySelector('.positions-section');
+    if (positionsSection) {
+      positionsSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'center'
+      });
     }
   }
 
@@ -434,14 +457,21 @@ class BusinessQuestUI {
     if (currentCandidate) {
       this.renderCurrentCandidate(currentCandidate);
     } else {
-      this.showToast('Больше кандидатов нет', 'info');
+      // Если нет доступных кандидатов, показываем случайного из всех 50
+      const randomCandidate = this.getRandomCandidate();
+      if (randomCandidate) {
+        this.renderCurrentCandidate(randomCandidate);
+      }
     }
   }
 
   // Получение следующего кандидата
   getNextCandidate() {
     const availableCandidates = this.getAvailableCandidates();
-    if (availableCandidates.length === 0) return null;
+    if (availableCandidates.length === 0) {
+      // Если нет доступных кандидатов, возвращаем случайного из всех
+      return this.getRandomCandidate();
+    }
     
     // Простая логика - берем следующего по кругу
     if (!this.currentCandidateIndex) {
@@ -451,6 +481,15 @@ class BusinessQuestUI {
     }
     
     return availableCandidates[this.currentCandidateIndex];
+  }
+
+  // Получение случайного кандидата из всех 50
+  getRandomCandidate() {
+    const allCandidates = this.engine.candidates;
+    if (allCandidates.length === 0) return null;
+    
+    const randomIndex = Math.floor(Math.random() * allCandidates.length);
+    return allCandidates[randomIndex];
   }
 
   // Рендер текущего кандидата
@@ -849,6 +888,94 @@ class BusinessQuestUI {
     if (totalRevenueElement) totalRevenueElement.textContent = `${results.totalRevenue.toLocaleString()} ₽`;
     if (businessGrowthElement) businessGrowthElement.textContent = `${results.businessGrowth}%`;
     if (teamQualityElement) teamQualityElement.textContent = `${results.teamQuality}%`;
+    
+    // Обновляем историю завершения
+    this.renderEndingStory(results);
+    
+    // Обновляем награды
+    this.renderRewards(results.rewards);
+    
+    // Начисляем награды пользователю
+    this.awardRewards(results.rewards);
+  }
+
+  // Рендер истории завершения
+  renderEndingStory(results) {
+    const resultCard = document.querySelector('.result-card');
+    if (resultCard && results.story) {
+      resultCard.innerHTML = `
+        <div class="result-icon">${this.getEndingIcon(results.endingType)}</div>
+        <h3>${results.story.title}</h3>
+        <p>${results.story.description}</p>
+        <div class="story-details">
+          <h4>Достижения:</h4>
+          <ul>
+            ${results.story.details.map(detail => `<li>${detail}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+  }
+
+  // Получение иконки для типа завершения
+  getEndingIcon(endingType) {
+    const icons = {
+      legendary: '🏆',
+      successful: '🎉',
+      moderate: '📈',
+      average: '⚖️',
+      failure: '💔'
+    };
+    return icons[endingType] || '🎯';
+  }
+
+  // Рендер наград
+  renderRewards(rewards) {
+    const rewardsSection = document.querySelector('.rewards-section');
+    if (rewardsSection && rewards) {
+      rewardsSection.innerHTML = `
+        <h3>🎁 Награды за прохождение</h3>
+        <div class="rewards-list">
+          <div class="reward-item">
+            <span class="reward-icon">🪙</span>
+            <span class="reward-text">+${rewards.mulacoin} MULACOIN</span>
+          </div>
+          <div class="reward-item">
+            <span class="reward-icon">⭐</span>
+            <span class="reward-text">+${rewards.experience} XP</span>
+          </div>
+          <div class="reward-item">
+            <span class="reward-icon">🏆</span>
+            <span class="reward-text">Достижение "${rewards.achievement}"</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Начисление наград пользователю
+  awardRewards(rewards) {
+    if (!rewards) return;
+    
+    // Получаем текущие данные пользователя
+    let userData = JSON.parse(localStorage.getItem('userData') || '{"mulacoin": 0, "exp": 0, "level": 1}');
+    
+    // Начисляем награды
+    userData.mulacoin += rewards.mulacoin;
+    userData.exp += rewards.experience;
+    
+    // Проверяем повышение уровня
+    const newLevel = Math.floor(userData.exp / 100) + 1;
+    if (newLevel > userData.level) {
+      userData.level = newLevel;
+      this.showToast(`🎉 Поздравляем! Вы достигли ${newLevel} уровня!`, 'success');
+    }
+    
+    // Сохраняем обновленные данные
+    localStorage.setItem('userData', JSON.stringify(userData));
+    
+    // Показываем уведомление о наградах
+    this.showToast(`🎁 Получено: ${rewards.mulacoin} MULACOIN и ${rewards.experience} XP!`, 'success');
   }
 
   // Показ toast уведомления
