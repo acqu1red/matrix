@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CASE • заработок × психология</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./case.css" />
+
+  <!-- Telegram WebApp SDK (fallback-loaded if missing) -->
+  <script>
+    (function ensureTG(){
+      if(!(window.Telegram && window.Telegram.WebApp)) {
+        var s=document.createElement('script');
+        s.src="https://telegram.org/js/telegram-web-app.js";
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="topbar bw-glass">
+      <div class="brand">
+        <div class="spark"></div>
+        <div class="titles">
+          <h1>CASE</h1>
+          <p>заработок × психология</p>
+        </div>
+      </div>
+
+      <div class="wallet">
+        <div class="pill" id="mulacoinPill" title="Ваш баланс">
+          <span class="ico">🪙</span><span id="mulacoinAmount">0</span><span class="unit">MULACOIN</span>
+        </div>
+        <div class="pill" id="spinsPill" title="Доступные спины">
+          <span class="ico">🎯</span><span id="spinsCount">1</span><span class="unit">SPIN</span>
+        </div>
+        <button class="btn ghost" id="btnPrizes">Призы</button>
+        <button class="btn primary" id="btnBuy">Купить спин · 50 🪙</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- рулетка -->
+      <section class="roulette bw-glass">
+        <div class="headline">
+          <h2>Психология выигрыша</h2>
+          <p>15 секунд скорости → 5 секунд замедления → честная остановка по стрелке.</p>
+        </div>
+
+        <div class="stage">
+          <!-- Препенджим слева фрагмент, чтобы движение вправо не раскрывалось пустотой -->
+          <div class="track" id="track"></div>
+          <!-- стрелка снизу по центру -->
+          <div class="pointer" aria-hidden="true"></div>
+        </div>
+
+        <div class="controls">
+          <button id="btnSpin" class="btn huge">Крутить 15 cек</button>
+          <button id="btnHistory" class="btn ghost">История</button>
+        </div>
+
+        <audio id="kazik" preload="auto">
+          <source src="./assets/photovideo/kazik.mp3" type="audio/mpeg" />
+        </audio>
+      </section>
+
+      <!-- Лента промокодов -->
+      <section class="feed bw-glass">
+        <div class="feed-head">
+          <h3>Лента промокодов</h3>
+          <p>Все коды и награды, полученные в рулетке. Активируйте или используйте.</p>
+        </div>
+        <div id="promoList" class="promo-list"></div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <small>Минимализм в ч/б. Фокус на принятии решений — деньги и поведение. © CASE</small>
+    </footer>
+  </div>
+
+  <!-- Модал -->
+  <div id="modal" class="modal">
+    <div class="modal-body bw-glass">
+      <button class="close" id="modalClose" aria-label="Закрыть">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./supabaseClient.js"></script>
+  <script src="./case.js"></script>
+</body>
+</html>
