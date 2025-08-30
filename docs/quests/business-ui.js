@@ -71,7 +71,7 @@ class BusinessQuestUI {
     // Обработчик кнопки выбора ниши
     const selectNicheBtn = document.getElementById('selectNiche');
     if (selectNicheBtn) {
-      selectNicheBtn.addEventListener('click', () => this.handleNicheSelection());
+      selectNicheBtn.addEventListener('click', () => this.handleSelectNiche());
     }
     
     // Обработчик завершения подбора команды
@@ -358,6 +358,19 @@ class BusinessQuestUI {
       this.engine.selectNiche(nicheId);
     }
   }
+
+  // Обработчик нажатия кнопки "Выбрать нишу"
+  handleSelectNiche() {
+    const selectedNiche = document.querySelector('.niche-card.selected');
+    if (selectedNiche) {
+      const nicheId = selectedNiche.dataset.niche;
+      this.engine.selectNiche(nicheId);
+      this.showToast(`Ниша "${nicheId}" выбрана!`, 'success');
+      this.nextStage();
+    } else {
+      this.showToast('Сначала выберите нишу!', 'error');
+    }
+  }
   
   // Обработчик завершения подбора команды
   handleTeamCompletion() {
@@ -411,6 +424,9 @@ class BusinessQuestUI {
       this.elements.questContent.style.display = 'block';
       console.log('✅ Контент квеста показан');
     }
+    
+    // Показываем первый этап квеста
+    this.showStage(1);
     
     // Обновляем прогресс
     this.updateProgress();
