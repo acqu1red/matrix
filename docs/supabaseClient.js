@@ -2,8 +2,8 @@
 // Supabase client adapted to your schema
 // Tables used: users(telegram_id,...), promocodes(code,type,value,issued_to,issued_at,status,used_at,used_by,expires_at), roulette_history(user_id,prize_type,prize_name,is_free,mulacoin_spent,won_at,promo_code_id)
 
-const SUPABASE_URL = window.__SUPABASE_URL__ || "https://YOUR-PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || "YOUR-ANON-KEY";
+const SUPABASE_URL = window.__SUPABASE_URL__ || "https://uhhsrtmmuwoxsdquimaa.supabase.co";
+const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
 
 let supabase = null;
 
