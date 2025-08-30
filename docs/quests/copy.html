@@ -239,7 +239,7 @@
       <section id="teamHiring" class="quest-stage">
         <div class="stage-header">
           <h2>👥 Соберите команду профессионалов</h2>
-          <p>Перетащите кандидатов на соответствующие должности</p>
+          <p>Выберите подходящих кандидатов для каждой должности</p>
         </div>
         
         <div class="hiring-container">
@@ -285,17 +285,17 @@
             </div>
           </div>
           
-          <!-- Кандидаты -->
-          <div class="candidates-section">
-            <h3>👤 Доступные кандидаты</h3>
-            <div class="candidates-grid">
-              <!-- Кандидаты будут добавлены динамически -->
+          <!-- Кандидат и кнопка -->
+          <div class="candidate-section">
+            <h3>👤 Текущий кандидат</h3>
+            <div class="current-candidate">
+              <!-- Кандидат будет добавлен динамически -->
+            </div>
+            <div class="candidate-actions">
+              <button id="skipCandidate" class="btn secondary">Пропустить</button>
+              <button id="launchBusiness" class="btn primary" style="display: none;">Запустить бизнес</button>
             </div>
           </div>
-        </div>
-        
-        <div class="stage-actions">
-          <button id="confirmTeam" class="btn primary" disabled>Подтвердить команду</button>
         </div>
       </section>
 
@@ -333,7 +333,7 @@
             </div>
             
             <div class="stat-card">
-              <div class="stat-icon">🎯</span>
+              <div class="stat-icon">🎯</div>
               <div class="stat-info">
                 <span class="stat-label">Прогресс</span>
                 <span class="stat-value" id="progressValue">0%</span>

@@ -483,7 +483,7 @@ body {
 }
 
 .positions-section h3,
-.candidates-section h3 {
+.candidate-section h3 {
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
@@ -550,6 +550,43 @@ body {
   border: 1px dashed var(--border-light);
 }
 
+/* Секция кандидата */
+.candidate-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.current-candidate {
+  background: rgba(88, 84, 91, 0.2);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  min-width: 280px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.candidate-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.candidate-actions .btn {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
 /* Сетка кандидатов */
 .candidates-grid {
   display: grid;
@@ -584,44 +621,131 @@ body {
   transform: rotate(5deg);
 }
 
-.candidate-avatar {
+/* Стили для нанятого кандидата */
+.hired-candidate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.hired-candidate .candidate-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), #FFA500);
+  background: linear-gradient(135deg, var(--accent-success), #51CF66);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  margin: 0 auto 12px;
+  margin-bottom: 8px;
 }
 
-.candidate-name {
-  font-size: 14px;
+.hired-candidate .candidate-info {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.hired-candidate .candidate-info h4 {
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
 
-.candidate-specialty {
+.hired-candidate .candidate-info p {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 8px;
 }
 
-.candidate-stats {
+.hired-candidate .candidate-salary {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-success);
+  background: rgba(81, 207, 102, 0.1);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-success);
+}
+
+.fire-btn {
+  background: rgba(255, 107, 107, 0.2);
+  border: 2px solid var(--accent-danger);
+  border-radius: var(--radius-sm);
+  color: var(--accent-danger);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 8px;
+}
+
+.fire-btn:hover {
+  background: rgba(255, 107, 107, 0.3);
+  transform: scale(1.05);
+}
+
+/* Стили для кандидата */
+.candidate-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary), #FFA500);
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 16px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.candidate-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.candidate-specialty {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.candidate-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
 }
 
 .candidate-stat {
-  flex: 1;
-  padding: 4px 8px;
-  background: rgba(28, 37, 44, 0.3);
+  background: rgba(88, 84, 91, 0.2);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  font-size: 10px;
-  color: var(--text-secondary);
+  padding: 12px;
+  text-align: center;
+}
+
+.candidate-stat .stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.candidate-stat .stat-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 /* Дашборд бизнеса */
@@ -893,9 +1017,8 @@ body {
     gap: 24px;
   }
   
-  .positions-grid,
-  .candidates-grid {
-    grid-template-columns: 1fr;
+  .positions-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
   
@@ -924,6 +1047,40 @@ body {
     font-size: 14px;
     min-height: 44px;
   }
+  
+  /* Мобильная версия найма команды */
+  .hiring-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .positions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .position-slot {
+    padding: 16px;
+    min-height: 100px;
+  }
+  
+  .position-info h4 {
+    font-size: 14px;
+  }
+  
+  .position-info p {
+    font-size: 11px;
+  }
+  
+  .current-candidate {
+    min-width: 100%;
+    min-height: 180px;
+    padding: 20px;
+  }
+  
+  .candidate-actions {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -940,21 +1097,26 @@ body {
   }
   
   .position-slot {
-    padding: 16px;
-    min-height: 100px;
-  }
-  
-  .candidate-card {
     padding: 12px;
+    min-height: 90px;
   }
   
-  .stat-card {
-    padding: 16px;
+  .position-info h4 {
+    font-size: 13px;
   }
   
-  .action-btn {
+  .position-info p {
+    font-size: 10px;
+  }
+  
+  .current-candidate {
     padding: 16px;
-    min-height: 80px;
+    min-height: 160px;
+  }
+  
+  .candidate-actions .btn {
+    padding: 14px 20px;
+    font-size: 14px;
   }
 }
 

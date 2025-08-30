@@ -89,10 +89,19 @@ class BusinessQuestUI {
       });
     }
     
-    // Кнопка подтверждения команды
-    if (this.elements.buttons.confirmTeam) {
-      this.elements.buttons.confirmTeam.addEventListener('click', () => {
-        this.confirmTeamSelection();
+    // Кнопка "Пропустить кандидата"
+    const skipCandidateBtn = document.getElementById('skipCandidate');
+    if (skipCandidateBtn) {
+      skipCandidateBtn.addEventListener('click', () => {
+        this.skipCandidate();
+      });
+    }
+    
+    // Кнопка "Запустить бизнес"
+    const launchBusinessBtn = document.getElementById('launchBusiness');
+    if (launchBusinessBtn) {
+      launchBusinessBtn.addEventListener('click', () => {
+        this.launchBusiness();
       });
     }
     
@@ -112,9 +121,6 @@ class BusinessQuestUI {
     
     // Выбор ниши
     this.setupNicheSelection();
-    
-    // Drag & Drop для кандидатов
-    this.setupDragAndDrop();
     
     // Бизнес-действия
     this.setupBusinessActions();
@@ -401,17 +407,94 @@ class BusinessQuestUI {
     
     if (this.engine.selectNiche(nicheId)) {
       this.engine.nextStage();
+      this.renderCurrentStage();
     }
   }
 
-  // Подтверждение выбора команды
-  confirmTeamSelection() {
+  // Пропуск кандидата
+  skipCandidate() {
+    this.showNextCandidate();
+  }
+
+  // Запуск бизнеса
+  launchBusiness() {
     const teamSize = Object.keys(this.engine.gameState.hiredTeam).length;
     
     if (teamSize >= 2) {
       this.engine.nextStage();
+      this.renderCurrentStage();
     } else {
       this.showToast('Нужно нанять минимум 2 сотрудника', 'warning');
+    }
+  }
+
+  // Показ следующего кандидата
+  showNextCandidate() {
+    const currentCandidate = this.getNextCandidate();
+    if (currentCandidate) {
+      this.renderCurrentCandidate(currentCandidate);
+    } else {
+      this.showToast('Больше кандидатов нет', 'info');
+    }
+  }
+
+  // Получение следующего кандидата
+  getNextCandidate() {
+    const availableCandidates = this.getAvailableCandidates();
+    if (availableCandidates.length === 0) return null;
+    
+    // Простая логика - берем следующего по кругу
+    if (!this.currentCandidateIndex) {
+      this.currentCandidateIndex = 0;
+    } else {
+      this.currentCandidateIndex = (this.currentCandidateIndex + 1) % availableCandidates.length;
+    }
+    
+    return availableCandidates[this.currentCandidateIndex];
+  }
+
+  // Рендер текущего кандидата
+  renderCurrentCandidate(candidate) {
+    const currentCandidateContainer = document.querySelector('.current-candidate');
+    if (!currentCandidateContainer) return;
+    
+    currentCandidateContainer.innerHTML = `
+      <div class="candidate-avatar">${candidate.avatar || '👤'}</div>
+      <div class="candidate-name">${candidate.name || 'Неизвестный'}</div>
+      <div class="candidate-specialty">${candidate.specialty || 'Специалист'}</div>
+      <div class="candidate-stats">
+        <div class="candidate-stat">
+          <span class="stat-label">Опыт</span>
+          <span class="stat-value">${candidate.experience || 0}</span>
+        </div>
+        <div class="candidate-stat">
+          <span class="stat-label">Навыки</span>
+          <span class="stat-value">${(candidate.skills || []).length}</span>
+        </div>
+      </div>
+    `;
+    
+    // Обновляем кнопки
+    this.updateCandidateButtons();
+  }
+
+  // Обновление кнопок кандидата
+  updateCandidateButtons() {
+    const skipBtn = document.getElementById('skipCandidate');
+    const launchBtn = document.getElementById('launchBusiness');
+    
+    if (skipBtn && launchBtn) {
+      const teamSize = Object.keys(this.engine.gameState.hiredTeam).length;
+      
+      if (teamSize >= 4) {
+        // Все должности заполнены
+        skipBtn.style.display = 'none';
+        launchBtn.style.display = 'block';
+      } else {
+        // Есть свободные должности
+        skipBtn.style.display = 'block';
+        launchBtn.style.display = 'none';
+      }
     }
   }
 
@@ -548,8 +631,158 @@ class BusinessQuestUI {
       this.elements.stages[currentStageId].classList.add('active');
     }
     
+    // Если это этап найма команды, показываем первого кандидата
+    if (currentStageId === 'teamHiring') {
+      this.initializeTeamHiring();
+    }
+    
     // Обновляем кнопки и состояние
     this.updateStageElements();
+  }
+
+  // Инициализация этапа найма команды
+  initializeTeamHiring() {
+    const availableCandidates = this.getAvailableCandidates();
+    if (availableCandidates.length > 0) {
+      this.currentCandidateIndex = 0;
+      this.renderCurrentCandidate(availableCandidates[0]);
+    }
+  }
+
+  // Найм кандидата на должность
+  hireCandidate(candidateId, positionId) {
+    const candidate = this.engine.candidates.find(c => c.id === candidateId);
+    const position = this.getPositionById(positionId);
+    
+    if (candidate && position && this.canHireCandidate(candidate, position)) {
+      this.engine.gameState.hiredTeam[positionId] = {
+        ...candidate,
+        hiredAt: this.engine.gameState.businessStats.month,
+        salary: this.calculateSalary(candidate, position)
+      };
+      
+      this.engine.saveProgress();
+      
+      // Обновляем UI
+      this.updateCandidateButtons();
+      this.renderHiredCandidate(positionId, candidate);
+      
+      return true;
+    }
+    return false;
+  }
+
+  // Рендер нанятого кандидата
+  renderHiredCandidate(positionId, candidate) {
+    const positionSlot = document.querySelector(`[data-position="${positionId}"]`);
+    if (!positionSlot) return;
+    
+    positionSlot.dataset.occupied = 'true';
+    positionSlot.innerHTML = `
+      <div class="hired-candidate">
+        <div class="candidate-avatar">${candidate.avatar || '👤'}</div>
+        <div class="candidate-info">
+          <h4>${candidate.name || 'Неизвестный'}</h4>
+          <p>${candidate.specialty || 'Специалист'}</p>
+          <div class="candidate-salary">${candidate.salary || 0} ₽/мес</div>
+        </div>
+        <button class="fire-btn" onclick="businessUI.fireCandidate('${positionId}')">🔥</button>
+      </div>
+    `;
+  }
+
+  // Увольнение кандидата
+  fireCandidate(positionId) {
+    if (this.engine.fireCandidate(positionId)) {
+      const positionSlot = document.querySelector(`[data-position="${positionId}"]`);
+      this.resetPositionSlot(positionSlot);
+      this.updateCandidateButtons();
+    }
+  }
+
+  // Сброс слота должности
+  resetPositionSlot(positionSlot) {
+    if (!positionSlot) return;
+    
+    positionSlot.dataset.occupied = 'false';
+    positionSlot.innerHTML = `
+      <div class="position-icon">${this.getPositionIcon(positionSlot.dataset.position)}</div>
+      <div class="position-info">
+        <h4>${this.getPositionName(positionSlot.dataset.position)}</h4>
+        <p>${this.getPositionDescription(positionSlot.dataset.position)}</p>
+      </div>
+      <div class="candidate-placeholder">Перетащите кандидата</div>
+    `;
+  }
+
+  // Получение иконки должности
+  getPositionIcon(positionId) {
+    const icons = {
+      tech: '💻',
+      marketing: '📢',
+      finance: '💰',
+      operations: '⚙️'
+    };
+    return icons[positionId] || '👤';
+  }
+
+  // Получение названия должности
+  getPositionName(positionId) {
+    const names = {
+      tech: 'Технический директор',
+      marketing: 'Маркетинг-директор',
+      finance: 'Финансовый директор',
+      operations: 'Операционный директор'
+    };
+    return names[positionId] || 'Должность';
+  }
+
+  // Получение описания должности
+  getPositionDescription(positionId) {
+    const descriptions = {
+      tech: 'Управление разработкой и IT',
+      marketing: 'Продвижение и реклама',
+      finance: 'Управление финансами',
+      operations: 'Управление процессами'
+    };
+    return descriptions[positionId] || 'Описание должности';
+  }
+
+  // Расчет зарплаты кандидата
+  calculateSalary(candidate, position) {
+    const baseSalary = 5000; // Базовая зарплата
+    const experienceMultiplier = 1 + (candidate.experience / 100);
+    const skillMultiplier = 1 + (candidate.skills.length * 0.1);
+    
+    return Math.round(baseSalary * experienceMultiplier * skillMultiplier);
+  }
+
+  // Проверка возможности найма кандидата
+  canHireCandidate(candidate, position) {
+    // Проверяем, что должность свободна
+    if (this.engine.gameState.hiredTeam[position.id]) {
+      return false;
+    }
+    
+    // Проверяем, что у кандидата есть нужные навыки
+    const requiredSkills = position.requiredSkills || [];
+    const candidateSkills = candidate.skills || [];
+    
+    return requiredSkills.every(skill => 
+      candidateSkills.includes(skill)
+    );
+  }
+
+  // Получение должности по ID
+  getPositionById(positionId) {
+    const positions = [
+      { id: 'tech', name: 'Технический директор', requiredSkills: ['tech', 'leadership'] },
+      { id: 'marketing', name: 'Маркетинг-директор', requiredSkills: ['marketing', 'leadership'] },
+      { id: 'finance', name: 'Финансовый директор', requiredSkills: ['finance', 'leadership'] },
+      { id: 'operations', name: 'Операционный директор', requiredSkills: ['operations', 'leadership'] }
+    ];
+    
+    return positions.find(p => p.id === positionId);
   }
 
   // Обновление элементов этапа
@@ -646,3 +879,4 @@ class BusinessQuestUI {
 
 // Экспорт для использования в других модулях
 window.BusinessQuestUI = BusinessQuestUI;
+
