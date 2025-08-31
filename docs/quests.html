@@ -3,397 +3,91 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Центр Квестов</title>
+  <title>Центр Симуляций</title>
   
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
   <link rel="stylesheet" href="./quests.css" />
-  
-  <style>
-    /* Preload styles to prevent flash of unstyled content */
-    .app { opacity: 0; transition: opacity 0.5s ease-in-out; }
-    body.loaded .app { opacity: 1; }
-  </style>
 </head>
 <body>
 
-  <div id="app" class="app">
+  <!-- Onboarding Quiz -->
+  <div class="quiz-overlay hidden" id="quizOverlay">
+    <div class="quiz-container">
+      <!-- Step 1: Intro -->
+      <div class="quiz-step active" data-step="0">
+        <h2 class="quiz-title">Добро пожаловать</h2>
+        <p class="quiz-intro">Ответьте на несколько вопросов, чтобы мы подобрали симуляции лично для вас.</p>
+        <button class="quiz-start-button" data-action="next-step">Начать</button>
+      </div>
+      <!-- Step 2: Question 1 -->
+      <div class="quiz-step" data-step="1">
+        <p class="quiz-progress">Вопрос 1 из 3</p>
+        <h3 class="quiz-question">Что для вас важнее в профессиональном развитии?</h3>
+        <div class="quiz-options">
+          <button class="quiz-option" data-archetype="biznesmen">Построение эффективной бизнес-модели и максимизация прибыли.</button>
+          <button class="quiz-option" data-archetype="psiholog">Глубокое понимание психологии людей для успешных переговоров.</button>
+          <button class="quiz-option" data-archetype="strategist">Разработка долгосрочных стратегий и анализ глобальных трендов.</button>
+        </div>
+      </div>
+      <!-- Step 3: Question 2 -->
+      <div class="quiz-step" data-step="2">
+        <p class="quiz-progress">Вопрос 2 из 3</p>
+        <h3 class="quiz-question">Какая задача кажется вам наиболее интересной?</h3>
+        <div class="quiz-options">
+          <button class="quiz-option" data-archetype="strategist">Управление сложными системами и незаметное влияние на события.</button>
+          <button class="quiz-option" data-archetype="psiholog">Чтение невербальных сигналов и выявление скрытых мотивов.</button>
+          <button class="quiz-option" data-archetype="biznesmen">Создание продукта, который захватит рынок и изменит правила игры.</button>
+        </div>
+      </div>
+      <!-- Step 4: Question 3 -->
+      <div class="quiz-step" data-step="3">
+        <p class="quiz-progress">Вопрос 3 из 3</p>
+        <h3 class="quiz-question">Выберите цитату, которая вам ближе:</h3>
+        <div class="quiz-options">
+          <button class="quiz-option" data-archetype="psiholog">"Не тот умен, кто умеет отличать добро от зла, а тот, кто из двух зол умеет выбирать меньшее."</button>
+          <button class="quiz-option" data-archetype="strategist">"Кто владеет информацией, тот владеет миром."</button>
+          <button class="quiz-option" data-archetype="biznesmen">"Лучший способ предсказать будущее — это создать его."</button>
+        </div>
+      </div>
+      <!-- Step 5: Loading -->
+      <div class="quiz-step" data-step="4">
+        <h2 class="quiz-title">Анализируем ваши ответы...</h2>
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Onboarding Quiz Modal -->
-    <div id="quiz-overlay" class="quiz-overlay hidden">
-      <div class="quiz-container">
-        <div id="quiz-step-1" class="quiz-step active">
-          <h2 class="quiz-title">Кто ты в мире больших денег?</h2>
-          <p class="quiz-intro">Ответь на 3 вопроса, чтобы мы подобрали симуляции персонально для тебя.</p>
-          <button class="quiz-start-button" id="startQuizBtn">Начать</button>
-        </div>
-        <div id="quiz-step-2" class="quiz-step">
-          <p class="quiz-progress">Вопрос 1 из 3</p>
-          <h3 class="quiz-question">Ваш идеальный вечер пятницы – это:</h3>
-          <div class="quiz-options">
-            <button class="quiz-option" data-value="entrepreneur">Просчитывать ходы в новом бизнес-проекте.</button>
-            <button class="quiz-option" data-value="psychologist">Анализировать поведение людей в популярном сериале.</button>
-            <button class="quiz-option" data-value="strategist">Разрабатывать стратегию для сложной настольной игры.</button>
-          </div>
-        </div>
-        <div id="quiz-step-3" class="quiz-step">
-          <p class="quiz-progress">Вопрос 2 из 3</p>
-          <h3 class="quiz-question">Какая суперспособность вам ближе?</h3>
-          <div class="quiz-options">
-            <button class="quiz-option" data-value="psychologist">Читать мысли и эмоции людей.</button>
-            <button class="quiz-option" data-value="strategist">Предсказывать глобальные события на год вперед.</button>
-            <button class="quiz-option" data-value="entrepreneur">Превращать любую идею в прибыльный бизнес.</button>
-          </div>
-        </div>
-        <div id="quiz-step-4" class="quiz-step">
-          <p class="quiz-progress">Вопрос 3 из 3</p>
-          <h3 class="quiz-question">Что для вас власть?</h3>
-          <div class="quiz-options">
-            <button class="quiz-option" data-value="strategist">Контроль над системами и информацией.</button>
-            <button class="quiz-option" data-value="entrepreneur">Финансовая независимость и создание своей империи.</button>
-            <button class="quiz-option" data-value="psychologist">Умение влиять на решения других людей.</button>
-          </div>
-        </div>
-        <div id="quiz-step-5" class="quiz-step quiz-loading">
-          <h3 class="quiz-title">Анализируем ваши ответы...</h3>
-          <p class="quiz-intro">Подбираем персональные симуляции.</p>
-          <div class="spinner"></div>
-        </div>
-          </div>
-        </div>
-
+  <div id="app" class="app hidden">
     <header class="header" data-animate>
       <div class="header-content">
-        <h1 class="header-title">Центр Квестов</h1>
-        <div class="wallet">
-          <button class="support-button" id="supportButton">Поддержка</button>
-        </div>
-          </div>
+        <h1 class="header-title">Центр Симуляций</h1>
+        <a href="index.html" class="support-button">Поддержка</a>
+      </div>
     </header>
 
     <main>
-      <!-- Этот блок будет скрыт до завершения опроса для новых пользователей -->
-      <div id="quests-content" class="hidden">
-        <section class="featured-quests" data-animate>
-          <h2 class="section-title">Ваша подборка симуляций</h2>
-          <div class="swiper-container">
-            <div class="swiper-wrapper" id="featured-quests-wrapper">
-              <!-- Избранные квесты будут вставлены сюда динамически -->
+      <section class="featured-quests" data-animate>
+        <h2 class="section-title">Главные Симуляции</h2>
+        <div class="swiper-container">
+          <div class="swiper-wrapper" id="featuredQuestsWrapper">
+            <!-- Сюда будут динамически добавляться квесты -->
           </div>
-            <div class="swiper-pagination"></div>
-          </div>
-        </section>
+          <div class="swiper-pagination"></div>
+        </div>
+      </section>
 
-        <section class="other-quests">
-          <h2 class="section-title" data-animate>Другие симуляции</h2>
-          <div class="quests-grid">
-            <!-- Сюда будут вставлены все остальные квесты -->
-      </div>
-    </section>
-      </div>
+      <section class="other-quests">
+        <h2 class="section-title" data-animate>Другие симуляции</h2>
+        <div class="quests-grid" id="otherQuestsGrid">
+          <!-- Сюда будут динамически добавляться остальные квесты -->
+        </div>
+      </section>
     </main>
   </div>
-
+  
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-  <script src="./supabaseClient.js"></script> 
-  <script>
-    // --- App Initialization ---
-    (function() {
-      const App = {
-        // --- Configuration ---
-        config: {
-          quests: {
-            'copy': { name: 'Первый Миллион', category: 'Бизнес', description: 'От гаражного стартапа до IPO. Принимай решения, которые приведут твой бизнес к успеху или банкротству.', difficulty: 'Средний', archetype: 'entrepreneur' },
-            'world-government': { name: 'Тайное Правительство', category: 'Стратегия', description: 'Управляй миром из тени. Плети интриги, контролируй ресурсы и решай судьбы наций. Власть ждет.', difficulty: 'Сложный', archetype: 'strategist' },
-            'bodylang': { name: 'Детектор Лжи', category: 'Психология', description: 'Читай людей как открытую книгу. Распознавай ложь по жестам и мимике. Никто больше не сможет тебя обмануть.', difficulty: 'Средний', archetype: 'psychologist' },
-            'funnel': { name: 'Империя Влияния', category: 'Влияние', description: 'Построй медиа-империю с нуля. Создавай вирусный контент, манипулируй мнением масс и стань королем информации.', difficulty: 'Сложный', archetype: 'entrepreneur' },
-            'psychology': { name: 'Психология Денег', category: 'Психология', description: 'Вскрой код психологии переговоров. Заставь клиентов платить больше и наслаждайся своей властью.', difficulty: 'Средний', archetype: 'psychologist' },
-            'competitors': { name: 'Анализ Конкурентов', category: 'Стратегия', description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.', difficulty: 'Сложный', archetype: 'strategist' },
-            'trends': { name: 'Анализ Трендов', category: 'Аналитика', description: 'Предсказывай будущее. Анализируй данные, находи тренды до того, как они станут мейнстримом, и зарабатывай.', difficulty: 'Сложный', archetype: 'entrepreneur' }
-          },
-          archetypeRecommendations: {
-            'entrepreneur': ['copy', 'funnel', 'trends'],
-            'psychologist': ['bodylang', 'psychology', 'funnel'],
-            'strategist': ['world-government', 'competitors', 'trends'],
-            'default': ['world-government', 'bodylang', 'funnel']
-          }
-        },
-
-        // --- State ---
-        state: {
-          user: null,
-          isNewUser: true,
-          quizAnswers: [],
-          swiper: null
-        },
-
-        // --- DOM Elements ---
-        elements: {},
-
-        // --- Initialization ---
-        init() {
-          console.log("App Initializing...");
-          this.cacheDOMElements();
-          this.initTelegramWebApp();
-          this.handleUserFlow();
-          this.bindGlobalEvents();
-          
-          // Fallback: если через 3 секунды контент все еще не показан, показываем по умолчанию
-          setTimeout(() => {
-            if (this.elements.questsContent.classList.contains('hidden')) {
-              console.warn("Fallback: Content not shown after 3 seconds, forcing display");
-              this.finalizeSetup('default');
-            }
-          }, 3000);
-        },
-
-        cacheDOMElements() {
-          this.elements = {
-            app: document.getElementById('app'),
-            supportButton: document.getElementById('supportButton'),
-            questsContent: document.getElementById('quests-content'),
-            featuredWrapper: document.getElementById('featured-quests-wrapper'),
-            otherQuestsGrid: document.querySelector('.other-quests .quests-grid'),
-            quizOverlay: document.getElementById('quiz-overlay'),
-            quizSteps: document.querySelectorAll('.quiz-step'),
-            startQuizBtn: document.getElementById('startQuizBtn'),
-            quizOptions: document.querySelectorAll('.quiz-option'),
-          };
-          
-          // Проверяем, что все ключевые элементы найдены
-          console.log("DOM elements cached:", this.elements);
-          
-          if (!this.elements.questsContent) {
-            console.error("Critical: quests-content element not found!");
-          }
-          if (!this.elements.featuredWrapper) {
-            console.error("Critical: featured-quests-wrapper element not found!");
-          }
-          if (!this.elements.otherQuestsGrid) {
-            console.error("Critical: other-quests grid element not found!");
-          }
-        },
-
-        initTelegramWebApp() {
-          try {
-            if (window.Telegram && window.Telegram.WebApp) {
-              window.Telegram.WebApp.ready();
-              window.Telegram.WebApp.expand();
-              window.Telegram.WebApp.enableClosingConfirmation();
-              const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
-              if (tgUser) {
-                this.state.user = { id: tgUser.id, name: tgUser.first_name };
-              }
-            }
-          } catch (e) {
-            console.error('Telegram WebApp initialization failed', e);
-          }
-        },
-        
-        async handleUserFlow() {
-          try {
-            if (!this.state.user || !window.__CASE_API__) {
-              console.warn('User data or API not available. Showing default experience for local testing.');
-              this.state.isNewUser = false;
-              this.finalizeSetup('default');
-              return;
-            }
-
-            const { user, isNew } = await window.__CASE_API__.getOrCreateUserProfile(this.state.user.id);
-            this.state.isNewUser = isNew;
-
-            if (isNew || !user.quest_archetype) {
-              this.startQuiz();
-            } else {
-              this.finalizeSetup(user.quest_archetype);
-            }
-          } catch (error) {
-            console.error("Critical error in user flow. Displaying default content as a fallback.", error);
-            this.finalizeSetup('default');
-          }
-        },
-
-        // --- Quiz Logic ---
-        startQuiz() {
-          this.elements.quizOverlay.classList.remove('hidden');
-          setTimeout(() => this.elements.quizOverlay.style.opacity = '1', 10);
-        },
-
-        handleQuizStep(value) {
-          this.state.quizAnswers.push(value);
-          const currentStep = this.state.quizAnswers.length + 1;
-          const nextStep = currentStep + 1;
-
-          document.getElementById(`quiz-step-${currentStep}`).classList.remove('active');
-          setTimeout(() => {
-            if (document.getElementById(`quiz-step-${nextStep}`)) {
-              document.getElementById(`quiz-step-${nextStep}`).classList.add('active');
-            } else {
-              this.finishQuiz();
-            }
-          }, 500);
-        },
-
-        async finishQuiz() {
-          document.getElementById('quiz-step-4').classList.remove('active');
-          document.getElementById('quiz-step-5').classList.add('active'); // Show loading spinner
-          
-          const archetype = this.calculateArchetype();
-          await window.__CASE_API__.saveUserArchetype(this.state.user.id, archetype);
-
-          setTimeout(() => {
-            this.elements.quizOverlay.style.opacity = '0';
-            setTimeout(() => this.elements.quizOverlay.classList.add('hidden'), 500);
-            this.finalizeSetup(archetype);
-          }, 2000);
-        },
-        
-        calculateArchetype() {
-          const counts = this.state.quizAnswers.reduce((acc, v) => ({ ...acc, [v]: (acc[v] || 0) + 1 }), {});
-          const majority = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
-          return majority || 'default';
-        },
-
-        // --- Content Generation ---
-        finalizeSetup(archetype) {
-          console.log(`Finalizing setup with archetype: ${archetype}`);
-          this.populateFeaturedQuests(archetype);
-          this.populateOtherQuests(archetype);
-          this.initSwiper();
-          this.initAnimations();
-          this.bindQuestEvents();
-          // Remove hidden class from main content to display it
-          this.elements.questsContent.classList.remove('hidden'); 
-          document.body.classList.add('loaded');
-        },
-        
-        populateFeaturedQuests(archetype) {
-          const recommendations = this.config.archetypeRecommendations[archetype] || this.config.archetypeRecommendations.default;
-          let html = '';
-          recommendations.forEach(questId => {
-            const quest = this.config.quests[questId];
-            html += this.generateFeaturedQuestHTML(questId, quest);
-          });
-          this.elements.featuredWrapper.innerHTML = html;
-        },
-
-        populateOtherQuests(archetype) {
-          const recommendations = this.config.archetypeRecommendations[archetype] || this.config.archetypeRecommendations.default;
-          let html = '';
-          Object.keys(this.config.quests).forEach(questId => {
-            if (!recommendations.includes(questId)) {
-              const quest = this.config.quests[questId];
-              html += this.generateOtherQuestHTML(questId, quest);
-            }
-          });
-          this.elements.otherQuestsGrid.innerHTML = html;
-        },
-
-        generateFeaturedQuestHTML(id, quest) {
-          return `
-            <div class="swiper-slide" data-quest="${id}">
-              <div class="quest-card-overlay"></div>
-              <div class="quest-card-content">
-                <h3 class="quest-card-title">${quest.name}</h3>
-                <p class="quest-card-description">${quest.description}</p>
-                <button class="quest-card-button">Начать симуляцию</button>
-              </div>
-            </div>`;
-        },
-
-        generateOtherQuestHTML(id, quest) {
-          return `
-            <div class="quest-item" data-quest="${id}" data-animate>
-              <div class="quest-header">
-                <span class="quest-category">${quest.category}</span>
-                <h3 class="quest-title">${quest.name}</h3>
-              </div>
-              <p class="quest-description">${quest.description}</p>
-              <div class="quest-footer">
-                <div class="quest-tags"><span class="quest-tag">${quest.difficulty}</span></div>
-                <button class="quest-button">Начать</button>
-              </div>
-            </div>`;
-        },
-
-        // --- UI & Event Binding ---
-        initSwiper() {
-          this.state.swiper = new Swiper('.swiper-container', {
-            loop: true,
-            effect: 'coverflow',
-            grabCursor: true,
-            centeredSlides: true,
-            slidesPerView: 'auto',
-            coverflowEffect: {
-              rotate: 0,
-              stretch: 40, // Уменьшаем растяжение, чтобы слайды были ближе
-              depth: 150, // Увеличиваем глубину для лучшего 3D эффекта
-              modifier: 1,
-              slideShadows: false,
-            },
-            pagination: {
-              el: '.swiper-pagination',
-              clickable: true,
-            },
-            autoplay: {
-              delay: 5000,
-              disableOnInteraction: false,
-            },
-            // Убедимся, что Swiper пересчитывает размеры при необходимости
-            observer: true,
-            observeParents: true,
-          });
-        },
-
-        initAnimations() {
-          const animatedElements = document.querySelectorAll('[data-animate]');
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('in-view');
-                observer.unobserve(entry.target);
-              }
-            });
-          }, { threshold: 0.1 });
-          animatedElements.forEach(el => observer.observe(el));
-        },
-        
-        navigateTo(url) {
-          this.elements.app.style.opacity = '0';
-          setTimeout(() => { window.location.href = url; }, 400);
-        },
-
-        bindGlobalEvents() {
-          this.elements.supportButton.addEventListener('click', () => {
-            this.navigateTo('index.html');
-          });
-
-          this.elements.startQuizBtn.addEventListener('click', () => {
-            document.getElementById('quiz-step-1').classList.remove('active');
-            setTimeout(() => document.getElementById('quiz-step-2').classList.add('active'), 500);
-          });
-          
-          this.elements.quizOptions.forEach(btn => {
-            btn.addEventListener('click', () => this.handleQuizStep(btn.dataset.value));
-          });
-        },
-        
-        bindQuestEvents() {
-          document.querySelectorAll('[data-quest]').forEach(card => {
-            card.addEventListener('click', (e) => {
-              if (e.target.closest('button')) {
-                const questId = card.dataset.quest;
-                if (questId) {
-                  this.navigateTo(`quests/${questId}.html`);
-                }
-              }
-            });
-          });
-        }
-      };
-
-      window.addEventListener('load', () => App.init());
-    })();
-  </script>
+  <script src="./supabaseClient.js"></script>
+  <script src="./quests.js"></script>
 </body>
 </html>
