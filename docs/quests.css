@@ -283,12 +283,12 @@ body::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(13, 11, 31, 0.95) 20%, transparent 70%);
+  background-color: rgba(0, 0, 0, 0.6); /* 40% прозрачность для боковых */
   transition: var(--transition);
 }
 
 .swiper-slide-active .quest-card-overlay {
-  background: linear-gradient(to top, rgba(13, 11, 31, 0.3) 40%, transparent 80%);
+  background-color: rgba(0, 0, 0, 0.25); /* 75% прозрачность для центрального */
 }
 
 .quest-card-content {

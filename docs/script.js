@@ -633,7 +633,6 @@ function renderConversationsList(conversations) {
         `;
     }).join('');
     
-    // console.log('Сгенерированный HTML:', html);
     conversationsList.innerHTML = html;
     
     // Добавляем обработчики клика

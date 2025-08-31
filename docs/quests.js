@@ -8,8 +8,7 @@ const ALL_QUESTS = {
     button: 'Начать операцию',
     archetypes: ['strategist'],
     category: 'Стратегия',
-    tags: ['Сложный'],
-    bgColor: 'linear-gradient(45deg, #020010, #4d0000)'
+    tags: ['Сложный']
   },
   'bodylang': {
     id: 'bodylang',
@@ -18,8 +17,7 @@ const ALL_QUESTS = {
     button: 'Начать допрос',
     archetypes: ['psiholog'],
     category: 'Психология',
-    tags: ['Средний'],
-    bgColor: 'linear-gradient(45deg, #020010, #003c7a)'
+    tags: ['Средний']
   },
   'funnel': {
     id: 'funnel',
@@ -28,8 +26,7 @@ const ALL_QUESTS = {
     button: 'Начать вещание',
     archetypes: ['biznesmen'],
     category: 'Бизнес',
-    tags: ['Средний'],
-    bgColor: 'linear-gradient(45deg, #020010, #5c007a)'
+    tags: ['Средний']
   },
   'copy': {
     id: 'copy',
@@ -37,8 +34,7 @@ const ALL_QUESTS = {
     description: 'От гаражного стартапа до IPO. Принимай решения, которые приведут твой бизнес к успеху или банкротству.',
     archetypes: ['biznesmen'],
     category: 'Бизнес',
-    tags: ['Средний'],
-    bgColor: 'linear-gradient(45deg, #020010, #006633)'
+    tags: ['Средний']
   },
   'psychology': {
     id: 'psychology',
@@ -46,8 +42,7 @@ const ALL_QUESTS = {
     description: 'Вскрой код психологии переговоров. Заставь клиентов платить больше и наслаждайся своей властью.',
     archetypes: ['psiholog'],
     category: 'Психология',
-    tags: ['Средний'],
-    bgColor: 'linear-gradient(45deg, #020010, #006699)'
+    tags: ['Средний']
   },
   'competitors': {
     id: 'competitors',
@@ -55,8 +50,7 @@ const ALL_QUESTS = {
     description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
     archetypes: ['biznesmen', 'strategist'],
     category: 'Стратегия',
-    tags: ['Сложный'],
-    bgColor: 'linear-gradient(45deg, #020010, #661400)'
+    tags: ['Сложный']
   },
   'trends': {
     id: 'trends',
@@ -64,8 +58,7 @@ const ALL_QUESTS = {
     description: 'Предсказывай будущее. Анализируй данные, находи тренды до того, как они станут мейнстримом, и зарабатывай.',
     archetypes: ['strategist'],
     category: 'Аналитика',
-    tags: ['Сложный'],
-    bgColor: 'linear-gradient(45deg, #020010, #350099)'
+    tags: ['Сложный']
   }
 };
 
@@ -247,7 +240,7 @@ function populateQuests(archetype) {
 
 function createFeaturedQuestCard(quest) {
   return `
-    <div class="swiper-slide" data-quest="${quest.id}" style="background: ${quest.bgColor};">
+    <div class="swiper-slide" data-quest="${quest.id}">
       <div class="quest-card-overlay"></div>
       <div class="quest-card-content">
         <h3 class="quest-card-title">${quest.title}</h3>
