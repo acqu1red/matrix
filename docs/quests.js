@@ -3,7 +3,7 @@
 const ALL_QUESTS = {
   'world-government': {
     id: 'world-government',
-    title: 'Тайное Правительство',
+    title: 'ТАЙНОЕ ПРАВИТЕЛЬСТВО',
     description: 'Управляй миром из тени. Плети интриги, контролируй ресурсы и решай судьбы наций. Власть ждет.',
     button: 'Начать операцию',
     archetypes: ['strategist'],
@@ -12,7 +12,7 @@ const ALL_QUESTS = {
   },
   'bodylang': {
     id: 'bodylang',
-    title: 'Детектор Лжи',
+    title: 'ДЕТЕКТОР ЛЖИ',
     description: 'Читай людей как открытую книгу. Распознавай ложь по жестам и мимике. Никто больше не сможет тебя обмануть.',
     button: 'Начать допрос',
     archetypes: ['psiholog'],
@@ -21,7 +21,7 @@ const ALL_QUESTS = {
   },
   'funnel': {
     id: 'funnel',
-    title: 'Империя Влияния',
+    title: 'ИМПЕРИЯ ВЛИЯНИЯ',
     description: 'Построй медиа-империю с нуля. Создавай вирусный контент, манипулируй мнением масс и стань королем информации.',
     button: 'Начать вещание',
     archetypes: ['biznesmen'],
@@ -30,7 +30,7 @@ const ALL_QUESTS = {
   },
   'copy': {
     id: 'copy',
-    title: 'Первый Миллион',
+    title: 'ПЕРВЫЙ МИЛЛИОН',
     description: 'От гаражного стартапа до IPO. Принимай решения, которые приведут твой бизнес к успеху или банкротству.',
     archetypes: ['biznesmen'],
     category: 'Бизнес',
@@ -38,7 +38,7 @@ const ALL_QUESTS = {
   },
   'psychology': {
     id: 'psychology',
-    title: 'Психология Денег',
+    title: 'ПСИХОЛОГИЯ ЛЖИ',
     description: 'Вскрой код психологии переговоров. Заставь клиентов платить больше и наслаждайся своей властью.',
     archetypes: ['psiholog'],
     category: 'Психология',
@@ -46,7 +46,7 @@ const ALL_QUESTS = {
   },
   'competitors': {
     id: 'competitors',
-    title: 'Анализ Конкурентов',
+    title: 'АНАЛИЗ КОНКУРЕНТОВ',
     description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
     archetypes: ['biznesmen', 'strategist'],
     category: 'Стратегия',
@@ -54,7 +54,7 @@ const ALL_QUESTS = {
   },
   'trends': {
     id: 'trends',
-    title: 'Анализ Трендов',
+    title: 'АНАЛИЗ ТРЕНДОВ',
     description: 'Предсказывай будущее. Анализируй данные, находи тренды до того, как они станут мейнстримом, и зарабатывай.',
     archetypes: ['strategist'],
     category: 'Аналитика',

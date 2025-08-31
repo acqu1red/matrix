@@ -247,8 +247,7 @@ body::after {
   transform: scale(0.85);
   opacity: 0.5;
   filter: blur(2px);
-  background-color: rgba(0, 0, 0, 0.4); /* 40% opacity for side quests */
-  background-size: cover;
+  background-color: #000; /* Единый черный фон */
 }
 
 .swiper-slide-active {
@@ -256,7 +255,6 @@ body::after {
   opacity: 1;
   filter: blur(0);
   box-shadow: 0 25px 60px rgba(0,0,0,1), 0 0 30px var(--shadow-color);
-  background-color: rgba(0, 0, 0, 0.75); /* 75% opacity for center quest */
 }
 
 .swiper-slide-next, .swiper-slide-prev {
@@ -284,12 +282,12 @@ body::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(13, 11, 31, 0.7) 20%, transparent 70%);
+  background-color: rgba(0, 0, 0, 0.6); /* 60% непрозрачности = 40% прозрачности фона */
   transition: var(--transition);
 }
 
 .swiper-slide-active .quest-card-overlay {
-  background: linear-gradient(to top, rgba(13, 11, 31, 0.3) 40%, transparent 80%);
+  background-color: rgba(0, 0, 0, 0.25); /* 25% непрозрачности = 75% прозрачности фона */
 }
 
 .quest-card-content {
