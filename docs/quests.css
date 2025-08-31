@@ -4,17 +4,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-card: #141414;
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --accent-primary: #ffffff;
-  --accent-secondary: #272727;
-  --border-color: #272727;
-  --shadow-color: rgba(255, 255, 255, 0.1);
+  --bg-primary: #020010;
+  --bg-secondary: #0D0B1F;
+  --bg-card: linear-gradient(145deg, #191636, #110F2B);
+  --text-primary: #F0F0FF;
+  --text-secondary: #9A97C0;
+  --accent-primary: #8A7FFF;
+  --accent-secondary: #3D3A68;
+  --border-color: rgba(138, 127, 255, 0.2);
+  --shadow-color: rgba(138, 127, 255, 0.2);
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --gradient-text: linear-gradient(90deg, #EAE7FF, #C2BCFF);
+  --gradient-button: linear-gradient(90deg, #8A7FFF, #A098FF);
 }
 
 * {
@@ -56,12 +58,32 @@ body::before {
   position: fixed;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 50% 50%, rgba(138, 127, 255, 0.1) 0%, transparent 70%),
+    radial-gradient(ellipse at 20% 80%, rgba(138, 127, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(138, 127, 255, 0.05) 0%, transparent 60%);
+  animation: bg-glow 15s ease-in-out infinite;
+  z-index: -2;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239a97c0' fill-opacity='0.05'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   animation: bg-pan 60s linear infinite;
   z-index: -1;
+}
+
+@keyframes bg-glow {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
 }
 
 @keyframes bg-pan {
@@ -75,7 +97,7 @@ body::before {
   top: 0;
   z-index: 100;
   padding: 16px 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(13, 11, 31, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
@@ -94,6 +116,10 @@ body::before {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .wallet {
@@ -117,7 +143,8 @@ body::before {
 .wallet-item:hover {
   transform: translateY(-2px);
   background: var(--bg-card);
-  border-color: var(--text-secondary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px var(--shadow-color);
 }
 
 /* --- Case Section --- */
@@ -133,7 +160,7 @@ body::before {
   border: 1px solid var(--border-color);
   border-radius: 24px;
   padding: 8px;
-  background: linear-gradient(145deg, var(--bg-card), var(--bg-secondary));
+  background: var(--bg-card);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
   transition: var(--transition);
   position: relative;
@@ -142,7 +169,7 @@ body::before {
 .case-card:hover {
   transform: scale(1.03);
   box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 20px var(--shadow-color), inset 0 1px 1px rgba(255,255,255,0.1);
-  border-color: var(--text-secondary);
+  border-color: var(--accent-primary);
 }
 
 .case-content {
@@ -158,7 +185,12 @@ body::before {
   width: 80px;
   height: 80px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+  filter: drop-shadow(0 0 15px var(--shadow-color));
+  transition: var(--transition);
+}
+
+.case-card:hover .case-image {
+  transform: rotate(10deg) scale(1.1);
 }
 
 .case-text {
@@ -168,6 +200,10 @@ body::before {
 .case-title {
   font-size: 20px;
   font-weight: 800;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .case-description {
@@ -187,6 +223,11 @@ body::before {
   font-weight: 900;
   margin-bottom: 40px;
   letter-spacing: -1px;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px var(--shadow-color));
 }
 
 .swiper-container {
@@ -204,10 +245,21 @@ body::before {
   position: relative;
   box-shadow: 0 20px 50px rgba(0,0,0,0.8);
   transition: var(--transition);
+  transform: scale(0.85);
+  opacity: 0.5;
+  filter: blur(2px);
 }
 
 .swiper-slide-active {
-  transform: scale(1.05);
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0);
+  box-shadow: 0 25px 60px rgba(0,0,0,1), 0 0 30px var(--shadow-color);
+}
+
+.swiper-slide-next, .swiper-slide-prev {
+  opacity: 0.7;
+  filter: blur(1px);
 }
 
 .quest-card-bg {
@@ -259,19 +311,21 @@ body::before {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
-  border: 1px solid var(--accent-primary);
-  background: var(--accent-primary);
-  color: var(--bg-primary);
+  border: none;
+  background: var(--gradient-button);
+  color: var(--text-primary);
   font-weight: 700;
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
   font-size: 16px;
+  box-shadow: 0 5px 20px rgba(138, 127, 255, 0.3);
 }
 
 .quest-card-button:hover {
-  background: transparent;
-  color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(138, 127, 255, 0.4);
+  filter: brightness(1.1);
 }
 
 .swiper-pagination {
@@ -290,6 +344,7 @@ body::before {
   opacity: 1;
   width: 24px;
   border-radius: 6px;
+  box-shadow: 0 0 10px var(--shadow-color);
 }
 
 /* --- Other Quests --- */
@@ -318,8 +373,8 @@ body::before {
 
 .quest-item:hover {
   transform: translateY(-5px);
-  border-color: var(--text-secondary);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border-color: var(--accent-primary);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 15px var(--shadow-color);
 }
 
 .quest-header {
@@ -338,6 +393,7 @@ body::before {
   font-size: 20px;
   font-weight: 700;
   margin-top: 4px;
+  color: var(--text-primary);
 }
 
 .quest-description {
@@ -365,13 +421,14 @@ body::before {
   padding: 4px 10px;
   background: var(--accent-secondary);
   border-radius: 8px;
+  color: var(--text-secondary);
 }
 
 .quest-button {
   padding: 10px 18px;
   border-radius: 10px;
   border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
+  background: var(--accent-secondary);
   color: var(--text-primary);
   font-weight: 600;
   cursor: pointer;
@@ -382,6 +439,7 @@ body::before {
   background: var(--accent-primary);
   color: var(--bg-primary);
   border-color: var(--accent-primary);
+  box-shadow: 0 0 15px var(--shadow-color);
 }
 
 /* --- Animations --- */
