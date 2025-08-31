@@ -8,20 +8,20 @@
 }
 
 :root {
-  --primary-black: #0a0a0a;
-  --secondary-black: #1a1a1a;
+  --primary-black: #000000;
+  --secondary-black: #111111;
   --accent-white: #ffffff;
   --soft-white: #f8f8f8;
-  --gray-light: #cccccc;
-  --gray-medium: #888888;
-  --gray-dark: #333333;
-  --green-profit: #00ff88;
-  --red-loss: #ff4444;
-  --gold-premium: #ffd700;
-  --shadow-primary: 0 8px 32px rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.1);
-  --gradient-primary: linear-gradient(135deg, #ffffff 0%, #e0e0e0 50%, #ffffff 100%);
-  --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
+  --gray-light: #e0e0e0;
+  --gray-medium: #999999;
+  --gray-dark: #222222;
+  --green-profit: #ffffff;
+  --red-loss: #666666;
+  --gold-premium: #ffffff;
+  --shadow-primary: 0 8px 32px rgba(0, 0, 0, 0.9);
+  --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.2);
+  --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%);
+  --gradient-dark: linear-gradient(135deg, #111111 0%, #000000 50%, #000000 100%);
   --border-radius: 16px;
   --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -31,11 +31,13 @@ body {
   background: var(--primary-black);
   color: var(--accent-white);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
   min-height: 100vh;
   position: relative;
   font-weight: 400;
   letter-spacing: -0.01em;
+  width: 100vw;
+  max-width: 100vw;
 }
 
 /* Ultra Premium Trading Background */
@@ -147,6 +149,7 @@ body::after {
   display: flex;
   flex-direction: column;
   max-width: 500px;
+  width: 100%;
   margin: 0 auto;
   background: var(--gradient-dark);
   box-shadow: 
@@ -157,6 +160,8 @@ body::after {
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Premium Header with Glass Effect */
@@ -199,6 +204,43 @@ body::after {
   justify-content: space-between;
   align-items: center;
   position: relative;
+}
+
+/* Premium Back Button */
+.back-button {
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  color: var(--accent-white);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.5px;
+}
+
+.back-button:hover {
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.back-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Premium Logo with Glow Effect */
@@ -433,25 +475,23 @@ body::after {
   50% { opacity: 1; }
 }
 
-/* Ultra Premium Trading Roulette */
+/* Ultra Premium Square Roulette Container */
 .roulette-container {
   position: relative;
   margin-bottom: 40px;
-  height: 140px;
+  height: 160px;
   overflow: hidden;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.4);
   border-radius: 20px;
   background: 
-    linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(10, 10, 10, 0.98) 100%),
-    radial-gradient(circle at 30% 30%, rgba(0, 255, 136, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 70% 70%, rgba(255, 68, 68, 0.06) 0%, transparent 60%),
-    linear-gradient(0deg, rgba(255, 215, 0, 0.02) 0%, transparent 100%);
+    linear-gradient(135deg, rgba(17, 17, 17, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
   box-shadow: 
     inset 0 0 40px rgba(0, 0, 0, 0.9),
-    inset 0 2px 0 rgba(255, 215, 0, 0.2),
-    inset 0 -2px 0 rgba(255, 215, 0, 0.1),
-    0 0 60px rgba(255, 215, 0, 0.15),
-    0 12px 40px rgba(0, 0, 0, 0.6);
+    inset 0 4px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -4px 0 rgba(255, 255, 255, 0.1),
+    0 0 80px rgba(255, 255, 255, 0.2),
+    0 12px 40px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   animation: rouletteGlow 3s ease-in-out infinite;
@@ -529,23 +569,29 @@ body::after {
   transition: transform 15s cubic-bezier(0.15, 0, 0.25, 1);
 }
 
-/* Trading-Style Roulette Items */
+/* Premium Square Roulette Items */
 .roulette-item {
-  min-width: 110px;
-  height: 100%;
+  min-width: 120px;
+  width: 120px;
+  height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-right: 1px solid rgba(255, 215, 0, 0.2);
-  padding: 12px 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  margin: 10px 5px;
   background: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(26, 26, 26, 0.9) 100%),
-    radial-gradient(circle at center, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.8) 100%),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
   position: relative;
   transition: var(--transition);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  overflow: hidden;
 }
 
 .roulette-item:nth-child(odd) {
@@ -669,24 +715,23 @@ body::after {
   opacity: 0.95;
 }
 
-/* Ultra Premium Trading Arrow */
+/* Ultra Premium Bottom Center Arrow */
 .roulette-arrow {
   position: absolute;
-  bottom: -18px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 28px solid var(--gold-premium);
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 25px solid var(--accent-white);
   filter: 
-    drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))
-    drop-shadow(0 0 40px rgba(255, 215, 0, 0.4))
-    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+    drop-shadow(0 0 20px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 40px rgba(255, 255, 255, 0.4))
+    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
   z-index: 10;
   animation: premiumArrowPulse 2.5s ease-in-out infinite;
-  position: relative;
 }
 
 .roulette-arrow::before {
@@ -719,23 +764,23 @@ body::after {
 @keyframes premiumArrowPulse {
   0%, 100% { 
     filter: 
-      drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))
-      drop-shadow(0 0 40px rgba(255, 215, 0, 0.4))
-      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+      drop-shadow(0 0 20px rgba(255, 255, 255, 0.8))
+      drop-shadow(0 0 40px rgba(255, 255, 255, 0.4))
+      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
     transform: translateX(-50%) scale(1);
   }
   33% { 
     filter: 
-      drop-shadow(0 0 30px rgba(255, 215, 0, 1))
-      drop-shadow(0 0 60px rgba(255, 215, 0, 0.6))
-      drop-shadow(0 6px 12px rgba(0, 0, 0, 0.8));
+      drop-shadow(0 0 30px rgba(255, 255, 255, 1))
+      drop-shadow(0 0 60px rgba(255, 255, 255, 0.6))
+      drop-shadow(0 6px 12px rgba(0, 0, 0, 0.9));
     transform: translateX(-50%) scale(1.1);
   }
   66% { 
     filter: 
-      drop-shadow(0 0 25px rgba(255, 215, 0, 0.9))
-      drop-shadow(0 0 50px rgba(255, 215, 0, 0.5))
-      drop-shadow(0 5px 10px rgba(0, 0, 0, 0.7));
+      drop-shadow(0 0 25px rgba(255, 255, 255, 0.9))
+      drop-shadow(0 0 50px rgba(255, 255, 255, 0.5))
+      drop-shadow(0 5px 10px rgba(0, 0, 0, 0.8));
     transform: translateX(-50%) scale(1.05);
   }
 }
@@ -1364,6 +1409,27 @@ body::after {
   transform: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   background-position: 0% 50%;
+}
+
+.promo-action.pending {
+  background: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
+  color: #000000;
+  cursor: not-allowed;
+  opacity: 0.8;
+  animation: pendingPulse 2s ease-in-out infinite;
+  border-color: #ffcc00;
+  box-shadow: 0 2px 8px rgba(255, 204, 0, 0.3);
+}
+
+.promo-action.pending:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(255, 204, 0, 0.3);
+  background-position: 0% 50%;
+}
+
+@keyframes pendingPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
 }
 
 @keyframes promoButtonGlow {

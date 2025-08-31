@@ -808,7 +808,7 @@ async def galdin_command(update: Update, context: CallbackContext) -> None:
         )
 
 async def checkpromo_command(update: Update, context: CallbackContext) -> None:
-    """Команда для проверки и выдачи промокода: /checkpromo <promo_code>"""
+    """Команда для проверки и автоматической выдачи промокода: /checkpromo <promo_code>"""
     user = update.effective_user
     
     # Проверяем, является ли пользователь администратором
@@ -824,8 +824,8 @@ async def checkpromo_command(update: Update, context: CallbackContext) -> None:
         await update.effective_message.reply_text(
             "❌ <b>Неверный формат команды!</b>\n\n"
             "Использование: <code>/checkpromo &lt;promo_code&gt;</code>\n\n"
-            "Пример: <code>/checkpromo SUB-ABC123</code>\n"
-            "Проверяет и выдает промокод",
+            "Пример: <code>/checkpromo CURRENCY-ABC123</code>\n"
+            "Автоматически выдает промокод пользователю",
             parse_mode='HTML'
         )
         return
@@ -846,31 +846,95 @@ async def checkpromo_command(update: Update, context: CallbackContext) -> None:
         
         promo_data = result.data[0]
         status = promo_data.get('status', 'unknown')
+        user_id = promo_data.get('issued_to')
+        prize_type = promo_data.get('type')
+        prize_value = promo_data.get('value')
+        prize_name = promo_data.get('prize_name', 'Неизвестный приз')
         
-        if status == 'used':
+        if status in ['used', 'activated']:
             await update.effective_message.reply_text(
-                f"❌ <b>Промокод уже использован!</b>\n\n"
-                f"Промокод <code>{promo_code}</code> был уже выдан пользователю.",
+                f"❌ <b>Промокод уже выдан!</b>\n\n"
+                f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"📊 <b>Статус:</b> {status}\n"
+                f"🎁 <b>Приз:</b> {prize_name}",
                 parse_mode='HTML'
             )
             return
         
-        # Создаем кнопку для выдачи промокода
-        keyboard = [
-            [InlineKeyboardButton("✅ Вручить промокод", callback_data=f"grant_promo:{promo_code}")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        # Автоматически выдаем промокод
+        success = False
+        reward_message = ""
         
-        await update.effective_message.reply_text(
-            f"📋 <b>Информация о промокоде</b>\n\n"
-            f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
-            f"📊 <b>Статус:</b> {status}\n"
-            f"📅 <b>Создан:</b> {promo_data.get('issued_at', 'Неизвестно')}\n"
-            f"⏰ <b>Истекает:</b> {promo_data.get('expires_at', 'Неизвестно')}\n\n"
-            f"Нажмите кнопку ниже, чтобы вручить промокод пользователю.",
-            parse_mode='HTML',
-            reply_markup=reply_markup
-        )
+        if prize_type == 'currency':
+            # Выдаем MULACOIN
+            amount = int(prize_value)
+            try:
+                # Обновляем баланс в таблице bot_user
+                result = supabase.table('bot_user').select('mulacoin').eq('telegram_id', str(user_id)).execute()
+                
+                if result.data:
+                    current_balance = result.data[0].get('mulacoin', 0)
+                    new_balance = current_balance + amount
+                    supabase.table('bot_user').update({'mulacoin': new_balance}).eq('telegram_id', str(user_id)).execute()
+                else:
+                    # Создаем новую запись
+                    new_user_data = {
+                        'telegram_id': str(user_id),
+                        'mulacoin': amount,
+                        'experience': 0,
+                        'level': 1
+                    }
+                    supabase.table('bot_user').insert(new_user_data).execute()
+                
+                reward_message = f"💰 Выдано {amount} MULACOIN"
+                success = True
+            except Exception as e:
+                print(f"Error updating MULACOIN: {e}")
+                
+        elif prize_type == 'spin':
+            # Выдаем дополнительный спин (через промокод в таблице promocodes)
+            reward_message = f"🎰 Выдан дополнительный спин"
+            success = True
+            
+        elif prize_type == 'subscription':
+            # Выдаем подписку
+            days = int(prize_value)
+            success = await grant_subscription(int(user_id), days)
+            if success:
+                reward_message = f"👑 Выдана подписка на {days} дней"
+            else:
+                reward_message = "❌ Ошибка выдачи подписки"
+                
+        elif prize_type in ['discount', 'service', 'course']:
+            # Для скидок и услуг - просто помечаем как выданный
+            reward_message = f"🎁 Промокод выдан: {prize_name}"
+            success = True
+        
+        if success:
+            # Обновляем статус промокода
+            supabase.table('promocodes').update({
+                'status': 'activated',
+                'used_at': 'now()',
+                'used_by': str(user.id)
+            }).eq('code', promo_code).execute()
+            
+            await update.effective_message.reply_text(
+                f"✅ <b>Промокод успешно выдан!</b>\n\n"
+                f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+                f"👤 <b>Пользователь:</b> {user_id}\n"
+                f"🎁 <b>Приз:</b> {prize_name}\n"
+                f"💎 <b>Результат:</b> {reward_message}\n\n"
+                f"Пользователь получил свой приз!",
+                parse_mode='HTML'
+            )
+        else:
+            await update.effective_message.reply_text(
+                f"❌ <b>Ошибка выдачи промокода!</b>\n\n"
+                f"🔑 <b>Код:</b> <code>{promo_code}</code>\n"
+                f"Попробуйте еще раз или выдайте приз вручную.",
+                parse_mode='HTML'
+            )
         
     except Exception as e:
         print(f"Ошибка команды checkpromo: {e}")

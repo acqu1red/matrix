@@ -146,7 +146,8 @@
         closeResultBtn: $('#closeResultBtn'),
         promoList: $('#promoList'),
         spinSound: $('#spinSound'),
-        tradingParticles: $('#tradingParticles')
+        tradingParticles: $('#tradingParticles'),
+        backButton: $('#backButton')
       };
 
       // Initialize user data
@@ -176,7 +177,7 @@
     }
   }
 
-  // Initialize user data
+  // Initialize user data with proper synchronization
   async function initializeUser() {
     try {
       if (!window.__CASE_API__) {
@@ -187,12 +188,15 @@
       appState.currentUser = user;
       appState.userData.telegram_id = user.telegram_id;
       
+      // Load from bot_user table for MULACOIN and experience
+      await loadUserStats();
+      
+      // Load wallet data for spins
       const wallet = await window.__CASE_API__.computeWallet(user);
-      appState.userData.mulacoin = wallet.mulacoin || 0;
       appState.userData.spins = wallet.spins || 0;
       
       console.log('👤 User initialized:', user);
-      console.log('💰 Wallet:', wallet);
+      console.log('💰 User stats:', appState.userData);
       
     } catch (error) {
       console.error('❌ Error initializing user:', error);
@@ -204,22 +208,105 @@
     }
   }
 
-  // Generate roulette items with infinite scroll effect
+  // Load user stats from bot_user table
+  async function loadUserStats() {
+    try {
+      if (!window.__CASE_API__ || !window.__CASE_API__.initSupabase) return;
+      
+      const supabase = window.__CASE_API__.initSupabase();
+      if (!supabase) return;
+
+      const { data, error } = await supabase
+        .from('bot_user')
+        .select('mulacoin, experience, level')
+        .eq('telegram_id', appState.userData.telegram_id)
+        .single();
+
+      if (!error && data) {
+        appState.userData.mulacoin = data.mulacoin || 0;
+        appState.userData.exp = data.experience || 0;
+        appState.userData.level = data.level || 1;
+      } else {
+        // Create new user record
+        await createUserRecord();
+      }
+    } catch (error) {
+      console.error('❌ Error loading user stats:', error);
+    }
+  }
+
+  // Create new user record in bot_user table
+  async function createUserRecord() {
+    try {
+      if (!window.__CASE_API__ || !window.__CASE_API__.initSupabase) return;
+      
+      const supabase = window.__CASE_API__.initSupabase();
+      if (!supabase) return;
+
+      const { error } = await supabase
+        .from('bot_user')
+        .insert({
+          telegram_id: appState.userData.telegram_id,
+          mulacoin: 0,
+          experience: 0,
+          level: 1
+        });
+
+      if (!error) {
+        appState.userData.mulacoin = 0;
+        appState.userData.exp = 0;
+        appState.userData.level = 1;
+      }
+    } catch (error) {
+      console.error('❌ Error creating user record:', error);
+    }
+  }
+
+  // Save user stats to bot_user table
+  async function saveUserStats() {
+    try {
+      if (!window.__CASE_API__ || !window.__CASE_API__.initSupabase) return;
+      
+      const supabase = window.__CASE_API__.initSupabase();
+      if (!supabase) return;
+
+      const { error } = await supabase
+        .from('bot_user')
+        .upsert({
+          telegram_id: appState.userData.telegram_id,
+          mulacoin: appState.userData.mulacoin,
+          experience: appState.userData.exp || 0,
+          level: appState.userData.level || 1
+        });
+
+      if (error) {
+        console.error('❌ Error saving user stats:', error);
+      }
+    } catch (error) {
+      console.error('❌ Error saving user stats:', error);
+    }
+  }
+
+  // Generate roulette items with infinite scroll effect and proper weighting
   function generateRouletteItems() {
     const track = elements.rouletteTrack;
     if (!track) return;
 
-    // Create weighted prize array based on chances
+    // Create weighted prize array based on chances (normalize to 100 total items for better distribution)
     const weightedPrizes = [];
+    const totalChance = PRIZES.reduce((sum, prize) => sum + prize.chance, 0);
+    
     PRIZES.forEach(prize => {
-      for (let i = 0; i < prize.chance; i++) {
+      // Calculate how many times this prize should appear in 100 items
+      const normalizedCount = Math.round((prize.chance / totalChance) * 100);
+      for (let i = 0; i < normalizedCount; i++) {
         weightedPrizes.push(prize);
       }
     });
 
-    // Generate 50 items for smooth infinite scroll
+    // Generate 200 items for smooth infinite scroll (multiple cycles)
     const items = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 200; i++) {
       const randomIndex = Math.floor(Math.random() * weightedPrizes.length);
       items.push(weightedPrizes[randomIndex]);
     }
@@ -235,6 +322,13 @@
 
   // Setup event listeners
   function setupEventListeners() {
+    // Back button
+    if (elements.backButton) {
+      elements.backButton.addEventListener('click', () => {
+        window.location.href = 'quests.html';
+      });
+    }
+
     // Spin button
     if (elements.spinButton) {
       elements.spinButton.addEventListener('click', handleSpin);
@@ -332,18 +426,18 @@
     return PRIZES[0]; // Fallback
   }
 
-  // Animate roulette spinning
+  // Animate roulette spinning with square items
   function animateRoulette(winningPrize) {
     return new Promise((resolve) => {
       const track = elements.rouletteTrack;
       if (!track) return resolve();
 
-      // Find winning item position
+      // Find winning item position in the second half to ensure visibility
       const items = track.querySelectorAll('.roulette-item');
       let winningIndex = -1;
       
-      // Find a matching item in the middle section
-      for (let i = Math.floor(items.length / 3); i < Math.floor(items.length * 2 / 3); i++) {
+      // Look for the winning prize in the middle-to-end section
+      for (let i = Math.floor(items.length / 2); i < Math.floor(items.length * 0.8); i++) {
         if (items[i].dataset.prizeId === winningPrize.id) {
           winningIndex = i;
           break;
@@ -351,23 +445,24 @@
       }
       
       if (winningIndex === -1) {
-        // If not found, use middle item and update its content
-        winningIndex = Math.floor(items.length / 2);
-        const middleItem = items[winningIndex];
-        middleItem.dataset.prizeId = winningPrize.id;
-        middleItem.querySelector('.roulette-icon').textContent = winningPrize.icon;
-        middleItem.querySelector('.roulette-text').textContent = winningPrize.name;
+        // If not found, use an item in the target area and update its content
+        winningIndex = Math.floor(items.length * 0.65);
+        const targetItem = items[winningIndex];
+        targetItem.dataset.prizeId = winningPrize.id;
+        targetItem.querySelector('.roulette-icon').textContent = winningPrize.icon;
+        targetItem.querySelector('.roulette-text').textContent = winningPrize.name;
       }
 
-      // Calculate position to center the winning item
-      const itemWidth = 100; // min-width of roulette-item
+      // Calculate position to center the winning item (account for square items)
+      const itemWidth = 130; // width + margin of square roulette-item
       const containerWidth = track.parentElement.offsetWidth;
       const centerOffset = containerWidth / 2 - itemWidth / 2;
       const targetPosition = -(winningIndex * itemWidth - centerOffset);
       
-      // Add multiple full rotations for effect
-      const fullRotations = 5;
-      const finalPosition = targetPosition - (fullRotations * items.length * itemWidth);
+      // Add multiple full rotations for dramatic effect
+      const fullRotations = 6;
+      const totalWidth = items.length * itemWidth;
+      const finalPosition = targetPosition - (fullRotations * totalWidth);
       
       // Apply animation
       track.style.transition = 'transform 15s cubic-bezier(0.15, 0, 0.25, 1)';
@@ -392,7 +487,10 @@
       appState.userData.mulacoin -= 50;
       appState.userData.spins += 1;
       
-      // Save to database
+      // Save user stats to database
+      await saveUserStats();
+      
+      // Save to roulette history
       await saveRouletteHistory('buy_spin', null);
       
       // Update display
@@ -420,7 +518,7 @@
     elements.resultModal.classList.add('show');
   }
 
-  // Handle claim prize
+  // Handle claim prize - send to @warpscythe dialog
   async function handleClaimPrize() {
     const prizeId = elements.claimPrizeBtn.dataset.prizeId;
     const prize = PRIZES.find(p => p.id === prizeId);
@@ -431,14 +529,38 @@
       // Generate promocode
       const promocode = await generatePromocode(prize);
       
-      // Add to user's promocodes
+      // Create message for admin
+      const adminMessage = `🎰 НОВЫЙ ВЫИГРЫШ В РУЛЕТКЕ!\n\n` +
+        `👤 Пользователь: ${appState.userData.telegram_id}\n` +
+        `🎁 Приз: ${prize.name}\n` +
+        `🎫 Промокод: \`${promocode.code}\`\n\n` +
+        `❗ Требуется выдача приза пользователю!`;
+
+      // Send to @warpscythe dialog
+      if (window.Telegram && window.Telegram.WebApp) {
+        try {
+          const encodedMessage = encodeURIComponent(adminMessage);
+          window.Telegram.WebApp.openTelegramLink(`https://t.me/warpscythe?text=${encodedMessage}`);
+        } catch (e) {
+          // Fallback: open direct link
+          const encodedMessage = encodeURIComponent(adminMessage);
+          window.open(`https://t.me/warpscythe?text=${encodedMessage}`, '_blank');
+        }
+      } else {
+        // Direct link fallback
+        const encodedMessage = encodeURIComponent(adminMessage);
+        window.open(`https://t.me/warpscythe?text=${encodedMessage}`, '_blank');
+      }
+      
+      // Add to user's promocodes with "pending" status
+      promocode.status = 'pending';
       appState.promocodes.unshift(promocode);
       
       // Update display
       updatePromocodes();
       closeResultModal();
       
-      showSuccess(`Промокод ${promocode.code} добавлен в вашу ленту!`);
+      showSuccess(`Промокод отправлен администратору! Ожидайте выдачи приза.`);
       
     } catch (error) {
       console.error('❌ Error claiming prize:', error);
@@ -545,19 +667,39 @@
       return;
     }
 
-    elements.promoList.innerHTML = appState.promocodes.map(promo => `
-      <div class="promo-item">
-        <div class="promo-info">
-          <div class="promo-name">${promo.prize_name || promo.type}</div>
-          <div class="promo-code">${promo.code}</div>
+    elements.promoList.innerHTML = appState.promocodes.map(promo => {
+      let buttonText = '';
+      let buttonClass = 'promo-action';
+      let isDisabled = false;
+      
+      if (promo.status === 'used' || promo.status === 'activated') {
+        buttonText = 'Выдан';
+        buttonClass += ' used';
+        isDisabled = true;
+      } else if (promo.status === 'pending') {
+        buttonText = 'Ожидает выдачи';
+        buttonClass += ' pending';
+        isDisabled = true;
+      } else if (promo.category === 'activate') {
+        buttonText = 'Активировать';
+      } else {
+        buttonText = 'Использовать';
+      }
+      
+      return `
+        <div class="promo-item">
+          <div class="promo-info">
+            <div class="promo-name">${promo.prize_name || promo.type}</div>
+            <div class="promo-code">${promo.code}</div>
+          </div>
+          <button class="${buttonClass}" 
+                  onclick="handlePromoAction('${promo.code}', '${promo.category}')"
+                  ${isDisabled ? 'disabled' : ''}>
+            ${buttonText}
+          </button>
         </div>
-        <button class="promo-action ${promo.status === 'used' ? 'used' : ''}" 
-                onclick="handlePromoAction('${promo.code}', '${promo.category}')"
-                ${promo.status === 'used' ? 'disabled' : ''}>
-          ${promo.status === 'used' ? 'Использован' : (promo.category === 'activate' ? 'Активировать' : 'Использовать')}
-        </button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Save to localStorage
     localStorage.setItem('user_promocodes', JSON.stringify(appState.promocodes));
