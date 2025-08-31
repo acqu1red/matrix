@@ -617,12 +617,12 @@ body::after {
   .header-title {
     font-size: 18px;
   }
-
+  
   .wallet-item {
     padding: 6px 10px;
     font-size: 12px;
   }
-
+  
   .case-content {
     flex-direction: column;
     text-align: center;
@@ -641,7 +641,7 @@ body::after {
     height: 350px;
   }
   
-  .quests-grid {
+.quests-grid {
     grid-template-columns: 1fr;
   }
 }
