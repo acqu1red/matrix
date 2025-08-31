@@ -10,7 +10,9 @@
     return new Promise((res, rej) => {
       const s = document.createElement('script');
       s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
-      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+      s.onload = res; 
+      s.onerror = rej; 
+      document.head.appendChild(s);
     });
   }
 
@@ -45,53 +47,66 @@
         localStorage.setItem('quests_user_profile', JSON.stringify(profile));
         return profile;
       },
+      getTelegramInfo,
       initSupabase: ()=>null
     };
   }
 
-  if (MISCONFIG){ installOffline(); return; }
+  // Сначала устанавливаем оффлайн-режим
+  installOffline();
 
+  if (MISCONFIG){ return; }
+
+  // Пытаемся инициализировать Supabase
   (async function init(){
-    await ensureSdk();
-    const sb = window.supabase.createClient(URL, KEY, { auth: { persistSession: true, detectSessionInUrl: false } });
+    try {
+      await ensureSdk();
+      const sb = window.supabase.createClient(URL, KEY, { auth: { persistSession: true, detectSessionInUrl: false } });
 
-    async function getUserProfile(telegramId) {
-      try {
-        const { data, error } = await sb
-          .from('user_profiles')
-          .select('*')
-          .eq('telegram_id', telegramId)
-          .single();
-        if (error && error.code !== 'PGRST116') { // PGRST116 = 0 rows
-          console.error('Ошибка получения профиля:', error);
+      async function getUserProfile(telegramId) {
+        try {
+          const { data, error } = await sb
+            .from('user_profiles')
+            .select('*')
+            .eq('telegram_id', telegramId)
+            .single();
+          if (error && error.code !== 'PGRST116') { // PGRST116 = 0 rows
+            console.error('Ошибка получения профиля:', error);
+            return null;
+          }
+          return data;
+        } catch (e) {
+          console.error('Сбой при получении профиля:', e);
           return null;
         }
-        return data;
-      } catch (e) {
-        console.error('Сбой при получении профиля:', e);
-        return null;
       }
-    }
 
-    async function createUserProfile(profileData) {
-      try {
-        const { data, error } = await sb
-          .from('user_profiles')
-          .insert(profileData)
-          .select()
-          .single();
-        if (error) {
-          console.error('Ошибка создания профиля:', error);
+      async function createUserProfile(profileData) {
+        try {
+          const { data, error } = await sb
+            .from('user_profiles')
+            .insert(profileData)
+            .select()
+            .single();
+          if (error) {
+            console.error('Ошибка создания профиля:', error);
+            return null;
+          }
+          return data;
+        } catch (e) {
+          console.error('Сбой при создании профиля:', e);
           return null;
         }
-        return data;
-      } catch (e) {
-        console.error('Сбой при создании профиля:', e);
-        return null;
       }
-    }
 
-    window.__QUEST_API__ = { getUserProfile, createUserProfile, getTelegramInfo, initSupabase: ()=>sb };
-    window.__QUEST_DEBUG__ = { URL, hasKey: !!KEY };
+      // Обновляем API с Supabase функциями
+      window.__QUEST_API__ = { getUserProfile, createUserProfile, getTelegramInfo, initSupabase: ()=>sb };
+      window.__QUEST_DEBUG__ = { URL, hasKey: !!KEY };
+      console.log("✅ Supabase API инициализирован успешно");
+    } catch (error) {
+      console.error("❌ Ошибка инициализации Supabase:", error);
+      console.log("🔄 Продолжаем работу в оффлайн-режиме");
+      // Оставляем оффлайн-режим активным
+    }
   })();
 })();

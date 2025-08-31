@@ -78,7 +78,11 @@ const ARCHETYPE_QUESTS = {
 let swiperInstance = null;
 const userResponses = [];
 
-document.addEventListener('DOMContentLoaded', initializeApp);
+// Ждем загрузки всех скриптов
+document.addEventListener('DOMContentLoaded', () => {
+  // Даем время на инициализацию supabaseClient
+  setTimeout(initializeApp, 100);
+});
 
 async function initializeApp() {
   try {
@@ -90,39 +94,57 @@ async function initializeApp() {
     console.error('Telegram WebApp initialization failed', e);
   }
 
+  // Проверяем доступность API
   const api = window.__QUEST_API__;
   if (!api) {
-    console.error("Supabase client API not initialized.");
-    // Возможно, стоит показать пользователю сообщение об ошибке
-    return;
-  }
-  
-  const tgUser = api.getTelegramInfo();
-  
-  // Улучшенная логика для тестирования в браузере
-  const userId = tgUser ? tgUser.id : null;
-
-  if (!userId) {
-    console.warn("Telegram user not found. Running in mock mode.");
+    console.warn("Supabase client API not initialized. Running in mock mode.");
     // В режиме мок-данных сразу показываем опрос
     initializeQuiz('mock_user_12345');
     return;
   }
+  
+  try {
+    const tgUser = api.getTelegramInfo();
+    
+    // Улучшенная логика для тестирования в браузере
+    const userId = tgUser ? tgUser.id : null;
 
-  const userProfile = await api.getUserProfile(userId);
+    if (!userId) {
+      console.warn("Telegram user not found. Running in mock mode.");
+      // В режиме мок-данных сразу показываем опрос
+      initializeQuiz('mock_user_12345');
+      return;
+    }
 
-  if (userProfile && userProfile.quest_archetype) {
-    await loadMainContent(userProfile.quest_archetype);
-  } else {
-    initializeQuiz(userId);
+    const userProfile = await api.getUserProfile(userId);
+
+    if (userProfile && userProfile.quest_archetype) {
+      await loadMainContent(userProfile.quest_archetype);
+    } else {
+      initializeQuiz(userId);
+    }
+  } catch (error) {
+    console.error("Error during app initialization:", error);
+    // В случае ошибки показываем опрос
+    initializeQuiz('error_user_12345');
   }
 }
 
 function initializeQuiz(userId) {
   const quizOverlay = document.getElementById('quizOverlay');
+  if (!quizOverlay) {
+    console.error("Quiz overlay not found!");
+    return;
+  }
+  
   quizOverlay.classList.remove('hidden');
 
   const quizContainer = quizOverlay.querySelector('.quiz-container');
+  if (!quizContainer) {
+    console.error("Quiz container not found!");
+    return;
+  }
+  
   quizContainer.addEventListener('click', async (e) => {
     const target = e.target;
     if (target.dataset.action === 'next-step') {
@@ -145,23 +167,36 @@ function initializeQuiz(userId) {
 
 function showNextStep(currentStepIndex) {
   const steps = document.querySelectorAll('.quiz-step');
-  steps[currentStepIndex].classList.remove('active');
-  steps[currentStepIndex + 1].classList.add('active');
+  if (steps[currentStepIndex]) {
+    steps[currentStepIndex].classList.remove('active');
+  }
+  if (steps[currentStepIndex + 1]) {
+    steps[currentStepIndex + 1].classList.add('active');
+  }
 }
 
 async function finishQuiz(userId) {
   showNextStep(3); // Show spinner
   const archetype = determineArchetype(userResponses);
   
-  const api = window.__QUEST_API__;
-  await api.createUserProfile({
-    telegram_id: userId,
-    quest_archetype: archetype
-  });
+  // Пытаемся сохранить в Supabase, но не блокируем работу приложения
+  try {
+    const api = window.__QUEST_API__;
+    if (api && api.createUserProfile) {
+      await api.createUserProfile({
+        telegram_id: userId,
+        quest_archetype: archetype
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to save user profile:", error);
+  }
 
   setTimeout(async () => {
     const quizOverlay = document.getElementById('quizOverlay');
-    quizOverlay.classList.add('hidden');
+    if (quizOverlay) {
+      quizOverlay.classList.add('hidden');
+    }
     await loadMainContent(archetype);
   }, 1500);
 }
@@ -176,7 +211,10 @@ function determineArchetype(responses) {
 
 async function loadMainContent(archetype) {
   populateQuests(archetype);
-  document.getElementById('app').classList.remove('hidden');
+  const app = document.getElementById('app');
+  if (app) {
+    app.classList.remove('hidden');
+  }
   
   // Defer swiper and animations until content is visible
   setTimeout(() => {
@@ -190,6 +228,11 @@ function populateQuests(archetype) {
   const featuredIds = ARCHETYPE_QUESTS[archetype] || ARCHETYPE_QUESTS['strategist'];
   const featuredWrapper = document.getElementById('featuredQuestsWrapper');
   const otherWrapper = document.getElementById('otherQuestsGrid');
+  
+  if (!featuredWrapper || !otherWrapper) {
+    console.error("Quest wrappers not found!");
+    return;
+  }
   
   featuredWrapper.innerHTML = '';
   otherWrapper.innerHTML = '';
@@ -235,6 +278,13 @@ function initializeSwiper() {
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
   }
+  
+  const swiperContainer = document.querySelector('.swiper-container');
+  if (!swiperContainer) {
+    console.error("Swiper container not found!");
+    return;
+  }
+  
   swiperInstance = new Swiper('.swiper-container', {
     effect: 'coverflow',
     grabCursor: true,
@@ -274,7 +324,10 @@ function initializeScrollAnimations() {
 }
 
 function initializeNavigation() {
-  document.getElementById('app').addEventListener('click', (e) => {
+  const app = document.getElementById('app');
+  if (!app) return;
+  
+  app.addEventListener('click', (e) => {
     const questCard = e.target.closest('[data-quest]');
     if (questCard) {
       const questId = questCard.dataset.quest;
