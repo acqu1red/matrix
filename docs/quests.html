@@ -132,6 +132,7 @@
 
         // --- Initialization ---
         init() {
+          console.log("App Initializing...");
           this.cacheDOMElements();
           this.initTelegramWebApp();
           this.handleUserFlow();
@@ -169,20 +170,25 @@
         },
         
         async handleUserFlow() {
-          if (!this.state.user || !window.__CASE_API__) {
-            console.warn('User data or API not available, showing default experience.');
-            this.state.isNewUser = false; // fallback for local testing
+          try {
+            if (!this.state.user || !window.__CASE_API__) {
+              console.warn('User data or API not available. Showing default experience for local testing.');
+              this.state.isNewUser = false;
+              this.finalizeSetup('default');
+              return;
+            }
+
+            const { user, isNew } = await window.__CASE_API__.getOrCreateUserProfile(this.state.user.id);
+            this.state.isNewUser = isNew;
+
+            if (isNew || !user.quest_archetype) {
+              this.startQuiz();
+            } else {
+              this.finalizeSetup(user.quest_archetype);
+            }
+          } catch (error) {
+            console.error("Critical error in user flow. Displaying default content as a fallback.", error);
             this.finalizeSetup('default');
-            return;
-          }
-
-          const { user, isNew } = await window.__CASE_API__.getOrCreateUserProfile(this.state.user.id);
-          this.state.isNewUser = isNew;
-
-          if (isNew) {
-            this.startQuiz();
-          } else {
-            this.finalizeSetup(user.quest_archetype || 'default');
           }
         },
 
@@ -229,12 +235,14 @@
 
         // --- Content Generation ---
         finalizeSetup(archetype) {
+          console.log(`Finalizing setup with archetype: ${archetype}`);
           this.populateFeaturedQuests(archetype);
           this.populateOtherQuests(archetype);
           this.initSwiper();
           this.initAnimations();
           this.bindQuestEvents();
-          this.elements.questsContent.classList.remove('hidden');
+          // Remove hidden class from main content to display it
+          this.elements.questsContent.classList.remove('hidden'); 
           document.body.classList.add('loaded');
         },
         

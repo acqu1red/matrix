@@ -166,6 +166,10 @@ body::after {
   box-shadow: 0 0 15px var(--shadow-color);
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* --- Case Section --- */
 .case-section {
   padding: 40px 20px;
