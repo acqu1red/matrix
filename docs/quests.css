@@ -147,6 +147,25 @@ body::after {
   box-shadow: 0 0 10px var(--shadow-color);
 }
 
+.support-button {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 14px;
+}
+
+.support-button:hover {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px var(--shadow-color);
+}
+
 /* --- Case Section --- */
 .case-section {
   padding: 40px 20px;
@@ -244,7 +263,7 @@ body::after {
   overflow: hidden;
   position: relative;
   box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-  transition: var(--transition);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   transform: scale(0.85);
   opacity: 0.5;
   filter: blur(2px);
@@ -282,7 +301,12 @@ body::after {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(0,0,0,1) 10%, rgba(0,0,0,0.8) 30%, transparent 60%);
+  background: linear-gradient(to top, rgba(0,0,0,1) 10%, rgba(0,0,0,0.8) 40%, transparent 70%);
+  transition: var(--transition);
+}
+
+.swiper-slide-active .quest-card-overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 5%, rgba(0,0,0,0.5) 25%, transparent 50%);
 }
 
 .quest-card-content {
@@ -452,6 +476,129 @@ body::after {
 [data-animate].in-view {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* --- Onboarding Quiz --- */
+.quiz-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(2, 0, 16, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease;
+}
+
+.quiz-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.quiz-container {
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  height: 350px; /* Fixed height for smoother transitions */
+}
+
+.quiz-step {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+
+.quiz-step.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.quiz-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.quiz-intro, .quiz-progress {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.quiz-question {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.quiz-option, .quiz-start-button {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 16px;
+  width: 100%;
+  text-align: center;
+}
+
+.quiz-option:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-secondary);
+  transform: scale(1.03);
+}
+
+.quiz-start-button {
+  background: var(--gradient-button);
+  border: none;
+  box-shadow: 0 5px 20px rgba(138, 127, 255, 0.3);
+}
+
+.quiz-start-button:hover {
+  filter: brightness(1.1);
+  transform: scale(1.03);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--accent-secondary);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* --- Responsive --- */

@@ -1,8 +1,8 @@
 // supabaseClient.js — numeric Telegram IDs (BIGINT-safe)
 
 (function(){
-  const URL = window.__SUPABASE_URL__ || "";
-  const KEY = window.__SUPABASE_ANON_KEY__ || "";
+  const URL = window.__SUPABASE_URL__ || "https://uhhsrtmmuwoxsdquimaa.supabase.co";
+  const KEY = window.__SUPABASE_ANON_KEY__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8";
   const MISCONFIG = !URL || !KEY;
 
   function ensureSdk(){
@@ -134,8 +134,33 @@
         if (error) console.warn('roulette_history insert error', error);
       } catch(e){ console.warn('roulette_history insert fallback', e); }
     }
+    
+    async function getOrCreateUserProfile(telegram_id) {
+      try {
+        let { data, error } = await sb.from('user_profiles').select('*').eq('telegram_id', telegram_id).maybeSingle();
+        if (error) throw error;
+        return { user: data, isNew: !data };
+      } catch(e) {
+        console.warn('getOrCreateUserProfile error', e);
+        return { user: null, isNew: true }; // Assume new user on error
+      }
+    }
 
-    window.__CASE_API__ = { computeWallet, listPromocodes, addPromocode, markPromocodeUsed, addRouletteHistory, getOrCreateUser, initSupabase: ()=>sb };
+    async function saveUserArchetype(telegram_id, archetype) {
+      try {
+        const { error } = await sb.from('user_profiles').upsert({ telegram_id, quest_archetype: archetype }, { onConflict: 'telegram_id' });
+        if (error) throw error;
+      } catch(e) {
+        console.warn('saveUserArchetype error', e);
+      }
+    }
+
+    window.__CASE_API__ = { 
+      computeWallet, listPromocodes, addPromocode, 
+      markPromocodeUsed, addRouletteHistory, getOrCreateUser, 
+      getOrCreateUserProfile, saveUserArchetype,
+      initSupabase: ()=>sb 
+    };
     window.__CASE_DEBUG__ = { URL, hasKey: !!KEY };
   })();
 })();
