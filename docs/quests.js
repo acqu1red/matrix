@@ -8,7 +8,8 @@ const ALL_QUESTS = {
     button: 'Начать операцию',
     archetypes: ['strategist'],
     category: 'Стратегия',
-    tags: ['Сложный']
+    tags: ['Сложный'],
+    bgColor: 'linear-gradient(45deg, #020010, #4d0000)'
   },
   'bodylang': {
     id: 'bodylang',
@@ -17,7 +18,8 @@ const ALL_QUESTS = {
     button: 'Начать допрос',
     archetypes: ['psiholog'],
     category: 'Психология',
-    tags: ['Средний']
+    tags: ['Средний'],
+    bgColor: 'linear-gradient(45deg, #020010, #003c7a)'
   },
   'funnel': {
     id: 'funnel',
@@ -26,7 +28,8 @@ const ALL_QUESTS = {
     button: 'Начать вещание',
     archetypes: ['biznesmen'],
     category: 'Бизнес',
-    tags: ['Средний']
+    tags: ['Средний'],
+    bgColor: 'linear-gradient(45deg, #020010, #5c007a)'
   },
   'copy': {
     id: 'copy',
@@ -34,7 +37,8 @@ const ALL_QUESTS = {
     description: 'От гаражного стартапа до IPO. Принимай решения, которые приведут твой бизнес к успеху или банкротству.',
     archetypes: ['biznesmen'],
     category: 'Бизнес',
-    tags: ['Средний']
+    tags: ['Средний'],
+    bgColor: 'linear-gradient(45deg, #020010, #006633)'
   },
   'psychology': {
     id: 'psychology',
@@ -42,7 +46,8 @@ const ALL_QUESTS = {
     description: 'Вскрой код психологии переговоров. Заставь клиентов платить больше и наслаждайся своей властью.',
     archetypes: ['psiholog'],
     category: 'Психология',
-    tags: ['Средний']
+    tags: ['Средний'],
+    bgColor: 'linear-gradient(45deg, #020010, #006699)'
   },
   'competitors': {
     id: 'competitors',
@@ -50,7 +55,8 @@ const ALL_QUESTS = {
     description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
     archetypes: ['biznesmen', 'strategist'],
     category: 'Стратегия',
-    tags: ['Сложный']
+    tags: ['Сложный'],
+    bgColor: 'linear-gradient(45deg, #020010, #661400)'
   },
   'trends': {
     id: 'trends',
@@ -58,7 +64,8 @@ const ALL_QUESTS = {
     description: 'Предсказывай будущее. Анализируй данные, находи тренды до того, как они станут мейнстримом, и зарабатывай.',
     archetypes: ['strategist'],
     category: 'Аналитика',
-    tags: ['Сложный']
+    tags: ['Сложный'],
+    bgColor: 'linear-gradient(45deg, #020010, #350099)'
   }
 };
 
@@ -84,10 +91,23 @@ async function initializeApp() {
   }
 
   const api = window.__QUEST_API__;
+  if (!api) {
+    console.error("Supabase client API not initialized.");
+    // Возможно, стоит показать пользователю сообщение об ошибке
+    return;
+  }
+  
   const tgUser = api.getTelegramInfo();
   
-  // Mock user for testing in browser
-  const userId = tgUser ? tgUser.id : '123456789';
+  // Улучшенная логика для тестирования в браузере
+  const userId = tgUser ? tgUser.id : null;
+
+  if (!userId) {
+    console.warn("Telegram user not found. Running in mock mode.");
+    // В режиме мок-данных сразу показываем опрос
+    initializeQuiz('mock_user_12345');
+    return;
+  }
 
   const userProfile = await api.getUserProfile(userId);
 
@@ -184,8 +204,7 @@ function populateQuests(archetype) {
 
 function createFeaturedQuestCard(quest) {
   return `
-    <div class="swiper-slide" data-quest="${quest.id}">
-      <img src="./quests/assets/bg/${quest.id}.jpg" class="quest-card-bg" alt="">
+    <div class="swiper-slide" data-quest="${quest.id}" style="background: ${quest.bgColor};">
       <div class="quest-card-overlay"></div>
       <div class="quest-card-content">
         <h3 class="quest-card-title">${quest.title}</h3>
@@ -259,7 +278,7 @@ function initializeNavigation() {
     const questCard = e.target.closest('[data-quest]');
     if (questCard) {
       const questId = questCard.dataset.quest;
-      // Check if the click was on a button inside the card
+      // Проверяем, был ли клик именно по кнопке
       if (e.target.matches('.quest-card-button, .quest-button')) {
         navigateTo(`quests/${questId}.html`);
       }
