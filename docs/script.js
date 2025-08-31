@@ -176,6 +176,10 @@ function setupEventListeners() {
     
     dialogAttachBtn.addEventListener('click', () => dialogFileInput.click());
     dialogFileInput.addEventListener('change', handleDialogFileAttach);
+
+    document.getElementById('simulationButton').addEventListener('click', () => {
+        window.location.href = 'quests.html';
+    });
 }
 
 // Установка фильтра
@@ -633,6 +637,7 @@ function renderConversationsList(conversations) {
         `;
     }).join('');
     
+    // console.log('Сгенерированный HTML:', html);
     conversationsList.innerHTML = html;
     
     // Добавляем обработчики клика
