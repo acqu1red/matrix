@@ -137,6 +137,14 @@
           this.initTelegramWebApp();
           this.handleUserFlow();
           this.bindGlobalEvents();
+          
+          // Fallback: если через 3 секунды контент все еще не показан, показываем по умолчанию
+          setTimeout(() => {
+            if (this.elements.questsContent.classList.contains('hidden')) {
+              console.warn("Fallback: Content not shown after 3 seconds, forcing display");
+              this.finalizeSetup('default');
+            }
+          }, 3000);
         },
 
         cacheDOMElements() {
@@ -151,6 +159,19 @@
             startQuizBtn: document.getElementById('startQuizBtn'),
             quizOptions: document.querySelectorAll('.quiz-option'),
           };
+          
+          // Проверяем, что все ключевые элементы найдены
+          console.log("DOM elements cached:", this.elements);
+          
+          if (!this.elements.questsContent) {
+            console.error("Critical: quests-content element not found!");
+          }
+          if (!this.elements.featuredWrapper) {
+            console.error("Critical: featured-quests-wrapper element not found!");
+          }
+          if (!this.elements.otherQuestsGrid) {
+            console.error("Critical: other-quests grid element not found!");
+          }
         },
 
         initTelegramWebApp() {
