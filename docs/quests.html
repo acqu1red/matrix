@@ -82,7 +82,33 @@
           <!-- Сюда будут динамически добавляться остальные квесты -->
         </div>
       </section>
+
+      <section class="products-section">
+        <h2 class="section-title" data-animate>Эксклюзивные тренинги</h2>
+        <div class="products-grid" id="productsGrid" data-animate>
+          <!-- Сюда будут динамически добавляться продукты -->
+        </div>
+      </section>
     </main>
+  </div>
+
+  <!-- Product Modals will be injected here by JS -->
+  <div id="modalContainer"></div>
+  
+  <!-- PDF Viewer Modal -->
+  <div class="pdf-viewer-overlay hidden" id="pdfViewerOverlay">
+    <div class="pdf-viewer-container">
+      <div class="pdf-viewer-header">
+        <h3 id="pdfTitle">Название документа</h3>
+        <button class="pdf-viewer-close" id="pdfViewerClose">&times;</button>
+      </div>
+      <div class="pdf-content">
+        <iframe id="pdfFrame" src="" frameborder="0"></iframe>
+      </div>
+      <div class="pdf-viewer-footer">
+        <a href="#" id="pdfDownloadLink" download class="pdf-download-button">Скачать</a>
+      </div>
+    </div>
   </div>
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>

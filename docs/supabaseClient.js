@@ -99,8 +99,47 @@
         }
       }
 
+      async function getUserPurchases(telegramId) {
+        try {
+          const { data, error } = await sb
+            .from('user_purchases')
+            .select('product_id')
+            .eq('telegram_id', telegramId);
+          if (error) {
+            console.error('Ошибка получения покупок:', error);
+            return [];
+          }
+          return data.map(p => p.product_id);
+        } catch (e) {
+          console.error('Сбой при получении покупок:', e);
+          return [];
+        }
+      }
+
+      async function addUserPurchase(telegramId, productId) {
+        try {
+          const { error } = await sb
+            .from('user_purchases')
+            .insert({ telegram_id: telegramId, product_id: productId });
+          if (error) {
+            console.error('Ошибка добавления покупки:', error);
+          }
+          return !error;
+        } catch (e) {
+          console.error('Сбой при добавлении покупки:', e);
+          return false;
+        }
+      }
+
       // Обновляем API с Supabase функциями
-      window.__QUEST_API__ = { getUserProfile, createUserProfile, getTelegramInfo, initSupabase: ()=>sb };
+      window.__QUEST_API__ = { 
+        getUserProfile, 
+        createUserProfile, 
+        getTelegramInfo, 
+        getUserPurchases,
+        addUserPurchase,
+        initSupabase: ()=>sb 
+      };
       window.__QUEST_DEBUG__ = { URL, hasKey: !!KEY };
       console.log("✅ Supabase API инициализирован успешно");
     } catch (error) {

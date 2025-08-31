@@ -70,6 +70,45 @@ const ARCHETYPE_QUESTS = {
 
 let swiperInstance = null;
 const userResponses = [];
+let userPurchases = [];
+let currentUserId = null;
+const ADMIN_ID = '708907063'; // ID администратора
+
+const PRODUCTS = {
+  'psychology-lie': {
+    title: 'ПСИХОЛОГИЯ ЛЖИ',
+    shortDescription: 'Конкретные маркеры в человеческом поведении. Биологическое происхождение лжи. Как распознать ложь за 5 секунд.',
+    modalTitle: 'Вся правда о лжи',
+    modalDescription: 'Этот тренинг — ваш личный детектор лжи. Вы научитесь видеть то, что скрыто за словами. Мы разберем реальные кейсы, научим вас замечать микровыражения и неосознанные жесты, которые выдают обманщика с головой. После этого курса ни одна ложь не пройдет мимо вас.',
+    priceStars: 28,
+    pdfUrl: 'products/psychology-lie.pdf'
+  },
+  'profiling-pro': {
+    title: 'ПРОФАЙЛИНГ PRO',
+    shortDescription: 'Курс по "чтению" людей от А до Я. От детального психологического портрета до глубоких детских травм.',
+    modalTitle: 'Читайте людей, как книгу',
+    modalDescription: 'Станьте мастером профайлинга. Вы сможете за 5 минут составить полный психологический портрет человека, понять его мотивацию, страхи и желания. Этот навык даст вам невероятное преимущество в бизнесе, переговорах и личной жизни.',
+    priceStars: 14,
+    pdfUrl: 'products/profiling-pro.pdf'
+  },
+  'psychotypes-full': {
+    title: 'ПСИХОТИПЫ: ПОЛНЫЙ КУРС',
+    shortDescription: 'Полный контроль любого человека. Раскрытие человека на 200% за считанные секунды за счет поведения. Этот метод манипуляций входит в список запрещенных во многих странах при допросах.',
+    modalTitle: 'Запрещенные техники влияния',
+    modalDescription: 'Это — высшая лига. Знание психотипов дает вам ключи к управлению реальностью. Вы будете знать, как думает и что сделает человек еще до того, как он это осознает. Техники, которые вы изучите, настолько мощные, что их использование ограничено спецслужбами. Применяйте с умом.',
+    priceStars: 1000,
+    pdfUrl: 'products/psychotypes-full.pdf'
+  },
+  '100-female-manipulations': {
+    title: '100 ЖЕНСКИХ МАНИПУЛЯЦИЙ',
+    shortDescription: 'Реальные сценарии давления и быстрые контрходы для любой ситуации. Обезвреживай их за секунды.',
+    modalTitle: 'Щит от манипуляций',
+    modalDescription: 'Больше никаких игр, в которых вы проигрываете. Мы собрали 100 самых частых женских манипуляций и дали на каждую из них четкий, быстрый и эффективный контрприем. Вы научитесь видеть игру наперед и всегда выходить победителем.',
+    priceStars: 12,
+    pdfUrl: 'products/100-female-manipulations.pdf'
+  }
+};
+
 
 // Ждем загрузки всех скриптов
 document.addEventListener('DOMContentLoaded', () => {
@@ -100,21 +139,16 @@ async function initializeApp() {
     const tgUser = api.getTelegramInfo();
     
     // Улучшенная логика для тестирования в браузере
-    const userId = tgUser ? tgUser.id : null;
+    currentUserId = tgUser ? tgUser.id.toString() : 'mock_user_12345';
 
-    if (!userId) {
-      console.warn("Telegram user not found. Running in mock mode.");
-      // В режиме мок-данных сразу показываем опрос
-      initializeQuiz('mock_user_12345');
-      return;
-    }
-
-    const userProfile = await api.getUserProfile(userId);
+    userPurchases = await api.getUserPurchases(currentUserId);
+    
+    const userProfile = await api.getUserProfile(currentUserId);
 
     if (userProfile && userProfile.quest_archetype) {
       await loadMainContent(userProfile.quest_archetype);
     } else {
-      initializeQuiz(userId);
+      initializeQuiz(currentUserId);
     }
   } catch (error) {
     console.error("Error during app initialization:", error);
@@ -204,6 +238,7 @@ function determineArchetype(responses) {
 
 async function loadMainContent(archetype) {
   populateQuests(archetype);
+  populateProducts(); // Новая функция для отображения продуктов
   const app = document.getElementById('app');
   if (app) {
     app.classList.remove('hidden');
@@ -214,6 +249,7 @@ async function loadMainContent(archetype) {
     initializeSwiper();
     initializeScrollAnimations();
     initializeNavigation();
+    initializeProductInteraction(); // Новая функция для интерактивности продуктов
   }, 100);
 }
 
@@ -337,4 +373,186 @@ function navigateTo(url) {
   setTimeout(() => {
     window.location.href = url;
   }, 300);
+}
+
+function populateProducts() {
+  const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  
+  let productsHtml = '';
+  for (const id in PRODUCTS) {
+    productsHtml += createProductCard(id, PRODUCTS[id]);
+  }
+  grid.innerHTML = productsHtml;
+}
+
+function createProductCard(id, product) {
+  const isPurchased = userPurchases.includes(id);
+  
+  const buttonHtml = isPurchased
+    ? `
+      <div class="product-actions">
+        <button class="product-button read-button" data-pdf-url="${product.pdfUrl}" data-pdf-title="${product.title}">Читать</button>
+        <a href="${product.pdfUrl}" download class="product-button download-button">Скачать</a>
+      </div>
+    `
+    : `<button class="product-button buy-button">Узнать больше</button>`;
+
+  return `
+    <div class="product-card" data-product-id="${id}">
+      <div class="product-content">
+        <h3 class="product-title">${product.title}</h3>
+        <p class="product-description">${product.shortDescription}</p>
+        ${buttonHtml}
+      </div>
+    </div>
+  `;
+}
+
+function initializeProductInteraction() {
+  const productsGrid = document.getElementById('productsGrid');
+  const modalContainer = document.getElementById('modalContainer');
+  
+  if (!productsGrid || !modalContainer) return;
+
+  // Генерация модальных окон
+  let modalsHtml = '';
+  for (const id in PRODUCTS) {
+    modalsHtml += createProductModal(id, PRODUCTS[id]);
+  }
+  modalContainer.innerHTML = modalsHtml;
+
+  // Обработчики событий
+  productsGrid.addEventListener('click', e => {
+    const card = e.target.closest('.product-card');
+    if (!card) return;
+
+    const productId = card.dataset.productId;
+    if (e.target.classList.contains('buy-button')) {
+      showModal(productId);
+    } else if (e.target.classList.contains('read-button')) {
+      const pdfUrl = e.target.dataset.pdfUrl;
+      const pdfTitle = e.target.dataset.pdfTitle;
+      showPdfViewer(pdfUrl, pdfTitle);
+    }
+  });
+
+  modalContainer.addEventListener('click', e => {
+    if (e.target.classList.contains('product-modal-close')) {
+      const modal = e.target.closest('.product-modal-overlay');
+      hideModal(modal.dataset.productId);
+    }
+    if (e.target.classList.contains('payment-button-stars')) {
+      const productId = e.target.dataset.productId;
+      handlePurchase(productId);
+    }
+  });
+  
+  const pdfViewerClose = document.getElementById('pdfViewerClose');
+  if (pdfViewerClose) {
+    pdfViewerClose.addEventListener('click', hidePdfViewer);
+  }
+}
+
+function createProductModal(id, product) {
+  return `
+    <div class="product-modal-overlay" data-product-id="${id}">
+      <div class="product-modal">
+        <button class="product-modal-close">&times;</button>
+        <h2 class="modal-title">${product.modalTitle}</h2>
+        <p class="modal-description">${product.modalDescription}</p>
+        <div class="modal-payment-options">
+          <button class="payment-button">Карта / СБП (в разработке)</button>
+          <button class="payment-button payment-button-stars" data-product-id="${id}">
+            Купить за ${product.priceStars} ⭐
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function showModal(productId) {
+  const modal = document.querySelector(`.product-modal-overlay[data-product-id="${productId}"]`);
+  if (modal) {
+    modal.classList.add('visible');
+  }
+}
+
+function hideModal(productId) {
+  const modal = document.querySelector(`.product-modal-overlay[data-product-id="${productId}"]`);
+  if (modal) {
+    modal.classList.remove('visible');
+  }
+}
+
+async function handlePurchase(productId) {
+  const product = PRODUCTS[productId];
+  
+  if (currentUserId === ADMIN_ID) {
+    console.log("Админский доступ. Покупка без оплаты.");
+    await onSuccessfulPurchase(productId);
+    return;
+  }
+  
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openInvoice) {
+    const invoiceSlug = `product-${productId}-${Date.now()}`;
+    window.Telegram.WebApp.openInvoice(invoiceSlug, (status) => {
+      if (status === 'paid') {
+        onSuccessfulPurchase(productId);
+      } else {
+        window.Telegram.WebApp.showAlert('Оплата не удалась или была отменена.');
+      }
+    });
+  } else {
+    // Fallback для теста в браузере
+    console.log("WebApp недоступен. Симуляция успешной оплаты.");
+    await onSuccessfulPurchase(productId);
+  }
+}
+
+async function onSuccessfulPurchase(productId) {
+  const api = window.__QUEST_API__;
+  const product = PRODUCTS[productId];
+
+  // 1. Сохраняем покупку в Supabase
+  await api.addUserPurchase(currentUserId, productId);
+  
+  // 2. Обновляем локальный список покупок
+  userPurchases.push(productId);
+  
+  // 3. Обновляем карточку продукта в UI
+  populateProducts();
+
+  // 4. Закрываем модальное окно
+  hideModal(productId);
+  
+  // 5. Показываем PDF
+  setTimeout(() => {
+    showPdfViewer(product.pdfUrl, product.title);
+  }, 500); // Небольшая задержка для плавности
+}
+
+function showPdfViewer(pdfUrl, pdfTitle) {
+  const overlay = document.getElementById('pdfViewerOverlay');
+  const titleEl = document.getElementById('pdfTitle');
+  const frameEl = document.getElementById('pdfFrame');
+  const downloadLink = document.getElementById('pdfDownloadLink');
+
+  if (overlay && titleEl && frameEl && downloadLink) {
+    titleEl.textContent = pdfTitle;
+    frameEl.src = pdfUrl;
+    downloadLink.href = pdfUrl;
+    overlay.classList.remove('hidden');
+  }
+}
+
+function hidePdfViewer() {
+  const overlay = document.getElementById('pdfViewerOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    // Очищаем iframe, чтобы остановить загрузку/воспроизведение
+    const frameEl = document.getElementById('pdfFrame');
+    if (frameEl) frameEl.src = '';
+  }
 }
