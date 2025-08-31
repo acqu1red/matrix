@@ -637,18 +637,100 @@ async def handle_grant_promo(update: Update, context: CallbackContext, promo_cod
 
 
 async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
-    """(Legacy) Данные от старой версии MiniApp: больше не создаём платёж здесь.
-    Новый поток оплаты: MiniApp → Railway /api/pay/create → lava.top.
-    Этот обработчик оставлен только для мягкой миграции пользователей со старой версии.
-    """
+    """Обработчик данных от MiniApp (включая команды от рулетки кейсов)"""
     try:
+        if not update.message.web_app_data:
+            return
+
+        # Парсим данные от MiniApp
+        import json
+        try:
+            data = json.loads(update.message.web_app_data.data)
+        except json.JSONDecodeError:
+            print("❌ Ошибка парсинга данных от MiniApp")
+            return
+
+        command = data.get('command')
+        params = data.get('params', {})
+        user_id = update.effective_user.id
+
+        print(f"📱 MiniApp команда: {command}, параметры: {params}")
+
+        # Обработка команд от рулетки кейсов
+        if command == 'galdin':
+            # Активация подписки через промокод
+            target_user_id = params.get('user_id', user_id)
+            days = params.get('days', 30)
+            promo_code = params.get('promo_code', '')
+            
+            success = await grant_subscription(target_user_id, days)
+            
+            if success:
+                await update.message.reply_text(
+                    f"✅ <b>Подписка активирована!</b>\n\n"
+                    f"👤 <b>Пользователь:</b> {target_user_id}\n"
+                    f"📅 <b>Срок:</b> {days} дней\n"
+                    f"🎫 <b>Промокод:</b> {promo_code}\n\n"
+                    f"Подписка активирована автоматически через рулетку кейсов.",
+                    parse_mode='HTML'
+                )
+            else:
+                await update.message.reply_text(
+                    f"❌ <b>Ошибка активации подписки</b>\n\n"
+                    f"Промокод: {promo_code}\n"
+                    f"Обратитесь к администратору.",
+                    parse_mode='HTML'
+                )
+
+        elif command == 'send_to_admin':
+            # Отправка сообщения администратору
+            admin_message = params.get('message', '')
+            promo_code = params.get('promo_code', '')
+            
+            if admin_message:
+                # Отправляем сообщение всем администраторам
+                for admin_username in ADMIN_USERNAMES:
+                    try:
+                        await context.bot.send_message(
+                            chat_id=f"@{admin_username}",
+                            text=f"📱 <b>Сообщение от рулетки кейсов:</b>\n\n{admin_message}",
+                            parse_mode='HTML'
+                        )
+                    except Exception as e:
+                        print(f"❌ Ошибка отправки администратору @{admin_username}: {e}")
+                
+                await update.message.reply_text(
+                    "✅ Сообщение отправлено администратору!",
+                    parse_mode='HTML'
+                )
+
+        elif command == 'promo_used':
+            # Уведомление об использовании промокода
+            promo_code = params.get('promo_code', '')
+            promo_type = params.get('type', '')
+            promo_value = params.get('value', '')
+            
+            await update.message.reply_text(
+                f"🎫 <b>Промокод использован!</b>\n\n"
+                f"🔑 <b>Код:</b> {promo_code}\n"
+                f"📊 <b>Тип:</b> {promo_type}\n"
+                f"💎 <b>Значение:</b> {promo_value}",
+                parse_mode='HTML'
+            )
+
+        else:
+            # Неизвестная команда
+            await update.message.reply_text(
+                "ℹ️ Данные от MiniApp получены, но команда не распознана.",
+                parse_mode='HTML'
+            )
+
+    except Exception as e:
+        print(f"❌ Ошибка обработки данных MiniApp: {e}")
         await update.message.reply_text(
-            "ℹ️ Оплата теперь происходит прямо в MiniApp (кнопка «Оплатить доступ»).\n"
-            "Если страница оплаты не открылась, нажмите сюда: " + PAYMENT_MINIAPP_URL,
+            "❌ Произошла ошибка при обработке данных от приложения.",
             parse_mode='HTML'
         )
-    except Exception as e:
-        print(f"Ошибка legacy-webapp handler: {e}")
 
 
 

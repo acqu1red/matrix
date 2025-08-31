@@ -1,444 +1,919 @@
+// Case Roulette JavaScript - Psychology & Money Theme
+(function() {
+  'use strict';
 
-/* ====================================================
-   CASE — рулетка (горизонтальная, вправо, 15с + 5с замедление)
-   Ч/Б тема. Фокус: заработок × психология.
-   ==================================================== */
+  // Prize configuration with chances
+  const PRIZES = [
+    {
+      id: 'discount_10',
+      name: 'Скидка 10%',
+      description: 'Скидка 10% на любую подписку',
+      icon: '💸',
+      type: 'discount',
+      value: '10',
+      chance: 40,
+      category: 'use'
+    },
+    {
+      id: 'discount_20_6m',
+      name: 'Скидка 20%',
+      description: 'Скидка 20% на подписку 6 мес.',
+      icon: '🎯',
+      type: 'discount',
+      value: '20',
+      chance: 25,
+      category: 'use'
+    },
+    {
+      id: 'discount_50_12m',
+      name: 'Скидка 50%',
+      description: 'Скидка 50% на подписку 12 мес.',
+      icon: '💎',
+      type: 'discount',
+      value: '50',
+      chance: 15,
+      category: 'use'
+    },
+    {
+      id: 'sub_1month',
+      name: 'Подписка 1 мес.',
+      description: 'Полная подписка 1 мес.',
+      icon: '👑',
+      type: 'subscription',
+      value: '30',
+      chance: 5,
+      category: 'activate'
+    },
+    {
+      id: 'mulacoin_50',
+      name: '50 MULACOIN',
+      description: '50 MULACOIN',
+      icon: '🪙',
+      type: 'currency',
+      value: '50',
+      chance: 40,
+      category: 'activate'
+    },
+    {
+      id: 'spin_bonus',
+      name: '+1 SPIN',
+      description: '+1 SPIN',
+      icon: '🎰',
+      type: 'spin',
+      value: '1',
+      chance: 80,
+      category: 'activate'
+    },
+    {
+      id: 'mulacoin_10',
+      name: '10 MULACOIN',
+      description: '10 MULACOIN',
+      icon: '🥉',
+      type: 'currency',
+      value: '10',
+      chance: 60,
+      category: 'activate'
+    },
+    {
+      id: 'consultation',
+      name: 'Консультация',
+      description: 'Личная консультация',
+      icon: '🧠',
+      type: 'service',
+      value: 'consultation',
+      chance: 3,
+      category: 'use'
+    },
+    {
+      id: 'frod_course',
+      name: 'Обучение ФРОДУ',
+      description: 'Полное обучение ФРОДУ',
+      icon: '🎓',
+      type: 'course',
+      value: 'frod',
+      chance: 1,
+      category: 'use'
+    }
+  ];
 
-// ---------- Fallback: если supabaseClient.js не загрузился ----------
-(function ensureCaseApi(){
-  if (window.__CASE_API__) return;
-  console.warn('⚠️ __CASE_API__ не найден — включён локальный оффлайн-режим.');
-  function ensureLocalId(){
-    const k='case_local_id'; let v=localStorage.getItem(k);
-    if(!v){ v='anon_'+Math.random().toString(36).slice(2,10); localStorage.setItem(k,v); }
-    return v;
-  }
-  window.__CASE_API__ = {
-    async computeWallet(user){
-      const cache = JSON.parse(localStorage.getItem('case_user')||'{}');
-      return { spins: cache.spins ?? 1, mulacoin: cache.mulacoin ?? 0 };
-    },
-    async listPromocodes(){ return []; },
-    async addPromocode(){ /* no-op offline */ },
-    async markPromocodeUsed(){ /* no-op offline */ },
-    async addRouletteHistory(){ /* no-op offline */ },
-    async getOrCreateUser(){
-      const tg = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) ? window.Telegram.WebApp.initDataUnsafe : null;
-      const identifier = tg?.user ? 'tg_'+tg.user.id : ensureLocalId();
-      const nickname = tg?.user?.username || (tg?.user?.first_name ? (tg.user.first_name + (tg.user.last_name?(' '+tg.user.last_name):'')) : 'guest');
-      const local = { id:null, telegram_id: identifier, nickname, spins: 1, mulacoin: 0 };
-      localStorage.setItem('case_user', JSON.stringify(local));
-      return local;
-    },
-    async initSupabase(){ return null; }
+  // Subscription prices for discount calculation
+  const SUBSCRIPTION_PRICES = {
+    '1month': 800,
+    '6months': 4800,
+    '12months': 9600
   };
-})();
 
+  // App state
+  let appState = {
+    isInitialized: false,
+    isSpinning: false,
+    userData: {
+      mulacoin: 0,
+      spins: 0,
+      level: 1,
+      telegram_id: null
+    },
+    promocodes: [],
+    currentUser: null
+  };
 
-// ---------- Цены по умолчанию (можно менять) ----------
-const BASE_PRICES = {
-  monthly: 1000,
-  six_months: 5400,
-  twelve_months: 9600,
-  consultation: 3000,
-  training_frod: 25000
-};
+  // DOM elements
+  let elements = {};
 
-// ---------- Призы и веса выпадения ----------
-const PRIZES = [
-  { id:'disc10_any',  name:'Скидка 10% на любую подписку',   type:'discount',    action:'use',       weight:40, meta:{ percent:10, target:'any' } },
-  { id:'disc20_6m',   name:'Скидка 20% на подписку 6 мес.',  type:'discount',    action:'use',       weight:25, meta:{ percent:20, target:'6m' } },
-  { id:'disc50_12m',  name:'Скидка 50% на подписку 12 мес.', type:'discount',    action:'use',       weight:15, meta:{ percent:50, target:'12m' } },
-  { id:'sub_1m',      name:'Полная подписка 1 мес.',         type:'subscription',action:'activate',  weight:5,  meta:{ months:1 } },
-  { id:'m50',         name:'50 MULACOIN',                    type:'currency',    action:'activate',  weight:40, meta:{ amount:50 } },
-  { id:'spin1',       name:'+1 SPIN',                        type:'spin',        action:'activate',  weight:80, meta:{ amount:1 } },
-  { id:'m10',         name:'10 MULACOIN',                    type:'currency',    action:'activate',  weight:60, meta:{ amount:10 } },
-  { id:'consult',     name:'Личная консультация',            type:'service',     action:'use',       weight:3,  meta:{} },
-  { id:'training_frod', name:'Полное обучение ФРОДУ',        type:'service',     action:'use',       weight:1,  meta:{} }
-];
+  // Utility functions
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
 
-const BUY_SPIN_COST = 50; // MULACOIN
+  // Initialize app
+  async function initializeApp() {
+    if (appState.isInitialized) return;
 
-// ---------- Утилиты UI ----------
-const $ = (s)=>document.querySelector(s);
-const toast = (msg, type='info')=>{
-  const el = $('#toast'); if(!el) return;
-  el.textContent = msg; el.className = 'toast show ' + type;
-  setTimeout(()=>{ el.className='toast'; }, 2500);
-};
-
-// Wallet helpers (используем серверные вычисления через __CASE_API__)
-async function refreshWalletUI(){
-  const w = await window.__CASE_API__.computeWallet(user);
-  user.spins = w.spins; user.mulacoin = w.mulacoin;
-  await syncUserUI();
-}
-
-async function playKazikSafe(){
-  const a = $('#kazik'); if (!a) return;
-  try { a.currentTime = 0; await a.play(); } catch(e){ /* ignore */ }
-}
-function stopKazikSafe(){ try{ $('#kazik')?.pause(); }catch(e){} }
-
-// ---------- Весовой выбор ----------
-function pickWeighted(list){
-  const total = list.reduce((sum,p)=>sum+p.weight,0);
-  let roll = Math.random()*total;
-  for (const p of list){
-    if((roll -= p.weight) <= 0) return p;
-  }
-  return list[list.length-1];
-}
-
-// ---------- Рендер карточек в трек ----------
-function renderCard(prize){
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.dataset.pid = prize.id;
-  div.innerHTML = `<div class="title">${prize.name}</div>
-                   <div class="note">${prize.type === 'discount' ? 'Скидка' : prize.type === 'currency' ? 'Баланс' : prize.type === 'spin' ? 'Спины' : 'Особый приз'}</div>`;
-  return div;
-}
-
-// Генерация сегмента
-function randomSegment(length=18){
-  const fragment = document.createDocumentFragment();
-  for(let i=0;i<length;i++){
-    const p = PRIZES[Math.floor(Math.random()*PRIZES.length)];
-    fragment.appendChild(renderCard(p));
-  }
-  return fragment;
-}
-
-// ---------- Состояние ----------
-let user = { id:null, telegram_id:null, mulacoin:0, spins:0, nickname:'anon' };
-
-async function syncUserUI(){
-  $('#mulacoinAmount').textContent = user.mulacoin|0;
-  $('#spinsCount').textContent = user.spins|0;
-}
-
-async function bootstrap(){
-  if (window.Telegram && window.Telegram.WebApp) {
-    try { Telegram.WebApp.expand(); Telegram.WebApp.enableClosingConfirmation(); } catch(e){}
-  }
-  user = await window.__CASE_API__.getOrCreateUser();
-  await refreshWalletUI();
-  await refreshPromos();
-  // Подготовить трек
-  prepareTrack();
-}
-
-// ---------- Рулетка ----------
-let spinning = false;
-let currentAnim = null;
-
-function prepareTrack(winningPrize=null){
-  const track = $('#track');
-  track.style.transform = 'translateX(0px)';
-  track.innerHTML = '';
-
-  // Левый буфер + основной массив
-  track.appendChild(randomSegment(30));
-  for(let i=0;i<6;i++){ track.appendChild(randomSegment(18)); }
-
-  // Целевой победитель в конце
-  const winner = winningPrize || pickWeighted(PRIZES);
-  const winnerCard = renderCard(winner);
-  track.appendChild(randomSegment(8));
-  track.appendChild(winnerCard);
-  track.appendChild(randomSegment(12));
-
-  // Начальное левое смещение (движение будет вправо)
-  const cards = Array.from(track.children).slice(0, 24);
-  const base = cards.reduce((w, c)=> w + c.getBoundingClientRect().width + 12, 0);
-  const initX = -Math.max(0, base);
-  track.style.transform = `translateX(${initX}px)`;
-  window.__trackInitialX = initX;
-
-  return winner;
-}
-
-function getCardCenterX(card, container){
-  const cardRect = card.getBoundingClientRect();
-  const contRect = container.getBoundingClientRect();
-  return (cardRect.left + cardRect.right)/2 - contRect.left;
-}
-
-async function spin(){
-  if (spinning) return;
-  await refreshWalletUI();
-  if ((user.spins|0) <= 0){ toast('Нет спинов. Купите за 50 🪙', 'error'); return; }
-
-  spinning = true;
-  $('#btnSpin').disabled = true;
-  $('#btnBuy').disabled = true;
-  $('#btnPrizes').disabled = true;
-
-  // выбрать победителя заранее (по шансам)
-  const winner = prepareTrack();
-
-  // аудио
-  await playKazikSafe();
-
-  // рассчитать целевое смещение
-  const track = $('#track');
-  const stage = $('.stage');
-  await new Promise(requestAnimationFrame);
-
-  const cards = Array.from(track.children);
-  const targetCard = cards.reverse().find(c => c.dataset.pid === winner.id);
-  if (!targetCard){ spinning=false; toast('Ошибка карточки приза', 'error'); return; }
-
-  const pointerCenter = stage.clientWidth / 2;
-  const itemCenter = getCardCenterX(targetCard, stage);
-  const initialX = window.__trackInitialX || 0;
-  const delta = (pointerCenter - itemCenter);
-  const targetTranslate = initialX + delta; // идём вправо
-
-  // 15с (10 быстрых + 5 замедление)
-  const start = performance.now();
-  const D1 = 10000;
-  const D2 = 5000;
-  const D = D1 + D2;
-  const easeOut = (t)=>1 - (1-t)*(1-t);
-
-  cancelAnimationFrame(currentAnim);
-  let ended = false;
-  function frame(now){
-    const t = now - start;
-    let progress;
-    if (t <= D1){
-      const p = Math.min(1, t / D1);
-      progress = p * 0.7;
-    } else {
-      const p2 = Math.min(1, (t - D1) / D2);
-      progress = 0.7 + easeOut(p2) * 0.3;
-    }
-    const x = initialX + (targetTranslate - initialX) * progress;
-    track.style.transform = `translateX(${x}px)`;
-
-    if (t < D){
-      currentAnim = requestAnimationFrame(frame);
-    } else if (!ended){
-      ended = true;
-      track.style.transform = `translateX(${targetTranslate}px)`;
-      finishSpin(winner).catch(console.error);
-    }
-  }
-  currentAnim = requestAnimationFrame(frame);
-}
-
-async function finishSpin(winner){
-  stopKazikSafe();
-
-  // генерим промокод
-  const code = `${winner.id}`.toUpperCase() + '-' + Math.random().toString(36).slice(2,8).toUpperCase();
-
-  // пишем промокод и историю
-  await window.__CASE_API__.addPromocode({
-    code,
-    type: winner.type,
-    value: (winner.type==='currency'||winner.type==='spin') ? (winner.meta.amount||0) : JSON.stringify(winner.meta),
-    issued_to: user.telegram_id,
-    status: 'issued'
-  });
-  await window.__CASE_API__.addRouletteHistory({
-    user_id: user.id,
-    prize_type: winner.id,
-    prize_name: winner.name,
-    is_free: false,
-    mulacoin_spent: 0,
-    won_at: new Date().toISOString(),
-    promo_code_id: null
-  });
-
-  // обновить кошелёк и ленту
-  await refreshWalletUI();
-  await refreshPromos();
-
-  // показать модал
-  openResultModal(winner, code);
-
-  spinning = false;
-  $('#btnSpin').disabled = false;
-  $('#btnBuy').disabled = false;
-  $('#btnPrizes').disabled = false;
-}
-
-// ---------- Промокоды ----------
-function priceLineFor(prize){
-  switch(prize.id){
-    case 'disc10_any':  return { before: BASE_PRICES.monthly,       after: Math.round(BASE_PRICES.monthly * 0.9) };
-    case 'disc20_6m':   return { before: BASE_PRICES.six_months,    after: Math.round(BASE_PRICES.six_months * 0.8) };
-    case 'disc50_12m':  return { before: BASE_PRICES.twelve_months, after: Math.round(BASE_PRICES.twelve_months * 0.5) };
-    case 'consult':     return { before: BASE_PRICES.consultation,  after: BASE_PRICES.consultation };
-    case 'training_frod': return { before: BASE_PRICES.training_frod, after: BASE_PRICES.training_frod };
-    default: return null;
-  }
-}
-
-function safeJSON(x){ try{return JSON.parse(x);}catch(e){return {}} }
-
-function renderPromoRow(row){
-  const wrap = document.createElement('div');
-  wrap.className = 'promo';
-
-  const pid = (row.code || '').split('-')[0].toLowerCase();
-  const prize = PRIZES.find(p=>p.id === pid) || null;
-  const displayName = prize ? prize.name : (row.type || 'промокод');
-  const action = prize ? prize.action : (row.type === 'discount' || row.type === 'service' ? 'use' : 'activate');
-
-  const value = typeof row.value === 'string' ? safeJSON(row.value) : (row.value || {});
-
-  wrap.innerHTML = `
-    <div class="left">
-      <span class="badge">${row.type}</span>
-      <div>
-        <div class="code">${displayName}</div>
-        <div class="tiny">${row.code || ''}</div>
-      </div>
-    </div>
-    <div class="actions"></div>
-  `;
-
-  const btn = document.createElement('button');
-  btn.className = 'btn';
-  if (row.status === 'used' || row.status === 'activated'){
-    btn.disabled = true;
-    btn.textContent = row.status === 'used' ? 'Использовано' : 'Активировано';
-  } else {
-    if (action === 'activate'){
-      btn.classList.add('primary');
-      btn.textContent = 'Активировать';
-      btn.onclick = ()=>activatePromo(row, value, prize);
-    } else {
-      btn.textContent = 'Использовать';
-      btn.onclick = ()=>usePromo(row, value, prize);
-    }
-  }
-  wrap.querySelector('.actions').appendChild(btn);
-  return wrap;
-}
-
-async function refreshPromos(){
-  const list = $('#promoList');
-  list.innerHTML = '';
-  const rows = await window.__CASE_API__.listPromocodes(user.telegram_id);
-  rows.forEach(r=> list.appendChild(renderPromoRow(r)));
-}
-
-async function activatePromo(row, value, prize){
-  if (row.type === 'currency'){
-    await window.__CASE_API__.markPromocodeUsed(row.id, { status:'activated', used_at: new Date().toISOString(), used_by: user.telegram_id });
-    await refreshPromos();
-    await refreshWalletUI();
-    toast(`+${parseInt(value,10)||0} 🪙 добавлено`, 'success');
-  } else if (row.type === 'spin'){
-    await window.__CASE_API__.markPromocodeUsed(row.id, { status:'activated', used_at: new Date().toISOString(), used_by: user.telegram_id });
-    await refreshPromos();
-    await refreshWalletUI();
-    toast(`+${parseInt(value,10)||0} SPIN`, 'success');
-  } else if (row.type === 'subscription'){
     try {
-      if (window.Telegram && window.Telegram.WebApp){
-        Telegram.WebApp.sendData(JSON.stringify({ op:'activate_subscription', months:1, code:row.code }));
+      // Get DOM elements
+      elements = {
+        spinButton: $('#spinButton'),
+        spinButtonText: $('#spinButtonText'),
+        buySpinBtn: $('#buySpinBtn'),
+        prizesBtn: $('#prizesBtn'),
+        mulacoinAmount: $('#mulacoinAmount'),
+        spinsAmount: $('#spinsAmount'),
+        rouletteTrack: $('#rouletteTrack'),
+        resultModal: $('#resultModal'),
+        resultIcon: $('#resultIcon'),
+        resultTitle: $('#resultTitle'),
+        resultDescription: $('#resultDescription'),
+        claimPrizeBtn: $('#claimPrizeBtn'),
+        closeResultBtn: $('#closeResultBtn'),
+        promoList: $('#promoList'),
+        spinSound: $('#spinSound'),
+        tradingParticles: $('#tradingParticles')
+      };
+
+      // Initialize user data
+      await initializeUser();
+      
+      // Generate roulette items
+      generateRouletteItems();
+      
+      // Setup event listeners
+      setupEventListeners();
+      
+      // Load user promocodes
+      await loadPromocodes();
+      
+      // Initialize trading particles
+      initializeTradingParticles();
+      
+      // Update display
+      updateDisplay();
+      
+      appState.isInitialized = true;
+      console.log('✅ Case roulette initialized successfully');
+      
+    } catch (error) {
+      console.error('❌ Error initializing app:', error);
+      showError('Ошибка загрузки приложения');
+    }
+  }
+
+  // Initialize user data
+  async function initializeUser() {
+    try {
+      if (!window.__CASE_API__) {
+        throw new Error('Supabase API не загружен');
       }
-    } catch(e){}
-    await window.__CASE_API__.markPromocodeUsed(row.id, { status:'activated', used_at: new Date().toISOString(), used_by: user.telegram_id });
-    await refreshPromos();
-    toast('Подписка будет выдана ботом', 'success');
+
+      const user = await window.__CASE_API__.getOrCreateUser();
+      appState.currentUser = user;
+      appState.userData.telegram_id = user.telegram_id;
+      
+      const wallet = await window.__CASE_API__.computeWallet(user);
+      appState.userData.mulacoin = wallet.mulacoin || 0;
+      appState.userData.spins = wallet.spins || 0;
+      
+      console.log('👤 User initialized:', user);
+      console.log('💰 Wallet:', wallet);
+      
+    } catch (error) {
+      console.error('❌ Error initializing user:', error);
+      // Fallback to local storage
+      const localData = JSON.parse(localStorage.getItem('case_user') || '{}');
+      appState.userData.mulacoin = localData.mulacoin || 0;
+      appState.userData.spins = localData.spins || 1; // Give 1 free spin
+      appState.userData.telegram_id = localData.telegram_id || 'local_user';
+    }
   }
-}
 
-function openAdminDM(text){
-  const u = encodeURIComponent(text);
-  window.open(`https://t.me/acqu1red?text=${u}`, '_blank');
-}
+  // Generate roulette items with infinite scroll effect
+  function generateRouletteItems() {
+    const track = elements.rouletteTrack;
+    if (!track) return;
 
-async function usePromo(row, value, prize){
-  const name = prize ? prize.name : (row.type || 'приз');
-  const price = prize ? priceLineFor(prize) : null;
+    // Create weighted prize array based on chances
+    const weightedPrizes = [];
+    PRIZES.forEach(prize => {
+      for (let i = 0; i < prize.chance; i++) {
+        weightedPrizes.push(prize);
+      }
+    });
 
-  let message = `Здравствуйте! Хочу использовать приз «${name}».\nМой промокод: ${row.code}.`;
-  if (price){
-    message += `\nЦена без скидки: ${price.before}₽.`;
-    if (price.after !== price.before) message += `\nЦена со скидкой: ${price.after}₽.`;
+    // Generate 50 items for smooth infinite scroll
+    const items = [];
+    for (let i = 0; i < 50; i++) {
+      const randomIndex = Math.floor(Math.random() * weightedPrizes.length);
+      items.push(weightedPrizes[randomIndex]);
+    }
+
+    // Render items
+    track.innerHTML = items.map(prize => `
+      <div class="roulette-item" data-prize-id="${prize.id}">
+        <div class="roulette-icon">${prize.icon}</div>
+        <div class="roulette-text">${prize.name}</div>
+      </div>
+    `).join('');
   }
-  openAdminDM(message);
-  await window.__CASE_API__.markPromocodeUsed(row.id, { status:'used', used_at:new Date().toISOString(), used_by:user.telegram_id });
-  await refreshPromos();
-  toast('Сообщение админу отправлено', 'success');
-}
 
-// ---------- Модалы ----------
-function showModal(html){
-  $('#modalContent').innerHTML = html;
-  $('#modal').classList.add('show');
-}
-function closeModal(){ $('#modal').classList.remove('show'); }
-$('#modalClose').addEventListener('click', closeModal);
-$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
+  // Setup event listeners
+  function setupEventListeners() {
+    // Spin button
+    if (elements.spinButton) {
+      elements.spinButton.addEventListener('click', handleSpin);
+    }
 
-function openPrizesModal(){
-  const items = PRIZES.map(p=>`<li style="display:flex;align-items:center;justify-content:space-between;gap:12px"><b>${p.name}</b><span class="badge">${p.weight}‰</span></li>`).join('');
-  showModal(`
-    <h3>Все призы и шансы</h3>
-    <p>Шанс выпадения учитывается при каждом спине. Вращение 15 секунд, замедление 5 секунд.</p>
-    <ul style="display:grid;gap:8px;list-style:none;margin-top:10px">${items}</ul>
-  `);
-}
+    // Buy spin button
+    if (elements.buySpinBtn) {
+      elements.buySpinBtn.addEventListener('click', handleBuySpin);
+    }
 
-function openHistory(){
-  showModal(`<h3>История</h3><p>Журнал смотрите в таблице <code>roulette_history</code>. Последние призы — в «Лента промокодов».</p>`);
-}
+    // Prizes button
+    if (elements.prizesBtn) {
+      elements.prizesBtn.addEventListener('click', showPrizesModal);
+    }
 
-function openResultModal(prize, code){
-  const action = prize.action === 'activate' ? 'Активировать' : 'Использовать';
-  showModal(`
-    <h3>Ваш выигрыш</h3>
-    <p><b>${prize.name}</b></p>
-    <p>Промокод: <code>${code}</code></p>
-    <div class="actions" style="margin-top:10px;display:flex;gap:8px">
-      <button class="btn primary" id="resMain">${action}</button>
-      <button class="btn" id="resClose">Позже</button>
-    </div>
-  `);
-  setTimeout(()=>{
-    $('#resClose').onclick = closeModal;
-    $('#resMain').onclick = async ()=>{
-      await refreshPromos();
-      const list = $('#promoList').children;
-      for (const item of list){
-        const codeEl = item.querySelector('.tiny') || item.querySelector('.code');
-        if (codeEl && codeEl.textContent.includes(code)){
-          const btn = item.querySelector('.actions .btn');
-          if (btn && !btn.disabled) btn.click();
+    // Result modal buttons
+    if (elements.claimPrizeBtn) {
+      elements.claimPrizeBtn.addEventListener('click', handleClaimPrize);
+    }
+
+    if (elements.closeResultBtn) {
+      elements.closeResultBtn.addEventListener('click', closeResultModal);
+    }
+
+    // Close modal on outside click
+    if (elements.resultModal) {
+      elements.resultModal.addEventListener('click', (e) => {
+        if (e.target === elements.resultModal) {
+          closeResultModal();
+        }
+      });
+    }
+  }
+
+  // Handle spin action
+  async function handleSpin() {
+    if (appState.isSpinning) return;
+    
+    if (appState.userData.spins <= 0) {
+      showError('У вас нет спинов! Купите спин за 50 MULACOIN');
+      return;
+    }
+
+    try {
+      appState.isSpinning = true;
+      
+      // Update UI
+      elements.spinButton.disabled = true;
+      elements.spinButtonText.textContent = 'Крутим...';
+      
+      // Decrease spins
+      appState.userData.spins--;
+      updateDisplay();
+      
+      // Play sound
+      if (elements.spinSound) {
+        elements.spinSound.currentTime = 0;
+        elements.spinSound.play().catch(e => console.log('Sound play failed:', e));
+      }
+      
+      // Select winning prize based on chances
+      const winningPrize = selectWinningPrize();
+      
+      // Animate roulette
+      await animateRoulette(winningPrize);
+      
+      // Save spin to database
+      await saveRouletteHistory('spin', winningPrize);
+      
+      // Show result
+      showResult(winningPrize);
+      
+    } catch (error) {
+      console.error('❌ Error during spin:', error);
+      showError('Ошибка при кручении рулетки');
+    } finally {
+      appState.isSpinning = false;
+      elements.spinButton.disabled = false;
+      elements.spinButtonText.textContent = appState.userData.spins > 0 ? 'Крутить рулетку' : 'Нет спинов';
+    }
+  }
+
+  // Select winning prize based on weighted chances
+  function selectWinningPrize() {
+    const totalChance = PRIZES.reduce((sum, prize) => sum + prize.chance, 0);
+    let random = Math.random() * totalChance;
+    
+    for (const prize of PRIZES) {
+      random -= prize.chance;
+      if (random <= 0) {
+        return prize;
+      }
+    }
+    
+    return PRIZES[0]; // Fallback
+  }
+
+  // Animate roulette spinning
+  function animateRoulette(winningPrize) {
+    return new Promise((resolve) => {
+      const track = elements.rouletteTrack;
+      if (!track) return resolve();
+
+      // Find winning item position
+      const items = track.querySelectorAll('.roulette-item');
+      let winningIndex = -1;
+      
+      // Find a matching item in the middle section
+      for (let i = Math.floor(items.length / 3); i < Math.floor(items.length * 2 / 3); i++) {
+        if (items[i].dataset.prizeId === winningPrize.id) {
+          winningIndex = i;
           break;
         }
       }
-      closeModal();
+      
+      if (winningIndex === -1) {
+        // If not found, use middle item and update its content
+        winningIndex = Math.floor(items.length / 2);
+        const middleItem = items[winningIndex];
+        middleItem.dataset.prizeId = winningPrize.id;
+        middleItem.querySelector('.roulette-icon').textContent = winningPrize.icon;
+        middleItem.querySelector('.roulette-text').textContent = winningPrize.name;
+      }
+
+      // Calculate position to center the winning item
+      const itemWidth = 100; // min-width of roulette-item
+      const containerWidth = track.parentElement.offsetWidth;
+      const centerOffset = containerWidth / 2 - itemWidth / 2;
+      const targetPosition = -(winningIndex * itemWidth - centerOffset);
+      
+      // Add multiple full rotations for effect
+      const fullRotations = 5;
+      const finalPosition = targetPosition - (fullRotations * items.length * itemWidth);
+      
+      // Apply animation
+      track.style.transition = 'transform 15s cubic-bezier(0.15, 0, 0.25, 1)';
+      track.style.transform = `translateX(${finalPosition}px)`;
+      
+      // Resolve after animation
+      setTimeout(() => {
+        resolve();
+      }, 15000);
+    });
+  }
+
+  // Handle buy spin
+  async function handleBuySpin() {
+    if (appState.userData.mulacoin < 50) {
+      showError('Недостаточно MULACOIN! Нужно 50 MULACOIN');
+      return;
+    }
+
+    try {
+      // Deduct mulacoin and add spin
+      appState.userData.mulacoin -= 50;
+      appState.userData.spins += 1;
+      
+      // Save to database
+      await saveRouletteHistory('buy_spin', null);
+      
+      // Update display
+      updateDisplay();
+      
+      showSuccess('Спин куплен! Теперь у вас есть дополнительное кручение');
+      
+    } catch (error) {
+      console.error('❌ Error buying spin:', error);
+      showError('Ошибка при покупке спина');
+    }
+  }
+
+  // Show result modal
+  function showResult(prize) {
+    if (!elements.resultModal) return;
+
+    elements.resultIcon.textContent = prize.icon;
+    elements.resultTitle.textContent = 'Поздравляем!';
+    elements.resultDescription.textContent = `Вы выиграли: ${prize.description}`;
+    
+    // Store current prize for claiming
+    elements.claimPrizeBtn.dataset.prizeId = prize.id;
+    
+    elements.resultModal.classList.add('show');
+  }
+
+  // Handle claim prize
+  async function handleClaimPrize() {
+    const prizeId = elements.claimPrizeBtn.dataset.prizeId;
+    const prize = PRIZES.find(p => p.id === prizeId);
+    
+    if (!prize) return;
+
+    try {
+      // Generate promocode
+      const promocode = await generatePromocode(prize);
+      
+      // Add to user's promocodes
+      appState.promocodes.unshift(promocode);
+      
+      // Update display
+      updatePromocodes();
+      closeResultModal();
+      
+      showSuccess(`Промокод ${promocode.code} добавлен в вашу ленту!`);
+      
+    } catch (error) {
+      console.error('❌ Error claiming prize:', error);
+      showError('Ошибка при получении приза');
+    }
+  }
+
+  // Generate promocode
+  async function generatePromocode(prize) {
+    const code = `${prize.type.toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+    
+    const promocode = {
+      code: code,
+      type: prize.type,
+      value: prize.value,
+      issued_to: appState.userData.telegram_id,
+      status: 'issued',
+      prize_name: prize.name,
+      prize_description: prize.description,
+      category: prize.category,
+      issued_at: new Date().toISOString()
     };
-  }, 0);
-}
 
-// ---------- Покупка спина ----------
-async function buySpin(){
-  await refreshWalletUI();
-  if ((user.mulacoin|0) < BUY_SPIN_COST){ toast('Недостаточно 🪙', 'error'); return; }
-  await window.__CASE_API__.addRouletteHistory({
-    user_id:user.id, prize_type:'buy_spin', prize_name:null, is_free:false,
-    mulacoin_spent:BUY_SPIN_COST, won_at:new Date().toISOString(), promo_code_id:null
+    try {
+      if (window.__CASE_API__) {
+        await window.__CASE_API__.addPromocode(promocode);
+      }
+    } catch (error) {
+      console.error('❌ Error saving promocode to DB:', error);
+    }
+
+    return promocode;
+  }
+
+  // Close result modal
+  function closeResultModal() {
+    if (elements.resultModal) {
+      elements.resultModal.classList.remove('show');
+    }
+  }
+
+  // Show prizes modal
+  function showPrizesModal() {
+    const prizesContent = PRIZES.map(prize => `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+        <span style="font-size: 24px;">${prize.icon}</span>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; color: #ffffff;">${prize.name}</div>
+          <div style="font-size: 12px; color: #cccccc;">${prize.description}</div>
+        </div>
+        <div style="font-size: 12px; color: #cccccc;">${prize.chance}%</div>
+      </div>
+    `).join('');
+
+    elements.resultIcon.textContent = '🎁';
+    elements.resultTitle.textContent = 'Возможные призы';
+    elements.resultDescription.innerHTML = `
+      <div style="max-height: 300px; overflow-y: auto; text-align: left;">
+        ${prizesContent}
+      </div>
+    `;
+    
+    elements.claimPrizeBtn.style.display = 'none';
+    elements.closeResultBtn.textContent = 'Закрыть';
+    
+    elements.resultModal.classList.add('show');
+    
+    // Reset claim button for next time
+    setTimeout(() => {
+      elements.claimPrizeBtn.style.display = '';
+      elements.closeResultBtn.textContent = 'Закрыть';
+    }, 100);
+  }
+
+  // Load user promocodes
+  async function loadPromocodes() {
+    try {
+      if (window.__CASE_API__ && appState.userData.telegram_id) {
+        const promocodes = await window.__CASE_API__.listPromocodes(appState.userData.telegram_id);
+        appState.promocodes = promocodes || [];
+      } else {
+        // Load from localStorage as fallback
+        appState.promocodes = JSON.parse(localStorage.getItem('user_promocodes') || '[]');
+      }
+      
+      updatePromocodes();
+      
+    } catch (error) {
+      console.error('❌ Error loading promocodes:', error);
+      appState.promocodes = [];
+    }
+  }
+
+  // Update promocodes display
+  function updatePromocodes() {
+    if (!elements.promoList) return;
+
+    if (appState.promocodes.length === 0) {
+      elements.promoList.innerHTML = `
+        <div class="empty-promo">
+          Промокоды появятся после выигрышей в рулетке
+        </div>
+      `;
+      return;
+    }
+
+    elements.promoList.innerHTML = appState.promocodes.map(promo => `
+      <div class="promo-item">
+        <div class="promo-info">
+          <div class="promo-name">${promo.prize_name || promo.type}</div>
+          <div class="promo-code">${promo.code}</div>
+        </div>
+        <button class="promo-action ${promo.status === 'used' ? 'used' : ''}" 
+                onclick="handlePromoAction('${promo.code}', '${promo.category}')"
+                ${promo.status === 'used' ? 'disabled' : ''}>
+          ${promo.status === 'used' ? 'Использован' : (promo.category === 'activate' ? 'Активировать' : 'Использовать')}
+        </button>
+      </div>
+    `).join('');
+
+    // Save to localStorage
+    localStorage.setItem('user_promocodes', JSON.stringify(appState.promocodes));
+  }
+
+  // Handle promo action
+  window.handlePromoAction = async function(code, category) {
+    const promo = appState.promocodes.find(p => p.code === code);
+    if (!promo || promo.status === 'used') return;
+
+    try {
+      if (category === 'activate') {
+        await handleActivatePromo(promo);
+      } else {
+        await handleUsePromo(promo);
+      }
+    } catch (error) {
+      console.error('❌ Error handling promo action:', error);
+      showError('Ошибка при обработке промокода');
+    }
+  };
+
+  // Handle activate promo (automatic rewards)
+  async function handleActivatePromo(promo) {
+    let message = '';
+    
+    switch (promo.type) {
+      case 'currency':
+        const amount = parseInt(promo.value);
+        appState.userData.mulacoin += amount;
+        message = `Получено ${amount} MULACOIN!`;
+        break;
+        
+      case 'spin':
+        const spins = parseInt(promo.value);
+        appState.userData.spins += spins;
+        message = `Получено ${spins} дополнительных спинов!`;
+        break;
+        
+      case 'subscription':
+        // Use BotIntegration to activate subscription
+        const days = parseInt(promo.value);
+        if (window.BotIntegration) {
+          const success = window.BotIntegration.activateSubscription(days, promo.code);
+          if (success) {
+            message = `Подписка на ${days} дней активируется автоматически!`;
+          } else {
+            message = 'Подписка будет активирована администратором. Ожидайте!';
+          }
+        } else {
+          message = 'Подписка будет активирована администратором. Ожидайте!';
+        }
+        break;
+    }
+
+    // Mark as used
+    promo.status = 'activated';
+    
+    // Update database
+    if (window.__CASE_API__) {
+      await window.__CASE_API__.markPromocodeUsed(promo.id, {
+        status: 'activated',
+        used_at: new Date().toISOString()
+      });
+    }
+
+    // Update display
+    updateDisplay();
+    updatePromocodes();
+    showSuccess(message);
+  }
+
+  // Handle use promo (manual discounts/services)
+  async function handleUsePromo(promo) {
+    let message = '';
+    let telegramMessage = '';
+
+    switch (promo.type) {
+      case 'discount':
+        const discountPercent = parseInt(promo.value);
+        if (promo.id === 'discount_10') {
+          const price1m = SUBSCRIPTION_PRICES['1month'];
+          const price6m = SUBSCRIPTION_PRICES['6months'];
+          const price12m = SUBSCRIPTION_PRICES['12months'];
+          const discount1m = Math.round(price1m * discountPercent / 100);
+          const discount6m = Math.round(price6m * discountPercent / 100);
+          const discount12m = Math.round(price12m * discountPercent / 100);
+          
+          telegramMessage = `🎫 ПРОМОКОД НА СКИДКУ ${discountPercent}%\n\n` +
+            `Пользователь: ${appState.userData.telegram_id}\n` +
+            `Промокод: ${promo.code}\n\n` +
+            `💰 ЦЕНЫ СО СКИДКОЙ:\n` +
+            `• 1 месяц: ${price1m - discount1m}₽ (было ${price1m}₽)\n` +
+            `• 6 месяцев: ${price6m - discount6m}₽ (было ${price6m}₽)\n` +
+            `• 12 месяцев: ${price12m - discount12m}₽ (было ${price12m}₽)\n\n` +
+            `Скидка действует на любую подписку!`;
+        } else if (promo.id === 'discount_20_6m') {
+          const price = SUBSCRIPTION_PRICES['6months'];
+          const discount = Math.round(price * discountPercent / 100);
+          telegramMessage = `🎫 ПРОМОКОД НА СКИДКУ ${discountPercent}%\n\n` +
+            `Пользователь: ${appState.userData.telegram_id}\n` +
+            `Промокод: ${promo.code}\n\n` +
+            `💰 ЦЕНА СО СКИДКОЙ:\n` +
+            `• 6 месяцев: ${price - discount}₽ (было ${price}₽)\n\n` +
+            `Скидка действует только на подписку 6 месяцев!`;
+        } else if (promo.id === 'discount_50_12m') {
+          const price = SUBSCRIPTION_PRICES['12months'];
+          const discount = Math.round(price * discountPercent / 100);
+          telegramMessage = `🎫 ПРОМОКОД НА СКИДКУ ${discountPercent}%\n\n` +
+            `Пользователь: ${appState.userData.telegram_id}\n` +
+            `Промокод: ${promo.code}\n\n` +
+            `💰 ЦЕНА СО СКИДКОЙ:\n` +
+            `• 12 месяцев: ${price - discount}₽ (было ${price}₽)\n\n` +
+            `Скидка действует только на подписку 12 месяцев!`;
+        }
+        break;
+        
+      case 'service':
+        if (promo.id === 'consultation') {
+          telegramMessage = `🧠 ПРОМОКОД НА КОНСУЛЬТАЦИЮ\n\n` +
+            `Пользователь: ${appState.userData.telegram_id}\n` +
+            `Промокод: ${promo.code}\n\n` +
+            `🎁 ПРИЗ: Личная консультация\n\n` +
+            `Пользователь хочет получить личную консультацию по промокоду.`;
+        }
+        break;
+        
+      case 'course':
+        if (promo.id === 'frod_course') {
+          telegramMessage = `🎓 ПРОМОКОД НА ОБУЧЕНИЕ ФРОДУ\n\n` +
+            `Пользователь: ${appState.userData.telegram_id}\n` +
+            `Промокод: ${promo.code}\n\n` +
+            `🎁 ПРИЗ: Полное обучение ФРОДУ\n\n` +
+            `Пользователь хочет получить доступ к полному курсу по ФРОДУ.`;
+        }
+        break;
+    }
+
+    // Send message to admin via BotIntegration
+    if (telegramMessage) {
+      if (window.BotIntegration) {
+        const success = window.BotIntegration.sendToAdmin(telegramMessage, promo.code);
+        if (success) {
+          message = 'Сообщение отправлено администратору @warpscythe';
+        } else {
+          // Fallback: open direct chat
+          window.BotIntegration.openAdminChat(telegramMessage);
+          message = 'Переход к диалогу с администратором @warpscythe';
+        }
+      } else {
+        // Fallback: direct link
+        const encodedMessage = encodeURIComponent(telegramMessage);
+        window.open(`https://t.me/warpscythe?text=${encodedMessage}`, '_blank');
+        message = 'Переход к диалогу с администратором @warpscythe';
+      }
+    } else {
+      message = 'Свяжитесь с администратором @warpscythe для использования промокода';
+    }
+
+    // Mark as used
+    promo.status = 'used';
+    
+    // Update database
+    if (window.__CASE_API__) {
+      await window.__CASE_API__.markPromocodeUsed(promo.id, {
+        status: 'used',
+        used_at: new Date().toISOString()
+      });
+    }
+
+    // Update display
+    updatePromocodes();
+    showSuccess(message);
+  }
+
+  // Save roulette history
+  async function saveRouletteHistory(type, prize) {
+    try {
+      if (!window.__CASE_API__ || !appState.currentUser) return;
+
+      const entry = {
+        user_id: appState.currentUser.id,
+        prize_type: type,
+        prize_name: prize ? prize.name : null,
+        prize_value: prize ? prize.value : null,
+        created_at: new Date().toISOString()
+      };
+
+      await window.__CASE_API__.addRouletteHistory(entry);
+      
+    } catch (error) {
+      console.error('❌ Error saving roulette history:', error);
+    }
+  }
+
+  // Update display
+  function updateDisplay() {
+    if (elements.mulacoinAmount) {
+      elements.mulacoinAmount.textContent = appState.userData.mulacoin;
+    }
+    
+    if (elements.spinsAmount) {
+      elements.spinsAmount.textContent = appState.userData.spins;
+    }
+    
+    if (elements.spinButton && elements.spinButtonText) {
+      if (appState.userData.spins > 0) {
+        elements.spinButton.disabled = false;
+        elements.spinButtonText.textContent = 'Крутить рулетку';
+      } else {
+        elements.spinButton.disabled = true;
+        elements.spinButtonText.textContent = 'Нет спинов';
+      }
+    }
+  }
+
+  // Show success message
+  function showSuccess(message) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 10000;
+      box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+      animation: slideInDown 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = 'slideOutUp 0.3s ease';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+  }
+
+  // Show error message
+  function showError(message) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #F44336, #d32f2f);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 10000;
+      box-shadow: 0 4px 20px rgba(244, 67, 54, 0.3);
+      animation: slideInDown 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = 'slideOutUp 0.3s ease';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+  }
+
+  // Initialize trading particles
+  function initializeTradingParticles() {
+    if (!elements.tradingParticles) return;
+
+    const tradingData = [
+      // Profit data
+      '+$127.50', '+€89.20', '+£156.80', '+¥2,340', '+₿0.0045',
+      '↗ BUY', '↗ LONG', '📈 +12%', '💚 PROFIT', '🚀 MOON',
+      
+      // Loss data
+      '-$45.20', '-€67.10', '-£23.90', '-¥890', '-₿0.0012',
+      '↘ SELL', '↘ SHORT', '📉 -8%', '❌ LOSS', '🔻 DIP',
+      
+      // Neutral data
+      'HODL', 'BTC', 'ETH', 'FOREX', 'GOLD',
+      'NASDAQ', 'S&P500', 'EUR/USD', 'GBP/JPY', 'OIL'
+    ];
+
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'trading-particle';
+      
+      const randomData = tradingData[Math.floor(Math.random() * tradingData.length)];
+      particle.textContent = randomData;
+      
+      // Determine particle type based on content
+      if (randomData.includes('+') || randomData.includes('↗') || randomData.includes('📈') || randomData.includes('💚') || randomData.includes('🚀')) {
+        particle.classList.add('profit');
+      } else if (randomData.includes('-') || randomData.includes('↘') || randomData.includes('📉') || randomData.includes('❌') || randomData.includes('🔻')) {
+        particle.classList.add('loss');
+      } else {
+        particle.classList.add('neutral');
+      }
+      
+      // Random starting position
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDuration = (12 + Math.random() * 8) + 's';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      
+      elements.tradingParticles.appendChild(particle);
+      
+      // Remove particle after animation
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      }, 20000);
+    }
+
+    // Create initial particles
+    for (let i = 0; i < 15; i++) {
+      setTimeout(createParticle, i * 1000);
+    }
+
+    // Continue creating particles
+    setInterval(createParticle, 2000);
+  }
+
+  // Add CSS animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideInDown {
+      from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    @keyframes slideOutUp {
+      from { transform: translateX(-50%) translateY(0); opacity: 1; }
+      to { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+  } else {
+    initializeApp();
+  }
+
+  // Also try initialization after a short delay
+  setTimeout(initializeApp, 100);
+
+  // Global error handler
+  window.addEventListener('error', (e) => {
+    console.error('❌ Global error:', e.error);
   });
-  await refreshWalletUI();
-  toast('Куплен 1 SPIN', 'success');
-}
 
-// ---------- События ----------
-$('#btnSpin').addEventListener('click', spin);
-$('#btnBuy').addEventListener('click', buySpin);
-$('#btnPrizes').addEventListener('click', openPrizesModal);
-$('#btnHistory').addEventListener('click', openHistory);
-
-// ---------- Запуск ----------
-bootstrap().catch(err=>{ console.error(err); toast('Ошибка инициализации', 'error'); });
+  console.log('🎰 Case roulette script loaded');
+})();
