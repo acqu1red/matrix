@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add some visual feedback
         playerEl.style.color = playerChange >= 0 ? 'var(--success-color)' : 'var(--error-color)';
-        targetEl.style.color = targetChange >= 0 ? 'var(--success-color)' : 'var(--error-color)'; // Note: logic might need adjustment based on desired effect
+        targetEl.style.color = targetChange >= 0 ? 'var(--success-color)' : 'var(--error-color)';
         setTimeout(() => {
             playerEl.style.color = 'var(--success-color)';
             targetEl.style.color = 'var(--primary-text)';
