@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+:root {
+    --primary-bg: #121212;
+    --secondary-bg: #1E1E1E;
+    --accent-color: #BB86FC;
+    --primary-text: #FFFFFF;
+    --secondary-text: #B3B3B3;
+    --success-color: #03DAC6;
+    --error-color: #CF6679;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Loader */
+#loader .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid var(--accent-color);
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Start & End Screens */
+.content {
+    max-width: 90%;
+}
+
+.content h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+.content h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+.content p {
+    font-size: 1.1em;
+    color: var(--secondary-text);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+button {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(187, 134, 252, 0.4);
+}
+
+/* Game Screen */
+#game-screen {
+    justify-content: flex-start;
+    padding-top: 50px;
+}
+
+#scenario-container {
+    width: 100%;
+    max-width: 400px; /* For mobile-like view */
+}
+
+.scenario {
+    background: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 15px;
+    animation: fadeIn 0.5s;
+}
+
+.scenario-text {
+    font-size: 1.2em;
+    margin-bottom: 25px;
+    color: var(--secondary-text);
+    line-height: 1.7;
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.option-btn {
+    background: #333;
+    color: var(--primary-text);
+    border: 1px solid #444;
+    padding: 15px;
+    font-size: 1em;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    text-align: left;
+}
+
+.option-btn:hover {
+    background-color: #444;
+    border-color: var(--accent-color);
+}
+
+.option-btn.correct {
+    background-color: var(--success-color);
+    color: var(--primary-bg);
+    border-color: var(--success-color);
+}
+
+.option-btn.incorrect {
+    background-color: var(--error-color);
+    color: var(--primary-bg);
+    border-color: var(--error-color);
+}
+
+#feedback-text {
+    margin-top: 20px;
+    font-style: italic;
+    min-height: 40px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

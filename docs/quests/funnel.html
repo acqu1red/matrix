@@ -1,273 +1,44 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Империя влияния — Квест‑Хаб</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="quests-black-white.css" />
-  <link rel="stylesheet" href="influence-core.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Империя Влияния</title>
+    <link rel="stylesheet" href="funnel.css">
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="glass topbar">
-      <div class="brand">
-        <span class="logoGlow"></span>
-        <h1>👑 Империя влияния</h1>
-        <div class="badge">Мастер</div>
-      </div>
-      <div class="actions">
-        <button id="btnBack" class="btn ghost">← Назад</button>
-      </div>
-    </header>
 
-    <!-- Информационное модальное окно -->
-    <div id="introModal" class="modal show">
-      <div class="modalContent glass">
-        <div class="modal-header">
-          <h3>🚀 Добро пожаловать в "Империю влияния"</h3>
-          <p>Создайте медиа-империю и управляйте массовым сознанием</p>
-        </div>
-        
-        <div class="intro-content">
-          <div class="intro-section">
-            <h4>🎯 Суть квеста</h4>
-            <p>Вы — начинающий медиа-магнат в эпоху цифровых технологий. Ваша цель — создать влиятельную медиа-империю, используя психологические триггеры, контент-стратегии и манипулятивные техники для привлечения миллионов подписчиков и монетизации влияния.</p>
-          </div>
-
-          <div class="intro-section">
-            <h4>💪 Что вы прокачаете</h4>
-            <ul>
-              <li>Психологию влияния и манипулятивные техники</li>
-              <li>Контент-маркетинг и вирусную механику</li>
-              <li>Монетизацию аудитории и построение воронок продаж</li>
-              <li>Управление репутацией и кризис-менеджмент</li>
-              <li>Стратегическое мышление и масштабирование бизнеса</li>
-            </ul>
-          </div>
-
-          <div class="intro-section">
-            <h4>🎮 Как играть</h4>
-            <p>Квест состоит из 5 этапов развития империи:</p>
-            <ol>
-              <li><strong>Создание контента:</strong> Выбирайте темы и форматы для привлечения аудитории</li>
-              <li><strong>Психологические триггеры:</strong> Используйте техники влияния для роста</li>
-              <li><strong>Монетизация:</strong> Превращайте подписчиков в деньги</li>
-              <li><strong>Масштабирование:</strong> Расширяйте империю на новые платформы</li>
-              <li><strong>Кризис-менеджмент:</strong> Управляйте репутацией и скандалами</li>
-            </ol>
-            <p>📱 Используйте drag & drop для размещения контента и стратегий!</p>
-          </div>
-
-          <div class="intro-section disclaimer">
-            <h4>⚠️ Дисклеймер</h4>
-            <p>Это образовательная симуляция медиа-бизнеса. Все техники влияния, стратегии и сценарии представлены в учебных целях для понимания механизмов современного медиа-пространства. Используйте полученные знания этично и ответственно.</p>
-          </div>
-
-          <div class="rewards-section">
-            <h4>🏆 Награды за прохождение</h4>
-            <div class="rewards-grid">
-              <div class="reward-item">
-                <div class="reward-icon">🪙</div>
-                <div class="reward-amount">50 MULACOIN</div>
-              </div>
-              <div class="reward-item">
-                <div class="reward-icon">⭐</div>
-                <div class="reward-amount">200 опыта</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button id="startEmpire" class="btn primary large">👑 Создать империю</button>
-        </div>
-      </div>
+    <div id="loader" class="screen active">
+        <div class="spinner"></div>
+        <p>Загрузка...</p>
     </div>
 
-    <!-- Основной интерфейс квеста -->
-    <div id="empireInterface" class="empire-interface" style="display: none;">
-      <!-- Панель статуса империи -->
-      <div class="empire-status glass">
-        <div class="status-grid">
-          <div class="status-item">
-            <div class="status-icon">📊</div>
-            <div class="status-info">
-              <div class="status-label">Этап</div>
-              <div class="status-value" id="currentStage">1/5</div>
-            </div>
-          </div>
-          <div class="status-item">
-            <div class="status-icon">👥</div>
-            <div class="status-info">
-              <div class="status-label">Подписчики</div>
-              <div class="status-value" id="followers">1K</div>
-            </div>
-          </div>
-          <div class="status-item">
-            <div class="status-icon">💰</div>
-            <div class="status-info">
-              <div class="status-label">Доход/мес</div>
-              <div class="status-value" id="monthlyRevenue">$0</div>
-            </div>
-          </div>
-          <div class="status-item">
-            <div class="status-icon">🔥</div>
-            <div class="status-info">
-              <div class="status-label">Влияние</div>
-              <div class="status-value" id="influenceScore">10</div>
-            </div>
-          </div>
+    <div id="start-screen" class="screen">
+        <div class="content">
+            <h1>Империя Влияния</h1>
+            <p>Готовы ли вы стать мастером манипуляций и построить свою империю?</p>
+            <button id="start-btn">Начать Путь</button>
         </div>
-      </div>
-
-      <!-- Основная рабочая область -->
-      <div class="main-workspace">
-        <!-- Левая панель: Стратегии и инструменты -->
-        <div class="strategy-panel glass">
-          <div class="panel-header">
-            <h3 id="strategyTitle">🎯 Контент-стратегии</h3>
-            <div class="stage-progress" id="stageProgress">Этап 1: Создание контента</div>
-          </div>
-          
-          <div class="strategy-content" id="strategyContent">
-            <!-- Динамически заполняется стратегиями -->
-          </div>
-          
-          <div class="psychology-hints" id="psychologyHints">
-            <h4>🧠 Психологические инсайты</h4>
-            <div class="hint-content" id="hintContent">
-              <!-- Динамически заполняется подсказками -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Правая панель: Империя и результаты -->
-        <div class="empire-panel glass">
-          <div class="panel-header">
-            <h3>🏰 Ваша медиа-империя</h3>
-            <div class="empire-name" id="empireName">Выберите стратегию</div>
-          </div>
-
-          <!-- Игровое поле для drag & drop -->
-          <div class="game-field" id="gameField">
-            <div class="platform-slots">
-              <div class="platform-slot" data-platform="youtube">
-                <div class="platform-icon">📺</div>
-                <div class="platform-name">YouTube</div>
-                <div class="platform-stats">
-                  <div class="stat">Подписчики: <span id="youtube-subs">0</span></div>
-                  <div class="stat">Доход: <span id="youtube-revenue">$0</span></div>
-                </div>
-                <div class="drop-zone">Перетащите стратегию</div>
-                <div class="strategy-slot" id="youtube-strategy"></div>
-              </div>
-              
-              <div class="platform-slot" data-platform="instagram">
-                <div class="platform-icon">📸</div>
-                <div class="platform-name">Instagram</div>
-                <div class="platform-stats">
-                  <div class="stat">Подписчики: <span id="instagram-subs">0</span></div>
-                  <div class="stat">Доход: <span id="instagram-revenue">$0</span></div>
-                </div>
-                <div class="drop-zone">Перетащите стратегию</div>
-                <div class="strategy-slot" id="instagram-strategy"></div>
-              </div>
-              
-              <div class="platform-slot" data-platform="tiktok">
-                <div class="platform-icon">🎵</div>
-                <div class="platform-name">TikTok</div>
-                <div class="platform-stats">
-                  <div class="stat">Подписчики: <span id="tiktok-subs">0</span></div>
-                  <div class="stat">Доход: <span id="tiktok-revenue">$0</span></div>
-                </div>
-                <div class="drop-zone">Перетащите стратегию</div>
-                <div class="strategy-slot" id="tiktok-strategy"></div>
-              </div>
-              
-              <div class="platform-slot" data-platform="telegram">
-                <div class="platform-icon">✈️</div>
-                <div class="platform-name">Telegram</div>
-                <div class="platform-stats">
-                  <div class="stat">Подписчики: <span id="telegram-subs">0</span></div>
-                  <div class="stat">Доход: <span id="telegram-revenue">$0</span></div>
-                </div>
-                <div class="drop-zone">Перетащите стратегию</div>
-                <div class="strategy-slot" id="telegram-strategy"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Аналитическая панель -->
-          <div class="analytics-panel" id="analyticsPanel">
-            <h4>📊 Аналитика империи</h4>
-            <div class="metrics-grid">
-              <div class="metric-item">
-                <div class="metric-label">Общий охват</div>
-                <div class="metric-value" id="totalReach">0</div>
-              </div>
-              <div class="metric-item">
-                <div class="metric-label">Вовлеченность</div>
-                <div class="metric-value" id="engagement">0%</div>
-              </div>
-              <div class="metric-item">
-                <div class="metric-label">Конверсия</div>
-                <div class="metric-value" id="conversion">0%</div>
-              </div>
-              <div class="metric-item">
-                <div class="metric-label">Репутация</div>
-                <div class="metric-value" id="reputation">100%</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Нижняя панель: События и действия -->
-      <div class="events-panel glass">
-        <div class="events-content">
-          <div class="current-event" id="currentEvent" style="display: none;">
-            <!-- Информация о текущем событии -->
-          </div>
-          
-          <div class="action-buttons" id="actionButtons">
-            <button id="nextStage" class="btn primary">Следующий этап</button>
-            <button id="generateEvent" class="btn secondary">Случайное событие</button>
-            <button id="resetEmpire" class="btn ghost">Начать заново</button>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Модальное окно результатов -->
-    <div id="resultsModal" class="modal">
-      <div class="modalContent glass">
-        <div class="results-header">
-          <div class="results-icon" id="resultsIcon">👑</div>
-          <h3 id="resultsTitle">Империя создана!</h3>
+    <div id="game-screen" class="screen">
+        <div id="scenario-container">
+            <!-- Сценарии будут загружаться сюда -->
         </div>
-        
-        <div class="results-content" id="resultsContent">
-          <!-- Динамически заполняется -->
-        </div>
-
-        <div class="modal-actions">
-          <button id="restartEmpire" class="btn primary">🔄 Создать новую империю</button>
-          <button id="exitEmpire" class="btn secondary">← Выход</button>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Toast уведомления -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="end-screen" class="screen">
+        <div class="content">
+            <h2>Ваш Путь Лишь Начинается</h2>
+            <p>Вы показали недюжинный потенциал, но это лишь верхушка айсберга.</p>
+            <div id="score-container">
+                <p>Ваш результат: <span id="final-score">0</span></p>
+            </div>
+            <p>Хотите овладеть всеми техниками влияния и стать истинным правителем умов? Наш полный курс откроет вам все секреты.</p>
+            <button id="cta-btn">Купить Полный Курс</button>
+        </div>
+    </div>
 
-  <!-- Скрипты -->
-  <script src="influence-data.js"></script>
-  <script src="influence-engine.js"></script>
-  <script src="influence-ui.js"></script>
-  <script src="influence-main.js"></script>
+    <script src="funnel.js"></script>
 </body>
 </html>
