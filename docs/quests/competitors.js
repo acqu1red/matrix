@@ -156,21 +156,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerEl = document.getElementById('player-capital');
         const targetEl = document.getElementById('target-capital');
         
+        const startPlayerCapital = gameState.playerCapital;
+        const startTargetCapital = QUEST_DATA.competitors[gameState.currentTarget].capital;
+
         gameState.playerCapital += playerChange;
-        
-        const competitor = QUEST_DATA.competitors[gameState.currentTarget];
-        competitor.capital += targetChange;
-        
-        playerEl.textContent = gameState.playerCapital.toLocaleString();
-        targetEl.textContent = competitor.capital.toLocaleString();
+        QUEST_DATA.competitors[gameState.currentTarget].capital += targetChange;
+
+        const endPlayerCapital = gameState.playerCapital;
+        const endTargetCapital = QUEST_DATA.competitors[gameState.currentTarget].capital;
+
+        animateValue(playerEl, startPlayerCapital, endPlayerCapital, 1500);
+        animateValue(targetEl, startTargetCapital, endTargetCapital, 1500);
         
         // Add some visual feedback
-        playerEl.style.color = playerChange > 0 ? 'var(--success-color)' : 'var(--error-color)';
-        targetEl.style.color = targetChange > 0 ? 'var(--success-color)' : 'var(--error-color)';
+        playerEl.style.color = playerChange >= 0 ? 'var(--success-color)' : 'var(--error-color)';
+        targetEl.style.color = targetChange >= 0 ? 'var(--success-color)' : 'var(--error-color)'; // Note: logic might need adjustment based on desired effect
         setTimeout(() => {
             playerEl.style.color = 'var(--success-color)';
             targetEl.style.color = 'var(--primary-text)';
-        }, 1500);
+        }, 1600);
+    }
+
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const currentValue = Math.floor(progress * (end - start) + start);
+            element.textContent = currentValue.toLocaleString();
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
     }
 
     function loadStrategyStage(stageData) {

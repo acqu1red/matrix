@@ -171,8 +171,8 @@ button:hover {
     animation: slideUp 0.5s 0.2s ease-out forwards;
     opacity: 0;
 }
-#stage-container { width: 100%; flex-grow: 1; }
-#interaction-footer { width: 100%; min-height: 150px; display: flex; justify-content: center; align-items: center; }
+#stage-container { width: 100%; flex-grow: 1; padding: 15px 0; }
+#interaction-footer { width: 100%; min-height: 150px; display: flex; justify-content: center; align-items: center; padding-top: 20px; }
 
 /* Reconnaissance Stage */
 .recon-stage h2, .strategy-stage h2, .crisis-stage h2, .execution-stage h2 {
@@ -187,6 +187,7 @@ button:hover {
     font-size: 1.1em;
     text-align: center;
     color: var(--secondary-text);
+    padding: 0 10px; /* Add horizontal padding */
 }
 
 .document-viewer {
@@ -321,11 +322,11 @@ button:hover {
 .news-ticker p {
     display: inline-block;
     padding-left: 100%;
-    animation: ticker-scroll 10s linear infinite;
+    animation: ticker-scroll 15s linear infinite;
 }
 @keyframes ticker-scroll {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-200%); }
+    100% { transform: translateX(-150%); }
 }
 
 /* Crisis Stage */
