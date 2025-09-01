@@ -1,5 +1,5 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters, Application
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, LabeledPrice
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, filters, Application, PreCheckoutQueryHandler
 from queue import Queue
 from telegram.ext import ApplicationBuilder
 import pytz
@@ -7,6 +7,11 @@ from telegram.ext import CallbackQueryHandler
 from supabase import create_client, Client
 import asyncio
 import json
+
+# --- CONFIGURATION ---
+
+# Для оплаты в Telegram Stars токен не требуется.
+PAYMENT_PROVIDER_TOKEN = ""
 
 MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/index.html"
 PAYMENT_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/payment.html"
@@ -17,6 +22,26 @@ QUESTS_MINIAPP_URL = "https://acqu1red.github.io/formulaprivate/quests.html"
 SUPABASE_URL = "https://uhhsrtmmuwoxsdquimaa.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoaHNydG1tdXdveHNkcXVpbWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTMwMzcsImV4cCI6MjA3MDI2OTAzN30.5xxo6g-GEYh4ufTibaAtbgrifPIU_ilzGzolAdmAnm8"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Информация о продуктах (должна совпадать с quests.js)
+PRODUCTS = {
+  'psychology-lie': {
+    'title': 'ПСИХОЛОГИЯ ЛЖИ',
+    'price': 28
+  },
+  'profiling-pro': {
+    'title': 'ПРОФАЙЛИНГ PRO',
+    'price': 14
+  },
+  'psychotypes-full': {
+    'title': 'ПСИХОТИПЫ: ПОЛНЫЙ КУРС',
+    'price': 1000
+  },
+  '100-female-manipulations': {
+    'title': '100 ЖЕНСКИХ МАНИПУЛЯЦИЙ',
+    'price': 12
+  }
+}
 
 # Список username администраторов
 ADMIN_USERNAMES = [
@@ -654,7 +679,13 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         params = data.get('params', {})
         user_id = update.effective_user.id
 
-        print(f"📱 MiniApp команда: {command}, параметры: {params}")
+        print(f"📱 MiniApp команда: {command}, параметры: {data}")
+
+        if command == 'create_invoice':
+            product_id = data.get('productId')
+            price_in_stars = data.get('price')
+            await send_product_invoice(update, context, product_id, price_in_stars)
+            return
 
         # Обработка команд от рулетки кейсов
         if command == 'galdin':
@@ -732,6 +763,68 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
             parse_mode='HTML'
         )
 
+
+
+async def send_product_invoice(update: Update, context: CallbackContext, product_id: str, price_in_stars: int):
+    """Отправляет счет на оплату продукта звездами."""
+    chat_id = update.effective_chat.id
+    product = PRODUCTS.get(product_id)
+
+    if not product:
+        await context.bot.send_message(chat_id, "Ошибка: Продукт не найден.")
+        return
+
+    title = product['title']
+    description = f"Доступ к тренингу «{title}»"
+    payload = f"purchase_{product_id}_{chat_id}"
+    currency = "XTR"
+    prices = [LabeledPrice(label=title, amount=price_in_stars)]
+
+    try:
+        await context.bot.send_invoice(
+            chat_id,
+            title,
+            description,
+            payload,
+            PAYMENT_PROVIDER_TOKEN,
+            currency,
+            prices
+        )
+    except Exception as e:
+        print(f"Ошибка отправки счета: {e}")
+        await context.bot.send_message(chat_id, "Не удалось создать счет на оплату. Пожалуйста, попробуйте позже.")
+
+async def precheckout_callback(update: Update, context: CallbackContext):
+    """Отвечает на pre-checkout запросы."""
+    query = update.pre_checkout_query
+    # Проверяем, что токен платежа правильный (если нужно)
+    if query.invoice_payload.startswith('purchase_'):
+        await query.answer(ok=True)
+    else:
+        await query.answer(ok=False, error_message="Что-то пошло не так...")
+
+async def successful_payment_callback(update: Update, context: CallbackContext):
+    """Обрабатывает успешную оплату."""
+    payment_info = update.message.successful_payment
+    invoice_payload = payment_info.invoice_payload
+    
+    try:
+        _, product_id, telegram_id_str = invoice_payload.split('_')
+        telegram_id = int(telegram_id_str)
+        
+        # Сохраняем покупку в Supabase
+        result = supabase.table('user_purchases').insert({
+            'telegram_id': telegram_id,
+            'product_id': product_id
+        }).execute()
+        
+        await context.bot.send_message(
+            chat_id=telegram_id,
+            text=f"✅ Оплата прошла успешно! Вы получили доступ к тренингу «{PRODUCTS[product_id]['title']}».\n\n"
+                 f"Чтобы получить доступ, вернитесь в раздел тренингов."
+        )
+    except Exception as e:
+        print(f"Ошибка обработки успешного платежа: {e}")
 
 
 async def galdin_command(update: Update, context: CallbackContext) -> None:
@@ -1232,6 +1325,10 @@ def main() -> None:
     application.add_handler(CommandHandler("setmula", setmula_command))
     
     application.add_handler(CallbackQueryHandler(button))
+    
+    # Обработчики для оплаты
+    application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
     
     # Обработчик для управления каналом отключен - используем webhook версию
     print("✅ Обработчик управления каналом отключен (webhook версия)")

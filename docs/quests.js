@@ -77,34 +77,40 @@ const ADMIN_ID = '708907063'; // ID администратора
 const PRODUCTS = {
   'psychology-lie': {
     title: 'ПСИХОЛОГИЯ ЛЖИ',
-    shortDescription: 'Конкретные маркеры в человеческом поведении. Биологическое происхождение лжи. Как распознать ложь за 5 секунд.',
+    shortDescription: 'Маркеры, биология, распознавание.',
     modalTitle: 'Вся правда о лжи',
     modalDescription: 'Этот тренинг — ваш личный детектор лжи. Вы научитесь видеть то, что скрыто за словами. Мы разберем реальные кейсы, научим вас замечать микровыражения и неосознанные жесты, которые выдают обманщика с головой. После этого курса ни одна ложь не пройдет мимо вас.',
     priceStars: 28,
-    pdfUrl: 'products/psychology-lie.pdf'
+    priceRub: '50 руб.',
+    pdfUrl: 'products/psychology-lie.pdf',
+    specialOffer: 'Спец. предложение'
   },
   'profiling-pro': {
     title: 'ПРОФАЙЛИНГ PRO',
-    shortDescription: 'Курс по "чтению" людей от А до Я. От детального психологического портрета до глубоких детских травм.',
+    shortDescription: 'Чтение людей от А до Я.',
     modalTitle: 'Читайте людей, как книгу',
     modalDescription: 'Станьте мастером профайлинга. Вы сможете за 5 минут составить полный психологический портрет человека, понять его мотивацию, страхи и желания. Этот навык даст вам невероятное преимущество в бизнесе, переговорах и личной жизни.',
     priceStars: 14,
+    priceRub: '25 руб.',
     pdfUrl: 'products/profiling-pro.pdf'
   },
   'psychotypes-full': {
     title: 'ПСИХОТИПЫ: ПОЛНЫЙ КУРС',
-    shortDescription: 'Полный контроль любого человека. Раскрытие человека на 200% за считанные секунды за счет поведения. Этот метод манипуляций входит в список запрещенных во многих странах при допросах.',
+    shortDescription: 'Запрещенные техники влияния.',
     modalTitle: 'Запрещенные техники влияния',
     modalDescription: 'Это — высшая лига. Знание психотипов дает вам ключи к управлению реальностью. Вы будете знать, как думает и что сделает человек еще до того, как он это осознает. Техники, которые вы изучите, настолько мощные, что их использование ограничено спецслужбами. Применяйте с умом.',
     priceStars: 1000,
-    pdfUrl: 'products/psychotypes-full.pdf'
+    priceRub: '1790 руб.',
+    pdfUrl: 'products/psychotypes-full.pdf',
+    specialOffer: 'Уникальное предложение'
   },
   '100-female-manipulations': {
     title: '100 ЖЕНСКИХ МАНИПУЛЯЦИЙ',
-    shortDescription: 'Реальные сценарии давления и быстрые контрходы для любой ситуации. Обезвреживай их за секунды.',
+    shortDescription: 'Сценарии давления и контрходы.',
     modalTitle: 'Щит от манипуляций',
     modalDescription: 'Больше никаких игр, в которых вы проигрываете. Мы собрали 100 самых частых женских манипуляций и дали на каждую из них четкий, быстрый и эффективный контрприем. Вы научитесь видеть игру наперед и всегда выходить победителем.',
     priceStars: 12,
+    priceRub: '20 руб.',
     pdfUrl: 'products/100-female-manipulations.pdf'
   }
 };
@@ -393,17 +399,25 @@ function createProductCard(id, product) {
     ? `
       <div class="product-actions">
         <button class="product-button read-button" data-pdf-url="${product.pdfUrl}" data-pdf-title="${product.title}">Читать</button>
-        <a href="${product.pdfUrl}" download class="product-button download-button">Скачать</a>
       </div>
     `
-    : `<button class="product-button buy-button">Узнать больше</button>`;
+    : `<button class="product-button buy-button">
+        Купить за ${product.priceRub}
+       </button>`;
+
+  const specialOfferHtml = product.specialOffer 
+    ? `<div class="special-offer">${product.specialOffer}</div>` 
+    : '';
 
   return `
-    <div class="product-card" data-product-id="${id}">
+    <div class="product-card" data-product-id="${id}" data-special="${product.specialOffer || ''}">
+      ${specialOfferHtml}
       <div class="product-content">
         <h3 class="product-title">${product.title}</h3>
         <p class="product-description">${product.shortDescription}</p>
-        ${buttonHtml}
+        <div class="product-footer">
+          ${buttonHtml}
+        </div>
       </div>
     </div>
   `;
@@ -495,15 +509,15 @@ async function handlePurchase(productId) {
     return;
   }
   
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openInvoice) {
-    const invoiceSlug = `product-${productId}-${Date.now()}`;
-    window.Telegram.WebApp.openInvoice(invoiceSlug, (status) => {
-      if (status === 'paid') {
-        onSuccessfulPurchase(productId);
-      } else {
-        window.Telegram.WebApp.showAlert('Оплата не удалась или была отменена.');
-      }
-    });
+  // Новый флоу: отправляем команду боту для создания счета
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify({
+      command: 'create_invoice',
+      productId: productId,
+      price: product.priceStars
+    }));
+    Telegram.WebApp.showAlert('Счет на оплату отправлен в ваш чат с ботом!');
+    hideModal(productId);
   } else {
     // Fallback для теста в браузере
     console.log("WebApp недоступен. Симуляция успешной оплаты.");
