@@ -1,553 +1,473 @@
-import { QUEST_DATA } from './competitors-data.js';
-import { switchScreen, updateProgress, showFeedback, getStageIndexById, navigateToHome } from './competitors-utils.js';
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Screens & Containers
-    const loaderScreen = document.getElementById('loader');
-    const startScreen = document.getElementById('start-screen');
-    const gameScreen = document.getElementById('game-screen');
-    const endScreen = document.getElementById('end-screen');
-    const stageContainer = document.getElementById('stage-container');
-    const interactionFooter = document.getElementById('interaction-footer');
+    // Game State
+    let gameState = {
+        marketShare: 0,
+        resources: 100000,
+        reputation: 0,
+        currentStage: 0,
+        eliminatedCompetitors: 0
+    };
 
-    // Buttons
+    // UI Elements
+    const screens = {
+        loader: document.getElementById('loader'),
+        start: document.getElementById('start-screen'),
+        game: document.getElementById('game-screen'),
+        end: document.getElementById('end-screen')
+    };
+
+    const nav = document.getElementById('quest-nav');
+    const backBtn = document.getElementById('back-btn');
+    const menuBtn = document.getElementById('menu-btn');
     const startBtn = document.getElementById('start-btn');
     const ctaBtn = document.getElementById('cta-btn');
-    const backBtn = document.getElementById('back-btn');
-    const mainMenuBtn = document.getElementById('main-menu-btn');
 
-    // Game UI Elements (referencing them from competitors-utils where they are managed)
-    const progressBar = document.getElementById('progress-bar');
-    const budgetValueEl = document.getElementById('budget-value');
-    const influenceValueEl = document.getElementById('influence-value');
-    const finalBudgetEl = document.getElementById('final-budget');
-    const finalInfluenceEl = document.getElementById('final-influence');
+    const stageContainer = document.getElementById('stage-container');
+    const actionContainer = document.getElementById('action-container');
 
-    // Global game state (moved here from competitors-utils since it's central to game flow)
-    let currentStageIndex = 0;
-    let userBudget = 1000;
-    let userInfluence = 0;
-    let stageHistory = []; // To support the back button
+    // Stats Elements
+    const marketShareEl = document.getElementById('market-share');
+    const resourcesEl = document.getElementById('resources');
+    const reputationEl = document.getElementById('reputation');
+    const progressFill = document.getElementById('progress-fill');
 
-    function startGame() {
-        currentStageIndex = 0;
-        userBudget = 1000;
-        userInfluence = 0;
-        stageHistory = [];
-        switchScreen(loaderScreen); // Show loader initially
-        setTimeout(() => {
-            switchScreen(gameScreen);
-            loadStage(currentStageIndex);
-        }, 1000); // Simulate loading
+    // Game Data
+    const QUEST_DATA = {
+        totalStages: 5,
+        stages: [
+            // Stage 0: Market Research
+            {
+                type: 'research',
+                title: 'Исследование Рынка',
+                description: 'Перед вами три конкурента. Проанализируйте их слабые стороны.',
+                competitors: [
+                    {
+                        name: 'TechGiant',
+                        icon: '🏢',
+                        marketShare: '45%',
+                        revenue: '10M',
+                        weakness: 'slow-innovation',
+                        description: 'Крупная компания, медленно внедряет инновации'
+                    },
+                    {
+                        name: 'FastStartup',
+                        icon: '🚀',
+                        marketShare: '15%',
+                        revenue: '2M',
+                        weakness: 'cash-flow',
+                        description: 'Быстрый рост, но проблемы с деньгами'
+                    },
+                    {
+                        name: 'QualityFirst',
+                        icon: '⭐',
+                        marketShare: '30%',
+                        revenue: '5M',
+                        weakness: 'high-prices',
+                        description: 'Высокое качество, но завышенные цены'
+                    }
+                ],
+                tools: [
+                    { id: 'market-research', name: 'Анализ рынка', icon: '📊' },
+                    { id: 'customer-survey', name: 'Опрос клиентов', icon: '📝' },
+                    { id: 'spy', name: 'Шпионаж', icon: '🕵️' }
+                ]
+            },
+            // Stage 1: Resource Allocation
+            {
+                type: 'strategy',
+                title: 'Распределение Ресурсов',
+                description: 'Используйте ресурсы для ослабления конкурентов',
+                actions: [
+                    {
+                        name: 'Агрессивная реклама',
+                        cost: 20000,
+                        effect: { marketShare: 5, reputation: -1 }
+                    },
+                    {
+                        name: 'Снижение цен',
+                        cost: 30000,
+                        effect: { marketShare: 8, reputation: 1 }
+                    },
+                    {
+                        name: 'Улучшение продукта',
+                        cost: 50000,
+                        effect: { marketShare: 10, reputation: 2 }
+                    }
+                ]
+            },
+            // Stage 2: Market Manipulation
+            {
+                type: 'manipulation',
+                title: 'Манипуляция Рынком',
+                description: 'Используйте тактики влияния на рынок',
+                tactics: [
+                    {
+                        name: 'Фейковые отзывы',
+                        risk: 'high',
+                        effect: { marketShare: 15, reputation: -3 }
+                    },
+                    {
+                        name: 'Черный PR',
+                        risk: 'medium',
+                        effect: { marketShare: 12, reputation: -2 }
+                    },
+                    {
+                        name: 'Сговор с поставщиками',
+                        risk: 'low',
+                        effect: { marketShare: 8, reputation: -1 }
+                    }
+                ]
+            },
+            // Stage 3: Corporate Espionage
+            {
+                type: 'espionage',
+                title: 'Корпоративный Шпионаж',
+                description: 'Соберите секретную информацию о конкурентах',
+                targets: [
+                    {
+                        name: 'База данных клиентов',
+                        difficulty: 'hard',
+                        reward: { marketShare: 20, resources: 50000 }
+                    },
+                    {
+                        name: 'Финансовые документы',
+                        difficulty: 'medium',
+                        reward: { marketShare: 15, resources: 30000 }
+                    },
+                    {
+                        name: 'План развития',
+                        difficulty: 'easy',
+                        reward: { marketShare: 10, resources: 20000 }
+                    }
+                ]
+            },
+            // Stage 4: Final Takeover
+            {
+                type: 'takeover',
+                title: 'Захват Рынка',
+                description: 'Время нанести последний удар',
+                options: [
+                    {
+                        name: 'Hostile Takeover',
+                        cost: 80000,
+                        effect: { marketShare: 30, reputation: -5 }
+                    },
+                    {
+                        name: 'Merger Proposal',
+                        cost: 60000,
+                        effect: { marketShare: 25, reputation: 2 }
+                    },
+                    {
+                        name: 'Market Dominance',
+                        cost: 100000,
+                        effect: { marketShare: 40, reputation: 0 }
+                    }
+                ]
+            }
+        ]
+    };
+
+    // Navigation Functions
+    function showScreen(screenId) {
+        Object.values(screens).forEach(screen => screen.classList.remove('active'));
+        screens[screenId].classList.add('active');
+        
+        if (screenId === 'game') {
+            nav.classList.remove('hidden');
+            nav.classList.add('visible');
+        } else {
+            nav.classList.remove('visible');
+            nav.classList.add('hidden');
+        }
     }
 
-    function loadStage(index) {
-        if (index === 'end' || index >= QUEST_DATA.stages.length) {
+    function updateStats() {
+        marketShareEl.textContent = `${gameState.marketShare}%`;
+        resourcesEl.textContent = `${(gameState.resources / 1000).toFixed(1)}K`;
+        reputationEl.textContent = gameState.reputation;
+        
+        const progress = (gameState.currentStage / QUEST_DATA.totalStages) * 100;
+        progressFill.style.width = `${progress}%`;
+    }
+
+    // Stage Loading Functions
+    function loadStage(stageIndex) {
+        if (stageIndex >= QUEST_DATA.stages.length) {
             endGame();
             return;
         }
 
-        // Save current stage to history for 'Back' button
-        if (currentStageIndex !== index) { // Prevent adding same stage twice on initial load
-            stageHistory.push(currentStageIndex);
-        }
-        currentStageIndex = index;
+        gameState.currentStage = stageIndex;
+        const stage = QUEST_DATA.stages[stageIndex];
+        updateStats();
 
-        // Update progress and stats using utility function
-        updateProgress(currentStageIndex, QUEST_DATA.totalStages, userBudget, userInfluence, progressBar, budgetValueEl, influenceValueEl);
-
-        const stageData = QUEST_DATA.stages[currentStageIndex];
-        stageContainer.innerHTML = '';
-        interactionFooter.innerHTML = '';
-
-        // Enable/disable back button
-        if (stageHistory.length > 0) {
-            backBtn.disabled = false;
-        } else {
-            backBtn.disabled = true;
-        }
-
-        // Apply global stage transition
-        gameScreen.classList.add('stage-transition');
-        setTimeout(() => {
-            gameScreen.classList.remove('stage-transition');
-        }, 500); // Duration of the transition
-
-        if (stageData.type === 'dialogue') {
-            loadDialogueStage(stageData);
-        } else if (stageData.type === 'competitor-analysis') {
-            loadCompetitorAnalysisStage(stageData);
-        } else if (stageData.type === 'native-ad') {
-            loadNativeAdStage(stageData);
+        switch (stage.type) {
+            case 'research':
+                loadResearchStage(stage);
+                break;
+            case 'strategy':
+                loadStrategyStage(stage);
+                break;
+            case 'manipulation':
+                loadManipulationStage(stage);
+                break;
+            case 'espionage':
+                loadEspionageStage(stage);
+                break;
+            case 'takeover':
+                loadTakeoverStage(stage);
+                break;
         }
     }
 
-    function loadDialogueStage(data) {
+    function loadResearchStage(stage) {
         stageContainer.innerHTML = `
-            <div class="stage-content character-scene">
-                <div class="dialogue-box">
-                    <p class="character-name">${data.character.name}</p>
-                    <p>${data.dialogue}</p>
-                </div>
-                <img src="${data.character.portrait}" alt="${data.character.name}" class="character-portrait">
-                <p class="objective-text">${data.objective}</p>
+            <h2 class="stage-title fade-in">${stage.title}</h2>
+            <p class="stage-description fade-in">${stage.description}</p>
+            <div class="competitors-container">
+                ${stage.competitors.map(comp => createCompetitorCard(comp)).join('')}
             </div>
         `;
 
-        if (data.interaction.type === 'next-button') {
-            const nextButton = document.createElement('button');
-            nextButton.textContent = data.interaction.buttonText || 'Продолжить';
-            nextButton.addEventListener('click', () => {
-                loadStage(getStageIndexById(data.interaction.nextStage, QUEST_DATA.stages));
-            });
-            interactionFooter.appendChild(nextButton);
-        } else if (data.interaction.type === 'button-choice') {
-            const optionsHTML = data.interaction.options.map(opt => 
-                `<button class="option-btn" data-cost="${opt.cost}" data-influence="${opt.influence}" data-feedback="${opt.feedback}" data-correct="${opt.correct}">${opt.text}</button>`
-            ).join('');
-            const optionsContainer = document.createElement('div');
-            optionsContainer.classList.add('options-container');
-            optionsContainer.innerHTML = optionsHTML;
-            interactionFooter.appendChild(optionsContainer);
-            setupButtonChoices(data);
-        } else if (data.interaction.type === 'end-game') {
-            const endButton = document.createElement('button');
-            endButton.textContent = data.interaction.buttonText || 'Завершить';
-            endButton.addEventListener('click', () => {
-                endGame();
-            });
-            interactionFooter.appendChild(endButton);
-        }
-    }
-
-    function loadCompetitorAnalysisStage(data) {
-        stageContainer.innerHTML = `
-            <div class="stage-content">
-                <h3>${data.competitor.name}</h3>
-                <p class="objective-text">${data.objective}</p>
-                <div class="competitor-drop-zone" data-target-id="${data.competitor.name}">
-                    <img src="${data.competitor.logo}" alt="${data.competitor.name} Logo">
-                    <p>Перетащите сюда карту слабости</p>
-                </div>
+        actionContainer.innerHTML = `
+            <div class="action-cards">
+                ${stage.tools.map(tool => createActionCard(tool)).join('')}
             </div>
         `;
 
-        const cardsHTML = data.analysisCards.map(card => `
-            <div class="competitor-card" draggable="true" data-card-id="${card.id}" data-cost="${card.cost}">
-                <div class="card-icon">${card.icon}</div>
-                <div class="card-name">${card.name} ($${card.cost})</div>
-            </div>
-        `).join('');
-        interactionFooter.innerHTML = `<div id="competitor-cards-container">${cardsHTML}</div>`;
-        
-        setupDragAndDrop(data);
+        setupDragAndDrop();
     }
 
-    function loadNativeAdStage(data) {
-        const interaction = data.interaction;
-        stageContainer.innerHTML = `
-            <div class="stage-content ad-builder-screen">
-                <h3>Создание нативной рекламы</h3>
-                <p class="objective-text">${data.objective}</p>
-                <div id="ad-elements-container">
-                    <div class="ad-element-column">
-                        <h4>Заголовок</h4>
-                        ${interaction.elements.headlines.map(e => `<div class="ad-item" draggable="true" data-type="headline" data-value="${e.type}">${e.text}</div>`).join('')}
-                    </div>
-                    <div class="ad-element-column">
-                        <h4>Текст</h4>
-                        ${interaction.elements.bodies.map(e => `<div class="ad-item" draggable="true" data-type="body" data-value="${e.type}">${e.text}</div>`).join('')}
-                    </div>
-                    <div class="ad-element-column">
-                        <h4>Призыв к действию</h4>
-                        ${interaction.elements.callsToAction.map(e => `<div class="ad-item" draggable="true" data-type="callToAction" data-value="${e.type}">${e.text}</div>`).join('')}
+    function createCompetitorCard(competitor) {
+        return `
+            <div class="competitor-card fade-in">
+                <div class="competitor-header">
+                    <div class="competitor-icon">${competitor.icon}</div>
+                    <div class="competitor-info">
+                        <h3 class="competitor-name">${competitor.name}</h3>
+                        <div class="competitor-stats">
+                            <span>Доля рынка: ${competitor.marketShare}</span>
+                            <span>Выручка: ${competitor.revenue}</span>
+                        </div>
                     </div>
                 </div>
-                <div id="ad-preview">
-                    <h4>Предварительный просмотр:</h4>
-                    <div class="ad-dropzone" data-type="headline">Заголовок...</div>
-                    <div class="ad-dropzone" data-type="body">Основной текст...</div>
-                    <div class="ad-dropzone" data-type="callToAction">Призыв к действию...</div>
+                <div class="competitor-weakness-zone" data-weakness="${competitor.weakness}">
+                    Перетащите инструмент анализа сюда
                 </div>
             </div>
         `;
-
-        interactionFooter.innerHTML = `<button id="launch-ad-btn" disabled>Запустить Рекламу</button>`;
-        setupNativeAdInteraction(data);
     }
 
-    function setupDragAndDrop(stageData) {
-        const cards = document.querySelectorAll('.competitor-card');
-        const dropZone = document.querySelector('.competitor-drop-zone');
-        let draggedItem = null;
+    function createActionCard(tool) {
+        return `
+            <div class="action-card" draggable="true" data-tool-id="${tool.id}">
+                <div class="card-icon">${tool.icon}</div>
+                <div class="card-name">${tool.name}</div>
+            </div>
+        `;
+    }
 
-        // --- MOUSE EVENTS (for desktop) ---
+    // Touch-friendly Drag and Drop
+    function setupDragAndDrop() {
+        const cards = document.querySelectorAll('.action-card');
+        const dropZones = document.querySelectorAll('.competitor-weakness-zone');
+        let draggedCard = null;
+        let ghostCard = null;
+
+        // Mouse Events
         cards.forEach(card => {
             card.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', card.dataset.cardId);
+                e.dataTransfer.setData('text/plain', card.dataset.toolId);
                 setTimeout(() => card.classList.add('dragging'), 0);
             });
-    
+
             card.addEventListener('dragend', () => {
                 card.classList.remove('dragging');
-                dropZone.classList.remove('hover'); // Ensure hover class is removed
             });
         });
-    
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('hover');
-        });
-    
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('hover');
-        });
-    
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('hover');
-            const droppedCardId = e.dataTransfer.getData('text/plain');
-            handleDrop(droppedCardId, stageData, cards, dropZone);
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('hover');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('hover');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('hover');
+                const toolId = e.dataTransfer.getData('text/plain');
+                handleAnalysisDrop(toolId, zone.dataset.weakness);
+            });
         });
 
-        // --- TOUCH EVENTS (for mobile) ---
-        let ghostEl = null;
-
+        // Touch Events
         cards.forEach(card => {
             card.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
-                    draggedItem = card;
+                    draggedCard = card;
                     
-                    // Create and position ghost element
-                    ghostEl = card.cloneNode(true);
-                    ghostEl.classList.add('ghost');
-                    document.body.appendChild(ghostEl);
+                    ghostCard = card.cloneNode(true);
+                    ghostCard.classList.add('ghost-card');
+                    document.body.appendChild(ghostCard);
+                    
                     const touch = e.touches[0];
-                    ghostEl.style.left = `${touch.pageX - ghostEl.offsetWidth / 2}px`;
-                    ghostEl.style.top = `${touch.pageY - ghostEl.offsetHeight / 2}px`;
-    
+                    positionGhostCard(touch.pageX, touch.pageY);
+                    
                     card.classList.add('dragging');
                 }
             }, { passive: true });
         });
 
         document.addEventListener('touchmove', (e) => {
-            if (draggedItem && ghostEl) {
+            if (draggedCard && ghostCard) {
                 e.preventDefault();
                 const touch = e.touches[0];
+                positionGhostCard(touch.pageX, touch.pageY);
                 
-                // Move ghost
-                ghostEl.style.left = `${touch.pageX - ghostEl.offsetWidth / 2}px`;
-                ghostEl.style.top = `${touch.pageY - ghostEl.offsetHeight / 2}px`;
-                
-                // Check for dropzone hover
-                ghostEl.style.display = 'none';
-                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-                ghostEl.style.display = 'flex';
-    
-                if (elementUnder && elementUnder.classList.contains('competitor-drop-zone')) {
-                    dropZone.classList.add('hover');
-                } else {
-                    dropZone.classList.remove('hover');
-                }
+                // Check for drop zone hover
+                const dropZone = findDropZoneAtPoint(touch.clientX, touch.clientY);
+                dropZones.forEach(zone => zone.classList.remove('hover'));
+                if (dropZone) dropZone.classList.add('hover');
             }
         }, { passive: false });
 
         document.addEventListener('touchend', (e) => {
-            if (draggedItem && ghostEl) {
-                ghostEl.style.display = 'none';
-                const elementUnder = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-                
-                if (elementUnder && elementUnder.classList.contains('competitor-drop-zone')) {
-                    const droppedCardId = draggedItem.dataset.cardId;
-                    handleDrop(droppedCardId, stageData, cards, dropZone);
-                }
-                
-                // Cleanup
-                dropZone.classList.remove('hover');
-                draggedItem.classList.remove('dragging');
-                document.body.removeChild(ghostEl);
-                ghostEl = null;
-                draggedItem = null;
-            }
-        });
-
-        function handleDrop(cardId, stageData, allCards, targetDropZone) {
-            const cardCost = parseInt(draggedItem.dataset.cost);
-
-            if (userBudget < cardCost) {
-                showFeedback("Недостаточно бюджета для этой операции!", false, gameScreen);
-                // Reset card if not enough budget
-                draggedItem.classList.remove('dragging');
-                if (ghostEl) { document.body.removeChild(ghostEl); ghostEl = null; }
-                draggedItem = null;
-                return; // Stop if not enough budget
-            }
-
-            userBudget -= cardCost;
-
-            const result = stageData.responses[cardId];
-            userInfluence += result.influenceChange;
-            
-            showFeedback(result.feedback, result.influenceChange > 0, gameScreen);
-            
-            // Animate the card into the drop zone and remove others
-            const droppedCardEl = draggedItem;
-            droppedCardEl.style.position = 'absolute';
-            droppedCardEl.style.transition = 'all 0.5s ease-in-out';
-
-            const dropZoneRect = targetDropZone.getBoundingClientRect();
-            const cardRect = droppedCardEl.getBoundingClientRect();
-
-            droppedCardEl.style.left = `${dropZoneRect.left + (dropZoneRect.width / 2) - (cardRect.width / 2)}px`;
-            droppedCardEl.style.top = `${dropZoneRect.top + (dropZoneRect.height / 2) - (cardRect.height / 2)}px`;
-            droppedCardEl.style.transform = 'scale(0.8)';
-            droppedCardEl.style.zIndex = '50';
-            droppedCardEl.classList.remove('dragging');
-            droppedCardEl.classList.add('dropped');
-
-            // Hide other cards immediately
-            allCards.forEach(c => {
-                if (c !== droppedCardEl) {
-                    c.style.display = 'none';
-                }
-                c.draggable = false; // Disable dragging for all cards
-            });
-
-            // Replace drop zone content with the dropped card visually
-            targetDropZone.innerHTML = '';
-            targetDropZone.appendChild(droppedCardEl);
-            droppedCardEl.style.position = 'relative'; // Reset position after animation
-            droppedCardEl.style.left = '0';
-            droppedCardEl.style.top = '0';
-
-            setTimeout(() => {
-                loadStage(getStageIndexById(result.nextStage, QUEST_DATA.stages));
-            }, 2500); // Increased delay for animation
-        }
-    }
-
-    function setupButtonChoices(stageData) {
-        const optionBtns = document.querySelectorAll('.option-btn');
-        optionBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const target = e.currentTarget;
-                const cost = parseInt(target.dataset.cost || 0);
-                const influence = parseInt(target.dataset.influence || 0);
-                const feedback = target.dataset.feedback;
-                const isCorrect = target.dataset.correct === 'true';
-
-                if (userBudget >= cost) {
-                    userBudget -= cost;
-                    userInfluence += influence;
-                    showFeedback(feedback, isCorrect, gameScreen); // Pass gameScreen for feedback
-                } else {
-                    showFeedback("Недостаточно бюджета для этого решения!", false, gameScreen); // Improved feedback
-                    return;
-                }
-
-                optionBtns.forEach(b => {
-                    b.disabled = true;
-                    if (b.dataset.correct === 'true') {
-                        b.classList.add('correct');
-                    } else {
-                        b.classList.add('incorrect');
-                    }
-                });
-
-                setTimeout(() => {
-                    loadStage(getStageIndexById(stageData.interaction.nextStage, QUEST_DATA.stages));
-                }, 2500);
-            });
-        });
-
-        // Visual feedback for options: on hover, add a subtle glow
-        optionBtns.forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                if (!btn.disabled) {
-                    btn.style.boxShadow = '0 0 10px rgba(140, 75, 255, 0.5)';
-                }
-            });
-            btn.addEventListener('mouseleave', () => {
-                if (!btn.disabled) {
-                    btn.style.boxShadow = 'none';
-                }
-            });
-        });
-    }
-
-    function setupNativeAdInteraction(stageData) {
-        const items = document.querySelectorAll('.ad-item');
-        const dropzones = document.querySelectorAll('.ad-dropzone');
-        const launchBtn = document.getElementById('launch-ad-btn');
-        let selections = { headline: null, body: null, callToAction: null };
-
-        function updateAdPreview() {
-            dropzones.forEach(zone => {
-                const type = zone.dataset.type;
-                if (selections[type]) {
-                    const selectedItem = stageData.interaction.elements[type+'s'].find(e => e.type === selections[type]);
-                    zone.innerHTML = `<p>${selectedItem.text}</p>`;
-                    zone.classList.add('filled');
-                } else {
-                    zone.innerHTML = type === 'headline' ? `Заголовок...` : (type === 'body' ? `Основной текст...` : `Призыв к действию...`);
-                    zone.classList.remove('filled');
-                }
-            });
-        }
-
-        let ghostAdEl = null;
-        items.forEach(item => {
-            item.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', item.dataset.type + ':' + item.dataset.value);
-                e.dataTransfer.setData('item-text', item.textContent);
-                setTimeout(() => item.style.opacity = '0.5', 0);
-            });
-            item.addEventListener('dragend', () => {
-                item.style.opacity = '1';
-            });
-
-            item.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    draggedItem = item;
-                    ghostAdEl = item.cloneNode(true);
-                    ghostAdEl.classList.add('ghost');
-                    ghostAdEl.style.width = `${item.offsetWidth}px`;
-                    document.body.appendChild(ghostAdEl);
-                    const touch = e.touches[0];
-                    ghostAdEl.style.left = `${touch.pageX - ghostAdEl.offsetWidth / 2}px`;
-                    ghostAdEl.style.top = `${touch.pageY - ghostAdEl.offsetHeight / 2}px`;
-                    item.style.opacity = '0.5';
-                }
-            }, { passive: true });
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            if (draggedItem && ghostAdEl) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                ghostAdEl.style.left = `${touch.pageX - ghostAdEl.offsetWidth / 2}px`;
-                ghostAdEl.style.top = `${touch.pageY - ghostAdEl.offsetHeight / 2}px`;
-
-                dropzones.forEach(zone => {
-                    const rect = zone.getBoundingClientRect();
-                    if (touch.clientX > rect.left && touch.clientX < rect.right &&
-                        touch.clientY > rect.top && touch.clientY < rect.bottom) {
-                        zone.classList.add('hover');
-                    } else {
-                        zone.classList.remove('hover');
-                    }
-                });
-            }
-        }, { passive: false });
-
-        document.addEventListener('touchend', (e) => {
-            if (draggedItem && ghostAdEl) {
+            if (draggedCard && ghostCard) {
                 const touch = e.changedTouches[0];
-                ghostAdEl.remove();
-                ghostAdEl = null;
-                draggedItem.style.opacity = '1';
+                const dropZone = findDropZoneAtPoint(touch.clientX, touch.clientY);
                 
-                let dropped = false;
-                dropzones.forEach(zone => {
-                    const rect = zone.getBoundingClientRect();
-                    if (touch.clientX > rect.left && touch.clientX < rect.right &&
-                        touch.clientY > rect.top && touch.clientY < rect.bottom) 
-                    {
-                        const itemType = draggedItem.dataset.type;
-                        const itemValue = draggedItem.dataset.value;
-                        const itemText = draggedItem.textContent;
-
-                        if (itemType === zone.dataset.type) {
-                            selections[itemType] = itemValue;
-                            zone.innerHTML = `<div class="ad-item-dropped">${itemText}</div>`; // New div for styling
-                            zone.classList.add('filled');
-                            updateAdPreview();
-                            dropped = true;
-                        }
-                    }
-                    zone.classList.remove('hover');
-                });
-
-                draggedItem = null;
-
-                if (selections.headline && selections.body && selections.callToAction) {
-                    launchBtn.disabled = false;
-                } else {
-                    launchBtn.disabled = true;
+                if (dropZone) {
+                    handleAnalysisDrop(draggedCard.dataset.toolId, dropZone.dataset.weakness);
                 }
+                
+                cleanup();
             }
         });
-        
-        dropzones.forEach(zone => {
-            zone.addEventListener('dragover', e => e.preventDefault());
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const [itemType, itemValue] = e.dataTransfer.getData('text/plain').split(':');
-                const itemText = e.dataTransfer.getData('item-text');
 
-                if (itemType === zone.dataset.type) {
-                    selections[itemType] = itemValue;
-                    zone.innerHTML = `<div class="ad-item-dropped">${itemText}</div>`; // New div for styling
-                    zone.classList.add('filled');
-                    updateAdPreview();
-                }
+        function positionGhostCard(x, y) {
+            ghostCard.style.left = `${x - ghostCard.offsetWidth / 2}px`;
+            ghostCard.style.top = `${y - ghostCard.offsetHeight / 2}px`;
+        }
 
-                if (selections.headline && selections.body && selections.callToAction) {
-                    launchBtn.disabled = false;
-                }
-            });
-        });
+        function findDropZoneAtPoint(x, y) {
+            ghostCard.style.display = 'none';
+            const element = document.elementFromPoint(x, y);
+            ghostCard.style.display = 'block';
+            return element?.closest('.competitor-weakness-zone');
+        }
 
-        launchBtn.addEventListener('click', () => {
-            const solution = stageData.interaction.solution;
-            const feedbackData = stageData.interaction.feedback;
-            const scoreData = stageData.interaction.score;
-
-            let isCorrect = (selections.headline === solution.headlineType && 
-                             selections.body === solution.bodyType && 
-                             selections.callToAction === solution.callToActionType);
-
-            if (isCorrect) {
-                userInfluence += scoreData.success;
-                showFeedback(feedbackData.success, true, gameScreen);
-            } else {
-                userBudget += scoreData.failure; // Negative score is a cost
-                showFeedback(feedbackData.failure, false, gameScreen);
+        function cleanup() {
+            if (ghostCard) {
+                ghostCard.remove();
+                ghostCard = null;
             }
-            currentStageIndex = getStageIndexById(stageData.interaction.nextStage, QUEST_DATA.stages);
-            setTimeout(() => loadStage(currentStageIndex), 2500);
+            draggedCard?.classList.remove('dragging');
+            draggedCard = null;
+            dropZones.forEach(zone => zone.classList.remove('hover'));
+        }
+    }
+
+    function handleAnalysisDrop(toolId, weakness) {
+        // Disable further interaction
+        const cards = document.querySelectorAll('.action-card');
+        cards.forEach(card => {
+            card.draggable = false;
+            card.style.opacity = '0.5';
         });
+
+        let success = false;
+        let feedback = '';
+
+        // Analysis logic
+        switch (toolId) {
+            case 'market-research':
+                success = weakness === 'high-prices';
+                feedback = success ? 
+                    'Отлично! Вы выявили завышенные цены конкурента.' :
+                    'Не совсем то. Рыночные исследования показывают другие проблемы.';
+                break;
+            case 'customer-survey':
+                success = weakness === 'slow-innovation';
+                feedback = success ?
+                    'В точку! Клиенты недовольны медленным развитием.' :
+                    'Клиенты указывают на другие недостатки.';
+                break;
+            case 'spy':
+                success = weakness === 'cash-flow';
+                feedback = success ?
+                    'Верно! Вы обнаружили финансовые проблемы конкурента.' :
+                    'Разведка показывает другие уязвимости.';
+                break;
+        }
+
+        // Update game state
+        if (success) {
+            gameState.marketShare += 5;
+            gameState.reputation += 1;
+            gameState.eliminatedCompetitors += 1;
+        } else {
+            gameState.resources -= 10000;
+        }
+
+        showFeedback(feedback, success);
+        updateStats();
+
+        // Progress to next stage after delay
+        setTimeout(() => {
+            loadStage(gameState.currentStage + 1);
+        }, 2000);
+    }
+
+    function showFeedback(message, isSuccess) {
+        const feedbackEl = document.createElement('div');
+        feedbackEl.className = `feedback-popup ${isSuccess ? 'success' : 'failure'}`;
+        feedbackEl.textContent = message;
+        stageContainer.appendChild(feedbackEl);
+
+        setTimeout(() => {
+            feedbackEl.remove();
+        }, 1800);
     }
 
     function endGame() {
-        finalBudgetEl.textContent = `$${userBudget}`;
-        finalInfluenceEl.textContent = userInfluence;
-        switchScreen(endScreen);
+        // Update final stats
+        document.getElementById('final-market-share').textContent = `${gameState.marketShare}%`;
+        document.getElementById('final-reputation').textContent = gameState.reputation;
+        document.getElementById('competitors-eliminated').textContent = gameState.eliminatedCompetitors;
+        
+        showScreen('end');
     }
 
     // Event Listeners
-    startBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('click', () => {
+        showScreen('game');
+        loadStage(0);
+    });
+
+    backBtn.addEventListener('click', () => {
+        if (gameState.currentStage > 0) {
+            loadStage(gameState.currentStage - 1);
+        }
+    });
+
+    menuBtn.addEventListener('click', () => {
+        if (window.confirm('Вернуться в главное меню? Прогресс будет потерян.')) {
+            window.location.href = '../quests.html';
+        }
+    });
+
     ctaBtn.addEventListener('click', () => {
-        console.log("Redirecting to purchase...");
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.close();
         }
     });
 
-    backBtn.addEventListener('click', () => {
-        if (stageHistory.length > 0) {
-            const prevStageIndex = stageHistory.pop();
-            loadStage(prevStageIndex);
-        }
-    });
-
-    mainMenuBtn.addEventListener('click', () => {
-        navigateToHome();
-    });
-
     // Initial load
     setTimeout(() => {
-        switchScreen(startScreen);
+        showScreen('start');
     }, 1500);
 });
