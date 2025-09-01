@@ -695,18 +695,30 @@ body::after {
   margin: 0 0 20px 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
+    gap: 12px;
+  }
+  
+/* Восстанавливаем рамки для всех товаров */
 .modal-features li {
   background: rgba(138, 127, 255, 0.05);
   border: 1px solid rgba(138, 127, 255, 0.1);
   padding: 12px 16px;
   border-radius: 10px;
   transition: all 0.3s ease;
-  transform: translateX(20px);
-  opacity: 0;
-  animation: feature-fade-in 0.5s forwards;
+  margin-bottom: 8px;
+}
+
+.modal-features li:hover {
+  background: rgba(138, 127, 255, 0.1);
+  border-color: rgba(138, 127, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Анимация для уникального дизайна "Психотипов" */
+@keyframes bg-pan-unique {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .product-card.active .modal-features li:nth-child(1) { animation-delay: 0.2s; }
@@ -730,13 +742,13 @@ body::after {
 .modal-payment-options {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; /* Центрируем кнопки */
   gap: 12px;
   width: 100%;
 }
 
 .payment-button {
-  padding: 16px;
+    padding: 16px;
   border-radius: 12px;
   border: 1px solid var(--border-color);
   background: var(--bg-secondary);
@@ -746,7 +758,6 @@ body::after {
   transition: var(--transition);
   font-size: 16px;
   width: 100%;
-  text-align: center;
 }
 
 .payment-button:hover {
@@ -754,7 +765,7 @@ body::after {
   color: var(--text-primary);
 }
 
-/* Главная кнопка теперь "Карта / СБП" */
+/* Главная кнопка - Карта/СБП */
 .payment-button.primary {
   background: var(--gradient-button);
   border: none;
@@ -768,14 +779,29 @@ body::after {
   box-shadow: 0 8px 30px rgba(138, 127, 255, 0.4);
 }
 
-/* Уникальный дизайн для ГЛАВНОЙ кнопки "Психотипов" */
+/* Обычная кнопка - оплата звездами */
+.payment-button.payment-button-stars {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+.payment-button.payment-button-stars:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  transform: none;
+  filter: none;
+}
+
+/* Уникальный дизайн для кнопки "Психотипы" */
 [data-product-id="psychotypes-full"] .payment-button.primary {
   background: linear-gradient(135deg, #ff00ff, #ffae00);
 }
 
 /* Улучшенный дизайн для описания "Психотипов" */
 [data-product-id="psychotypes-full"] .modal-features li {
-  border: 1px solid transparent;
+  border-color: transparent;
   background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
               linear-gradient(135deg, #ff00ff, #ffae00, #8A7FFF) border-box;
   background-size: 200% 200%;
@@ -905,7 +931,7 @@ body::after {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+    width: 100%;
   height: 100%;
   background: rgba(2, 0, 16, 0.9);
   backdrop-filter: blur(15px);
@@ -1007,8 +1033,17 @@ body::after {
 }
 
 .payment-button.payment-button-stars {
-  background: var(--gradient-button);
-  border: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+.payment-button.payment-button-stars:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  transform: none;
+  filter: none;
 }
 
 /* --- PDF Viewer --- */
@@ -1041,14 +1076,14 @@ body::after {
   border-radius: 16px;
   border: 1px solid var(--border-color);
   display: flex;
-  flex-direction: column;
+    flex-direction: column;
   overflow: hidden;
   box-shadow: 0 10px 50px rgba(0,0,0,0.5);
 }
 
 .pdf-viewer-header {
   display: flex;
-  justify-content: space-between;
+    justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border-color);

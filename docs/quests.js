@@ -22,11 +22,11 @@ const ALL_QUESTS = {
   'funnel': {
     id: 'funnel',
     title: 'ИМПЕРИЯ ВЛИЯНИЯ',
-    description: 'Пройди интерактивный тренинг и научись основам влияния, чтобы построить свою империю.',
-    button: 'Начать тренинг',
-    archetypes: ['biznesmen', 'psiholog'],
+    description: 'Построй медиа-империю с нуля. Создавай вирусный контент, манипулируй мнением масс и стань королем информации.',
+    button: 'Начать вещание',
+    archetypes: ['biznesmen'],
     category: 'Бизнес',
-    tags: ['Интерактив']
+    tags: ['Средний']
   },
   'copy': {
     id: 'copy',
@@ -44,14 +44,13 @@ const ALL_QUESTS = {
     category: 'Психология',
     tags: ['Средний']
   },
-  'competitor-analysis': {
-    id: 'competitor-analysis',
-    title: 'КОРПОРАТИВНЫЙ ШПИОНАЖ',
-    description: 'Внедрись в корпорацию-конкурента, взломай их системы и раскрой главный секрет. Навыки психологии и анализа — твое оружие.',
-    button: 'Начать внедрение',
+  'competitors': {
+    id: 'competitors',
+    title: 'АНАЛИЗ КОНКУРЕНТОВ',
+    description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
     archetypes: ['biznesmen', 'strategist'],
     category: 'Стратегия',
-    tags: ['Интерактив', 'Сложный']
+    tags: ['Сложный']
   },
   'trends': {
     id: 'trends',
@@ -64,9 +63,9 @@ const ALL_QUESTS = {
 };
 
 const ARCHETYPE_QUESTS = {
-  'strategist': ['world-government', 'trends', 'competitor-analysis'],
+  'strategist': ['world-government', 'trends', 'competitors'],
   'psiholog': ['bodylang', 'psychology', 'funnel'],
-  'biznesmen': ['funnel', 'copy', 'competitor-analysis']
+  'biznesmen': ['funnel', 'copy', 'competitors']
 };
 
 let swiperInstance = null;
