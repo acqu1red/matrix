@@ -588,7 +588,7 @@ body::after {
 
 /* --- Products Section --- */
 .products-section {
-  padding: 40px 20px 60px;
+  padding: 20px 20px 40px; /* Уменьшаем отступы */
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -760,7 +760,14 @@ body::after {
 /* --- Buttons --- */
 .product-footer {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto; /* Прижимает футер к низу */
+  padding-top: 10px;
+}
+
+[data-product-id="psychotypes-full"] .product-footer {
+  margin-top: 20px; /* Доп. отступ для кнопки Психотипов */
 }
 
 .product-button {
@@ -893,6 +900,15 @@ body::after {
 .payment-button.payment-button-stars {
   background: var(--gradient-button);
   border: none;
+  box-shadow: 0 5px 20px rgba(138, 127, 255, 0.3);
+}
+
+.payment-button.payment-button-stars:hover {
+  filter: brightness(1.1);
+}
+
+[data-product-id="psychotypes-full"] .payment-button.payment-button-stars {
+  background: linear-gradient(135deg, #ff00ff, #ffae00);
 }
 
 /* --- PDF Viewer --- */
