@@ -466,7 +466,7 @@ function createProductCard(id, product) {
         <a href="${product.pdfUrl}" download class="product-button download-button">Скачать</a>
       </div>`
     : `<div class="modal-payment-options">
-          <button class="payment-button">Карта / СБП (скоро)</button>
+          <button class="payment-button primary">Карта / СБП (скоро)</button>
           <button class="payment-button payment-button-stars" data-product-id="${id}">
             Купить за ${product.priceStars} ⭐
           </button>

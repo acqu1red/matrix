@@ -735,18 +735,57 @@ body::after {
   width: 100%;
 }
 
-[data-product-id="psychotypes-full"] .modal-payment-options {
-  margin-top: 20px; /* Добавляем отступ сверху */
+.payment-button {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 16px;
+  width: 100%;
 }
 
-.payment-button.payment-button-stars {
+.payment-button:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+/* Главная кнопка - Карта/СБП */
+.payment-button.primary {
   background: var(--gradient-button);
   border: none;
+  color: var(--text-primary);
   box-shadow: 0 5px 20px rgba(138, 127, 255, 0.3);
 }
 
-[data-product-id="psychotypes-full"] .payment-button.payment-button-stars {
+.payment-button.primary:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(138, 127, 255, 0.4);
+}
+
+/* Уникальный дизайн для кнопки "Психотипы" */
+[data-product-id="psychotypes-full"] .payment-button.primary {
   background: linear-gradient(135deg, #ff00ff, #ffae00);
+}
+
+/* Улучшенный дизайн для описания "Психотипов" */
+[data-product-id="psychotypes-full"] .modal-features li {
+  border-color: transparent;
+  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+              linear-gradient(135deg, #ff00ff, #ffae00, #8A7FFF) border-box;
+  background-size: 200% 200%;
+  animation: bg-pan-unique 4s linear infinite;
+}
+
+[data-product-id="psychotypes-full"] .modal-features li strong {
+  background: linear-gradient(135deg, #ff00ff, #ffae00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* --- Уникальный дизайн флагманов --- */
