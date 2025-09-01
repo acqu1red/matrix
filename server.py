@@ -6,11 +6,12 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-# !!! ВАЖНО: Убедитесь, что токен бота задан в переменных окружения
-# Например, export BOT_TOKEN="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+# !!! ВАЖНО: Токен бота. Рекомендуется хранить его в переменных окружения.
+# Например, BOT_TOKEN = os.environ.get("BOT_TOKEN")
+BOT_TOKEN = "7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc"
+
 if not BOT_TOKEN:
-    raise ValueError("Необходимо установить переменную окружения BOT_TOKEN")
+    raise ValueError("Необходимо установить BOT_TOKEN")
 
 BOT_API   = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
