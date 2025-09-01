@@ -671,7 +671,7 @@ body::after {
 }
 
 .product-card.active .product-card-hidden {
-  max-height: 600px; /* Увеличиваем для нового контента */
+  max-height: 800px; /* Увеличиваем для нового контента */
   opacity: 1;
   margin-top: 24px;
 }
