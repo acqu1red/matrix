@@ -163,6 +163,9 @@ async function initializeApp() {
   const defaultArchetype = 'strategist'; 
   await loadMainContent(defaultArchetype);
   
+  // Создаем продукты
+  populateProducts();
+  
   // Инициализируем взаимодействие с продуктами
   initializeProductInteraction();
   
