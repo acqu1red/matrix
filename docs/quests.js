@@ -44,8 +44,8 @@ const ALL_QUESTS = {
     category: 'Психология',
     tags: ['Средний']
   },
-  'competitors': {
-    id: 'competitors',
+  'competitors-quest': {
+    id: 'competitors-quest',
     title: 'АНАЛИЗ КОНКУРЕНТОВ',
     description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
     archetypes: ['biznesmen', 'strategist'],
@@ -63,9 +63,9 @@ const ALL_QUESTS = {
 };
 
 const ARCHETYPE_QUESTS = {
-  'strategist': ['world-government', 'trends', 'competitors'],
+  'strategist': ['world-government', 'trends', 'competitors-quest'],
   'psiholog': ['bodylang', 'psychology', 'funnel'],
-  'biznesmen': ['funnel', 'copy', 'competitors']
+  'biznesmen': ['funnel', 'copy', 'competitors-quest']
 };
 
 let swiperInstance = null;
