@@ -5,6 +5,7 @@ from uuid import uuid4
 import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 # !!! ВАЖНО: Токен бота. Рекомендуется хранить его в переменных окружения.
 # Например, BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -44,6 +45,15 @@ class CreateInvoiceIn(BaseModel):
     initData: str  # Telegram.WebApp.initData — подписанная строка
 
 app = FastAPI()
+
+# CORS: временно разрешаем все источники. При необходимости сузьте список до нужных доменов
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def _validate_init_data(init_data: str, bot_token: str, max_age_sec: int = 3600) -> dict:
     """
