@@ -88,98 +88,17 @@
           <!-- Сюда будут динамически добавляться остальные квесты -->
         </div>
       </section>
+
+      <!-- Информационные кнопки -->
+      <section class="info-section">
+        <div class="info-buttons">
+          <button class="info-button" data-modal="delivery">Доставка</button>
+          <button class="info-button" data-modal="contacts">Контакты</button>
+          <button class="info-button" data-modal="offer">Оферта</button>
+        </div>
+      </section>
     </main>
         </div>
-
-  <!-- Информационные блоки внизу страницы -->
-  <div class="info-section">
-    <div class="info-links">
-      <button class="info-link" data-modal="delivery">Доставка</button>
-      <button class="info-link" data-modal="contacts">Контакты</button>
-      <button class="info-link" data-modal="terms">Оферта</button>
-    </div>
-  </div>
-
-  <!-- Модальные окна для информационных блоков -->
-  <div id="deliveryModal" class="info-modal hidden">
-    <div class="info-modal-content">
-      <div class="info-modal-header">
-        <h3>Информация о доставке</h3>
-        <button class="info-modal-close">&times;</button>
-      </div>
-      <div class="info-modal-body">
-        <p>После покупки вы сможете:</p>
-        <ul>
-          <li><strong>Просматривать гайд</strong> прямо внутри приложения MiniApp</li>
-          <li><strong>Скачивать PDF</strong> для офлайн-изучения</li>
-        </ul>
-        <p>Доступ к материалам предоставляется мгновенно после подтверждения оплаты.</p>
-      </div>
-    </div>
-  </div>
-
-  <div id="contactsModal" class="info-modal hidden">
-    <div class="info-modal-content">
-      <div class="info-modal-header">
-        <h3>Контакты</h3>
-        <button class="info-modal-close">&times;</button>
-      </div>
-      <div class="info-modal-body">
-        <div class="contact-item">
-          <strong>Telegram:</strong> <a href="https://t.me/warpscythe" target="_blank">@warpscythe</a>
-        </div>
-        <div class="contact-item">
-          <strong>Поддержка:</strong> <a href="https://t.me/support_bot" target="_blank">@support_bot</a>
-        </div>
-        <div class="contact-item">
-          <strong>Email:</strong> support@example.com
-        </div>
-        <div class="contact-item">
-          <strong>Время работы:</strong> 24/7
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="termsModal" class="info-modal hidden">
-    <div class="info-modal-content">
-      <div class="info-modal-header">
-        <h3>Пользовательское соглашение / Оферта</h3>
-        <button class="info-modal-close">&times;</button>
-      </div>
-      <div class="info-modal-body">
-        <h4>1. Общие положения</h4>
-        <p>Настоящее Пользовательское соглашение (далее – «Соглашение») регулирует отношения между пользователем (далее – «Пользователь») и администрацией MiniApp (далее – «Администрация») по использованию сервиса.</p>
-        
-        <h4>2. Предмет соглашения</h4>
-        <p>Администрация предоставляет Пользователю доступ к образовательным материалам, курсам и контенту через Telegram MiniApp.</p>
-        
-        <h4>3. Порядок использования</h4>
-        <p>3.1. Пользователь обязуется использовать материалы исключительно в личных целях.<br>
-        3.2. Запрещается передача, копирование и распространение материалов третьим лицам.<br>
-        3.3. Все материалы защищены авторским правом.</p>
-        
-        <h4>4. Оплата и доступ</h4>
-        <p>4.1. Доступ к материалам предоставляется после подтверждения оплаты.<br>
-        4.2. Оплата производится через Telegram Stars или банковские карты.<br>
-        4.3. Возврат средств осуществляется в соответствии с законодательством РФ.</p>
-        
-        <h4>5. Ответственность</h4>
-        <p>5.1. Администрация не несет ответственности за результаты применения полученных знаний.<br>
-        5.2. Пользователь самостоятельно несет ответственность за соблюдение законодательства.</p>
-        
-        <h4>6. Заключительные положения</h4>
-        <p>6.1. Соглашение вступает в силу с момента принятия Пользователем.<br>
-        6.2. Администрация оставляет за собой право изменять условия Соглашения.<br>
-        6.3. По всем вопросам обращайтесь в службу поддержки.</p>
-        
-        <p><strong>Дата последнего обновления:</strong> 2024</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Оверлей для модальных окон -->
-  <div id="infoModalOverlay" class="info-modal-overlay hidden"></div>
 
   <!-- Product Modals will be injected here by JS -->
   <div id="modalContainer"></div>
@@ -196,7 +115,88 @@
       </div>
       <div class="pdf-viewer-footer">
         <a href="#" id="pdfDownloadLink" download class="pdf-download-button">Скачать</a>
+      </div>
+    </div>
   </div>
+
+  <!-- Информационные модальные окна -->
+  <div class="info-modal-overlay hidden" id="infoModalOverlay">
+    <!-- Модальное окно "Доставка" -->
+    <div class="info-modal" id="deliveryModal">
+      <div class="info-modal-content">
+        <div class="info-modal-header">
+          <h3>Доставка</h3>
+          <button class="info-modal-close">&times;</button>
+        </div>
+        <div class="info-modal-body">
+          <h4>Как получить товар после покупки:</h4>
+          <p>После успешной оплаты вы получите доступ к приобретенному материалу двумя способами:</p>
+          <ul>
+            <li><strong>Просмотр в приложении:</strong> Откройте Mini App и читайте гайд прямо в Telegram</li>
+            <li><strong>Скачивание PDF:</strong> Загрузите документ в формате PDF для офлайн-изучения</li>
+          </ul>
+          <p>Доступ к материалам предоставляется мгновенно после подтверждения платежа.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно "Контакты" -->
+    <div class="info-modal" id="contactsModal">
+      <div class="info-modal-content">
+        <div class="info-modal-header">
+          <h3>Контакты</h3>
+          <button class="info-modal-close">&times;</button>
+        </div>
+        <div class="info-modal-body">
+          <h4>Свяжитесь с нами:</h4>
+          <div class="contact-item">
+            <strong>Telegram:</strong> <a href="https://t.me/warpscythe" target="_blank">@warpscythe</a>
+          </div>
+          <div class="contact-item">
+            <strong>Поддержка:</strong> <a href="https://t.me/warpscythe" target="_blank">@warpscythe</a>
+          </div>
+          <div class="contact-item">
+            <strong>Время работы:</strong> Ежедневно с 9:00 до 21:00 (МСК)
+          </div>
+          <p>Мы готовы ответить на все ваши вопросы и помочь с выбором подходящих материалов.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно "Оферта" -->
+    <div class="info-modal" id="offerModal">
+      <div class="info-modal-content">
+        <div class="info-modal-header">
+          <h3>Публичная оферта</h3>
+          <button class="info-modal-close">&times;</button>
+        </div>
+        <div class="info-modal-body">
+          <h4>Общие положения</h4>
+          <p>Настоящий документ является публичной офертой и содержит все существенные условия договора на оказание информационно-образовательных услуг.</p>
+          
+          <h4>Предмет договора</h4>
+          <p>Предоставление доступа к информационным материалам, курсам и гайдам в области психологии, бизнеса и стратегического мышления.</p>
+          
+          <h4>Порядок оказания услуг</h4>
+          <ul>
+            <li>Услуги оказываются в электронном виде через Telegram Mini App</li>
+            <li>Доступ предоставляется после подтверждения оплаты</li>
+            <li>Материалы доступны для просмотра онлайн и скачивания в PDF</li>
+          </ul>
+          
+          <h4>Стоимость и оплата</h4>
+          <p>Стоимость услуг указана в рублях и звездах Telegram. Оплата производится через Telegram Stars или банковские карты.</p>
+          
+          <h4>Права и обязанности</h4>
+          <p>Покупатель получает неисключительное право на использование материалов в личных целях. Запрещается распространение, копирование и коммерческое использование.</p>
+          
+          <h4>Ответственность</h4>
+          <p>Материалы предоставляются "как есть". Мы не несем ответственности за результаты применения полученной информации.</p>
+          
+          <h4>Заключительные положения</h4>
+          <p>Договор вступает в силу с момента оплаты. Споры решаются путем переговоров. Применяется законодательство РФ.</p>
+        </div>
+      </div>
     </div>
   </div>
 

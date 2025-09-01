@@ -152,10 +152,8 @@ const PRODUCTS = {
 
 // Ждем загрузки всех скриптов
 document.addEventListener('DOMContentLoaded', () => {
-  // Небольшая задержка для загрузки supabaseClient.js
-  setTimeout(() => {
-    initializeApp();
-  }, 100);
+  // Мгновенная инициализация для быстрого старта
+  initializeApp();
 });
 
 async function initializeApp() {
@@ -163,41 +161,63 @@ async function initializeApp() {
   // Показываем основной контент с архетипом по умолчанию, чтобы избежать задержек.
   // Это дает пользователю мгновенный отклик.
   const defaultArchetype = 'strategist'; 
+  await loadMainContent(defaultArchetype);
   
+  // Инициализируем взаимодействие с продуктами
+  initializeProductInteraction();
+  
+  // Инициализируем информационные модальные окна
+  initializeInfoModals();
+  
+  // --- Шаг 2: Инициализация API и фоновая загрузка данных ---
   try {
-    // Показываем основной контент сразу
-    loadMainContent(defaultArchetype);
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+  } catch (e) {
+    console.error('Telegram WebApp initialization failed', e);
+  }
+
+  const api = window.__QUEST_API__;
+  if (!api) {
+    console.error("Supabase client API не может быть инициализирован.");
+    // В этом случае интерфейс уже отрисован, просто не будет персонализации.
+    return;
+  }
+  
+  // --- Шаг 3: Персонализация и обновление интерфейса в фоне ---
+  try {
+    const tgUser = api.getTelegramInfo();
+    const userId = tgUser ? tgUser.id.toString() : null;
+
+    if (!userId) {
+      console.warn("Пользователь Telegram не найден. Запуск в режиме опроса.");
+      initializeQuiz('mock_user_12345'); // Запускаем опрос для не-телеграм пользователей
+      return;
+    }
     
-    // Инициализируем взаимодействие с продуктами
-    initializeProductInteraction();
-    
-    // Инициализируем информационные модальные окна
-    initializeInfoModals();
-    
-    // Фоновая загрузка данных пользователя
-    const api = window.__QUEST_API__;
-    if (api && api.getTelegramInfo) {
-      try {
-        const userInfo = await api.getTelegramInfo();
-        if (userInfo && userInfo.id) {
-          await loadUserDataInBackground(userInfo.id);
-        }
-      } catch (apiError) {
-        console.warn('API error, continuing without user data:', apiError);
+    currentUserId = userId;
+    const [profile, purchases] = await Promise.all([
+        api.getUserProfile(userId),
+        api.getUserPurchases(userId)
+    ]);
+    userPurchases = purchases;
+
+    if (profile && profile.quest_archetype) {
+      // Если архетип отличается от стандартного, плавно обновляем контент.
+      if (profile.quest_archetype !== defaultArchetype) {
+        populateQuests(profile.quest_archetype);
+        // Переинициализируем Swiper, чтобы он подхватил новые слайды
+        initializeSwiper();
       }
+      // Обновляем состояние кнопок покупки в любом случае.
+      populateProducts(); 
     } else {
-      console.log('API not available, running in offline mode');
+      initializeQuiz(userId);
     }
   } catch (error) {
-    console.error('Ошибка инициализации:', error);
-    // Fallback: показываем основной контент даже при ошибке
-    try {
-      loadMainContent(defaultArchetype);
-      initializeProductInteraction();
-      initializeInfoModals();
-    } catch (fallbackError) {
-      console.error('Critical error in fallback:', fallbackError);
-    }
+    console.error("Ошибка при фоновой загрузке данных пользователя:", error);
   }
 }
 
@@ -593,15 +613,15 @@ function hidePdfViewer() {
 
 // Инициализация информационных модальных окон
 function initializeInfoModals() {
-  const infoLinks = document.querySelectorAll('.info-link');
+  const infoButtons = document.querySelectorAll('.info-button');
   const infoModalOverlay = document.getElementById('infoModalOverlay');
   const closeButtons = document.querySelectorAll('.info-modal-close');
 
   // Открытие модальных окон
-  infoLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
+  infoButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
       e.preventDefault();
-      const modalType = link.dataset.modal;
+      const modalType = button.dataset.modal;
       openInfoModal(modalType);
     });
   });

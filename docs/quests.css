@@ -728,7 +728,7 @@ body::after {
 @keyframes feature-fade-in {
   to {
     transform: translateX(0);
-    opacity: 1;
+  opacity: 1;
   }
 }
 
@@ -743,7 +743,7 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center; /* Центрируем кнопки */
-  gap: 12px;
+    gap: 12px;
   width: 100%;
 }
 
@@ -876,7 +876,7 @@ body::after {
   background: var(--accent-primary);
   color: var(--bg-primary);
   padding: 5px 12px;
-  font-size: 12px;
+    font-size: 12px;
   font-weight: 700;
   border-radius: 0 8px 8px 0;
   box-shadow: 0 4px 10px rgba(138, 127, 255, 0.3);
@@ -1188,34 +1188,34 @@ body::after {
   border-top: 1px solid var(--border-color);
 }
 
-.info-links {
+.info-buttons {
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: 16px;
   max-width: 100%;
   margin: 0 auto;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.info-link {
+.info-button {
   background: transparent;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
   position: relative;
   overflow: hidden;
-  min-width: 100px;
+  min-width: 120px;
   flex: 0 1 auto;
 }
 
-.info-link::before {
+.info-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1226,11 +1226,11 @@ body::after {
   transition: left 0.5s ease;
 }
 
-.info-link:hover::before {
+.info-button:hover::before {
   left: 100%;
 }
 
-.info-link:hover {
+.info-button:hover {
   border-color: var(--accent-primary);
   color: var(--text-primary);
   background: rgba(138, 127, 255, 0.05);
@@ -1384,14 +1384,14 @@ body::after {
     margin-top: 40px;
   }
   
-  .info-links {
-    gap: 8px;
+  .info-buttons {
+    gap: 12px;
     flex-direction: column;
   }
   
-  .info-link {
-    padding: 14px 16px;
-    font-size: 14px;
+  .info-button {
+    padding: 14px 20px;
+    font-size: 15px;
     min-width: auto;
     width: 100%;
   }
@@ -1415,12 +1415,12 @@ body::after {
 }
 
 @media (max-width: 480px) {
-  .info-links {
-    gap: 6px;
+  .info-buttons {
+    gap: 8px;
   }
   
-  .info-link {
-    padding: 12px 14px;
-    font-size: 13px;
+  .info-button {
+    padding: 12px 16px;
+    font-size: 14px;
   }
 }
