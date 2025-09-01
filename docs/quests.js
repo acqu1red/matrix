@@ -445,15 +445,19 @@ function initializeProductInteraction() {
 
     // Логика "аккордеона"
     const isActive = card.classList.contains('active');
+    
+    // Сначала убираем active со всех карточек
     document.querySelectorAll('.product-card.active').forEach(activeCard => {
-      activeCard.classList.remove('active');
+      if (activeCard !== card) {
+        activeCard.classList.remove('active');
+      }
     });
-    if (!isActive) {
-      card.classList.add('active');
-    }
+
+    // Затем переключаем класс на текущей карточке
+    card.classList.toggle('active');
 
     // Открытие модального окна по кнопке "Купить"
-    if (e.target.classList.contains('buy-button')) {
+    if (e.target.classList.contains('buy-button') && card.classList.contains('active')) {
       const productId = card.dataset.productId;
       showModal(productId);
     } else if (e.target.classList.contains('read-button')) {
