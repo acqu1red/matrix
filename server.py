@@ -59,31 +59,27 @@ def _validate_init_data(init_data: str, bot_token: str, max_age_sec: int = 3600)
     """
     Валидируем подпись initData по алгоритму из Telegram.
     """
-    # Парсим querystring → словарь
     parsed_qs = {k: v[0] for k, v in parse_qs(init_data, keep_blank_values=True).items()}
     if "hash" not in parsed_qs:
         raise HTTPException(status_code=401, detail="Missing hash")
     received_hash = parsed_qs.pop("hash")
 
-    # Соберём check_string
     data_pairs = []
     for k in sorted(parsed_qs.keys()):
         data_pairs.append(f"{k}={parsed_qs[k]}")
     check_string = "\n".join(data_pairs)
 
-    # Вычислим секрет и подпись
-    secret = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-    expected = hmac.new(secret, check_string.encode(), hashlib.sha256).hexdigest()
+    # Правильное построение секрета: HMAC_SHA256(bot_token, 'WebAppData')
+    secret = hmac.new(key=bot_token.encode(), msg=b"WebAppData", digestmod=hashlib.sha256).digest()
+    expected = hmac.new(key=secret, msg=check_string.encode(), digestmod=hashlib.sha256).hexdigest()
 
     if not hmac.compare_digest(expected, received_hash):
         raise HTTPException(status_code=401, detail="Bad hash")
 
-    # Проверим «свежесть»
     auth_date = int(parsed_qs.get("auth_date", "0") or "0")
     if time.time() - auth_date > max_age_sec:
         raise HTTPException(status_code=401, detail="Auth date expired")
 
-    # Вернём распарсенные полезные данные (user, chat_type и т.п.)
     out = {**parsed_qs}
     if "user" in out:
         out["user"] = json.loads(unquote(out["user"]))

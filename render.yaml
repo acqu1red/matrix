@@ -3,7 +3,7 @@ services:
     name: lava-webhook
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python bot_webhook.py
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         value: 7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
