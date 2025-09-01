@@ -1266,8 +1266,10 @@ body::after {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  max-width: 90vw;
-  max-height: 80vh;
+  width: 90vw;
+  max-width: 800px;
+  height: 80vh;
+  max-height: 600px;
   overflow: hidden;
   z-index: 1001;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -1290,6 +1292,7 @@ body::after {
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
   background: linear-gradient(135deg, rgba(138, 127, 255, 0.1), rgba(255, 0, 255, 0.1));
+  flex-shrink: 0;
 }
 
 .info-modal-header h3 {
@@ -1324,6 +1327,25 @@ body::after {
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+  height: 100%;
+}
+
+.info-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.info-modal-body::-webkit-scrollbar-track {
+  background: rgba(138, 127, 255, 0.1);
+  border-radius: 4px;
+}
+
+.info-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(138, 127, 255, 0.3);
+  border-radius: 4px;
+}
+
+.info-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 127, 255, 0.5);
 }
 
 .info-modal-body p {
@@ -1397,8 +1419,10 @@ body::after {
   }
   
   .info-modal {
-    max-width: 95vw;
-    max-height: 90vh;
+    width: 95vw;
+    height: 90vh;
+    max-width: none;
+    max-height: none;
   }
   
   .info-modal-header {
