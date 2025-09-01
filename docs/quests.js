@@ -152,8 +152,10 @@ const PRODUCTS = {
 
 // Ждем загрузки всех скриптов
 document.addEventListener('DOMContentLoaded', () => {
-  // Мгновенная инициализация для быстрого старта
-  initializeApp();
+  // Небольшая задержка для загрузки supabaseClient.js
+  setTimeout(() => {
+    initializeApp();
+  }, 100);
 });
 
 async function initializeApp() {
@@ -161,6 +163,7 @@ async function initializeApp() {
   // Показываем основной контент с архетипом по умолчанию, чтобы избежать задержек.
   // Это дает пользователю мгновенный отклик.
   const defaultArchetype = 'strategist'; 
+  
   try {
     // Показываем основной контент сразу
     loadMainContent(defaultArchetype);
@@ -174,17 +177,27 @@ async function initializeApp() {
     // Фоновая загрузка данных пользователя
     const api = window.__QUEST_API__;
     if (api && api.getTelegramInfo) {
-      const userInfo = await api.getTelegramInfo();
-      if (userInfo && userInfo.id) {
-        await loadUserDataInBackground(userInfo.id);
+      try {
+        const userInfo = await api.getTelegramInfo();
+        if (userInfo && userInfo.id) {
+          await loadUserDataInBackground(userInfo.id);
+        }
+      } catch (apiError) {
+        console.warn('API error, continuing without user data:', apiError);
       }
+    } else {
+      console.log('API not available, running in offline mode');
     }
   } catch (error) {
     console.error('Ошибка инициализации:', error);
     // Fallback: показываем основной контент даже при ошибке
-    loadMainContent(defaultArchetype);
-    initializeProductInteraction();
-    initializeInfoModals();
+    try {
+      loadMainContent(defaultArchetype);
+      initializeProductInteraction();
+      initializeInfoModals();
+    } catch (fallbackError) {
+      console.error('Critical error in fallback:', fallbackError);
+    }
   }
 }
 
