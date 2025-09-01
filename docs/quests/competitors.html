@@ -4,54 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Анализ Конкурентов</title>
-    <link rel="stylesheet" href="competitors.css?v=1.2">
+    <link rel="stylesheet" href="competitors.css">
+    <link rel="stylesheet" href="../quests.css"> <!-- For shared styles like modals -->
 </head>
 <body>
 
     <div id="loader" class="screen active">
         <div class="spinner"></div>
-        <p>Загрузка симуляции...</p>
-    </div>
-    
-    <div class="navigation-buttons">
-        <button id="back-btn" class="nav-btn hidden">‹ Назад</button>
-        <button id="main-menu-btn" class="nav-btn">Главное Меню</button>
+        <p>Загрузка данных рынка...</p>
     </div>
 
     <div id="start-screen" class="screen">
         <div class="content">
-            <h1>Война Корпораций</h1>
-            <p>Рынок — это поле битвы. Готовы ли вы уничтожить конкурентов и стать монополистом?</p>
-            <button id="start-btn">Начать Враждебное Поглощение</button>
+            <h1>АНАЛИЗ КОНКУРЕНТОВ</h1>
+            <p>Готовы ли вы выйти на тропу войны, изучить слабости врагов и стать монополистом рынка?</p>
+            <button id="start-btn" class="pulse-btn">Принять Вызов</button>
         </div>
     </div>
 
     <div id="game-screen" class="screen">
         <header class="game-header">
-            <div id="company-stats">
-                <div id="player-company">Ваша капитализация: $<span id="player-capital">1,000,000</span></div>
+            <div class="top-bar">
+                <button id="back-btn" class="nav-btn">← Назад</button>
+                <div id="progress-bar-container">
+                    <div id="progress-bar"></div>
+                </div>
+                <button id="main-menu-btn" class="nav-btn">☰ Меню</button>
             </div>
-            <div id="target-company">Цель: <span id="target-name">Innovate Inc.</span> | Капитализация: $<span id="target-capital">5,000,000</span></div>
+            <div id="resources-display">
+                <span class="resource-item">Влияние: <span id="influence-value">0</span></span>
+                <span class="resource-item">Деньги: <span id="money-value">0</span>₽</span>
+            </div>
         </header>
         
         <main id="stage-container">
-            <!-- Сюжетные и интерактивные этапы -->
+            <!-- Контент текущего этапа будет загружаться сюда -->
         </main>
 
         <footer id="interaction-footer">
-            <!-- Панель действий, карты и т.д. -->
+            <!-- Интерактивные элементы (карты, кнопки) будут загружаться сюда -->
         </footer>
     </div>
 
     <div id="end-screen" class="screen">
         <div class="content">
-            <h2>Вы — Монополист</h2>
-            <p>Конкуренты повержены, рынок принадлежит вам. Вы доказали свое превосходство.</p>
-            <p>Но это была лишь симуляция. Хотите научиться применять эти стратегии в реальной жизни и обходить реальных конкурентов? Наш полный курс даст вам все необходимые инструменты.</p>
-            <button id="cta-btn">Получить Доступ к Арсеналу</button>
+            <h2>Вы доминируете на рынке!</h2>
+            <p>Ваша тактика была безупречна, конкуренты повержены. Но это лишь симуляция...</p>
+            <div id="final-score-container">
+                <p>Получено влияния: <span id="final-influence">0</span></p>
+                <p>Заработано денег: <span id="final-money">0</span>₽</p>
+            </div>
+            <p>Хотите получить реальные стратегии, которые позволят вам раздавить конкурентов в настоящем бизнесе? Наш полный курс "Мастер Анализа Конкурентов" раскроет все секреты.</p>
+            <button id="cta-btn">Получить Реальные Стратегии</button>
+            <button id="restart-btn" class="secondary-btn">Начать Снова</button>
         </div>
     </div>
 
-    <script src="competitors.js?v=1.2"></script>
+    <script src="competitors.js"></script>
 </body>
 </html>
