@@ -10,32 +10,43 @@
 
     <div id="loader" class="screen active">
         <div class="spinner"></div>
-        <p>Загрузка...</p>
+        <p>Загрузка Империи...</p>
     </div>
 
     <div id="start-screen" class="screen">
         <div class="content">
             <h1>Империя Влияния</h1>
-            <p>Готовы ли вы стать мастером манипуляций и построить свою империю?</p>
-            <button id="start-btn">Начать Путь</button>
+            <p>Ваше слово может изменить мир. Готовы ли вы доказать это?</p>
+            <button id="start-btn" class="pulse-btn">Построить Свою Империю</button>
         </div>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="scenario-container">
-            <!-- Сценарии будут загружаться сюда -->
-        </div>
+        <header class="game-header">
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div id="score-display">Очки влияния: <span id="score-value">0</span></div>
+        </header>
+        
+        <main id="stage-container">
+            <!-- Сюда будет загружаться контент текущего этапа -->
+        </main>
+
+        <footer id="interaction-footer">
+            <!-- Сюда будут загружаться интерактивные элементы (карты, кнопки) -->
+        </footer>
     </div>
 
     <div id="end-screen" class="screen">
         <div class="content">
-            <h2>Ваш Путь Лишь Начинается</h2>
-            <p>Вы показали недюжинный потенциал, но это лишь верхушка айсберга.</p>
+            <h2>Вы создали свою Империю</h2>
+            <p>Вы прошли лишь первый этап становления. Мир полон возможностей для тех, кто умеет управлять другими.</p>
             <div id="score-container">
-                <p>Ваш результат: <span id="final-score">0</span></p>
+                <p>Накоплено очков влияния: <span id="final-score">0</span></p>
             </div>
-            <p>Хотите овладеть всеми техниками влияния и стать истинным правителем умов? Наш полный курс откроет вам все секреты.</p>
-            <button id="cta-btn">Купить Полный Курс</button>
+            <p>Это была лишь симуляция. Хотите получить реальную власть? Наш полный курс "Мастер Влияния" откроет вам доступ к техникам, которые не показывают в играх.</p>
+            <button id="cta-btn">Получить Реальную Власть</button>
         </div>
     </div>
 
