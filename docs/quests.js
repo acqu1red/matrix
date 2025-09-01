@@ -82,8 +82,7 @@ const PRODUCTS = {
     modalDescription: 'Этот тренинг — ваш личный детектор лжи. Вы научитесь видеть то, что скрыто за словами. Мы разберем реальные кейсы, научим вас замечать микровыражения и неосознанные жесты, которые выдают обманщика с головой. После этого курса ни одна ложь не пройдет мимо вас.',
     priceStars: 28,
     priceRub: '50 руб.',
-    pdfUrl: 'products/psychology-lie.pdf',
-    specialOffer: 'Спец. предложение'
+    pdfUrl: 'products/psychology-lie.pdf'
   },
   'profiling-pro': {
     title: 'ПРОФАЙЛИНГ PRO',
@@ -101,8 +100,7 @@ const PRODUCTS = {
     modalDescription: 'Это — высшая лига. Знание психотипов дает вам ключи к управлению реальностью. Вы будете знать, как думает и что сделает человек еще до того, как он это осознает. Техники, которые вы изучите, настолько мощные, что их использование ограничено спецслужбами. Применяйте с умом.',
     priceStars: 1000,
     priceRub: '1790 руб.',
-    pdfUrl: 'products/psychotypes-full.pdf',
-    specialOffer: 'Уникальное предложение'
+    pdfUrl: 'products/psychotypes-full.pdf'
   },
   '100-female-manipulations': {
     title: '100 ЖЕНСКИХ МАНИПУЛЯЦИЙ',
@@ -401,13 +399,8 @@ function createProductCard(id, product) {
 
   const priceHtml = !isPurchased ? `<div class="product-price">${product.priceRub}</div>` : '';
 
-  const specialOfferHtml = product.specialOffer 
-    ? `<div class="special-offer-badge">${product.specialOffer}</div>` 
-    : '';
-
   return `
-    <div class="product-card" data-product-id="${id}" data-special="${product.specialOffer || ''}">
-      ${specialOfferHtml}
+    <div class="product-card" data-product-id="${id}">
       <div class="product-card-visible">
         <div class="product-card-header">
           <h3 class="product-title">${product.title}</h3>
@@ -443,22 +436,29 @@ function initializeProductInteraction() {
     const card = e.target.closest('.product-card');
     if (!card) return;
 
-    // Логика "аккордеона"
+    const productId = card.dataset.productId;
     const isActive = card.classList.contains('active');
-    
-    // Сначала убираем active со всех карточек
-    document.querySelectorAll('.product-card.active').forEach(activeCard => {
-      if (activeCard !== card) {
-        activeCard.classList.remove('active');
-      }
-    });
 
-    // Затем переключаем класс на текущей карточке
-    card.classList.toggle('active');
+    // Логика "аккордеона"
+    document.querySelectorAll('.product-card.active').forEach(activeCard => {
+      activeCard.classList.remove('active');
+    });
+    
+    // Сбрасываем классы сетки
+    productsGrid.classList.remove('profiling-active', 'manipulations-active');
+
+    if (!isActive) {
+      card.classList.add('active');
+      // Добавляем класс к сетке, если активна одна из маленьких карточек
+      if (productId === 'profiling-pro') {
+        productsGrid.classList.add('profiling-active');
+      } else if (productId === '100-female-manipulations') {
+        productsGrid.classList.add('manipulations-active');
+      }
+    }
 
     // Открытие модального окна по кнопке "Купить"
-    if (e.target.classList.contains('buy-button') && card.classList.contains('active')) {
-      const productId = card.dataset.productId;
+    if (e.target.classList.contains('buy-button')) {
       showModal(productId);
     } else if (e.target.classList.contains('read-button')) {
       const pdfUrl = e.target.dataset.pdfUrl;

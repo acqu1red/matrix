@@ -678,14 +678,14 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         command = data.get('command')
         params = data.get('params', {})
         user_id = update.effective_user.id
-        chat_id = update.effective_chat.id # Получаем chat_id из апдейта
+        chat_id = update.effective_chat.id # Явно получаем chat_id здесь
 
         print(f"📱 MiniApp команда: {command}, параметры: {data}")
 
         if command == 'create_invoice':
             product_id = data.get('productId')
             price_in_stars = data.get('price')
-            await send_product_invoice(chat_id, context, product_id, price_in_stars)
+            await send_product_invoice(chat_id, context, product_id, price_in_stars) # Передаем chat_id
             return
 
         # Обработка команд от рулетки кейсов
