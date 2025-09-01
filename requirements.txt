@@ -4,3 +4,4 @@ httpx
 python-telegram-bot
 supabase
 pytz
+requests
