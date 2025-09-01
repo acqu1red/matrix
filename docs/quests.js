@@ -44,13 +44,14 @@ const ALL_QUESTS = {
     category: 'Психология',
     tags: ['Средний']
   },
-  'competitors-quest': {
-    id: 'competitors-quest',
-    title: 'АНАЛИЗ КОНКУРЕНТОВ',
-    description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
+  'competitor-analysis': {
+    id: 'competitor-analysis',
+    title: 'КОРПОРАТИВНЫЙ ШПИОНАЖ',
+    description: 'Внедрись в корпорацию-конкурента, взломай их системы и раскрой главный секрет. Навыки психологии и анализа — твое оружие.',
+    button: 'Начать внедрение',
     archetypes: ['biznesmen', 'strategist'],
     category: 'Стратегия',
-    tags: ['Сложный']
+    tags: ['Интерактив', 'Сложный']
   },
   'trends': {
     id: 'trends',
@@ -63,9 +64,9 @@ const ALL_QUESTS = {
 };
 
 const ARCHETYPE_QUESTS = {
-  'strategist': ['world-government', 'trends', 'competitors-quest'],
+  'strategist': ['world-government', 'trends', 'competitor-analysis'],
   'psiholog': ['bodylang', 'psychology', 'funnel'],
-  'biznesmen': ['funnel', 'copy', 'competitors-quest']
+  'biznesmen': ['funnel', 'copy', 'competitor-analysis']
 };
 
 let swiperInstance = null;
