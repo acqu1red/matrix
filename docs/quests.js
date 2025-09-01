@@ -116,11 +116,18 @@ const PRODUCTS = {
 
 // Ждем загрузки всех скриптов
 document.addEventListener('DOMContentLoaded', () => {
-  // Даем время на инициализацию supabaseClient
-  setTimeout(initializeApp, 100);
+  // Мгновенная инициализация для быстрого старта
+  initializeApp();
 });
 
 async function initializeApp() {
+  // --- Шаг 1: Немедленная отрисовка интерфейса ---
+  // Показываем основной контент с архетипом по умолчанию, чтобы избежать задержек.
+  // Это дает пользователю мгновенный отклик.
+  const defaultArchetype = 'strategist'; 
+  await loadMainContent(defaultArchetype);
+  
+  // --- Шаг 2: Инициализация API и фоновая загрузка данных ---
   try {
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
@@ -130,34 +137,45 @@ async function initializeApp() {
     console.error('Telegram WebApp initialization failed', e);
   }
 
-  // Проверяем доступность API
   const api = window.__QUEST_API__;
   if (!api) {
-    console.warn("Supabase client API not initialized. Running in mock mode.");
-    // В режиме мок-данных сразу показываем опрос
-    initializeQuiz('mock_user_12345');
+    console.error("Supabase client API не может быть инициализирован.");
+    // В этом случае интерфейс уже отрисован, просто не будет персонализации.
     return;
   }
   
+  // --- Шаг 3: Персонализация и обновление интерфейса в фоне ---
   try {
     const tgUser = api.getTelegramInfo();
-    
-    // Улучшенная логика для тестирования в браузере
-    currentUserId = tgUser ? tgUser.id.toString() : 'mock_user_12345';
+    const userId = tgUser ? tgUser.id.toString() : null;
 
-    userPurchases = await api.getUserPurchases(currentUserId);
+    if (!userId) {
+      console.warn("Пользователь Telegram не найден. Запуск в режиме опроса.");
+      initializeQuiz('mock_user_12345'); // Запускаем опрос для не-телеграм пользователей
+      return;
+    }
     
-    const userProfile = await api.getUserProfile(currentUserId);
+    currentUserId = userId;
+    const [profile, purchases] = await Promise.all([
+        api.getUserProfile(userId),
+        api.getUserPurchases(userId)
+    ]);
+    userPurchases = purchases;
 
-    if (userProfile && userProfile.quest_archetype) {
-      await loadMainContent(userProfile.quest_archetype);
+    if (profile && profile.quest_archetype) {
+      // Если архетип отличается от стандартного, плавно обновляем контент.
+      if (profile.quest_archetype !== defaultArchetype) {
+        populateQuests(profile.quest_archetype);
+        // Переинициализируем Swiper, чтобы он подхватил новые слайды
+        initializeSwiper();
+      }
+      // Обновляем состояние кнопок покупки в любом случае.
+      populateProducts(); 
     } else {
-      initializeQuiz(currentUserId);
+      initializeQuiz(userId);
     }
   } catch (error) {
-    console.error("Error during app initialization:", error);
-    // В случае ошибки показываем опрос
-    initializeQuiz('error_user_12345');
+    console.error("Ошибка при фоновой загрузке данных пользователя:", error);
   }
 }
 
@@ -437,33 +455,16 @@ function initializeProductInteraction() {
     if (!card) return;
 
     const productId = card.dataset.productId;
-    const isActive = card.classList.contains('active');
 
-    // Логика "аккордеона"
-    document.querySelectorAll('.product-card.active').forEach(activeCard => {
-      activeCard.classList.remove('active');
-    });
-    
-    // Сбрасываем классы сетки
-    productsGrid.classList.remove('profiling-active', 'manipulations-active');
-
-    if (!isActive) {
-      card.classList.add('active');
-      // Добавляем класс к сетке, если активна одна из маленьких карточек
-      if (productId === 'profiling-pro') {
-        productsGrid.classList.add('profiling-active');
-      } else if (productId === '100-female-manipulations') {
-        productsGrid.classList.add('manipulations-active');
-      }
-    }
-
-    // Открытие модального окна по кнопке "Купить"
-    if (e.target.classList.contains('buy-button')) {
+    // Открытие модального окна по клику на любую часть карточки, если она не куплена
+    if (e.target.closest('.buy-button')) {
       showModal(productId);
     } else if (e.target.classList.contains('read-button')) {
       const pdfUrl = e.target.dataset.pdfUrl;
       const pdfTitle = e.target.dataset.pdfTitle;
       showPdfViewer(pdfUrl, pdfTitle);
+    } else if (!userPurchases.includes(productId)) {
+       showModal(productId);
     }
   });
 

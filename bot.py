@@ -685,7 +685,8 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
         if command == 'create_invoice':
             product_id = data.get('productId')
             price_in_stars = data.get('price')
-            await send_product_invoice(chat_id, context, product_id, price_in_stars) # Передаем chat_id
+            # Важно: chat_id здесь - это ID чата с ботом, а user_id - ID пользователя
+            await send_product_invoice(user_id, context, product_id, price_in_stars)
             return
 
         # Обработка команд от рулетки кейсов
@@ -766,33 +767,34 @@ async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
 
 
 
-async def send_product_invoice(chat_id: int, context: CallbackContext, product_id: str, price_in_stars: int):
-    """Отправляет счет на оплату продукта звездами."""
+async def send_product_invoice(user_id: int, context: CallbackContext, product_id: str, price_in_stars: int):
+    """Отправляет счет на оплату продукта звездами в личный чат с пользователем."""
     product = PRODUCTS.get(product_id)
 
     if not product:
-        await context.bot.send_message(chat_id, "Ошибка: Продукт не найден.")
+        await context.bot.send_message(user_id, "Ошибка: Продукт не найден.")
         return
 
     title = product['title']
     description = f"Доступ к тренингу «{title}»"
-    payload = f"purchase_{product_id}_{chat_id}"
+    payload = f"purchase_{product_id}_{user_id}"
     currency = "XTR"
     prices = [LabeledPrice(label=title, amount=price_in_stars)]
 
     try:
         await context.bot.send_invoice(
-            chat_id,
-            title,
-            description,
-            payload,
-            PAYMENT_PROVIDER_TOKEN,
-            currency,
-            prices
+            chat_id=user_id, # Отправляем инвойс в личный чат
+            title=title,
+            description=description,
+            payload=payload,
+            provider_token=PAYMENT_PROVIDER_TOKEN,
+            currency=currency,
+            prices=prices
         )
     except Exception as e:
-        print(f"Ошибка отправки счета: {e}")
-        await context.bot.send_message(chat_id, "Не удалось создать счет на оплату. Пожалуйста, попробуйте позже.")
+        print(f"Ошибка отправки счета пользователю {user_id}: {e}")
+        # Это сообщение увидит пользователь в чате с ботом, если что-то пойдет не так
+        await context.bot.send_message(user_id, "Не удалось создать счет на оплату. Пожалуйста, попробуйте позже или обратитесь в поддержку.")
 
 async def precheckout_callback(update: Update, context: CallbackContext):
     """Отвечает на pre-checkout запросы."""
