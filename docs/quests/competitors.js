@@ -41,6 +41,32 @@ document.addEventListener('DOMContentLoaded', () => {
                             { id: 'poach-employee', text: 'Переманить сотрудника', icon: ' poaching' },
                             { id: 'disrupt-supply', text: 'Сорвать поставки', icon: '🤝' }
                         ]
+                    },
+                    {
+                        type: 'execution',
+                        title: 'Этап 3: Исполнение',
+                        report: 'СТРАТЕГИЯ В ДЕЙСТВИИ! Акции Innovate Inc. обвалились на 40%! Инвесторы в панике.',
+                        capitalChange: { player: 500000, target: -2000000 }
+                    },
+                    {
+                        type: 'crisis',
+                        title: 'Этап 4: Ответный удар',
+                        scenario: 'Innovate Inc. наносит ответный удар! Они запустили слух о проблемах с вашим флагманским продуктом. Ваши акции начинают падать. Что делать?',
+                        options: [
+                            { text: 'Опровергнуть публично (+/-)', score: -500000 },
+                            { text: 'Запустить ответную PR-кампанию (-)', score: -1000000 },
+                            { text: 'Игнорировать (---)', score: -2500000 }
+                        ]
+                    },
+                    {
+                        type: 'final-blow',
+                        title: 'Этап 5: Финальный удар',
+                        objective: 'У вас есть компромат на CEO Innovate Inc. Какой канал использовать для утечки, чтобы нанести максимальный ущерб?',
+                        options: [
+                            { text: 'Крупное новостное агентство', score: 3000000 },
+                            { text: 'Анонимный техно-блог', score: 1500000 },
+                            { text: 'Слив в социальные сети', score: 2000000 }
+                        ]
                     }
                 ]
             }
@@ -69,13 +95,84 @@ document.addEventListener('DOMContentLoaded', () => {
         const competitor = QUEST_DATA.competitors[gameState.currentTarget];
         const stage = competitor.stages[gameState.currentStage];
         
+        backBtn.classList.toggle('hidden', gameState.currentStage === 0);
+
         if(stage.type === 'recon') {
             loadReconStage(stage);
         } else if (stage.type === 'strategy') {
             loadStrategyStage(stage);
+        } else if (stage.type === 'execution') {
+            loadExecutionStage(stage);
+        } else if (stage.type === 'crisis' || stage.type === 'final-blow') {
+            loadChoiceStage(stage);
         }
     }
     
+    function loadExecutionStage(stageData) {
+        stageContainer.innerHTML = `
+            <div class="execution-stage">
+                <h2>${stageData.title}</h2>
+                <div class="news-ticker"><p>${stageData.report}</p></div>
+            </div>
+        `;
+        interactionFooter.innerHTML = '';
+
+        // Animate capital change
+        setTimeout(() => {
+            updateCapital(stageData.capitalChange.player, stageData.capitalChange.target);
+            gameState.currentStage++;
+            setTimeout(loadStage, 3000); // Wait for animation and reading
+        }, 1000);
+    }
+    
+    function loadChoiceStage(stageData) {
+        stageContainer.innerHTML = `
+            <div class="crisis-stage">
+                <h2>${stageData.title}</h2>
+                <p>${stageData.scenario || stageData.objective}</p>
+            </div>
+        `;
+        const optionsHTML = stageData.options.map(opt => 
+            `<button class="option-btn" data-score="${opt.score}">${opt.text}</button>`
+        ).join('');
+        interactionFooter.innerHTML = `<div class="options-container">${optionsHTML}</div>`;
+
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const scoreChange = parseInt(btn.dataset.score);
+                updateCapital(scoreChange, -scoreChange); // Assuming counter-effect on target
+                
+                gameState.currentStage++;
+                if (gameState.currentStage >= QUEST_DATA.competitors[gameState.currentTarget].stages.length) {
+                    setTimeout(() => switchScreen(endScreen), 1500);
+                } else {
+                    loadStage();
+                }
+            });
+        });
+    }
+
+    function updateCapital(playerChange, targetChange) {
+        const playerEl = document.getElementById('player-capital');
+        const targetEl = document.getElementById('target-capital');
+        
+        gameState.playerCapital += playerChange;
+        
+        const competitor = QUEST_DATA.competitors[gameState.currentTarget];
+        competitor.capital += targetChange;
+        
+        playerEl.textContent = gameState.playerCapital.toLocaleString();
+        targetEl.textContent = competitor.capital.toLocaleString();
+        
+        // Add some visual feedback
+        playerEl.style.color = playerChange > 0 ? 'var(--success-color)' : 'var(--error-color)';
+        targetEl.style.color = targetChange > 0 ? 'var(--success-color)' : 'var(--error-color)';
+        setTimeout(() => {
+            playerEl.style.color = 'var(--success-color)';
+            targetEl.style.color = 'var(--primary-text)';
+        }, 1500);
+    }
+
     function loadStrategyStage(stageData) {
         stageContainer.innerHTML = `
             <div class="strategy-stage">
@@ -196,8 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const allFilled = [...slots].every(s => s.querySelector('.action-card'));
                 if (allFilled) {
-                    document.getElementById('interaction-footer').innerHTML = `<button id="evaluate-btn">Оценить Стратегию</button>`;
-                    document.getElementById('evaluate-btn').addEventListener('click', evaluateStrategy);
+                    const footer = document.getElementById('interaction-footer');
+                    footer.innerHTML = `<button id="evaluate-btn" class="evaluate-button">Оценить Стратегию</button>`;
+                    footer.querySelector('#evaluate-btn').addEventListener('click', evaluateStrategy);
                 }
             }
         }
@@ -212,25 +310,31 @@ document.addEventListener('DOMContentLoaded', () => {
             if(placedCard && placedCard.dataset.actionId === correctAction) {
                 correctMoves++;
                 slot.style.borderColor = 'var(--success-color)';
+                placedCard.style.filter = 'brightness(1.2)';
             } else {
                 slot.style.borderColor = 'var(--error-color)';
+                if(placedCard) placedCard.style.opacity = '0.5';
             }
         });
 
-        if(correctMoves === slots.length) {
-            alert("Гениальная стратегия! Конкурент несет убытки.");
-            // Advance to end screen for now
-            setTimeout(() => {
-                // Update company stats before finishing
-                document.getElementById('player-capital').textContent = '10,000,000';
-                document.getElementById('target-capital').textContent = '500,000';
-                switchScreen(endScreen)
-            }, 2000);
-        } else {
-            alert(`Стратегия провальна! ${correctMoves} из ${slots.length} ходов верны. Попробуйте еще раз.`);
-            // For now, we'll just show the result. A reset mechanic could be added here.
-            loadStage(); // Reload the stage
-        }
+        const allSlots = slots.length;
+
+        // Disable button after clicking
+        const evalBtn = document.getElementById('evaluate-btn');
+        if(evalBtn) evalBtn.disabled = true;
+
+        setTimeout(() => {
+            if(correctMoves === allSlots) {
+                // Perfect strategy
+                updateCapital(1000000, -1500000); // Reward for success
+                gameState.currentStage++;
+                loadStage();
+            } else {
+                alert(`Стратегия не сработала. Верных ходов: ${correctMoves} из ${allSlots}. Анализируйте лучше.`);
+                updateCapital(-250000, 0); // Penalty for failure
+                loadStage(); // Reload the stage to let user try again
+            }
+        }, 2000);
     }
 
     function loadReconStage(stageData) {
@@ -271,6 +375,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '../quests.html'; 
     });
     
+    backBtn.addEventListener('click', () => {
+        if (gameState.currentStage > 0) {
+            gameState.currentStage--;
+            loadStage();
+        }
+    });
+
     startBtn.addEventListener('click', initGame);
 
     // Initial Load
