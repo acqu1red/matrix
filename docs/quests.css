@@ -696,8 +696,8 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
+  }
+  
 /* Восстанавливаем рамки для всех товаров */
 .modal-features li {
   background: rgba(138, 127, 255, 0.05);
@@ -706,9 +706,6 @@ body::after {
   border-radius: 10px;
   transition: all 0.3s ease;
   margin-bottom: 8px;
-  transform: translateX(20px);
-  opacity: 0;
-  animation: feature-fade-in 0.5s forwards;
 }
 
 .modal-features li:hover {
@@ -731,8 +728,14 @@ body::after {
 @keyframes feature-fade-in {
   to {
     transform: translateX(0);
-    opacity: 1;
+  opacity: 1;
   }
+}
+
+.modal-features li:hover {
+  background: rgba(138, 127, 255, 0.1);
+  border-color: var(--accent-primary);
+  transform: scale(1.03);
 }
 
 /* --- Кнопки оплаты --- */
@@ -1054,7 +1057,7 @@ body::after {
   backdrop-filter: blur(10px);
   z-index: 1002;
   display: flex;
-  align-items: center;
+    align-items: center;
   justify-content: center;
   opacity: 1;
   transition: opacity 0.3s ease;
@@ -1295,7 +1298,7 @@ body::after {
 .info-modal-header h3 {
   margin: 0;
   color: var(--text-primary);
-  font-size: 20px;
+    font-size: 20px;
   font-weight: 700;
 }
 

@@ -163,9 +163,6 @@ async function initializeApp() {
   const defaultArchetype = 'strategist'; 
   await loadMainContent(defaultArchetype);
   
-  // Создаем продукты
-  populateProducts();
-  
   // Инициализируем взаимодействие с продуктами
   initializeProductInteraction();
   
@@ -316,7 +313,7 @@ async function loadMainContent(archetype) {
     initializeSwiper();
     initializeScrollAnimations();
     initializeNavigation();
-    initializeProductInteraction(); // Новая функция для интерактивности продуктов
+    // initializeProductInteraction(); // Больше не нужно здесь
   }, 100);
 }
 
@@ -451,6 +448,9 @@ function populateProducts() {
     productsHtml += createProductCard(id, PRODUCTS[id]);
   }
   grid.innerHTML = productsHtml;
+
+  // Повторная инициализация обработчиков после обновления DOM
+  initializeProductInteraction();
 }
 
 function createProductCard(id, product) {
@@ -505,6 +505,12 @@ function createProductCard(id, product) {
 function initializeProductInteraction() {
   const productsGrid = document.getElementById('productsGrid');
   if (!productsGrid) return;
+
+  // Предотвращаем двойное навешивание обработчиков
+  if (productsGrid.dataset.listenerAttached === 'true') {
+    return;
+  }
+  productsGrid.dataset.listenerAttached = 'true';
 
   productsGrid.addEventListener('click', e => {
     const card = e.target.closest('.product-card');
