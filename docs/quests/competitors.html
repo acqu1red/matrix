@@ -4,62 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Анализ Конкурентов</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="competitors.css">
-    <link rel="stylesheet" href="../quests.css"> <!-- For shared styles like modals -->
 </head>
 <body>
 
-    <div id="loader" class="screen active">
+    <div id="loading-screen" class="screen active">
         <div class="spinner"></div>
-        <p>Загрузка данных рынка...</p>
-    </div>
+        <p class="loading-text">Загрузка симуляции...</p>
+      </div>
 
     <div id="start-screen" class="screen">
-        <div class="content">
-            <h1>АНАЛИЗ КОНКУРЕНТОВ</h1>
-            <p>Готовы ли вы выйти на тропу войны, изучить слабости врагов и стать монополистом рынка?</p>
-            <button id="start-btn" class="pulse-btn">Принять Вызов</button>
+        <div class="start-content">
+            <h1 class="quest-title"><span>Анализ</span><br>Конкурентов</h1>
+            <p class="quest-subtitle">В мире бизнеса выживает сильнейший. Уничтожьте соперников и постройте свою монополию.</p>
+            <button id="start-btn" class="glow-btn">Начать враждебное поглощение</button>
         </div>
-    </div>
-
+            </div>
+            
     <div id="game-screen" class="screen">
+        <canvas id="background-canvas"></canvas>
         <header class="game-header">
-            <div class="top-bar">
-                <button id="back-btn" class="nav-btn">← Назад</button>
-                <div id="progress-bar-container">
-                    <div id="progress-bar"></div>
-                </div>
-                <button id="main-menu-btn" class="nav-btn">☰ Меню</button>
+            <button id="back-btn" class="nav-btn">‹ Назад</button>
+            <div class="competitor-health">
+                <span id="competitor-name">Competitor</span>
+                <div class="health-bar-container">
+                    <div id="health-bar"></div>
+              </div>
             </div>
-            <div id="resources-display">
-                <span class="resource-item">Влияние: <span id="influence-value">0</span></span>
-                <span class="resource-item">Деньги: <span id="money-value">0</span>₽</span>
-            </div>
+            <button id="menu-btn" class="nav-btn">Меню</button>
         </header>
-        
-        <main id="stage-container">
-            <!-- Контент текущего этапа будет загружаться сюда -->
-        </main>
 
-        <footer id="interaction-footer">
-            <!-- Интерактивные элементы (карты, кнопки) будут загружаться сюда -->
+        <main id="stage-container">
+            <!-- Динамический контент этапов -->
+        </main>
+        
+        <footer id="player-hand-container">
+            <!-- Карты действий игрока -->
         </footer>
-    </div>
+          </div>
 
     <div id="end-screen" class="screen">
-        <div class="content">
-            <h2>Вы доминируете на рынке!</h2>
-            <p>Ваша тактика была безупречна, конкуренты повержены. Но это лишь симуляция...</p>
-            <div id="final-score-container">
-                <p>Получено влияния: <span id="final-influence">0</span></p>
-                <p>Заработано денег: <span id="final-money">0</span>₽</p>
+        <div class="end-content">
+            <h2 class="end-title">Монополия Достигнута</h2>
+            <p class="end-subtitle">Конкурент <span id="defeated-competitor-name"></span> — банкрот. Вы доказали свое превосходство.</p>
+            <div class="score-summary">
+                Ваш итоговый капитал: <span id="final-score"></span>$
             </div>
-            <p>Хотите получить реальные стратегии, которые позволят вам раздавить конкурентов в настоящем бизнесе? Наш полный курс "Мастер Анализа Конкурентов" раскроет все секреты.</p>
-            <button id="cta-btn">Получить Реальные Стратегии</button>
-            <button id="restart-btn" class="secondary-btn">Начать Снова</button>
-        </div>
+            <p class="cta-text">Это была лишь симуляция. Хотите научиться выявлять и использовать уязвимости реальных конкурентов? Наш курс даст вам инструменты для доминирования на рынке.</p>
+            <button id="cta-btn" class="glow-btn">Получить доступ к арсеналу</button>
+      </div>
     </div>
 
-    <script src="competitors.js"></script>
+    <script src="competitors-data.js"></script>
+    <script src="competitors-ui.js"></script>
+    <script src="competitors-engine.js"></script>
+    <script src="competitors-main.js"></script>
 </body>
 </html>
