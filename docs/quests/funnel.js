@@ -295,44 +295,113 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupDragAndDrop(stageData) {
         const cards = document.querySelectorAll('.influence-card');
         const dropZone = document.querySelector('.drop-zone');
+        let draggedItem = null;
 
+        // --- MOUSE EVENTS (for desktop) ---
         cards.forEach(card => {
             card.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', card.dataset.cardId);
                 setTimeout(() => card.classList.add('dragging'), 0);
             });
-
+    
             card.addEventListener('dragend', () => {
                 card.classList.remove('dragging');
             });
         });
-
+    
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('hover');
         });
-
+    
         dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('hover');
         });
-
+    
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('hover');
             const droppedCardId = e.dataTransfer.getData('text/plain');
-            
-            // Handle result
-            const result = stageData.interaction.responses[droppedCardId];
+            handleDrop(droppedCardId, stageData);
+        });
+
+        // --- TOUCH EVENTS (for mobile) ---
+        let ghostEl = null;
+
+        cards.forEach(card => {
+            card.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    draggedItem = card;
+                    
+                    // Create and position ghost element
+                    ghostEl = card.cloneNode(true);
+                    ghostEl.classList.add('ghost');
+                    document.body.appendChild(ghostEl);
+                    const touch = e.touches[0];
+                    ghostEl.style.left = `${touch.pageX - ghostEl.offsetWidth / 2}px`;
+                    ghostEl.style.top = `${touch.pageY - ghostEl.offsetHeight / 2}px`;
+    
+                    card.classList.add('dragging');
+                }
+            }, { passive: true });
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (draggedItem && ghostEl) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                
+                // Move ghost
+                ghostEl.style.left = `${touch.pageX - ghostEl.offsetWidth / 2}px`;
+                ghostEl.style.top = `${touch.pageY - ghostEl.offsetHeight / 2}px`;
+                
+                // Check for dropzone hover
+                ghostEl.style.display = 'none';
+                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+                ghostEl.style.display = 'flex';
+    
+                if (elementUnder && elementUnder.classList.contains('drop-zone')) {
+                    dropZone.classList.add('hover');
+                } else {
+                    dropZone.classList.remove('hover');
+                }
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            if (draggedItem && ghostEl) {
+                ghostEl.style.display = 'none';
+                const elementUnder = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                
+                if (elementUnder && elementUnder.classList.contains('drop-zone')) {
+                    const droppedCardId = draggedItem.dataset.cardId;
+                    handleDrop(droppedCardId, stageData);
+                }
+                
+                // Cleanup
+                dropZone.classList.remove('hover');
+                draggedItem.classList.remove('dragging');
+                document.body.removeChild(ghostEl);
+                ghostEl = null;
+                draggedItem = null;
+            }
+        });
+
+        function handleDrop(cardId, stageData) {
+            const result = stageData.interaction.responses[cardId];
             score += result.score;
             currentStage = result.nextStage;
             
-            // Show feedback
             showFeedback(result.feedback, result.score > 0);
+            
+            // Disable further interaction
+            cards.forEach(c => c.draggable = false);
+            // Maybe also disable touch handlers
             
             setTimeout(() => {
                 loadStage(currentStage);
             }, 2500);
-        });
+        }
     }
 
     function showFeedback(message, isSuccess) {

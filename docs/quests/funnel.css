@@ -127,7 +127,7 @@ button:hover {
 
 /* Game Screen */
 #game-screen {
-    justify-content: space-between;
+    justify-content: flex-start; /* Changed from space-between */
     padding: 15px;
     height: 100%;
     max-height: 812px; /* iPhone X height */
@@ -136,6 +136,8 @@ button:hover {
     border-radius: 20px;
     background: #000;
     box-shadow: 0 0 30px rgba(187, 134, 252, 0.3);
+    overflow-y: auto; /* Allow vertical scrolling */
+    flex-direction: column; /* Ensure it's a column */
 }
 
 .game-header {
@@ -468,6 +470,15 @@ button:hover {
 }
 .propaganda-dropzone .propaganda-item {
     cursor: default;
+}
+
+/* Ghost element for mobile drag & drop */
+.ghost {
+    position: absolute;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.8;
+    transform: scale(1.1) rotate(5deg);
 }
 
 

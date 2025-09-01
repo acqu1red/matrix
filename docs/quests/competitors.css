@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+
+:root {
+    --primary-bg: #1A1A2E;
+    --secondary-bg: #16213E;
+    --accent-color: #0F3460;
+    --highlight-color: #E94560;
+    --primary-text: #FFFFFF;
+    --secondary-text: #A7A7A7;
+    --success-color: #57B894;
+    --error-color: #E94560;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* Navigation */
+.navigation-buttons {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 100;
+}
+.nav-btn {
+    background: rgba(22, 33, 62, 0.8);
+    border: 1px solid var(--accent-color);
+    color: var(--primary-text);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 0.9em;
+}
+.nav-btn.hidden {
+    display: none;
+}
+
+/* Start & End Screens */
+.content h1 {
+    font-size: 2.8em;
+    margin-bottom: 20px;
+    color: var(--highlight-color);
+    text-transform: uppercase;
+}
+.content p {
+    font-size: 1.2em;
+    color: var(--secondary-text);
+    margin-bottom: 30px;
+    line-height: 1.6;
+    max-width: 500px;
+}
+
+button {
+    background: var(--highlight-color);
+    color: var(--primary-text);
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+}
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+}
+
+/* Game Screen */
+#game-screen {
+    justify-content: flex-start;
+    background: var(--secondary-bg);
+    padding: 15px;
+    padding-top: 70px; /* Space for header and nav */
+    overflow-y: auto;
+}
+
+.game-header {
+    position: absolute;
+    top: 55px;
+    left: 0;
+    width: 100%;
+    padding: 0 15px;
+    font-size: 0.9em;
+    color: var(--secondary-text);
+}
+#company-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+#player-company {
+    color: var(--success-color);
+    font-weight: bold;
+}
+#target-company {
+    background: #000;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+#target-name { color: var(--highlight-color); }
+
+#stage-container {
+    width: 100%;
+    flex-grow: 1;
+}
+
+#interaction-footer {
+    width: 100%;
+    min-height: 150px;
+}
+
+/* Reconnaissance Stage */
+.recon-stage {
+    width: 100%;
+    background: var(--primary-bg);
+    border: 1px solid var(--accent-color);
+    padding: 15px;
+    border-radius: 10px;
+}
+.recon-stage h2 {
+    color: var(--highlight-color);
+    margin-bottom: 10px;
+}
+.document-viewer {
+    background: #fff;
+    color: #000;
+    font-family: 'Times New Roman', Times, serif;
+    padding: 20px;
+    height: 300px;
+    overflow-y: scroll;
+    text-align: left;
+    line-height: 1.8;
+    border-radius: 5px;
+}
+.document-viewer .clue {
+    background: yellow;
+    cursor: pointer;
+}
+.document-viewer .clue.found {
+    background: lightgreen;
+}
+
+#clues-found {
+    margin-top: 15px;
+    font-style: italic;
+    color: var(--secondary-text);
+}
+
+/* Strategy Stage */
+.strategy-stage h2 {
+    text-align: center;
+    color: var(--highlight-color);
+    margin-bottom: 15px;
+}
+.strategy-board {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+.weaknesses-column, .actions-column {
+    width: 48%;
+    background: var(--primary-bg);
+    padding: 10px;
+    border-radius: 8px;
+}
+.weaknesses-column h3, .actions-column h3 {
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: var(--secondary-text);
+}
+.weakness-slot {
+    background: var(--secondary-bg);
+    border: 2px dashed var(--accent-color);
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 5px;
+    min-height: 60px;
+}
+.weakness-slot.filled {
+    border-style: solid;
+    border-color: var(--success-color);
+}
+.action-card {
+    background: #E94560;
+    color: var(--primary-text);
+    padding: 10px;
+    border-radius: 5px;
+    cursor: grab;
+    margin-bottom: 10px;
+    transition: transform 0.2s;
+}
+.action-card:active {
+    cursor: grabbing;
+}
+.action-card.dragging {
+    opacity: 0.5;
+}
