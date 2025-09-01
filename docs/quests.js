@@ -549,28 +549,61 @@ function initializeProductInteraction() {
   }
 }
 
+// ВЕРСИЯ ДЛЯ ОПЛАТЫ ВНУТРИ MINI APP ЧЕРЕЗ STARS
 async function handlePurchase(productId) {
   const product = PRODUCTS[productId];
-  
+
+  // Админ-байпас оставляем
   if (currentUserId === ADMIN_ID) {
     console.log("Админский доступ. Покупка без оплаты.");
     await onSuccessfulPurchase(productId);
     return;
   }
-  
-  // Новый флоу: отправляем команду боту для создания счета
-  if (window.Telegram && window.Telegram.WebApp) {
-    Telegram.WebApp.sendData(JSON.stringify({
-      command: 'create_invoice',
-      productId: productId,
-      price: product.priceStars
-    }));
-    Telegram.WebApp.showAlert('Счет на оплату отправлен в ваш чат с ботом!');
-    // hideModal(productId); // Удалено, так как модальные окна больше не используются
-  } else {
-    // Fallback для теста в браузере
-    console.log("WebApp недоступен. Симуляция успешной оплаты.");
-    await onSuccessfulPurchase(productId);
+
+  // Проверим доступность API Mini App
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg || !tg.initData) { // Добавим проверку на initData
+    console.error("Telegram WebApp API недоступен — эмуляция успеха.");
+    // Для отладки в браузере можно раскомментировать
+    // await onSuccessfulPurchase(productId); 
+    alert("Оплата через Telegram доступна только внутри приложения Telegram.");
+    return;
+  }
+
+  try {
+    // 1) Просим у бэкенда ссылку на инвойс Stars
+    //    ВАЖНО: передаём initData для серверной валидации подписи
+    const resp = await fetch("/api/create-invoice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productId,
+        initData: tg.initData
+      })
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`Create invoice failed: ${resp.status} ${text}`);
+    }
+    const { invoice_link } = await resp.json();
+
+    // 2) Открываем инвойс ВНУТРИ miniapp
+    tg.openInvoice(invoice_link, async (status) => {
+      // Возможные статусы: 'paid' | 'cancelled' | 'failed' | 'pending'
+      if (status === 'paid') {
+        // 3) Сразу разблокируем товар локально + записываем покупку
+        tg.showAlert('Оплата прошла успешно! Доступ предоставлен.');
+        await onSuccessfulPurchase(productId);
+      } else if (status === 'cancelled') {
+        tg.showAlert('Оплата отменена');
+      } else if (status === 'failed') {
+        tg.showAlert('Платёж не прошёл. Попробуйте ещё раз.');
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    tg.showAlert('Ошибка создания счёта. Попробуйте позже.');
   }
 }
 
