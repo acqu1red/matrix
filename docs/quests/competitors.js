@@ -77,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function loadStrategyStage(stageData) {
-        const competitor = QUEST_DATA.competitors[gameState.currentTarget];
         stageContainer.innerHTML = `
             <div class="strategy-stage">
                 <h2>${stageData.title}</h2>
@@ -98,36 +97,110 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupDragAndDropForStrategy(stageData) {
-        // This is a simplified version for this specific interaction
         const cards = document.querySelectorAll('.action-card');
         const slots = document.querySelectorAll('.weakness-slot');
+        let draggedItem = null; // Used for touch events
 
+        // --- MOUSE EVENTS (for desktop) ---
         cards.forEach(card => {
             card.addEventListener('dragstart', e => {
                 e.dataTransfer.setData('text/plain', card.dataset.actionId);
+                setTimeout(() => card.classList.add('dragging'), 0);
             });
-            // Touch events can be added here as in the previous quest
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
         });
 
         slots.forEach(slot => {
-            slot.addEventListener('dragover', e => e.preventDefault());
+            slot.addEventListener('dragover', e => {
+                e.preventDefault();
+                slot.classList.add('hover');
+            });
+            slot.addEventListener('dragleave', () => {
+                slot.classList.remove('hover');
+            });
             slot.addEventListener('drop', e => {
                 e.preventDefault();
                 const actionId = e.dataTransfer.getData('text/plain');
                 const draggedCard = document.querySelector(`[data-action-id="${actionId}"]`);
-                if(draggedCard && !slot.querySelector('.action-card')) {
-                    slot.appendChild(draggedCard);
-                    slot.classList.add('filled');
-                }
-                
-                // Check if all slots are filled
-                const allFilled = [...slots].every(s => s.querySelector('.action-card'));
-                if(allFilled) {
-                    // Trigger evaluation
-                    evaluateStrategy();
-                }
+                handleDrop(slot, draggedCard);
             });
         });
+        
+        // --- TOUCH EVENTS (for mobile) ---
+        let ghostEl = null;
+
+        cards.forEach(card => {
+            card.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) {
+                    draggedItem = card;
+                    ghostEl = card.cloneNode(true);
+                    ghostEl.classList.add('ghost');
+                    document.body.appendChild(ghostEl);
+                    const touch = e.touches[0];
+                    moveGhost(touch.pageX, touch.pageY);
+                    card.classList.add('dragging');
+                }
+            }, { passive: true });
+        });
+
+        document.addEventListener('touchmove', e => {
+            if (draggedItem && ghostEl) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                moveGhost(touch.pageX, touch.pageY);
+
+                ghostEl.style.display = 'none';
+                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+                ghostEl.style.display = 'flex';
+
+                slots.forEach(s => s.classList.remove('hover'));
+                if (elementUnder && elementUnder.classList.contains('weakness-slot') && !elementUnder.querySelector('.action-card')) {
+                    elementUnder.classList.add('hover');
+                }
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', e => {
+            if (draggedItem && ghostEl) {
+                ghostEl.style.display = 'none';
+                const elementUnder = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                
+                if (elementUnder && elementUnder.classList.contains('weakness-slot')) {
+                    handleDrop(elementUnder, draggedItem);
+                }
+                
+                // Cleanup
+                slots.forEach(s => s.classList.remove('hover'));
+                draggedItem.classList.remove('dragging');
+                document.body.removeChild(ghostEl);
+                ghostEl = null;
+                draggedItem = null;
+            }
+        });
+
+        function moveGhost(x, y) {
+            if(ghostEl) {
+                ghostEl.style.left = `${x - ghostEl.offsetWidth / 2}px`;
+                ghostEl.style.top = `${y - ghostEl.offsetHeight / 2}px`;
+            }
+        }
+        
+        function handleDrop(slot, card) {
+            if (card && !slot.querySelector('.action-card')) {
+                slot.innerHTML = ''; // Clear the "Перетащите сюда" text
+                slot.appendChild(card);
+                slot.classList.add('filled');
+                slot.classList.remove('hover');
+
+                const allFilled = [...slots].every(s => s.querySelector('.action-card'));
+                if (allFilled) {
+                    document.getElementById('interaction-footer').innerHTML = `<button id="evaluate-btn">Оценить Стратегию</button>`;
+                    document.getElementById('evaluate-btn').addEventListener('click', evaluateStrategy);
+                }
+            }
+        }
     }
 
     function evaluateStrategy() {
@@ -147,10 +220,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if(correctMoves === slots.length) {
             alert("Гениальная стратегия! Конкурент несет убытки.");
             // Advance to end screen for now
-            setTimeout(() => switchScreen(endScreen), 2000);
+            setTimeout(() => {
+                // Update company stats before finishing
+                document.getElementById('player-capital').textContent = '10,000,000';
+                document.getElementById('target-capital').textContent = '500,000';
+                switchScreen(endScreen)
+            }, 2000);
         } else {
             alert(`Стратегия провальна! ${correctMoves} из ${slots.length} ходов верны. Попробуйте еще раз.`);
-            // Reset stage? For now, we'll just show the result.
+            // For now, we'll just show the result. A reset mechanic could be added here.
+            loadStage(); // Reload the stage
         }
     }
 

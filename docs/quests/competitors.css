@@ -1,14 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
 
 :root {
-    --primary-bg: #1A1A2E;
-    --secondary-bg: #16213E;
-    --accent-color: #0F3460;
-    --highlight-color: #E94560;
-    --primary-text: #FFFFFF;
-    --secondary-text: #A7A7A7;
-    --success-color: #57B894;
-    --error-color: #E94560;
+    --primary-bg: #0D0D1F; /* Deep space blue */
+    --secondary-bg: #1A1A2E; /* Lighter blue */
+    --accent-color: #00E5FF; /* Bright cyan/neon blue */
+    --highlight-color: #FF073A; /* Neon red */
+    --primary-text: #EAEAEA;
+    --secondary-text: #8A8A9E;
+    --success-color: #00FF7F; /* Neon green */
+    --error-color: #FF073A; /* Same as highlight */
+
+    --glow-shadow: 0 0 5px var(--accent-color), 0 0 10px var(--accent-color), 0 0 15px var(--accent-color);
 }
 
 * {
@@ -19,7 +22,7 @@
 
 body {
     font-family: 'Roboto Condensed', sans-serif;
-    background-color: var(--primary-bg);
+    background: var(--primary-bg);
     color: var(--primary-text);
     overflow: hidden;
     height: 100vh;
@@ -27,6 +30,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    background-image: radial-gradient(circle, var(--secondary-bg) 0%, var(--primary-bg) 70%);
 }
 
 .screen {
@@ -41,7 +45,12 @@ body {
     align-items: center;
     text-align: center;
     padding: 20px;
-    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+    animation: fadeIn 0.8s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
 }
 
 .screen.active {
@@ -59,30 +68,47 @@ body {
     z-index: 100;
 }
 .nav-btn {
-    background: rgba(22, 33, 62, 0.8);
+    background: transparent;
     border: 1px solid var(--accent-color);
-    color: var(--primary-text);
+    color: var(--accent-color);
     padding: 8px 15px;
     border-radius: 20px;
     cursor: pointer;
     font-family: 'Roboto Condensed', sans-serif;
     font-size: 0.9em;
+    backdrop-filter: blur(5px);
+    transition: background-color 0.3s, color 0.3s;
+}
+.nav-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
 }
 .nav-btn.hidden {
     display: none;
 }
 
 /* Start & End Screens */
+.content {
+    animation: slideUp 0.7s ease-out forwards;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
 .content h1 {
-    font-size: 2.8em;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
     margin-bottom: 20px;
-    color: var(--highlight-color);
+    color: var(--primary-text);
+    text-shadow: var(--glow-shadow);
     text-transform: uppercase;
 }
 .content p {
-    font-size: 1.2em;
+    font-size: 1.1em;
     color: var(--secondary-text);
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     line-height: 1.6;
     max-width: 500px;
 }
@@ -98,18 +124,18 @@ button {
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     text-transform: uppercase;
+    box-shadow: 0 0 10px var(--highlight-color), 0 0 20px var(--highlight-color);
 }
 button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 0 15px var(--highlight-color), 0 0 30px var(--highlight-color);
 }
 
 /* Game Screen */
 #game-screen {
     justify-content: flex-start;
-    background: var(--secondary-bg);
     padding: 15px;
-    padding-top: 70px; /* Space for header and nav */
+    padding-top: 70px;
     overflow-y: auto;
 }
 
@@ -119,77 +145,98 @@ button:hover {
     left: 0;
     width: 100%;
     padding: 0 15px;
-    font-size: 0.9em;
+    font-family: 'Orbitron', sans-serif;
     color: var(--secondary-text);
 }
 #company-stats {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
 }
 #player-company {
     color: var(--success-color);
-    font-weight: bold;
+    text-shadow: 0 0 5px var(--success-color);
 }
 #target-company {
-    background: #000;
+    background: rgba(0,0,0,0.3);
     padding: 5px 10px;
     border-radius: 5px;
+    border: 1px solid var(--accent-color);
     text-align: center;
 }
 #target-name { color: var(--highlight-color); }
 
-#stage-container {
-    width: 100%;
-    flex-grow: 1;
+#stage-container, #interaction-footer {
+    animation: slideUp 0.5s 0.2s ease-out forwards;
+    opacity: 0;
 }
-
-#interaction-footer {
-    width: 100%;
-    min-height: 150px;
-}
+#stage-container { width: 100%; flex-grow: 1; }
+#interaction-footer { width: 100%; min-height: 150px; display: flex; justify-content: center; align-items: center; }
 
 /* Reconnaissance Stage */
-.recon-stage {
-    width: 100%;
-    background: var(--primary-bg);
-    border: 1px solid var(--accent-color);
-    padding: 15px;
-    border-radius: 10px;
-}
 .recon-stage h2 {
-    color: var(--highlight-color);
-    margin-bottom: 10px;
+    color: var(--accent-color);
+    text-shadow: var(--glow-shadow);
+    margin-bottom: 15px;
+    text-align: center;
 }
 .document-viewer {
-    background: #fff;
-    color: #000;
-    font-family: 'Times New Roman', Times, serif;
+    background: rgba(10, 10, 20, 0.8);
+    color: #CFCFCF;
+    font-family: 'Courier New', Courier, monospace;
     padding: 20px;
     height: 300px;
     overflow-y: scroll;
     text-align: left;
     line-height: 1.8;
     border-radius: 5px;
+    border: 1px solid var(--accent-color);
+    box-shadow: inset 0 0 10px var(--accent-color);
+    position: relative;
+}
+.document-viewer::after { /* Scanline effect */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+    background-size: 100% 4px;
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+}
+@keyframes scan {
+    from { background-position: 0 0; }
+    to { background-position: 0 -400px; }
 }
 .document-viewer .clue {
-    background: yellow;
+    background: rgba(255, 255, 0, 0.5);
     cursor: pointer;
+    transition: background-color 0.3s;
+}
+.document-viewer .clue:hover {
+    background: rgba(255, 255, 0, 0.8);
 }
 .document-viewer .clue.found {
-    background: lightgreen;
+    background: rgba(0, 255, 127, 0.6);
+    text-decoration: underline;
 }
 
 #clues-found {
     margin-top: 15px;
+    text-align: center;
     font-style: italic;
     color: var(--secondary-text);
+    animation: fadeIn 1s;
 }
 
 /* Strategy Stage */
 .strategy-stage h2 {
     text-align: center;
-    color: var(--highlight-color);
+    color: var(--accent-color);
+    text-shadow: var(--glow-shadow);
     margin-bottom: 15px;
 }
 .strategy-board {
@@ -199,14 +246,16 @@ button:hover {
 }
 .weaknesses-column, .actions-column {
     width: 48%;
-    background: var(--primary-bg);
+    background: rgba(10, 10, 20, 0.5);
     padding: 10px;
     border-radius: 8px;
+    border: 1px solid var(--accent-color);
 }
 .weaknesses-column h3, .actions-column h3 {
     margin-bottom: 10px;
     font-size: 1em;
-    color: var(--secondary-text);
+    color: var(--accent-color);
+    text-align: center;
 }
 .weakness-slot {
     background: var(--secondary-bg);
@@ -214,24 +263,42 @@ button:hover {
     margin-bottom: 10px;
     padding: 15px;
     border-radius: 5px;
-    min-height: 60px;
+    min-height: 70px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.weakness-slot.hover {
+    background-color: var(--accent-color);
+    border-color: var(--primary-text);
 }
 .weakness-slot.filled {
     border-style: solid;
-    border-color: var(--success-color);
+    padding: 5px;
 }
 .action-card {
-    background: #E94560;
+    background: linear-gradient(145deg, var(--highlight-color), #b82c44);
     color: var(--primary-text);
     padding: 10px;
     border-radius: 5px;
     cursor: grab;
     margin-bottom: 10px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 .action-card:active {
     cursor: grabbing;
 }
 .action-card.dragging {
     opacity: 0.5;
+    transform: scale(0.95);
+}
+
+/* Ghost element for mobile drag & drop */
+.ghost {
+    position: absolute;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.8;
+    transform: rotate(5deg);
 }
