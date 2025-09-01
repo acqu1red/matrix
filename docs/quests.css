@@ -595,11 +595,7 @@ body::after {
 
 .products-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    "lie lie"
-    "profiling manipulations"
-    "psychotypes psychotypes";
+  grid-template-columns: 1fr;
   gap: 16px;
 }
 
@@ -609,123 +605,125 @@ body::after {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   background: var(--bg-card);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  padding: 20px;
 }
-
-/* Присваиваем карточкам их область в сетке */
-[data-product-id="psychology-lie"] { grid-area: lie; min-height: 160px; }
-[data-product-id="profiling-pro"] { grid-area: profiling; min-height: 140px; }
-[data-product-id="100-female-manipulations"] { grid-area: manipulations; min-height: 140px; }
-[data-product-id="psychotypes-full"] { grid-area: psychotypes; min-height: 160px; }
 
 .product-card:hover {
   transform: translateY(-5px);
-  border-color: var(--accent-primary);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5), 0 0 30px var(--shadow-color);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+}
+
+.product-card-visible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-card-header {
+  flex: 1;
 }
 
 .product-title {
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 8px;
-  line-height: 1.3;
+  margin: 0;
 }
 
 .product-description-short {
   font-size: 14px;
   color: var(--text-secondary);
+  margin: 4px 0 0;
 }
 
-.product-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
+.product-price-container {
+  text-align: right;
 }
 
 .product-price {
   font-size: 18px;
   font-weight: 800;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
-.buy-button {
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-  background: var(--gradient-button);
-  color: var(--text-primary);
+.old-price {
+  text-decoration: line-through;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-left: 8px;
+}
+
+.discount {
+  display: block;
+  font-size: 12px;
   font-weight: 700;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: 0 5px 15px rgba(138, 127, 255, 0.2);
+  color: #00ff88; /* Яркий цвет для скидки */
 }
 
-.buy-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(138, 127, 255, 0.3);
-  filter: brightness(1.1);
+.product-card-hidden {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.read-button {
-  width: 100%;
+.product-card.active .product-card-hidden {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 20px;
 }
 
-
-/* --- Уникальный дизайн для флагманов --- */
-
-/* Психология Лжи */
+/* --- Уникальный дизайн флагманов --- */
 [data-product-id="psychology-lie"] {
-  background: linear-gradient(145deg, #191636, #000);
+  border-color: #ff3c3c;
+  background: linear-gradient(145deg, #2a0000, #000);
 }
-[data-product-id="psychology-lie"]::after {
+
+[data-product-id="psychology-lie"]:hover {
+  box-shadow: 0 15px 40px rgba(255, 60, 60, 0.2);
+}
+
+[data-product-id="psychotypes-full"] {
+  border-color: transparent;
+  background: #000;
+  position: relative;
+}
+
+[data-product-id="psychotypes-full"]::before,
+[data-product-id="psychotypes-full"]::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
-  background: var(--accent-primary);
-  animation: scan-line 4s linear infinite;
-  box-shadow: 0 0 15px var(--shadow-color);
-}
-@keyframes scan-line {
-  0% { top: 0; }
-  50% { top: calc(100% - 3px); }
-  100% { top: 0; }
+  height: 100%;
+  border-radius: 16px;
+  z-index: 1;
 }
 
-/* Психотипы */
-[data-product-id="psychotypes-full"] {
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  background-size: 110% 110%; /* Slight zoom for the gradient */
-}
 [data-product-id="psychotypes-full"]::before {
-  content: '';
-  position: absolute;
-  top: -2px; left: -2px; right: -2px; bottom: -2px;
-  background: linear-gradient(135deg, #ff00ff, #ffae00, #8A7FFF, #ff00ff);
-  background-size: 400% 400%;
-  z-index: -1;
-  border-radius: 16px;
-  animation: bg-pan-unique 4s linear infinite;
+  background: repeating-conic-gradient(from var(--angle), #ff00ff 0%, #ffae00 10%, transparent 10%, transparent 50%);
+  animation: spin 6s linear infinite;
 }
-@keyframes bg-pan-unique {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+
+[data-product-id="psychotypes-full"]::after {
+  background: var(--bg-primary);
+  inset: 2px;
 }
-[data-product-id="psychotypes-full"] .buy-button {
-  background: linear-gradient(135deg, #ff00ff, #ffae00);
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin {
+  to { --angle: 360deg; }
+}
+
+.product-card-visible, .product-card-hidden {
+  position: relative;
+  z-index: 2;
 }
 
 /* --- Special Offers --- */

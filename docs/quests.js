@@ -77,11 +77,13 @@ const ADMIN_ID = '708907063'; // ID администратора
 const PRODUCTS = {
   'psychology-lie': {
     title: 'ПСИХОЛОГИЯ ЛЖИ',
-    shortDescription: 'Маркеры, биология, распознавание.',
+    shortDescription: 'Запрещенные техники влияния.',
     modalTitle: 'Вся правда о лжи',
     modalDescription: 'Этот тренинг — ваш личный детектор лжи. Вы научитесь видеть то, что скрыто за словами. Мы разберем реальные кейсы, научим вас замечать микровыражения и неосознанные жесты, которые выдают обманщика с головой. После этого курса ни одна ложь не пройдет мимо вас.',
     priceStars: 28,
     priceRub: '50 руб.',
+    oldPriceRub: '499 руб.',
+    discount: '90%',
     pdfUrl: 'products/psychology-lie.pdf'
   },
   'profiling-pro': {
@@ -98,8 +100,10 @@ const PRODUCTS = {
     shortDescription: 'Запрещенные техники влияния.',
     modalTitle: 'Запрещенные техники влияния',
     modalDescription: 'Это — высшая лига. Знание психотипов дает вам ключи к управлению реальностью. Вы будете знать, как думает и что сделает человек еще до того, как он это осознает. Техники, которые вы изучите, настолько мощные, что их использование ограничено спецслужбами. Применяйте с умом.',
-    priceStars: 1000,
-    priceRub: '1790 руб.',
+    priceStars: 500,
+    priceRub: '829 руб.',
+    oldPriceRub: '4999 руб.',
+    discount: '83%',
     pdfUrl: 'products/psychotypes-full.pdf'
   },
   '100-female-manipulations': {
@@ -410,12 +414,31 @@ function populateProducts() {
 
 function createProductCard(id, product) {
   const isPurchased = userPurchases.includes(id);
-  
-  const buttonHtml = isPurchased
-    ? `<button class="product-button read-button" data-pdf-url="${product.pdfUrl}" data-pdf-title="${product.title}">Читать</button>`
-    : `<button class="product-button buy-button">Купить</button>`;
 
-  const priceHtml = !isPurchased ? `<div class="product-price">${product.priceRub}</div>` : '';
+  let priceHtml = '';
+  if (!isPurchased) {
+    if (product.oldPriceRub) {
+      priceHtml = `
+        <div class="product-price">
+          ${product.priceRub} <span class="old-price">${product.oldPriceRub}</span>
+          <span class="discount">-${product.discount}</span>
+        </div>`;
+    } else {
+      priceHtml = `<div class="product-price">${product.priceRub}</div>`;
+    }
+  }
+
+  const buttonHtml = isPurchased
+    ? `<div class="product-actions">
+        <button class="product-button read-button" data-pdf-url="${product.pdfUrl}" data-pdf-title="${product.title}">Читать</button>
+        <a href="${product.pdfUrl}" download class="product-button download-button">Скачать</a>
+      </div>`
+    : `<div class="modal-payment-options">
+          <button class="payment-button">Карта / СБП (скоро)</button>
+          <button class="payment-button payment-button-stars" data-product-id="${id}">
+            Купить за ${product.priceStars} ⭐
+          </button>
+       </div>`;
 
   return `
     <div class="product-card" data-product-id="${id}">
@@ -424,7 +447,9 @@ function createProductCard(id, product) {
           <h3 class="product-title">${product.title}</h3>
           <p class="product-description-short">${product.shortDescription}</p>
         </div>
-        ${priceHtml}
+        <div class="product-price-container">
+          ${priceHtml}
+        </div>
       </div>
       <div class="product-card-hidden">
         <p class="product-description-full">${product.modalDescription}</p>
@@ -438,82 +463,42 @@ function createProductCard(id, product) {
 
 function initializeProductInteraction() {
   const productsGrid = document.getElementById('productsGrid');
-  const modalContainer = document.getElementById('modalContainer');
-  
-  if (!productsGrid || !modalContainer) return;
+  if (!productsGrid) return;
 
-  // Генерация модальных окон
-  let modalsHtml = '';
-  for (const id in PRODUCTS) {
-    modalsHtml += createProductModal(id, PRODUCTS[id]);
-  }
-  modalContainer.innerHTML = modalsHtml;
-
-  // Обработчики событий для карточек
   productsGrid.addEventListener('click', e => {
     const card = e.target.closest('.product-card');
     if (!card) return;
 
-    const productId = card.dataset.productId;
+    // Клик по кнопке оплаты
+    if (e.target.classList.contains('payment-button-stars')) {
+      e.stopPropagation(); // Предотвращаем схлопывание аккордеона
+      const productId = e.target.dataset.productId;
+      handlePurchase(productId);
+      return;
+    }
 
-    // Открытие модального окна по клику на любую часть карточки, если она не куплена
-    if (e.target.closest('.buy-button')) {
-      showModal(productId);
-    } else if (e.target.classList.contains('read-button')) {
+    // Клик по кнопке чтения
+    if (e.target.classList.contains('read-button')) {
+      e.stopPropagation();
       const pdfUrl = e.target.dataset.pdfUrl;
       const pdfTitle = e.target.dataset.pdfTitle;
       showPdfViewer(pdfUrl, pdfTitle);
-    } else if (!userPurchases.includes(productId)) {
-       showModal(productId);
+      return;
+    }
+    
+    // Логика "аккордеона"
+    const isActive = card.classList.contains('active');
+    document.querySelectorAll('.product-card.active').forEach(activeCard => {
+      activeCard.classList.remove('active');
+    });
+    if (!isActive) {
+      card.classList.add('active');
     }
   });
 
-  modalContainer.addEventListener('click', e => {
-    if (e.target.classList.contains('product-modal-close')) {
-      const modal = e.target.closest('.product-modal-overlay');
-      hideModal(modal.dataset.productId);
-    }
-    if (e.target.classList.contains('payment-button-stars')) {
-      const productId = e.target.dataset.productId;
-      handlePurchase(productId);
-    }
-  });
-  
   const pdfViewerClose = document.getElementById('pdfViewerClose');
   if (pdfViewerClose) {
     pdfViewerClose.addEventListener('click', hidePdfViewer);
-  }
-}
-
-function createProductModal(id, product) {
-  return `
-    <div class="product-modal-overlay" data-product-id="${id}">
-      <div class="product-modal">
-        <button class="product-modal-close">&times;</button>
-        <h2 class="modal-title">${product.modalTitle}</h2>
-        <p class="modal-description">${product.modalDescription}</p>
-        <div class="modal-payment-options">
-          <button class="payment-button">Карта / СБП (в разработке)</button>
-          <button class="payment-button payment-button-stars" data-product-id="${id}">
-            Купить за ${product.priceStars} ⭐
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function showModal(productId) {
-  const modal = document.querySelector(`.product-modal-overlay[data-product-id="${productId}"]`);
-  if (modal) {
-    modal.classList.add('visible');
-  }
-}
-
-function hideModal(productId) {
-  const modal = document.querySelector(`.product-modal-overlay[data-product-id="${productId}"]`);
-  if (modal) {
-    modal.classList.remove('visible');
   }
 }
 
@@ -534,7 +519,7 @@ async function handlePurchase(productId) {
       price: product.priceStars
     }));
     Telegram.WebApp.showAlert('Счет на оплату отправлен в ваш чат с ботом!');
-    hideModal(productId);
+    // hideModal(productId); // Удалено, так как модальные окна больше не используются
   } else {
     // Fallback для теста в браузере
     console.log("WebApp недоступен. Симуляция успешной оплаты.");
@@ -556,7 +541,7 @@ async function onSuccessfulPurchase(productId) {
   populateProducts();
 
   // 4. Закрываем модальное окно
-  hideModal(productId);
+  // hideModal(productId); // Удалено, так как модальные окна больше не используются
   
   // 5. Показываем PDF
   setTimeout(() => {
