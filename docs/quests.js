@@ -396,25 +396,27 @@ function createProductCard(id, product) {
   const isPurchased = userPurchases.includes(id);
   
   const buttonHtml = isPurchased
-    ? `
-      <div class="product-actions">
-        <button class="product-button read-button" data-pdf-url="${product.pdfUrl}" data-pdf-title="${product.title}">Читать</button>
-      </div>
-    `
-    : `<button class="product-button buy-button">
-        Купить за ${product.priceRub}
-       </button>`;
+    ? `<button class="product-button read-button" data-pdf-url="${product.pdfUrl}" data-pdf-title="${product.title}">Читать</button>`
+    : `<button class="product-button buy-button">Купить</button>`;
+
+  const priceHtml = !isPurchased ? `<div class="product-price">${product.priceRub}</div>` : '';
 
   const specialOfferHtml = product.specialOffer 
-    ? `<div class="special-offer">${product.specialOffer}</div>` 
+    ? `<div class="special-offer-badge">${product.specialOffer}</div>` 
     : '';
 
   return `
     <div class="product-card" data-product-id="${id}" data-special="${product.specialOffer || ''}">
       ${specialOfferHtml}
-      <div class="product-content">
-        <h3 class="product-title">${product.title}</h3>
-        <p class="product-description">${product.shortDescription}</p>
+      <div class="product-card-visible">
+        <div class="product-card-header">
+          <h3 class="product-title">${product.title}</h3>
+          <p class="product-description-short">${product.shortDescription}</p>
+        </div>
+        ${priceHtml}
+      </div>
+      <div class="product-card-hidden">
+        <p class="product-description-full">${product.modalDescription}</p>
         <div class="product-footer">
           ${buttonHtml}
         </div>
@@ -436,13 +438,23 @@ function initializeProductInteraction() {
   }
   modalContainer.innerHTML = modalsHtml;
 
-  // Обработчики событий
+  // Обработчики событий для карточек
   productsGrid.addEventListener('click', e => {
     const card = e.target.closest('.product-card');
     if (!card) return;
 
-    const productId = card.dataset.productId;
+    // Логика "аккордеона"
+    const isActive = card.classList.contains('active');
+    document.querySelectorAll('.product-card.active').forEach(activeCard => {
+      activeCard.classList.remove('active');
+    });
+    if (!isActive) {
+      card.classList.add('active');
+    }
+
+    // Открытие модального окна по кнопке "Купить"
     if (e.target.classList.contains('buy-button')) {
+      const productId = card.dataset.productId;
       showModal(productId);
     } else if (e.target.classList.contains('read-button')) {
       const pdfUrl = e.target.dataset.pdfUrl;

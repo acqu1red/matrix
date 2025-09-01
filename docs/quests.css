@@ -584,72 +584,121 @@ body::after {
 
 /* --- Products Section --- */
 .products-section {
-  padding: 40px 20px;
-}
-
-.products-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
+.products-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
 .product-card {
-  background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  padding: 20px;
-  transition: var(--transition);
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.product-card:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(138, 127, 255, 0.2), transparent);
-  transition: 0.5s;
-}
-
-.product-card:hover:before {
-  left: 100%;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  background: var(--bg-card);
+  padding: 20px;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
   border-color: var(--accent-primary);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 15px var(--shadow-color);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px var(--shadow-color);
+}
+
+.product-card-visible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .product-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin: 0;
 }
 
-.product-description {
+.product-description-short {
   font-size: 14px;
   color: var(--text-secondary);
-  margin-bottom: 16px;
+  margin: 0;
 }
 
+.product-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.product-card-hidden {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.23, 1, 0.32, 1), 
+              opacity 0.3s ease,
+              margin-top 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.product-card.active .product-card-hidden {
+  max-height: 500px; /* Достаточно большая высота */
+  opacity: 1;
+  margin-top: 20px;
+}
+
+.product-description-full {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* --- Special Offers --- */
+.special-offer-badge {
+  position: absolute;
+  top: 12px;
+  left: -1px;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 4px 10px rgba(138, 127, 255, 0.3);
+  z-index: 3;
+}
+
+.product-card[data-special*="Уникальное"] {
+  border-color: var(--accent-primary);
+  animation: pulse-border 2s infinite ease-in-out;
+}
+
+.product-card[data-special*="Уникальное"] .special-offer-badge {
+  background: linear-gradient(90deg, #ffae00, #ff00ff);
+  color: white;
+}
+
+@keyframes pulse-border {
+  0% { box-shadow: 0 0 0 0 rgba(138, 127, 255, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(138, 127, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(138, 127, 255, 0); }
+}
+
+/* --- Buttons --- */
 .product-footer {
-  margin-top: auto;
+  display: flex;
+  gap: 12px;
 }
 
 .product-button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
+  flex-grow: 1;
+  padding: 14px;
+  border-radius: 12px;
   border: none;
   background: var(--gradient-button);
   color: var(--text-primary);
@@ -657,42 +706,13 @@ body::after {
   cursor: pointer;
   transition: var(--transition);
   box-shadow: 0 5px 15px rgba(138, 127, 255, 0.2);
+  font-size: 16px;
 }
 
 .product-button:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
   box-shadow: 0 8px 25px rgba(138, 127, 255, 0.3);
   filter: brightness(1.1);
-}
-
-.special-offer {
-  position: absolute;
-  top: 15px;
-  right: -30px;
-  background: var(--accent-primary);
-  color: var(--bg-primary);
-  padding: 4px 30px;
-  font-size: 12px;
-  font-weight: 700;
-  transform: rotate(45deg);
-  box-shadow: 0 0 10px var(--shadow-color);
-}
-
-.product-card[data-special*="Уникальное"] {
-  grid-column: 1 / -1; /* Занимает всю ширину */
-  border-color: var(--accent-primary);
-  animation: pulse-border 2s infinite;
-}
-
-.product-card[data-special*="Уникальное"] .special-offer {
-  background: linear-gradient(45deg, #ff00ff, #ffae00);
-  color: white;
-}
-
-@keyframes pulse-border {
-  0% { box-shadow: 0 0 0 0 rgba(138, 127, 255, 0.7); }
-  70% { box-shadow: 0 0 10px 10px rgba(138, 127, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(138, 127, 255, 0); }
 }
 
 
