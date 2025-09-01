@@ -1179,3 +1179,230 @@ body::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Информационные блоки внизу страницы --- */
+.info-section {
+  margin-top: 60px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(138, 127, 255, 0.05), rgba(255, 0, 255, 0.05));
+  border-top: 1px solid var(--border-color);
+}
+
+.info-links {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.info-link {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(138, 127, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.info-link:hover::before {
+  left: 100%;
+}
+
+.info-link:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+  background: rgba(138, 127, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(138, 127, 255, 0.15);
+}
+
+/* Модальные окна */
+.info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.info-modal-overlay.hidden {
+  display: none;
+}
+
+.info-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: hidden;
+  z-index: 1001;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.info-modal.hidden {
+  display: none;
+}
+
+.info-modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.info-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, rgba(138, 127, 255, 0.1), rgba(255, 0, 255, 0.1));
+}
+
+.info-modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.info-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.info-modal-close:hover {
+  background: rgba(138, 127, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.info-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.info-modal-body p {
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.info-modal-body h4 {
+  margin: 24px 0 12px 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.info-modal-body h4:first-child {
+  margin-top: 0;
+}
+
+.info-modal-body ul {
+  margin: 16px 0;
+  padding-left: 20px;
+}
+
+.info-modal-body li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.info-modal-body strong {
+  color: var(--text-primary);
+}
+
+/* Контакты */
+.contact-item {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(138, 127, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(138, 127, 255, 0.1);
+}
+
+.contact-item a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-item a:hover {
+  color: var(--text-primary);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .info-section {
+    padding: 30px 16px;
+    margin-top: 40px;
+  }
+  
+  .info-links {
+    gap: 12px;
+  }
+  
+  .info-link {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  
+  .info-modal {
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+  
+  .info-modal-header {
+    padding: 16px 20px;
+  }
+  
+  .info-modal-header h3 {
+    font-size: 18px;
+  }
+  
+  .info-modal-body {
+    padding: 20px;
+  }
+}
