@@ -4,61 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Анализ Конкурентов</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="competitors.css">
 </head>
 <body>
 
-    <div id="loading-screen" class="screen active">
+    <div id="loader" class="screen active">
         <div class="spinner"></div>
-        <p class="loading-text">Загрузка симуляции...</p>
-      </div>
+        <p>Загрузка данных о рынке...</p>
+    </div>
 
     <div id="start-screen" class="screen">
-        <div class="start-content">
-            <h1 class="quest-title"><span>Анализ</span><br>Конкурентов</h1>
-            <p class="quest-subtitle">В мире бизнеса выживает сильнейший. Уничтожьте соперников и постройте свою монополию.</p>
-            <button id="start-btn" class="glow-btn">Начать враждебное поглощение</button>
+        <div class="content">
+            <h1>АНАЛИЗ КОНКУРЕНТОВ</h1>
+            <p>Готовы ли вы найти слабые стороны оппонентов и построить свою монополию?</p>
+            <button id="start-btn" class="pulse-btn">Начать Борьбу</button>
         </div>
-            </div>
-            
-    <div id="game-screen" class="screen">
-        <canvas id="background-canvas"></canvas>
-        <header class="game-header">
-            <button id="back-btn" class="nav-btn">‹ Назад</button>
-            <div class="competitor-health">
-                <span id="competitor-name">Competitor</span>
-                <div class="health-bar-container">
-                    <div id="health-bar"></div>
-              </div>
-            </div>
-            <button id="menu-btn" class="nav-btn">Меню</button>
-        </header>
+    </div>
 
-        <main id="stage-container">
-            <!-- Динамический контент этапов -->
-        </main>
+    <div id="game-screen" class="screen">
+        <header class="game-header">
+            <div class="navigation-buttons">
+                <button id="back-btn" class="nav-button"><span class="arrow-left"></span> Назад</button>
+                <button id="main-menu-btn" class="nav-button">Главное меню <span class="home-icon"></span></button>
+            </div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div id="stats-display">
+                <p>Ваш бюджет: <span id="budget-value">$1000</span></p>
+                <p>Влияние: <span id="influence-value">0</span></p>
+            </div>
+        </header>
         
-        <footer id="player-hand-container">
-            <!-- Карты действий игрока -->
+        <main id="stage-container">
+            <!-- Сюда будет загружаться контент текущего этапа -->
+        </main>
+
+        <footer id="interaction-footer">
+            <!-- Сюда будут загружаться интерактивные элементы (карты, кнопки) -->
         </footer>
-          </div>
+    </div>
 
     <div id="end-screen" class="screen">
-        <div class="end-content">
-            <h2 class="end-title">Монополия Достигнута</h2>
-            <p class="end-subtitle">Конкурент <span id="defeated-competitor-name"></span> — банкрот. Вы доказали свое превосходство.</p>
-            <div class="score-summary">
-                Ваш итоговый капитал: <span id="final-score"></span>$
+        <div class="content">
+            <h2>Вы доминируете на рынке!</h2>
+            <p>Вы показали себя истинным стратегом, но это лишь начало пути к абсолютной власти.</p>
+            <div id="final-stats">
+                <p>Оставшийся бюджет: <span id="final-budget">$0</span></p>
+                <p>Достигнутое влияние: <span id="final-influence">0</span></p>
             </div>
-            <p class="cta-text">Это была лишь симуляция. Хотите научиться выявлять и использовать уязвимости реальных конкурентов? Наш курс даст вам инструменты для доминирования на рынке.</p>
-            <button id="cta-btn" class="glow-btn">Получить доступ к арсеналу</button>
-      </div>
+            <p>Хотите узнать все секреты разрушения конкурентов и создания непобедимой бизнес-империи? Наш полный курс "Абсолютный Монополист" даст вам эти знания.</p>
+            <button id="cta-btn">Получить Абсолютную Власть</button>
+        </div>
     </div>
 
     <script src="competitors-data.js"></script>
-    <script src="competitors-ui.js"></script>
-    <script src="competitors-engine.js"></script>
-    <script src="competitors-main.js"></script>
+    <script src="competitors-utils.js"></script>
+    <script src="competitors.js"></script>
 </body>
 </html>
