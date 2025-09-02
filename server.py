@@ -6,6 +6,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 # !!! ВАЖНО: Токен бота. Рекомендуется хранить его в переменных окружения.
 # Например, BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -46,12 +47,19 @@ class CreateInvoiceIn(BaseModel):
 
 app = FastAPI()
 
-# CORS: временно разрешаем все источники. При необходимости сузьте список до нужных доменов
+# CORS: разрешаем доступ с GitHub Pages и других доменов
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://acqu1red.github.io",
+        "https://acqu1red.github.io/",
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://127.0.0.1:3000"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -121,4 +129,23 @@ async def create_invoice(body: CreateInvoiceIn):
     if not j.get("ok"):
         raise HTTPException(status_code=502, detail=f"Bot API error: {j}")
 
-    return {"invoice_link": j["result"]}
+    return JSONResponse(
+        content={"invoice_link": j["result"]},
+        headers={
+            "Access-Control-Allow-Origin": "https://acqu1red.github.io",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
+
+@app.options("/api/create-invoice")
+async def options_create_invoice():
+    """Обработчик CORS preflight запросов"""
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "https://acqu1red.github.io",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
