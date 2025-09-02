@@ -443,6 +443,16 @@ function populateProducts() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
   
+  // Получаем покупки из localStorage если API недоступен
+  if (!userPurchases || userPurchases.length === 0) {
+    try {
+      const localPurchases = JSON.parse(localStorage.getItem('quests_user_purchases') || '[]');
+      userPurchases.push(...localPurchases);
+    } catch (e) {
+      console.warn('Не удалось загрузить покупки из localStorage:', e);
+    }
+  }
+  
   let productsHtml = '';
   for (const id in PRODUCTS) {
     productsHtml += createProductCard(id, PRODUCTS[id]);
@@ -571,10 +581,11 @@ async function handlePurchase(productId) {
   }
 
   try {
-    // Используем относительный путь для API
+    // Используем URL вашего сервера
+    const API_BASE = 'https://formulaprivate-productionpaymentuknow.up.railway.app';
     // 1) Просим у бэкенда ссылку на инвойс Stars
     //    ВАЖНО: передаём initData для серверной валидации подписи
-    const resp = await fetch('/api/create-invoice', {
+    const resp = await fetch(`${API_BASE}/api/create-invoice`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -618,17 +629,33 @@ async function onSuccessfulPurchase(productId) {
   const api = window.__QUEST_API__;
   const product = PRODUCTS[productId];
 
-  // 1. Сохраняем покупку в Supabase
-  await api.addUserPurchase(currentUserId, productId);
+  try {
+    // 1. Сохраняем покупку в Supabase (если доступен)
+    if (api && api.addUserPurchase) {
+      await api.addUserPurchase(currentUserId, productId);
+    }
+  } catch (error) {
+    console.warn('Не удалось сохранить покупку в Supabase:', error);
+  }
   
   // 2. Обновляем локальный список покупок
-  userPurchases.push(productId);
+  if (!userPurchases.includes(productId)) {
+    userPurchases.push(productId);
+  }
   
-  // 3. Обновляем карточку продукта в UI
+  // 3. Сохраняем в localStorage для оффлайн-режима
+  try {
+    const localPurchases = JSON.parse(localStorage.getItem('quests_user_purchases') || '[]');
+    if (!localPurchases.includes(productId)) {
+      localPurchases.push(productId);
+      localStorage.setItem('quests_user_purchases', JSON.stringify(localPurchases));
+    }
+  } catch (e) {
+    console.warn('Не удалось сохранить покупку в localStorage:', e);
+  }
+  
+  // 4. Обновляем карточку продукта в UI
   populateProducts();
-
-  // 4. Закрываем модальное окно
-  // hideModal(productId); // Удалено, так как модальные окна больше не используются
   
   // 5. Показываем PDF
   setTimeout(() => {

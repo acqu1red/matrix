@@ -47,6 +47,19 @@
         localStorage.setItem('quests_user_profile', JSON.stringify(profile));
         return profile;
       },
+      async getUserPurchases(telegramId){
+        // Для оффлайн-режима возвращаем пустой массив
+        return [];
+      },
+      async addUserPurchase(telegramId, productId){
+        // Для оффлайн-режима сохраняем в localStorage
+        const purchases = JSON.parse(localStorage.getItem('quests_user_purchases') || '[]');
+        if (!purchases.includes(productId)) {
+          purchases.push(productId);
+          localStorage.setItem('quests_user_purchases', JSON.stringify(purchases));
+        }
+        return true;
+      },
       getTelegramInfo,
       initSupabase: ()=>null
     };
