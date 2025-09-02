@@ -571,12 +571,10 @@ async function handlePurchase(productId) {
   }
 
   try {
-    // Базовый URL API (Railway)
-    const API_BASE = 'https://formulaprivate-productionpaymentuknow.up.railway.app';
-
+    // Используем относительный путь для API
     // 1) Просим у бэкенда ссылку на инвойс Stars
     //    ВАЖНО: передаём initData для серверной валидации подписи
-    const resp = await fetch(`${API_BASE}/api/create-invoice`, {
+    const resp = await fetch('/api/create-invoice', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -605,9 +603,14 @@ async function handlePurchase(productId) {
       }
     });
   } catch (err) {
-    console.error(err);
+    console.error('Ошибка при создании счета:', err);
+    const errorMessage = 'Ошибка создания счёта. Попробуйте позже.';
     const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) tg.showAlert('Ошибка создания счёта. Попробуйте позже.');
+    if (tg) {
+      tg.showAlert(errorMessage);
+    } else {
+      alert(errorMessage);
+    }
   }
 }
 
