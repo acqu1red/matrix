@@ -564,15 +564,52 @@
   <div class="quest-container">
     <!-- Индикатор фазы -->
     <div class="phase-indicator">
-      <div class="phase-badge" id="phase1Badge">Этап 1: Эмоции</div>
-      <div class="phase-badge" id="phase2Badge">Этап 2: Ложь</div>
+      <div class="phase-badge" id="phase1Badge">Этап 1: Ложь</div>
+      <div class="phase-badge" id="phase2Badge">Этап 2: Эмоции</div>
       <div class="phase-badge" id="phase3Badge">Этап 3: Сигналы</div>
       <div class="phase-badge" id="phase4Badge">Этап 4: Лицо</div>
       <div class="phase-badge" id="phase5Badge">Этап 5: Дистанция</div>
     </div>
 
-    <!-- Этап 1: Анализ эмоций (бывшая Фаза 2) -->
-    <div id="emotion-detection-phase" class="video-container">
+    <!-- Этап 1: Видео допрос (Ложь) -->
+    <div id="lie-detection-phase" class="video-container">
+      <h3>Анализ языка тела в видео</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек.
+      </p>
+      
+      <video id="lieVideoPlayer" class="video-player" preload="metadata">
+        <source src="" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+      </video>
+      
+      <div class="video-controls">
+        <button class="play-btn" id="liePlayBtn">▶️</button>
+        <div class="progress-bar">
+          <div class="progress-fill" id="lieProgressFill"></div>
+        </div>
+      </div>
+      
+      <div class="video-annotation">
+        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше.
+      </div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="lieAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
+      </div>
+      
+      <div class="answer-options" id="lieOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
+
+    <!-- Этап 2: Анализ эмоций -->
+    <div id="emotion-detection-phase" class="video-container" style="display: none;">
       <h3>Анализ эмоций</h3>
       <p style="color: var(--text-muted); margin-bottom: 20px;">
         Посмотрите видео и определите эмоцию персонажа.
@@ -595,43 +632,6 @@
       </div>
       
       <div class="answer-options" id="emotionOptions">
-        <!-- Варианты ответов будут добавлены динамически -->
-      </div>
-    </div>
-
-    <!-- Этап 2: Видео допрос (бывшая Фаза 1) -->
-    <div id="lie-detection-phase" class="video-container" style="display: none;">
-      <h3>Анализ языка тела в видео</h3>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек.
-      </p>
-      
-      <video id="lieVideoPlayer" class="video-player" preload="metadata">
-        <source src="../video/dopros1.mp4" type="video/mp4">
-        Ваш браузер не поддерживает видео.
-      </video>
-      
-      <div class="video-controls">
-        <button class="play-btn" id="playBtn">▶️</button>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </div>
-      
-      <div class="video-annotation">
-        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше.
-      </div>
-      
-      <div class="attempts-counter">
-        <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="lieAttemptsDots">
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-        </div>
-      </div>
-      
-      <div class="answer-options" id="lieOptions">
         <!-- Варианты ответов будут добавлены динамически -->
       </div>
     </div>
@@ -733,71 +733,40 @@
   <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ ---
     const LIE_VIDEO_DATA = {
-      'dopros1.mp4': 'сепарирование (уход) от вопроса',
-      'dopros2.mp4': 'легкое нахмуривание',
-      'dopros3.mp4': 'поджатие губ',
-      'dopros4.mp4': 'учищенное моргание',
-      'dopros5.mp4': 'поджатие губ',
-      'dopros6.mp4': 'сепарирование (уход) от вопроса',
-      'dopros7.mp4': 'легкое нахмуривание',
-      'dopros8.mp4': 'поджатие губ'
+        'dopros1.mp4': 'сепарирование (уход) от вопроса',
+        'dopros2.mp4': 'легкое нахмуривание',
+        'dopros3.mp4': 'поджатие губ',
+        'dopros4.mp4': 'учищенное моргание',
+        'dopros5.mp4': 'поджатие губ',
+        'dopros6.mp4': 'сепарирование (уход) от вопроса',
+        'dopros7.mp4': 'легкое нахмуривание',
+        'dopros8.mp4': 'поджатие губ'
     };
-
     const LIE_OPTIONS = [
-      'Поджатие губ',
-      'Учищенное моргание',
-      'Легкое нахмуривание',
-      'Легкое прикосновение лица (подбородка, носа, вески)',
-      'Покачивание головы в строну',
-      'Сепарирование (уход) от вопроса',
-      'Отбрасывание головы назад',
-      'Движение суставами (дергание ногой или кистью)',
-      'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
-      'Вскидывание взгляда вверх',
-      'Быстрое облизывание губ',
-      'Сглатывание',
-      'Напряжение челюсти'
+        'Поджатие губ', 'Учищенное моргание', 'Легкое нахмуривание', 
+        'Легкое прикосновение лица (подбородка, носа, вески)', 'Покачивание головы в строну',
+        'Сепарирование (уход) от вопроса', 'Отбрасывание головы назад',
+        'Движение суставами (дергание ногой или кистью)',
+        'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
+        'Вскидывание взгляда вверх', 'Быстрое облизывание губ', 'Сглатывание', 'Напряжение челюсти'
     ];
 
-    // Данные для видео эмоций
     const EMOTION_VIDEO_DATA = {
-      'rf_01_skepticism.mp4': 'Скептицизм',
-      'rf_02_anger.mp4': 'Гнев',
-      'rf_03_anxiety.mp4': 'Тревога',
-      'rf_04_determination.mp4': 'Решительность',
-      'rf_04_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
-      'rf_05_dominance.mp4': 'Доминирование',
-      'rf_06_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание',
-      'rf_07_high-self-esteem.mp4': 'Высокая самооценка',
-      'rf_08_submission.mp4': 'Подчинение',
-      'rf_09_surprise.mp4': 'Удивление',
-      'rf_10_contempt.mp4': 'Презрение',
-      'rf_11_thoughtfulness.mp4': 'Задумчивость',
-      'rf_12_skepticism.mp4': 'Скептицизм',
-      'rf_13_anger.mp4': 'Гнев',
-      'rf_14_anxiety.mp4': 'Тревога',
-      'rf_15_determination.mp4': 'Решительность',
-      'rf_16_dominance.mp4': 'Доминирование',
-      'rf_17_fear.mp4': 'Страх',
-      'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
-      'rf_19_contempt.mp4': 'Презрение',
-      'rf_19_submission.mp4': 'Подчинение',
-      'rf_20_surprise.mp4': 'Удивление'
+        'rf_01_skepticism.mp4': 'Скептицизм', 'rf_02_anger.mp4': 'Гнев',
+        'rf_03_anxiety.mp4': 'Тревога', 'rf_04_determination.mp4': 'Решительность',
+        'rf_04_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание', 'rf_05_dominance.mp4': 'Доминирование',
+        'rf_06_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание', 'rf_07_high-self-esteem.mp4': 'Высокая самооценка',
+        'rf_08_submission.mp4': 'Подчинение', 'rf_09_surprise.mp4': 'Удивление',
+        'rf_10_contempt.mp4': 'Презрение', 'rf_11_thoughtfulness.mp4': 'Задумчивость',
+        'rf_12_skepticism.mp4': 'Скептицизм', 'rf_13_anger.mp4': 'Гнев', 'rf_14_anxiety.mp4': 'Тревога',
+        'rf_15_determination.mp4': 'Решительность', 'rf_16_dominance.mp4': 'Доминирование',
+        'rf_17_fear.mp4': 'Страх', 'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
+        'rf_19_contempt.mp4': 'Презрение', 'rf_19_submission.mp4': 'Подчинение',
+        'rf_20_surprise.mp4': 'Удивление'
     };
-
     const EMOTION_OPTIONS = [
-      'Скептицизм',
-      'Гнев',
-      'Тревога',
-      'Решительность',
-      'Страх-Удивление-Отрицание',
-      'Доминирование',
-      'Высокая самооценка',
-      'Подчинение',
-      'Удивление',
-      'Презрение',
-      'Задумчивость',
-      'Страх'
+        'Скептицизм', 'Гнев', 'Тревога', 'Решительность', 'Страх-Удивление-Отрицание', 'Доминирование',
+        'Высокая самооценка', 'Подчинение', 'Удивление', 'Презрение', 'Задумчивость', 'Страх'
     ];
     
     // Этап 3: Поймай сигнал
@@ -869,9 +838,9 @@
     document.addEventListener('DOMContentLoaded', init);
 
     function init() {
-      setupEventListeners();
-      loadPhase(gameState.currentPhase);
-      document.getElementById('resultModalButton').addEventListener('click', () => {
+        setupEventListeners();
+        loadPhase(gameState.currentPhase);
+        document.getElementById('resultModalButton').addEventListener('click', () => {
         const modal = document.getElementById('resultModal');
         if (modal.callback) {
             modal.callback();
@@ -879,44 +848,40 @@
         modal.classList.remove('show');
       });
     }
-    
+
     function setupEventListeners() {
-      // Управление видео
-      const video = document.getElementById('lieVideoPlayer');
-      const playBtn = document.getElementById('playBtn');
-      const progressFill = document.getElementById('progressFill');
+        const lieVideo = document.getElementById('lieVideoPlayer');
+        const liePlayBtn = document.getElementById('liePlayBtn');
+        const lieProgressFill = document.getElementById('lieProgressFill');
 
-      playBtn.addEventListener('click', () => {
-        if (video.paused) {
-          video.play();
-          playBtn.textContent = '⏸️';
-        } else {
-          video.pause();
-          playBtn.textContent = '▶️';
-        }
-      });
+        liePlayBtn.addEventListener('click', () => {
+            if (lieVideo.paused) {
+                lieVideo.play();
+                liePlayBtn.textContent = '⏸️';
+            } else {
+                lieVideo.pause();
+                liePlayBtn.textContent = '▶️';
+            }
+        });
 
-      video.addEventListener('timeupdate', () => {
-        const progress = (video.currentTime / video.duration) * 100;
-        progressFill.style.width = progress + '%';
-      });
+        lieVideo.addEventListener('timeupdate', () => {
+            const progress = (lieVideo.currentTime / lieVideo.duration) * 100;
+            lieProgressFill.style.width = `${progress}%`;
+        });
 
-      video.addEventListener('ended', () => {
-        playBtn.textContent = '▶️';
-      });
-      
-      // Этап 3
-      document.getElementById('mannequinContainer').addEventListener('click', handleMannequinTap);
-      document.getElementById('evaluateFaceBtn').addEventListener('click', handleFaceEvaluation);
-      document.getElementById('checkDistanceBtn').addEventListener('click', handleDistanceCheck);
+        lieVideo.addEventListener('ended', () => {
+            liePlayBtn.textContent = '▶️';
+        });
+        
+        document.getElementById('mannequinContainer').addEventListener('click', handleMannequinTap);
+        document.getElementById('evaluateFaceBtn').addEventListener('click', handleFaceEvaluation);
+        document.getElementById('checkDistanceBtn').addEventListener('click', handleDistanceCheck);
     }
     
-    // --- УПРАВЛЕНИЕ ФАЗАМИ КВЕСТА ---
-    
+    // --- УПРАВЛЕНИЕ ФАЗАМИ ---
     function loadPhase(phase) {
-        // Скрываем все фазы
-        document.getElementById('emotion-detection-phase').style.display = 'none';
         document.getElementById('lie-detection-phase').style.display = 'none';
+        document.getElementById('emotion-detection-phase').style.display = 'none';
         document.getElementById('signal-catch-phase').style.display = 'none';
         document.getElementById('face-build-phase').style.display = 'none';
         document.getElementById('distance-compass-phase').style.display = 'none';
@@ -924,71 +889,174 @@
         updatePhaseIndicator();
 
         switch(phase) {
-            case 1: loadEmotionPhase(); break;
-            case 2: loadLiePhase(); break;
+            case 1: loadLiePhase(); break;
+            case 2: loadEmotionPhase(); break;
             case 3: loadSignalCatchPhase(); break;
             case 4: loadFaceBuildPhase(); break;
             case 5: loadDistanceCompassPhase(); break;
             default: completeQuest();
         }
     }
-    
-    function nextPhase() {
-      gameState.currentPhase++;
-      loadPhase(gameState.currentPhase);
-    }
 
-    // Загрузка фазы 1: Эмоции
-    function loadEmotionPhase() {
-      updatePhaseIndicator();
-      
-      // Выбираем случайное видео эмоции
-      const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
-      const currentEmotionVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-      
-      // Настраиваем видео
-      const video = document.getElementById('emotionVideoPlayer');
-      video.src = `../assets/videos/${currentEmotionVideo}`;
-      video.load();
-      
-      // Автовоспроизведение
-      video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
-      
-      // Сбрасываем попытки
-      gameState.emotionAttempts = 0;
-      updateAttemptsDisplay('emotion');
-      
-      // Создаем варианты ответов
-      createEmotionOptions();
-      
-      // Показываем фазу
-      document.getElementById('emotion-detection-phase').style.display = 'block';
-    }
+    function nextPhase() { gameState.currentPhase++; loadPhase(gameState.currentPhase); }
 
-    // Загрузка фазы 2: Ложь
+    // --- ФАЗА 1: ЛОЖЬ ---
     function loadLiePhase() {
-      updatePhaseIndicator();
-      
-      // Выбираем случайное видео
-      const videoFiles = Object.keys(LIE_VIDEO_DATA);
-      const currentLieVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-      
-      const video = document.getElementById('lieVideoPlayer');
-      video.src = `../video/${currentLieVideo}`;
-      video.load();
-      
-      // Сбрасываем попытки
-      gameState.lieAttempts = 0;
-      updateAttemptsDisplay('lie');
-      
-      // Создаем варианты ответов
-      createLieOptions();
-      
-      // Показываем фазу
-      document.getElementById('lie-detection-phase').style.display = 'block';
+        document.getElementById('lie-detection-phase').style.display = 'block';
+
+        const videoFiles = Object.keys(LIE_VIDEO_DATA);
+        const currentVideoFile = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+        
+        const video = document.getElementById('lieVideoPlayer');
+        video.src = `../video/${currentVideoFile}`;
+        video.dataset.correctAnswer = LIE_VIDEO_DATA[currentVideoFile];
+        video.load();
+        
+        gameState.lieAttempts = 0;
+        updateAttemptsDisplay('lie');
+        createLieOptions();
     }
 
-    // Реализация фазы 3: Поймай сигнал
+    function createLieOptions() {
+        const video = document.getElementById('lieVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const options = new Set([correctAnswer]);
+
+        while (options.size < 5) {
+            const randomOption = LIE_OPTIONS[Math.floor(Math.random() * LIE_OPTIONS.length)];
+            options.add(randomOption);
+        }
+        
+        const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+        
+        const container = document.getElementById('lieOptions');
+        container.innerHTML = '';
+        
+        shuffledOptions.forEach(optionText => {
+            const button = document.createElement('button');
+            button.className = 'answer-option';
+            button.textContent = optionText;
+            button.onclick = () => handleLieAnswer(optionText, button);
+            container.appendChild(button);
+        });
+    }
+
+    function handleLieAnswer(answer, button) {
+        const video = document.getElementById('lieVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const allButtons = document.querySelectorAll('#lieOptions .answer-option');
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (answer === correctAnswer) {
+            button.classList.add('correct');
+            hapticFeedback('light');
+            setTimeout(nextPhase, 2000);
+        } else {
+            button.classList.add('incorrect');
+            hapticFeedback('error');
+            gameState.lieAttempts++;
+            updateAttemptsDisplay('lie');
+            
+            // Показать правильный ответ
+            allButtons.forEach(btn => {
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (gameState.lieAttempts >= 3) {
+                setTimeout(loadLiePhase, 2000); // Новое видео после 3 промахов
+            } else {
+                 setTimeout(() => { // Новые варианты для того же видео
+                    allButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('correct', 'incorrect');
+                    });
+                    createLieOptions();
+                }, 2000);
+            }
+        }
+    }
+
+    // --- ФАЗА 2: ЭМОЦИИ ---
+    function loadEmotionPhase() {
+        document.getElementById('emotion-detection-phase').style.display = 'block';
+        
+        const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
+        const currentVideoFile = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+        
+        const video = document.getElementById('emotionVideoPlayer');
+        video.src = `../assets/videos/${currentVideoFile}`;
+        video.dataset.correctAnswer = EMOTION_VIDEO_DATA[currentVideoFile];
+        video.load();
+        video.play().catch(e => {});
+
+        gameState.emotionAttempts = 0;
+        updateAttemptsDisplay('emotion');
+        createEmotionOptions();
+    }
+    
+    function createEmotionOptions() {
+        const video = document.getElementById('emotionVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const options = new Set([correctAnswer]);
+
+        while (options.size < 4) {
+            const randomOption = EMOTION_OPTIONS[Math.floor(Math.random() * EMOTION_OPTIONS.length)];
+            options.add(randomOption);
+        }
+
+        const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+        
+        const container = document.getElementById('emotionOptions');
+        container.innerHTML = '';
+        
+        shuffledOptions.forEach(optionText => {
+            const button = document.createElement('button');
+            button.className = 'answer-option';
+            button.textContent = optionText;
+            button.onclick = () => handleEmotionAnswer(optionText, button);
+            container.appendChild(button);
+        });
+    }
+
+    function handleEmotionAnswer(answer, button) {
+        const video = document.getElementById('emotionVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const allButtons = document.querySelectorAll('#emotionOptions .answer-option');
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (answer === correctAnswer) {
+            button.classList.add('correct');
+            hapticFeedback('light');
+            setTimeout(nextPhase, 2000);
+        } else {
+            button.classList.add('incorrect');
+            hapticFeedback('error');
+            gameState.emotionAttempts++;
+            updateAttemptsDisplay('emotion');
+
+            allButtons.forEach(btn => {
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (gameState.emotionAttempts >= 3) {
+                setTimeout(loadEmotionPhase, 2000);
+            } else {
+                setTimeout(() => {
+                    allButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('correct', 'incorrect');
+                    });
+                    createEmotionOptions();
+                }, 2000);
+            }
+        }
+    }
+
+    // --- ФАЗА 3: ПОЙМАЙ СИГНАЛ ---
     function loadSignalCatchPhase() {
       document.getElementById('signal-catch-phase').style.display = 'flex';
       startSignalGame();
@@ -1234,119 +1302,132 @@
         }
 
         gameState.acquiredBadges.add('Навигатор дистанции');
-        showPhaseResult("Дистанция оценена!", `Ваш результат: ${score}`, nextPhase);
+        showPhaseResult("Дистанция оценена!", `Ваш результат: ${Math.round(score)}%`, nextPhase);
     }
 
     // --- ЛОГИКА ОТВЕТОВ ---
 
     // Создание вариантов ответов для лжи
     function createLieOptions() {
-      const correctAnswer = LIE_VIDEO_DATA[currentLieVideo];
-      const options = [correctAnswer];
-      
-      const availableOptions = LIE_OPTIONS.filter(opt => opt !== correctAnswer);
-      for (let i = 0; i < 4; i++) {
-        if (availableOptions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableOptions.length);
-          options.push(availableOptions.splice(randomIndex, 1)[0]);
-        }
+      const video = document.getElementById('lieVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const options = new Set([correctAnswer]);
+
+      while (options.size < 5) {
+        const randomOption = LIE_OPTIONS[Math.floor(Math.random() * LIE_OPTIONS.length)];
+        options.add(randomOption);
       }
       
-      options.sort(() => Math.random() - 0.5);
+      const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
       
       const container = document.getElementById('lieOptions');
       container.innerHTML = '';
       
-      options.forEach(option => {
+      shuffledOptions.forEach(optionText => {
         const button = document.createElement('button');
         button.className = 'answer-option';
-        button.textContent = option;
-        button.onclick = () => handleLieAnswer(option);
+        button.textContent = optionText;
+        button.onclick = () => handleLieAnswer(optionText, button);
         container.appendChild(button);
       });
     }
 
     // Создание вариантов ответов для эмоций
     function createEmotionOptions() {
-      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
-      const options = [correctAnswer];
-      
-      const availableOptions = EMOTION_OPTIONS.filter(opt => opt !== correctAnswer);
-      for (let i = 0; i < 3; i++) {
-        if (availableOptions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * availableOptions.length);
-          options.push(availableOptions.splice(randomIndex, 1)[0]);
-        }
+      const video = document.getElementById('emotionVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const options = new Set([correctAnswer]);
+
+      while (options.size < 4) {
+        const randomOption = EMOTION_OPTIONS[Math.floor(Math.random() * EMOTION_OPTIONS.length)];
+        options.add(randomOption);
       }
       
-      options.sort(() => Math.random() - 0.5);
+      const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
       
       const container = document.getElementById('emotionOptions');
       container.innerHTML = '';
       
-      options.forEach(option => {
+      shuffledOptions.forEach(optionText => {
         const button = document.createElement('button');
         button.className = 'answer-option';
-        button.textContent = option;
-        button.onclick = () => handleEmotionAnswer(option);
+        button.textContent = optionText;
+        button.onclick = () => handleEmotionAnswer(optionText, button);
         container.appendChild(button);
       });
     }
 
     // Обработка ответа на ложь
-    function handleLieAnswer(answer) {
-      const correctAnswer = LIE_VIDEO_DATA[currentLieVideo];
-      const buttons = document.querySelectorAll('#lieOptions .answer-option');
-      
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === correctAnswer) {
-          btn.classList.add('correct');
-        } else if (btn.textContent === answer && answer !== correctAnswer) {
-          btn.classList.add('incorrect');
-        }
-      });
-      
+    function handleLieAnswer(answer, button) {
+      const video = document.getElementById('lieVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const allButtons = document.querySelectorAll('#lieOptions .answer-option');
+      allButtons.forEach(btn => btn.disabled = true);
+
       if (answer === correctAnswer) {
+        button.classList.add('correct');
+        hapticFeedback('light');
         setTimeout(nextPhase, 2000);
       } else {
+        button.classList.add('incorrect');
+        hapticFeedback('error');
         gameState.lieAttempts++;
         updateAttemptsDisplay('lie');
         
+        // Показать правильный ответ
+        allButtons.forEach(btn => {
+          if (btn.textContent === correctAnswer) {
+            btn.classList.add('correct');
+          }
+        });
+
         if (gameState.lieAttempts >= 3) {
-          setTimeout(loadLiePhase, 2000); // Загружаем новое видео
+          setTimeout(loadLiePhase, 2000); // Новое видео после 3 промахов
         } else {
-          setTimeout(() => {
-            createLieOptions(); // Меняем варианты
+          setTimeout(() => { // Новые варианты для того же видео
+            allButtons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+            createLieOptions();
           }, 2000);
         }
       }
     }
 
     // Обработка ответа на эмоции
-    function handleEmotionAnswer(answer) {
-      const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
-      const buttons = document.querySelectorAll('#emotionOptions .answer-option');
-      
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === correctAnswer) {
-          btn.classList.add('correct');
-        } else if (btn.textContent === answer && answer !== correctAnswer) {
-          btn.classList.add('incorrect');
-        }
-      });
-      
+    function handleEmotionAnswer(answer, button) {
+      const video = document.getElementById('emotionVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const allButtons = document.querySelectorAll('#emotionOptions .answer-option');
+      allButtons.forEach(btn => btn.disabled = true);
+
       if (answer === correctAnswer) {
+        button.classList.add('correct');
+        hapticFeedback('light');
         setTimeout(nextPhase, 2000);
       } else {
+        button.classList.add('incorrect');
+        hapticFeedback('error');
         gameState.emotionAttempts++;
         updateAttemptsDisplay('emotion');
-        
+
+        allButtons.forEach(btn => {
+          if (btn.textContent === correctAnswer) {
+            btn.classList.add('correct');
+          }
+        });
+
         if (gameState.emotionAttempts >= 3) {
-          setTimeout(loadEmotionPhase, 2000); // Загружаем новое видео
+          setTimeout(loadEmotionPhase, 2000);
         } else {
-          setTimeout(createEmotionOptions, 2000); // Меняем варианты
+          setTimeout(() => {
+            allButtons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+            createEmotionOptions();
+          }, 2000);
         }
       }
     }
@@ -1494,7 +1575,7 @@
         const score = Math.max(0, Math.round(similarity * 100));
 
         gameState.acquiredBadges.add('Скульптор эмоций');
-        showPhaseResult("Лицо оценено!", `Сходство: ${score}%`, nextPhase);
+        showPhaseResult("Лицо оценено!", `Сходство: ${score}%.`, nextPhase);
     }
 
     // --- ФАЗА 5: КОМПАС ДИСТАНЦИИ ---
@@ -1534,7 +1615,7 @@
         }
 
         gameState.acquiredBadges.add('Навигатор дистанции');
-        showPhaseResult("Дистанция оценена!", `Ваш результат: ${score}`, nextPhase);
+        showPhaseResult("Дистанция оценена!", `Ваш результат: ${Math.round(score)}%`, nextPhase);
     }
 
     // --- УТИЛИТЫ ---
@@ -1558,58 +1639,72 @@
     
     function makeDraggable(element) {
         let isDragging = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
+        let startX, startY, initialX, initialY;
 
         const stage = element.parentElement;
-        stage.addEventListener('mousedown', dragStart);
-        stage.addEventListener('mousemove', drag);
+
+        stage.addEventListener('mousedown', dragStart, {passive: false});
+        stage.addEventListener('touchstart', dragStart, {passive: false});
+
+        stage.addEventListener('mousemove', drag, {passive: false});
+        stage.addEventListener('touchmove', drag, {passive: false});
+
         stage.addEventListener('mouseup', dragEnd);
+        stage.addEventListener('touchend', dragEnd);
         stage.addEventListener('mouseleave', dragEnd);
         
         function dragStart(e) {
             if (e.target === element) {
+                e.preventDefault();
                 isDragging = true;
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
+                
+                if (e.type === 'touchstart') {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+
+                const computedStyle = window.getComputedStyle(element);
+                const transform = computedStyle.getPropertyValue('transform');
+                if (transform && transform !== 'none') {
+                    const matrix = new DOMMatrix(transform);
+                    initialX = matrix.m41;
+                    initialY = matrix.m42;
+                } else {
+                    initialX = 0;
+                    initialY = 0;
+                }
+                
+                element.style.cursor = 'grabbing';
             }
         }
-
+        
         function drag(e) {
             if (isDragging) {
                 e.preventDefault();
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
+                let currentX, currentY;
+                if (e.type === 'touchmove') {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                } else {
+                    currentX = e.clientX;
+                    currentY = e.clientY;
+                }
 
-                xOffset = currentX;
-                yOffset = currentY;
-
-                setTranslate(currentX, currentY, element);
+                const dx = currentX - startX;
+                const dy = currentY - startY;
+                
+                element.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px)`;
             }
         }
 
-        function dragEnd() {
-            isDragging = false;
-        }
-
-        function setTranslate(xPos, yPos, el) {
-            // Ограничиваем перемещение границами родительского элемента
-            const parentRect = el.parentElement.getBoundingClientRect();
-            const elRect = el.getBoundingClientRect();
-            
-            const minX = -elRect.width / 2;
-            const maxX = parentRect.width - elRect.width / 2;
-            const minY = -elRect.height / 2;
-            const maxY = parentRect.height - elRect.height/2;
-
-            // xPos = Math.max(minX, Math.min(xPos, maxX));
-            // yPos = Math.max(minY, Math.min(yPos, maxY));
-            
-            el.style.transform = `translate(${xPos}px, ${yPos}px)`;
+        function dragEnd(e) {
+            if(isDragging) {
+                isDragging = false;
+                element.style.cursor = 'grab';
+            }
         }
     }
     
@@ -1662,6 +1757,8 @@
                     if (callback) callback();
                 }
             }, 2000);
+        } else {
+            document.getElementById('resultModalButton').style.display = 'block';
         }
     }
 
