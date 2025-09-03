@@ -671,7 +671,7 @@ body::after {
 }
 
 .product-card.active .product-card-hidden {
-  max-height: 800px; /* Увеличиваем для нового контента */
+  max-height: 600px; /* Увеличиваем для нового контента */
   opacity: 1;
   margin-top: 24px;
 }
@@ -696,29 +696,17 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  }
-  
-/* Восстанавливаем рамки для всех товаров */
+}
+
 .modal-features li {
   background: rgba(138, 127, 255, 0.05);
   border: 1px solid rgba(138, 127, 255, 0.1);
   padding: 12px 16px;
   border-radius: 10px;
   transition: all 0.3s ease;
-  margin-bottom: 8px;
-}
-
-.modal-features li:hover {
-  background: rgba(138, 127, 255, 0.1);
-  border-color: rgba(138, 127, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-/* Анимация для уникального дизайна "Психотипов" */
-@keyframes bg-pan-unique {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  transform: translateX(20px);
+  opacity: 0;
+  animation: feature-fade-in 0.5s forwards;
 }
 
 .product-card.active .modal-features li:nth-child(1) { animation-delay: 0.2s; }
@@ -728,7 +716,7 @@ body::after {
 @keyframes feature-fade-in {
   to {
     transform: translateX(0);
-  opacity: 1;
+    opacity: 1;
   }
 }
 
@@ -743,76 +731,22 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center; /* Центрируем кнопки */
-    gap: 12px;
+  gap: 12px;
   width: 100%;
 }
 
-.payment-button {
-    padding: 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 16px;
-  width: 100%;
+[data-product-id="psychotypes-full"] .modal-payment-options {
+  margin-top: 20px; /* Добавляем отступ сверху */
 }
 
-.payment-button:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-/* Главная кнопка - Карта/СБП */
-.payment-button.primary {
+.payment-button.payment-button-stars {
   background: var(--gradient-button);
   border: none;
-  color: var(--text-primary);
   box-shadow: 0 5px 20px rgba(138, 127, 255, 0.3);
 }
 
-.payment-button.primary:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-  box-shadow: 0 8px 30px rgba(138, 127, 255, 0.4);
-}
-
-/* Обычная кнопка - оплата звездами */
-.payment-button.payment-button-stars {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  box-shadow: none;
-}
-
-.payment-button.payment-button-stars:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-  transform: none;
-  filter: none;
-}
-
-/* Уникальный дизайн для кнопки "Психотипы" */
-[data-product-id="psychotypes-full"] .payment-button.primary {
+[data-product-id="psychotypes-full"] .payment-button.payment-button-stars {
   background: linear-gradient(135deg, #ff00ff, #ffae00);
-}
-
-/* Улучшенный дизайн для описания "Психотипов" */
-[data-product-id="psychotypes-full"] .modal-features li {
-  border-color: transparent;
-  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
-              linear-gradient(135deg, #ff00ff, #ffae00, #8A7FFF) border-box;
-  background-size: 200% 200%;
-  animation: bg-pan-unique 4s linear infinite;
-}
-
-[data-product-id="psychotypes-full"] .modal-features li strong {
-  background: linear-gradient(135deg, #ff00ff, #ffae00);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* --- Уникальный дизайн флагманов --- */
@@ -876,7 +810,7 @@ body::after {
   background: var(--accent-primary);
   color: var(--bg-primary);
   padding: 5px 12px;
-    font-size: 12px;
+  font-size: 12px;
   font-weight: 700;
   border-radius: 0 8px 8px 0;
   box-shadow: 0 4px 10px rgba(138, 127, 255, 0.3);
@@ -931,7 +865,7 @@ body::after {
   position: fixed;
   top: 0;
   left: 0;
-    width: 100%;
+  width: 100%;
   height: 100%;
   background: rgba(2, 0, 16, 0.9);
   backdrop-filter: blur(15px);
@@ -1033,17 +967,8 @@ body::after {
 }
 
 .payment-button.payment-button-stars {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  box-shadow: none;
-}
-
-.payment-button.payment-button-stars:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-  transform: none;
-  filter: none;
+  background: var(--gradient-button);
+  border: none;
 }
 
 /* --- PDF Viewer --- */
@@ -1057,7 +982,7 @@ body::after {
   backdrop-filter: blur(10px);
   z-index: 1002;
   display: flex;
-    align-items: center;
+  align-items: center;
   justify-content: center;
   opacity: 1;
   transition: opacity 0.3s ease;
@@ -1076,14 +1001,14 @@ body::after {
   border-radius: 16px;
   border: 1px solid var(--border-color);
   display: flex;
-    flex-direction: column;
+  flex-direction: column;
   overflow: hidden;
   box-shadow: 0 10px 50px rgba(0,0,0,0.5);
 }
 
 .pdf-viewer-header {
   display: flex;
-    justify-content: space-between;
+  justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border-color);
@@ -1177,274 +1102,5 @@ body::after {
   
   .quests-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-/* --- Информационные блоки внизу страницы --- */
-.info-section {
-  margin-top: 60px;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, rgba(138, 127, 255, 0.05), rgba(255, 0, 255, 0.05));
-  border-top: 1px solid var(--border-color);
-}
-
-.info-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  max-width: 100%;
-  margin: 0 auto;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.info-button {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  min-width: 120px;
-  flex: 0 1 auto;
-}
-
-.info-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(138, 127, 255, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.info-button:hover::before {
-  left: 100%;
-}
-
-.info-button:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-  background: rgba(138, 127, 255, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(138, 127, 255, 0.15);
-}
-
-/* Модальные окна */
-.info-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.info-modal-overlay.hidden {
-  display: none;
-}
-
-.info-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  width: 90vw;
-  max-width: 800px;
-  height: 80vh;
-  max-height: 600px;
-  overflow: hidden;
-  z-index: 1001;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-
-.info-modal.hidden {
-  display: none;
-}
-
-.info-modal-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.info-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(135deg, rgba(138, 127, 255, 0.1), rgba(255, 0, 255, 0.1));
-  flex-shrink: 0;
-}
-
-.info-modal-header h3 {
-  margin: 0;
-  color: var(--text-primary);
-    font-size: 20px;
-  font-weight: 700;
-}
-
-.info-modal-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.info-modal-close:hover {
-  background: rgba(138, 127, 255, 0.1);
-  color: var(--text-primary);
-}
-
-.info-modal-body {
-  padding: 24px;
-  overflow-y: auto;
-  flex: 1;
-  height: 100%;
-}
-
-.info-modal-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.info-modal-body::-webkit-scrollbar-track {
-  background: rgba(138, 127, 255, 0.1);
-  border-radius: 4px;
-}
-
-.info-modal-body::-webkit-scrollbar-thumb {
-  background: rgba(138, 127, 255, 0.3);
-  border-radius: 4px;
-}
-
-.info-modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(138, 127, 255, 0.5);
-}
-
-.info-modal-body p {
-  margin: 0 0 16px 0;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.info-modal-body h4 {
-  margin: 24px 0 12px 0;
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.info-modal-body h4:first-child {
-  margin-top: 0;
-}
-
-.info-modal-body ul {
-  margin: 16px 0;
-  padding-left: 20px;
-}
-
-.info-modal-body li {
-  margin-bottom: 8px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.info-modal-body strong {
-  color: var(--text-primary);
-}
-
-/* Контакты */
-.contact-item {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: rgba(138, 127, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(138, 127, 255, 0.1);
-}
-
-.contact-item a {
-  color: var(--accent-primary);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.contact-item a:hover {
-  color: var(--text-primary);
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-  .info-section {
-    padding: 30px 16px;
-    margin-top: 40px;
-  }
-  
-  .info-buttons {
-    gap: 12px;
-    flex-direction: column;
-  }
-  
-  .info-button {
-    padding: 14px 20px;
-    font-size: 15px;
-    min-width: auto;
-    width: 100%;
-  }
-  
-  .info-modal {
-    width: 95vw;
-    height: 90vh;
-    max-width: none;
-    max-height: none;
-  }
-  
-  .info-modal-header {
-    padding: 16px 20px;
-  }
-  
-  .info-modal-header h3 {
-    font-size: 18px;
-  }
-  
-  .info-modal-body {
-    padding: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .info-buttons {
-    gap: 8px;
-  }
-  
-  .info-button {
-    padding: 12px 16px;
-    font-size: 14px;
   }
 }

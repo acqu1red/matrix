@@ -1,7 +1,5 @@
-fastapi
-uvicorn[standard]
-httpx
-python-telegram-bot
-supabase
-pytz
+flask
+flask-cors
 requests
+python-telegram-bot
+pytz

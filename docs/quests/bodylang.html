@@ -26,14 +26,15 @@
       display: flex;
       justify-content: center;
       margin-bottom: 30px;
+      gap: 8px; /* Добавим небольшой отступ */
     }
 
     .phase-badge {
       background: var(--glass);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 8px 16px;
-      font-size: 14px;
+      padding: 8px 12px; /* Немного изменим паддинг */
+      font-size: 12px; /* Уменьшим шрифт для 5 этапов */
       color: var(--text-muted);
     }
 
@@ -351,24 +352,261 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Стили для новых этапов */
+
+    /* Этап 3: Поймай сигнал */
+    .signal-catch-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+      height: 500px; /* Фиксированная высота для стабильности */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .signal-timer-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--glass-strong);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .signal-timer-fill {
+      width: 100%;
+      height: 100%;
+      background: var(--glow1);
+      transition: width 1s linear;
+    }
+    
+    .mannequin-container {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mannequin-svg {
+      width: 200px;
+      height: 300px;
+    }
+
+    .mannequin-svg path, .mannequin-svg circle {
+      stroke: var(--text);
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .signal-hints {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .signal-hint-badge {
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    
+    /* Этап 4: Собери лицо */
+    .face-build-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .face-build-svg {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+      display: block;
+    }
+
+    .face-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 20px;
+    }
+    .control-group {
+      text-align: left;
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+    .control-group input[type="range"] {
+      width: 100%;
+    }
+
+    /* Этап 5: Компас дистанции */
+    .distance-compass-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .proxemics-stage {
+      width: 100%;
+      height: 400px;
+      background: var(--glass-strong);
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+    }
+    
+    .proxemics-zone {
+      position: absolute;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px dashed var(--border);
+    }
+    .proxemics-avatar {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg0);
+      font-weight: bold;
+      user-select: none;
+    }
+    .avatar-user {
+      background: var(--glow1);
+      cursor: grab;
+    }
+    .avatar-npc {
+      background: var(--text-muted);
+    }
+    
+    /* Custom Modal for results */
+    .result-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(2, 0, 16, 0.9);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .result-modal-overlay.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+    .result-modal {
+        background: var(--bg-card);
+        padding: 30px;
+        border-radius: var(--radius);
+        text-align: center;
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    .result-modal-overlay.show .result-modal {
+        transform: scale(1);
+    }
+    .result-modal-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--glow1);
+    }
+    .result-modal-text {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+    .result-modal-button {
+        background: var(--glow1);
+        color: var(--bg0);
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 12px 24px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .result-modal-choices {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="quest-container">
     <!-- Индикатор фазы -->
     <div class="phase-indicator">
-      <div class="phase-badge" id="phase1Badge">Фаза 1: Видео допрос</div>
-      <div class="phase-badge" id="phase2Badge">Фаза 2: Анализ лица</div>
+      <div class="phase-badge" id="phase1Badge">Этап 1: Эмоции</div>
+      <div class="phase-badge" id="phase2Badge">Этап 2: Ложь</div>
+      <div class="phase-badge" id="phase3Badge">Этап 3: Сигналы</div>
+      <div class="phase-badge" id="phase4Badge">Этап 4: Лицо</div>
+      <div class="phase-badge" id="phase5Badge">Этап 5: Дистанция</div>
     </div>
 
-    <!-- Фаза 1: Видео допрос -->
-    <div id="videoPhase" class="video-container">
-      <h3>Анализ языка тела в видео</h3>
+    <!-- Этап 1: Анализ эмоций (бывшая Фаза 2) -->
+    <div id="emotion-detection-phase" class="video-container">
+      <h3>Анализ эмоций</h3>
       <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек
+        Посмотрите видео и определите эмоцию персонажа.
       </p>
       
-      <video id="videoPlayer" class="video-player" preload="metadata">
+      <div class="video-frame">
+        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+          <source src="" type="video/mp4">
+          Ваш браузер не поддерживает видео.
+        </video>
+      </div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="emotionAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
+      </div>
+      
+      <div class="answer-options" id="emotionOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
+
+    <!-- Этап 2: Видео допрос (бывшая Фаза 1) -->
+    <div id="lie-detection-phase" class="video-container" style="display: none;">
+      <h3>Анализ языка тела в видео</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек.
+      </p>
+      
+      <video id="lieVideoPlayer" class="video-player" preload="metadata">
         <source src="../video/dopros1.mp4" type="video/mp4">
         Ваш браузер не поддерживает видео.
       </video>
@@ -381,87 +619,120 @@
       </div>
       
       <div class="video-annotation">
-        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше 
-        (это работает и как это замечать, как использовать и тд) - научишься определять язык тела 
-        так, что за секунду начнешь понимать.
+        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше.
       </div>
       
       <div class="attempts-counter">
         <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="videoAttemptsDots">
+        <div class="attempts-dots" id="lieAttemptsDots">
           <div class="attempt-dot"></div>
           <div class="attempt-dot"></div>
           <div class="attempt-dot"></div>
         </div>
       </div>
       
-      <div class="answer-options" id="videoOptions">
+      <div class="answer-options" id="lieOptions">
         <!-- Варианты ответов будут добавлены динамически -->
       </div>
     </div>
 
-    <!-- Фаза 2: Анализ эмоций -->
-    <div id="facePhase" class="video-container" style="display: none;">
-      <h3>Анализ эмоций</h3>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        Посмотрите видео и определите эмоцию персонажа
-      </p>
-      
-      <div class="video-frame">
-        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
-          <source src="" type="video/mp4">
-          Ваш браузер не поддерживает видео.
-        </video>
+    <!-- Этап 3: Поймай сигнал -->
+    <div id="signal-catch-phase" class="signal-catch-container" style="display: none;">
+      <h3>Этап 3: Поймай сигнал</h3>
+      <p>Лови момент! Увидел необычное движение — тапни. После — назови сигнал.</p>
+      <div class="signal-timer-bar"><div class="signal-timer-fill"></div></div>
+      <div class="mannequin-container" id="mannequinContainer">
+        <svg id="mannequinSvg" class="mannequin-svg" viewBox="0 0 200 300">
+            <!-- Голова -->
+            <circle id="head" cx="100" cy="40" r="20"/>
+            <!-- Тело -->
+            <path id="torso" d="M 100 60 L 100 160"/>
+            <!-- Руки -->
+            <path id="left_arm" d="M 100 80 L 60 140 L 40 200"/>
+            <path id="right_arm" d="M 100 80 L 140 140 L 160 200"/>
+            <!-- Ноги -->
+            <path id="left_leg" d="M 100 160 L 70 230 L 60 300"/>
+            <path id="right_leg" d="M 100 160 L 130 230 L 140 300"/>
+        </svg>
       </div>
-      
-      <div class="attempts-counter">
-        <span class="attempts-text">Попытки:</span>
-        <div class="attempts-dots" id="faceAttemptsDots">
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
-          <div class="attempt-dot"></div>
+      <div class="signal-hints">
+        <span class="signal-hint-badge">самоуспокоение</span>
+        <span class="signal-hint-badge">барьер</span>
+        <span class="signal-hint-badge">доминирование</span>
+      </div>
+    </div>
+
+    <!-- Этап 4: Собери лицо -->
+    <div id="face-build-phase" class="face-build-container" style="display: none;">
+        <h3>Этап 4: Собери лицо</h3>
+        <p>Подбери мимику к подсказке. Готов? Жми “Оценить” — посмотрим, что считал мозг.</p>
+        <div id="faceBuildTarget" class="face-instruction"></div>
+        <svg id="faceBuildSvg" class="face-build-svg" viewBox="0 0 200 200">
+            <!-- Face shape -->
+            <path d="M 50 20 C 20 20, 10 80, 20 120 C 30 180, 170 180, 180 120 C 190 80, 180 20, 150 20 Z" fill="#222" stroke="var(--text)" stroke-width="2"/>
+            <!-- Eyes -->
+            <path id="leftEye" d="M 60 70 Q 80 60, 100 70" stroke="var(--text)" stroke-width="3" fill="none"/>
+            <path id="rightEye" d="M 120 70 Q 140 60, 160 70" stroke="var(--text)" stroke-width="3" fill="none"/>
+            <!-- Eyebrows -->
+            <path id="leftEyebrow" d="M 50 50 Q 80 40, 110 50" stroke="var(--text)" stroke-width="4" fill="none"/>
+            <path id="rightEyebrow" d="M 110 50 Q 140 40, 170 50" stroke="var(--text)" stroke-width="4" fill="none"/>
+            <!-- Mouth -->
+            <path id="mouth" d="M 70 140 Q 100 150, 130 140" stroke="var(--text)" stroke-width="3" fill="none"/>
+        </svg>
+        <div class="face-controls">
+            <div class="control-group">
+                <label for="browsSlider">Наклон бровей</label>
+                <input type="range" id="browsSlider" min="-1" max="1" value="0" step="0.1">
+            </div>
+            <div class="control-group">
+                <label for="eyesSlider">Открытость глаз</label>
+                <input type="range" id="eyesSlider" min="-1" max="1" value="0" step="0.1">
+            </div>
+            <div class="control-group">
+                <label for="mouthSlider">Улыбка / Хмурость</label>
+                <input type="range" id="mouthSlider" min="-1" max="1" value="0" step="0.1">
+            </div>
         </div>
+        <button id="evaluateFaceBtn" class="btn-next">Оценить</button>
+    </div>
+
+    <!-- Этап 5: Компас дистанции -->
+    <div id="distance-compass-phase" class="distance-compass-container" style="display: none;">
+      <h3>Этап 5: Компас дистанции</h3>
+      <p>Расставь себя так, чтобы было комфортно обоим. Поверни корпус — не тараном, а дружелюбно.</p>
+      <div id="proxemicsScenario" class="face-instruction"></div>
+      <div id="proxemicsStage" class="proxemics-stage">
+          <!-- Зоны -->
+          <div class="proxemics-zone" style="width: 800px; height: 800px;"></div>
+          <div class="proxemics-zone" style="width: 400px; height: 400px;"></div>
+          <div class="proxemics-zone" style="width: 150px; height: 150px;"></div>
+          <!-- Аватары -->
+          <div id="npcAvatar" class="proxemics-avatar avatar-npc">C</div>
+          <div id="userAvatar" class="proxemics-avatar avatar-user">Ты</div>
       </div>
-      
-      <div class="answer-options" id="faceOptions">
-        <!-- Варианты ответов будут добавлены динамически -->
-      </div>
+      <button id="checkDistanceBtn" class="btn-next">Проверить</button>
     </div>
 
     <!-- Кнопки навигации -->
     <div class="quest-controls">
       <a href="../quests.html" class="btn-back">← Назад к квестам</a>
     </div>
-  </div>
 
-  <!-- Модал завершения квеста -->
-  <div class="quest-complete" id="questComplete">
-    <div class="quest-complete-content">
-      <div class="quest-complete-icon">🎉</div>
-      <h2 class="quest-complete-title">Квест завершен!</h2>
-      <p class="quest-complete-description">
-        Отлично! Вы успешно проанализировали язык тела и выражения лица. 
-        Результаты сохранены в главном меню по кнопке "История".
-      </p>
-      
-      <div class="quest-rewards">
-        <div class="reward-item">
-          <div class="reward-amount">+3</div>
-          <div class="reward-label">Mulacoin</div>
+    <!-- Result Modal -->
+    <div id="resultModal" class="result-modal-overlay">
+        <div class="result-modal">
+            <h3 id="resultModalTitle" class="result-modal-title"></h3>
+            <p id="resultModalText" class="result-modal-text"></p>
+            <div id="resultModalChoices" class="result-modal-choices"></div>
+            <button id="resultModalButton" class="result-modal-button">Далее</button>
         </div>
-        <div class="reward-item">
-          <div class="reward-amount">+500</div>
-          <div class="reward-label">Опыта</div>
-        </div>
-      </div>
-      
-      <button class="btn-close" onclick="closeQuestComplete()">Закрыть</button>
     </div>
   </div>
 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    // Данные для видео допроса
-    const VIDEO_DATA = {
+    // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ ---
+    const LIE_VIDEO_DATA = {
       'dopros1.mp4': 'сепарирование (уход) от вопроса',
       'dopros2.mp4': 'легкое нахмуривание',
       'dopros3.mp4': 'поджатие губ',
@@ -472,7 +743,7 @@
       'dopros8.mp4': 'поджатие губ'
     };
 
-    const VIDEO_OPTIONS = [
+    const LIE_OPTIONS = [
       'Поджатие губ',
       'Учищенное моргание',
       'Легкое нахмуривание',
@@ -528,51 +799,152 @@
       'Задумчивость',
       'Страх'
     ];
+    
+    // Этап 3: Поймай сигнал
+    const SIGNALS = {
+      self_soothe: { name: 'Самоуспокоение', prompt: 'Что это было?', options: ['Самоуспокоение', 'Барьер', 'Доминирование'] },
+      barrier: { name: 'Барьер', prompt: 'Что это было?', options: ['Самоуспокоение', 'Барьер', 'Доминирование'] },
+      dominance: { name: 'Доминирование', prompt: 'Что это было?', options: ['Самоуспокоение', 'Барьер', 'Доминирование'] }
+    };
 
-    let currentEmotionVideo = null;
-    let currentVideo = null;
-    let videoAttempts = 0;
-    let emotionAttempts = 0;
-    let isVideoPhase = true;
+    // Этап 4: Собери лицо
+    const FACE_BUILD_TARGETS = {
+        joy: { name: 'Умеренная радость', vector: { brows: -0.2, eyes: 0.1, mouth: 0.8 } },
+        anger: { name: 'Легкое раздражение', vector: { brows: 0.7, eyes: -0.4, mouth: -0.6 } },
+        surprise: { name: 'Удивление', vector: { brows: 0.8, eyes: 0.8, mouth: 0.3 } },
+        sadness: { name: 'Грусть', vector: { brows: 0.2, eyes: -0.5, mouth: -0.7} }
+    };
+    
+    // Этап 5: Компас дистанции
+    const PROXEMICS_SCENARIOS = [
+        { id: 'colleague', text: 'Коллега, которого знаешь шапочно, хочет спросить совет', zone: 'social', angle: 30 },
+        { id: 'friend', text: 'Близкий друг, тихий разговор', zone: 'personal', angle: 15 },
+        { id: 'stranger', text: 'Незнакомец на остановке', zone: 'public', angle: 120 }
+    ];
 
-    // Инициализация
+    const SIGNAL_ANIMATIONS = {
+        idle: {
+            torso: "M 100 60 L 100 160",
+            left_arm: "M 100 80 L 60 140 L 40 200",
+            right_arm: "M 100 80 L 140 140 L 160 200"
+        },
+        self_soothe: [ // рука к шее
+            { t: 0, d: "M 100 80 L 140 140 L 160 200" }, // start
+            { t: 0.3, d: "M 100 80 L 120 100 L 110 70" }, // lift
+            { t: 0.6, d: "M 100 80 L 110 80 L 100 60" }, // touch neck
+            { t: 1, d: "M 100 80 L 140 140 L 160 200" } // return
+        ],
+        barrier: [ // скрещивание рук
+            { t: 0, left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" },
+            { t: 0.5, left: "M 100 80 L 80 120 L 120 120", right: "M 100 80 L 120 120 L 80 120" },
+            { t: 1, left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" }
+        ],
+        dominance: [ // расправление плеч
+             { t: 0, torso: "M 100 60 L 100 160", left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" },
+             { t: 0.5, torso: "M 100 55 L 100 165", left: "M 100 80 L 55 145 L 35 205", right: "M 100 80 L 145 145 L 165 205" },
+             { t: 1, torso: "M 100 60 L 100 160", left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" }
+        ]
+    };
+
+    let gameState = {
+        currentPhase: 1,
+        lieAttempts: 0,
+        emotionAttempts: 0,
+        acquiredBadges: new Set(),
+        signalGame: {
+            running: false,
+            timerId: null,
+            animationFrameId: null,
+            startTime: 0,
+            duration: 30000,
+            activeSignal: null,
+            score: 0,
+            misses: 0,
+            detectionWindowMs: 700,
+            signalsQueue: [],
+        }
+    };
+
+    // --- ИНИЦИАЛИЗАЦИЯ ---
+    document.addEventListener('DOMContentLoaded', init);
+
     function init() {
-      loadVideoPhase();
+      setupEventListeners();
+      loadPhase(gameState.currentPhase);
+      document.getElementById('resultModalButton').addEventListener('click', () => {
+        const modal = document.getElementById('resultModal');
+        if (modal.callback) {
+            modal.callback();
+        }
+        modal.classList.remove('show');
+      });
+    }
+    
+    function setupEventListeners() {
+      // Управление видео
+      const video = document.getElementById('lieVideoPlayer');
+      const playBtn = document.getElementById('playBtn');
+      const progressFill = document.getElementById('progressFill');
+
+      playBtn.addEventListener('click', () => {
+        if (video.paused) {
+          video.play();
+          playBtn.textContent = '⏸️';
+        } else {
+          video.pause();
+          playBtn.textContent = '▶️';
+        }
+      });
+
+      video.addEventListener('timeupdate', () => {
+        const progress = (video.currentTime / video.duration) * 100;
+        progressFill.style.width = progress + '%';
+      });
+
+      video.addEventListener('ended', () => {
+        playBtn.textContent = '▶️';
+      });
+      
+      // Этап 3
+      document.getElementById('mannequinContainer').addEventListener('click', handleMannequinTap);
+      document.getElementById('evaluateFaceBtn').addEventListener('click', handleFaceEvaluation);
+      document.getElementById('checkDistanceBtn').addEventListener('click', handleDistanceCheck);
+    }
+    
+    // --- УПРАВЛЕНИЕ ФАЗАМИ КВЕСТА ---
+    
+    function loadPhase(phase) {
+        // Скрываем все фазы
+        document.getElementById('emotion-detection-phase').style.display = 'none';
+        document.getElementById('lie-detection-phase').style.display = 'none';
+        document.getElementById('signal-catch-phase').style.display = 'none';
+        document.getElementById('face-build-phase').style.display = 'none';
+        document.getElementById('distance-compass-phase').style.display = 'none';
+        
+        updatePhaseIndicator();
+
+        switch(phase) {
+            case 1: loadEmotionPhase(); break;
+            case 2: loadLiePhase(); break;
+            case 3: loadSignalCatchPhase(); break;
+            case 4: loadFaceBuildPhase(); break;
+            case 5: loadDistanceCompassPhase(); break;
+            default: completeQuest();
+        }
+    }
+    
+    function nextPhase() {
+      gameState.currentPhase++;
+      loadPhase(gameState.currentPhase);
     }
 
-    // Загрузка фазы видео
-    function loadVideoPhase() {
-      isVideoPhase = true;
-      updatePhaseIndicator();
-      
-      // Выбираем случайное видео
-      const videoFiles = Object.keys(VIDEO_DATA);
-      currentVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-      
-      const video = document.getElementById('videoPlayer');
-      video.src = `../video/${currentVideo}`;
-      video.load();
-      
-      // Сбрасываем попытки
-      videoAttempts = 0;
-      updateAttemptsDisplay('video');
-      
-      // Создаем варианты ответов
-      createVideoOptions();
-      
-      // Показываем фазу видео
-      document.getElementById('videoPhase').style.display = 'block';
-      document.getElementById('facePhase').style.display = 'none';
-    }
-
-    // Загрузка фазы эмоций
-    function loadFacePhase() {
-      isVideoPhase = false;
+    // Загрузка фазы 1: Эмоции
+    function loadEmotionPhase() {
       updatePhaseIndicator();
       
       // Выбираем случайное видео эмоции
       const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
-      currentEmotionVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+      const currentEmotionVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
       
       // Настраиваем видео
       const video = document.getElementById('emotionVideoPlayer');
@@ -583,26 +955,296 @@
       video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
       
       // Сбрасываем попытки
-      emotionAttempts = 0;
-      updateAttemptsDisplay('face');
+      gameState.emotionAttempts = 0;
+      updateAttemptsDisplay('emotion');
       
       // Создаем варианты ответов
       createEmotionOptions();
       
-      // Показываем фазу эмоций
-      document.getElementById('videoPhase').style.display = 'none';
-      document.getElementById('facePhase').style.display = 'block';
+      // Показываем фазу
+      document.getElementById('emotion-detection-phase').style.display = 'block';
     }
 
+    // Загрузка фазы 2: Ложь
+    function loadLiePhase() {
+      updatePhaseIndicator();
+      
+      // Выбираем случайное видео
+      const videoFiles = Object.keys(LIE_VIDEO_DATA);
+      const currentLieVideo = videoFiles[Math.floor(Math.random() * videoFiles.length)];
+      
+      const video = document.getElementById('lieVideoPlayer');
+      video.src = `../video/${currentLieVideo}`;
+      video.load();
+      
+      // Сбрасываем попытки
+      gameState.lieAttempts = 0;
+      updateAttemptsDisplay('lie');
+      
+      // Создаем варианты ответов
+      createLieOptions();
+      
+      // Показываем фазу
+      document.getElementById('lie-detection-phase').style.display = 'block';
+    }
 
+    // Реализация фазы 3: Поймай сигнал
+    function loadSignalCatchPhase() {
+      document.getElementById('signal-catch-phase').style.display = 'flex';
+      startSignalGame();
+    }
 
-    // Создание вариантов ответов для видео
-    function createVideoOptions() {
-      const correctAnswer = VIDEO_DATA[currentVideo];
+    function startSignalGame() {
+      let game = gameState.signalGame;
+      game.running = true;
+      game.startTime = Date.now();
+      game.score = 0;
+      
+      // TODO: Сгенерировать очередь сигналов
+      generateSignalQueue();
+      
+      const timerFill = document.querySelector('#signal-catch-phase .signal-timer-fill');
+      timerFill.style.transition = 'none';
+      timerFill.style.width = '100%';
+      
+      setTimeout(() => {
+          timerFill.style.transition = `width ${game.duration / 1000}s linear`;
+          timerFill.style.width = '0%';
+      }, 100);
+
+      // Запускаем анимацию
+      animateMannequin();
+    }
+
+    function generateSignalQueue() {
+      const signals = Object.values(SIGNALS);
+      const queue = [];
+      let currentSignal = null;
+
+      while (queue.length < 3) { // Генерируем 3 сигнала
+        const randomSignal = signals[Math.floor(Math.random() * signals.length)];
+        if (!queue.includes(randomSignal)) {
+          queue.push(randomSignal);
+        }
+      }
+      gameState.signalGame.signalsQueue = queue;
+    }
+
+    function animateMannequin() {
+        if (!gameState.signalGame.running) return;
+
+        const gameTime = Date.now() - gameState.signalGame.startTime;
+
+        // Idle animation
+        const idleSway = Math.sin(gameTime / 600) * 2;
+        document.getElementById('torso').style.transform = `translateY(${idleSway}px)`;
+
+        // Check for signal to start
+        const nextSignal = gameState.signalGame.signalsQueue[0];
+        if (nextSignal && gameTime >= nextSignal.startTime && !gameState.signalGame.activeSignal) {
+            gameState.signalGame.activeSignal = gameState.signalGame.signalsQueue.shift();
+            gameState.signalGame.activeSignal.animationStart = Date.now();
+        }
+
+        // Animate active signal
+        if (gameState.signalGame.activeSignal) {
+            const signal = gameState.signalGame.activeSignal;
+            const signalTime = Date.now() - signal.animationStart;
+            const progress = Math.min(signalTime / signal.duration, 1);
+
+            const animationData = SIGNAL_ANIMATIONS[signal.type];
+            
+            // This is a simplified interpolation. A real implementation would parse and interpolate path points.
+            if (signal.type === 'self_soothe') {
+                const currentFrame = animationData.find((frame, i) => progress >= frame.t && (animationData[i+1] ? progress < animationData[i+1].t : true));
+                document.getElementById('right_arm').setAttribute('d', currentFrame.d);
+            } else if (signal.type === 'barrier') {
+                const currentFrame = animationData.find((frame, i) => progress >= frame.t && (animationData[i+1] ? progress < animationData[i+1].t : true));
+                document.getElementById('left_arm').setAttribute('d', currentFrame.left);
+                document.getElementById('right_arm').setAttribute('d', currentFrame.right);
+            } else if (signal.type === 'dominance') {
+                const currentFrame = animationData.find((frame, i) => progress >= frame.t && (animationData[i+1] ? progress < animationData[i+1].t : true));
+                document.getElementById('torso').setAttribute('d', currentFrame.torso);
+                document.getElementById('left_arm').setAttribute('d', currentFrame.left);
+                document.getElementById('right_arm').setAttribute('d', currentFrame.right);
+            }
+
+            if (progress >= 1) {
+                gameState.signalGame.activeSignal = null;
+                resetMannequinPose();
+            }
+        }
+
+        requestAnimationFrame(animateMannequin);
+    }
+
+    function resetMannequinPose() {
+        document.getElementById('torso').setAttribute('d', SIGNAL_ANIMATIONS.idle.torso);
+        document.getElementById('left_arm').setAttribute('d', SIGNAL_ANIMATIONS.idle.left_arm);
+        document.getElementById('right_arm').setAttribute('d', SIGNAL_ANIMATIONS.idle.right_arm);
+    }
+
+    function handleMannequinTap() {
+        if (!gameState.signalGame.running) return;
+
+        const tapTime = Date.now();
+        const signal = gameState.signalGame.activeSignal;
+        
+        if (signal) {
+            const timeSinceSignalStart = tapTime - signal.animationStart;
+            if (timeSinceSignalStart > 100 && timeSinceSignalStart < gameState.signalGame.detectionWindowMs + 100) { // a small buffer
+                hapticFeedback('light');
+                
+                // Pause game
+                cancelAnimationFrame(gameState.signalGame.animationFrameId);
+                clearTimeout(gameState.signalGame.timerId);
+
+                const signalData = SIGNALS[signal.type];
+                showChoiceModal(
+                    'Что это было?',
+                    'Классифицируй увиденный сигнал.',
+                    signalData.options,
+                    (choice) => {
+                        if (choice === signalData.name) {
+                            gameState.signalGame.score += 1; // Bonus point
+                            showPhaseResult("Правильно!", `+1 очко за верную классификацию.`, resumeSignalGame, true);
+                        } else {
+                            showPhaseResult("Ошибка!", `Это был сигнал "${signalData.name}".`, resumeSignalGame, true);
+                        }
+                    }
+                );
+                
+                // Base score for timing
+                const timingAccuracy = Math.abs(timeSinceSignalStart - (signal.duration / 2));
+                gameState.signalGame.score += (timingAccuracy <= 200) ? 2 : 1;
+
+                gameState.signalGame.activeSignal = null; // Prevent multi-taps
+                resetMannequinPose();
+            }
+        }
+    }
+
+    function resumeSignalGame() {
+        if (gameState.currentPhase !== 3) return;
+        
+        gameState.signalGame.running = true;
+        const remainingTime = gameState.signalGame.duration - (Date.now() - gameState.signalGame.startTime);
+        if (remainingTime > 0) {
+            gameState.signalGame.timerId = setTimeout(endSignalGame, remainingTime);
+            gameState.signalGame.animationFrameId = requestAnimationFrame(animateMannequin);
+        } else {
+            endSignalGame();
+        }
+    }
+
+    function endSignalGame() {
+      gameState.signalGame.running = false;
+      clearTimeout(gameState.signalGame.timerId);
+      cancelAnimationFrame(gameState.signalGame.animationFrameId);
+      // console.log(`Signal game ended. Score: ${signalGame.score}`);
+      
+      gameState.acquiredBadges.add('Наблюдатель');
+      // TODO: Показать результаты и кнопку "Далее"
+      nextPhase();
+    }
+
+    // TODO: Загрузка фазы 4: Собери лицо
+    function loadFaceBuildPhase() {
+        document.getElementById('face-build-phase').style.display = 'block';
+        
+        const targets = Object.keys(FACE_BUILD_TARGETS);
+        const currentTargetKey = targets[Math.floor(Math.random() * targets.length)];
+        const currentTarget = FACE_BUILD_TARGETS[currentTargetKey];
+        
+        document.getElementById('faceBuildTarget').textContent = `Задание: ${currentTarget.name}`;
+        document.getElementById('faceBuildSvg').dataset.targetKey = currentTargetKey;
+        
+        // Сброс и привязка слайдеров
+        ['browsSlider', 'eyesSlider', 'mouthSlider'].forEach(id => {
+            const slider = document.getElementById(id);
+            slider.value = 0;
+            slider.addEventListener('input', updateFaceSvg);
+        });
+        updateFaceSvg();
+    }
+
+    function updateFaceSvg() {
+        const brows = parseFloat(document.getElementById('browsSlider').value); // -1 to 1
+        const eyes = parseFloat(document.getElementById('eyesSlider').value);   // -1 to 1
+        const mouth = parseFloat(document.getElementById('mouthSlider').value); // -1 to 1
+        
+        const leftEyebrow = document.getElementById('leftEyebrow');
+        const rightEyebrow = document.getElementById('rightEyebrow');
+        const leftEye = document.getElementById('leftEye');
+        const rightEye = document.getElementById('rightEye');
+        const mouthPath = document.getElementById('mouth');
+
+        // Брови: наклон
+        leftEyebrow.setAttribute('d', `M 50 ${50 - brows*10} Q 80 ${40 - brows * 10}, 110 ${50 + brows * 10}`);
+        rightEyebrow.setAttribute('d', `M 110 ${50 + brows * 10} Q 140 ${40 - brows * 10}, 170 ${50 - brows*10}`);
+        
+        // Глаза: открытость (изменение кривизны верхнего века)
+        leftEye.setAttribute('d', `M 60 70 Q 80 ${70 - 15 * eyes}, 100 70`);
+        rightEye.setAttribute('d', `M 120 70 Q 140 ${70 - 15 * eyes}, 160 70`);
+        
+        // Рот: улыбка/хмурость
+        mouthPath.setAttribute('d', `M 70 140 Q 100 ${140 + 20 * mouth}, 130 140`);
+    }
+    
+    // TODO: Загрузка фазы 5: Компас дистанции
+    function loadDistanceCompassPhase() {
+        document.getElementById('distance-compass-phase').style.display = 'block';
+        // Здесь будет логика для 5 этапа
+        setTimeout(nextPhase, 3000); // Временно для демонстрации
+    }
+    
+    function handleDistanceCheck() {
+        // Здесь будет логика для 5 этапа
+        // Например, получение позиции аватара пользователя
+        const userAvatar = document.getElementById('userAvatar');
+        const userAvatarRect = userAvatar.getBoundingClientRect();
+        const userAvatarX = userAvatarRect.left + userAvatarRect.width / 2;
+        const userAvatarY = userAvatarRect.top + userAvatarRect.height / 2;
+
+        // Получение позиции NPC аватара
+        const npcAvatar = document.getElementById('npcAvatar');
+        const npcAvatarRect = npcAvatar.getBoundingClientRect();
+        const npcAvatarX = npcAvatarRect.left + npcAvatarRect.width / 2;
+        const npcAvatarY = npcAvatarRect.top + npcAvatarRect.height / 2;
+
+        // Вычисление углов
+        const angle = Math.atan2(npcAvatarY - userAvatarY, npcAvatarX - userAvatarX) * (180 / Math.PI);
+        const distance = Math.sqrt(Math.pow(npcAvatarX - userAvatarX, 2) + Math.pow(npcAvatarY - userAvatarY, 2));
+
+        // Сравнение с целевым углом и расстоянием
+        const scenario = PROXEMICS_SCENARIOS[Math.floor(Math.random() * PROXEMICS_SCENARIOS.length)];
+        const targetAngle = scenario.angle;
+        const targetDistance = scenario.zone === 'personal' ? 100 : scenario.zone === 'social' ? 200 : 300; // Примерные значения
+
+        const angleDiff = Math.abs(angle - targetAngle);
+        const distanceDiff = Math.abs(distance - targetDistance);
+
+        let score = 0;
+        if (angleDiff < 10 && distanceDiff < 50) { // Примерные пороги
+            score = 100;
+        } else if (angleDiff < 20 && distanceDiff < 100) {
+            score = 70;
+        } else if (angleDiff < 30 && distanceDiff < 150) {
+            score = 40;
+        }
+
+        gameState.acquiredBadges.add('Навигатор дистанции');
+        showPhaseResult("Дистанция оценена!", `Ваш результат: ${score}`, nextPhase);
+    }
+
+    // --- ЛОГИКА ОТВЕТОВ ---
+
+    // Создание вариантов ответов для лжи
+    function createLieOptions() {
+      const correctAnswer = LIE_VIDEO_DATA[currentLieVideo];
       const options = [correctAnswer];
       
-      // Добавляем случайные варианты
-      const availableOptions = VIDEO_OPTIONS.filter(opt => opt !== correctAnswer);
+      const availableOptions = LIE_OPTIONS.filter(opt => opt !== correctAnswer);
       for (let i = 0; i < 4; i++) {
         if (availableOptions.length > 0) {
           const randomIndex = Math.floor(Math.random() * availableOptions.length);
@@ -610,17 +1252,16 @@
         }
       }
       
-      // Перемешиваем
       options.sort(() => Math.random() - 0.5);
       
-      const container = document.getElementById('videoOptions');
+      const container = document.getElementById('lieOptions');
       container.innerHTML = '';
       
       options.forEach(option => {
         const button = document.createElement('button');
         button.className = 'answer-option';
         button.textContent = option;
-        button.onclick = () => handleVideoAnswer(option);
+        button.onclick = () => handleLieAnswer(option);
         container.appendChild(button);
       });
     }
@@ -630,7 +1271,6 @@
       const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
       const options = [correctAnswer];
       
-      // Добавляем случайные варианты
       const availableOptions = EMOTION_OPTIONS.filter(opt => opt !== correctAnswer);
       for (let i = 0; i < 3; i++) {
         if (availableOptions.length > 0) {
@@ -639,10 +1279,9 @@
         }
       }
       
-      // Перемешиваем
       options.sort(() => Math.random() - 0.5);
       
-      const container = document.getElementById('faceOptions');
+      const container = document.getElementById('emotionOptions');
       container.innerHTML = '';
       
       options.forEach(option => {
@@ -654,10 +1293,10 @@
       });
     }
 
-    // Обработка ответа на видео
-    function handleVideoAnswer(answer) {
-      const correctAnswer = VIDEO_DATA[currentVideo];
-      const buttons = document.querySelectorAll('#videoOptions .answer-option');
+    // Обработка ответа на ложь
+    function handleLieAnswer(answer) {
+      const correctAnswer = LIE_VIDEO_DATA[currentLieVideo];
+      const buttons = document.querySelectorAll('#lieOptions .answer-option');
       
       buttons.forEach(btn => {
         btn.disabled = true;
@@ -669,24 +1308,16 @@
       });
       
       if (answer === correctAnswer) {
-        setTimeout(() => {
-          loadFacePhase();
-        }, 2000);
+        setTimeout(nextPhase, 2000);
       } else {
-        videoAttempts++;
-        updateAttemptsDisplay('video');
+        gameState.lieAttempts++;
+        updateAttemptsDisplay('lie');
         
-        if (videoAttempts >= 3) {
-          setTimeout(() => {
-            loadVideoPhase(); // Загружаем новое видео
-          }, 2000);
+        if (gameState.lieAttempts >= 3) {
+          setTimeout(loadLiePhase, 2000); // Загружаем новое видео
         } else {
           setTimeout(() => {
-            createVideoOptions(); // Меняем варианты ответов
-            buttons.forEach(btn => {
-              btn.disabled = false;
-              btn.classList.remove('correct', 'incorrect');
-            });
+            createLieOptions(); // Меняем варианты
           }, 2000);
         }
       }
@@ -695,7 +1326,7 @@
     // Обработка ответа на эмоции
     function handleEmotionAnswer(answer) {
       const correctAnswer = EMOTION_VIDEO_DATA[currentEmotionVideo];
-      const buttons = document.querySelectorAll('#faceOptions .answer-option');
+      const buttons = document.querySelectorAll('#emotionOptions .answer-option');
       
       buttons.forEach(btn => {
         btn.disabled = true;
@@ -707,47 +1338,37 @@
       });
       
       if (answer === correctAnswer) {
-        setTimeout(() => {
-          completeQuest();
-        }, 2000);
+        setTimeout(nextPhase, 2000);
       } else {
-        emotionAttempts++;
-        updateAttemptsDisplay('face');
+        gameState.emotionAttempts++;
+        updateAttemptsDisplay('emotion');
         
-        if (emotionAttempts >= 3) {
-          setTimeout(() => {
-            loadFacePhase(); // Загружаем новое видео эмоции
-          }, 2000);
+        if (gameState.emotionAttempts >= 3) {
+          setTimeout(loadEmotionPhase, 2000); // Загружаем новое видео
         } else {
-          setTimeout(() => {
-            createEmotionOptions(); // Меняем варианты ответов
-            buttons.forEach(btn => {
-              btn.disabled = false;
-              btn.classList.remove('correct', 'incorrect');
-            });
-          }, 2000);
+          setTimeout(createEmotionOptions, 2000); // Меняем варианты
         }
       }
     }
 
+    // --- UI ОБНОВЛЕНИЯ ---
+
     // Обновление индикатора фазы
     function updatePhaseIndicator() {
-      const phase1Badge = document.getElementById('phase1Badge');
-      const phase2Badge = document.getElementById('phase2Badge');
-      
-      if (isVideoPhase) {
-        phase1Badge.classList.add('active');
-        phase2Badge.classList.remove('active');
-      } else {
-        phase1Badge.classList.remove('active');
-        phase2Badge.classList.add('active');
-      }
+      const badges = document.querySelectorAll('.phase-badge');
+      badges.forEach((badge, index) => {
+        if (index + 1 === gameState.currentPhase) {
+          badge.classList.add('active');
+        } else {
+          badge.classList.remove('active');
+        }
+      });
     }
 
     // Обновление отображения попыток
     function updateAttemptsDisplay(phase) {
       const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
-      const attempts = phase === 'video' ? videoAttempts : emotionAttempts;
+      const attempts = phase === 'lie' ? gameState.lieAttempts : gameState.emotionAttempts;
       
       dots.forEach((dot, index) => {
         if (index < attempts) {
@@ -758,12 +1379,28 @@
       });
     }
 
-    // Завершение квеста
+    // --- ЗАВЕРШЕНИЕ КВЕСТА ---
     function completeQuest() {
       const modal = document.getElementById('questComplete');
+      
+      // Добавляем бейджи в модальное окно
+      const badgesContainer = document.getElementById('reward-badges');
+      badgesContainer.innerHTML = '';
+      if(gameState.acquiredBadges.size > 0) {
+          const title = document.createElement('h4');
+          title.textContent = 'Полученные навыки:';
+          badgesContainer.appendChild(title);
+          gameState.acquiredBadges.forEach(badge => {
+              const badgeEl = document.createElement('span');
+              badgeEl.className = 'signal-hint-badge'; // Используем тот же стиль
+              badgeEl.textContent = badge;
+              badgesContainer.appendChild(badgeEl);
+          });
+      }
+
       modal.classList.add('show');
       
-      // Сохраняем награды через новую систему
+      // Сохраняем награды
       if (window.parent && window.parent.addRewards) {
         window.parent.addRewards(3, 500, 'bodylang', 'Язык тела', 'medium');
       } else {
@@ -788,32 +1425,251 @@
       window.location.href = '../quests.html';
     }
 
-    // Управление видео
-    const video = document.getElementById('videoPlayer');
-    const playBtn = document.getElementById('playBtn');
-    const progressFill = document.getElementById('progressFill');
+    // --- УТИЛИТЫ АНИМАЦИИ ---
+    function parsePath(d) {
+        const points = [];
+        const commands = d.split(/(?=[ML])/);
+        commands.forEach(command => {
+            const type = command.charAt(0);
+            const Cords = command.substring(1).trim().split(' ');
+            Cords.forEach(c => {
+                const [x, y] = c.split(',').map(parseFloat);
+                if (!isNaN(x) && !isNaN(y)) {
+                    points.push({ x, y });
+                }
+            });
+        });
+        return points;
+    }
+    
+    function formatPath(points) {
+        return points.map(p => `${p.x},${p.y}`).join(' ');
+    }
 
-    playBtn.addEventListener('click', () => {
-      if (video.paused) {
-        video.play();
-        playBtn.textContent = '⏸️';
-      } else {
-        video.pause();
-        playBtn.textContent = '▶️';
-      }
-    });
+    function lerp(start, end, t) {
+        return start * (1 - t) + end * t;
+    }
 
-    video.addEventListener('timeupdate', () => {
-      const progress = (video.currentTime / video.duration) * 100;
-      progressFill.style.width = progress + '%';
-    });
+    function interpolatePath(keyframes, progress, currentPoints = null) {
+        if (progress <= 0) return keyframes[0].p1 ? [keyframes[0].p1, keyframes[0].p2, keyframes[0].p3] : currentPoints;
+        if (progress >= 1) return keyframes[keyframes.length - 1].p1 ? [keyframes[keyframes.length - 1].p1, keyframes[keyframes.length - 1].p2, keyframes[keyframes.length - 1].p3] : currentPoints;
 
-    video.addEventListener('ended', () => {
-      playBtn.textContent = '▶️';
-    });
+        const segmentIndex = keyframes.findIndex((kf, i) => 
+            progress >= kf.t && (keyframes[i+1] && progress < keyframes[i+1].t)
+        );
+        
+        if (segmentIndex === -1) return currentPoints;
 
-    // Инициализация при загрузке страницы
-    document.addEventListener('DOMContentLoaded', init);
+        const startKeyframe = keyframes[segmentIndex];
+        const endKeyframe = keyframes[segmentIndex + 1];
+        
+        const segmentProgress = (progress - startKeyframe.t) / (endKeyframe.t - startKeyframe.t);
+        
+        // Handle partial keyframes for multi-limb animation
+        const basePoints = currentPoints || [startKeyframe.p1, startKeyframe.p2, startKeyframe.p3];
+        const interpolatedPoints = basePoints.map((point, i) => {
+            const pStart = startKeyframe[`p${i+1}`] || point;
+            const pEnd = endKeyframe[`p${i+1}`] || pStart;
+            return {
+                x: lerp(pStart.x, pEnd.x, segmentProgress),
+                y: lerp(pStart.y, pEnd.y, segmentProgress)
+            };
+        });
+
+        return interpolatedPoints;
+    }
+
+    // --- ФАЗА 4: СОБЕРИ ЛИЦО ---
+    function handleFaceEvaluation() {
+        const targetKey = document.getElementById('faceBuildSvg').dataset.targetKey;
+        const targetVector = FACE_BUILD_TARGETS[targetKey].vector;
+        
+        const userVector = {
+            brows: parseFloat(document.getElementById('browsSlider').value),
+            eyes: parseFloat(document.getElementById('eyesSlider').value),
+            mouth: parseFloat(document.getElementById('mouthSlider').value)
+        };
+        
+        const similarity = cosineSimilarity(targetVector, userVector);
+        const score = Math.max(0, Math.round(similarity * 100));
+
+        gameState.acquiredBadges.add('Скульптор эмоций');
+        showPhaseResult("Лицо оценено!", `Сходство: ${score}%`, nextPhase);
+    }
+
+    // --- ФАЗА 5: КОМПАС ДИСТАНЦИИ ---
+    function handleDistanceCheck() {
+        // Здесь будет логика для 5 этапа
+        // Например, получение позиции аватара пользователя
+        const userAvatar = document.getElementById('userAvatar');
+        const userAvatarRect = userAvatar.getBoundingClientRect();
+        const userAvatarX = userAvatarRect.left + userAvatarRect.width / 2;
+        const userAvatarY = userAvatarRect.top + userAvatarRect.height / 2;
+
+        // Получение позиции NPC аватара
+        const npcAvatar = document.getElementById('npcAvatar');
+        const npcAvatarRect = npcAvatar.getBoundingClientRect();
+        const npcAvatarX = npcAvatarRect.left + npcAvatarRect.width / 2;
+        const npcAvatarY = npcAvatarRect.top + npcAvatarRect.height / 2;
+
+        // Вычисление углов
+        const angle = Math.atan2(npcAvatarY - userAvatarY, npcAvatarX - userAvatarX) * (180 / Math.PI);
+        const distance = Math.sqrt(Math.pow(npcAvatarX - userAvatarX, 2) + Math.pow(npcAvatarY - userAvatarY, 2));
+
+        // Сравнение с целевым углом и расстоянием
+        const scenario = PROXEMICS_SCENARIOS[Math.floor(Math.random() * PROXEMICS_SCENARIOS.length)];
+        const targetAngle = scenario.angle;
+        const targetDistance = scenario.zone === 'personal' ? 100 : scenario.zone === 'social' ? 200 : 300; // Примерные значения
+
+        const angleDiff = Math.abs(angle - targetAngle);
+        const distanceDiff = Math.abs(distance - targetDistance);
+
+        let score = 0;
+        if (angleDiff < 10 && distanceDiff < 50) { // Примерные пороги
+            score = 100;
+        } else if (angleDiff < 20 && distanceDiff < 100) {
+            score = 70;
+        } else if (angleDiff < 30 && distanceDiff < 150) {
+            score = 40;
+        }
+
+        gameState.acquiredBadges.add('Навигатор дистанции');
+        showPhaseResult("Дистанция оценена!", `Ваш результат: ${score}`, nextPhase);
+    }
+
+    // --- УТИЛИТЫ ---
+    function cosineSimilarity(vecA, vecB) {
+        const keys = Object.keys(vecA);
+        let dotProduct = 0;
+        let normA = 0;
+        let normB = 0;
+        for (const key of keys) {
+            dotProduct += (vecA[key] || 0) * (vecB[key] || 0);
+            normA += (vecA[key] || 0) ** 2;
+            normB += (vecB[key] || 0) ** 2;
+        }
+        normA = Math.sqrt(normA);
+        normB = Math.sqrt(normB);
+        if (normA === 0 || normB === 0) {
+            return 0;
+        }
+        return dotProduct / (normA * normB);
+    }
+    
+    function makeDraggable(element) {
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        const stage = element.parentElement;
+        stage.addEventListener('mousedown', dragStart);
+        stage.addEventListener('mousemove', drag);
+        stage.addEventListener('mouseup', dragEnd);
+        stage.addEventListener('mouseleave', dragEnd);
+        
+        function dragStart(e) {
+            if (e.target === element) {
+                isDragging = true;
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                setTranslate(currentX, currentY, element);
+            }
+        }
+
+        function dragEnd() {
+            isDragging = false;
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            // Ограничиваем перемещение границами родительского элемента
+            const parentRect = el.parentElement.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            
+            const minX = -elRect.width / 2;
+            const maxX = parentRect.width - elRect.width / 2;
+            const minY = -elRect.height / 2;
+            const maxY = parentRect.height - elRect.height/2;
+
+            // xPos = Math.max(minX, Math.min(xPos, maxX));
+            // yPos = Math.max(minY, Math.min(yPos, maxY));
+            
+            el.style.transform = `translate(${xPos}px, ${yPos}px)`;
+        }
+    }
+    
+    function showChoiceModal(title, text, options, callback) {
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultModalTitle').textContent = title;
+        document.getElementById('resultModalText').textContent = text;
+        
+        const choicesContainer = document.getElementById('resultModalChoices');
+        choicesContainer.innerHTML = '';
+        
+        options.forEach(optionText => {
+            const button = document.createElement('button');
+            button.className = 'result-modal-button';
+            button.textContent = optionText;
+            button.onclick = () => {
+                modal.classList.remove('show');
+                callback(optionText);
+            };
+            choicesContainer.appendChild(button);
+        });
+
+        document.getElementById('resultModalButton').style.display = 'none';
+        choicesContainer.style.display = 'flex';
+        modal.classList.add('show');
+    }
+
+    function showPhaseResult(title, text, callback, autoClose = true) {
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultModalTitle').textContent = title;
+        document.getElementById('resultModalText').textContent = text;
+        modal.callback = callback;
+
+        const choicesContainer = document.getElementById('resultModalChoices');
+        const nextButton = document.getElementById('resultModalButton');
+        
+        choicesContainer.style.display = 'none';
+        nextButton.style.display = 'block';
+        nextButton.onclick = () => {
+             modal.classList.remove('show');
+             if(callback) callback();
+        };
+
+        modal.classList.add('show');
+        
+        if (autoClose) {
+            setTimeout(() => {
+                if (modal.classList.contains('show')) {
+                    modal.classList.remove('show');
+                    if (callback) callback();
+                }
+            }, 2000);
+        }
+    }
+
+    function hapticFeedback(type) {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+        }
+    }
   </script>
 </body>
 </html>

@@ -163,12 +163,6 @@ async function initializeApp() {
   const defaultArchetype = 'strategist'; 
   await loadMainContent(defaultArchetype);
   
-  // Инициализируем взаимодействие с продуктами
-  initializeProductInteraction();
-  
-  // Инициализируем информационные модальные окна
-  initializeInfoModals();
-  
   // --- Шаг 2: Инициализация API и фоновая загрузка данных ---
   try {
     if (window.Telegram && window.Telegram.WebApp) {
@@ -313,7 +307,7 @@ async function loadMainContent(archetype) {
     initializeSwiper();
     initializeScrollAnimations();
     initializeNavigation();
-    // initializeProductInteraction(); // Больше не нужно здесь
+    initializeProductInteraction(); // Новая функция для интерактивности продуктов
   }, 100);
 }
 
@@ -443,24 +437,11 @@ function populateProducts() {
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
   
-  // Получаем покупки из localStorage если API недоступен
-  if (!userPurchases || userPurchases.length === 0) {
-    try {
-      const localPurchases = JSON.parse(localStorage.getItem('quests_user_purchases') || '[]');
-      userPurchases.push(...localPurchases);
-    } catch (e) {
-      console.warn('Не удалось загрузить покупки из localStorage:', e);
-    }
-  }
-  
   let productsHtml = '';
   for (const id in PRODUCTS) {
     productsHtml += createProductCard(id, PRODUCTS[id]);
   }
   grid.innerHTML = productsHtml;
-
-  // Повторная инициализация обработчиков после обновления DOM
-  initializeProductInteraction();
 }
 
 function createProductCard(id, product) {
@@ -485,7 +466,7 @@ function createProductCard(id, product) {
         <a href="${product.pdfUrl}" download class="product-button download-button">Скачать</a>
       </div>`
     : `<div class="modal-payment-options">
-          <button class="payment-button primary">Карта / СБП (скоро)</button>
+          <button class="payment-button">Карта / СБП (скоро)</button>
           <button class="payment-button payment-button-stars" data-product-id="${id}">
             Купить за ${product.priceStars} ⭐
           </button>
@@ -515,12 +496,6 @@ function createProductCard(id, product) {
 function initializeProductInteraction() {
   const productsGrid = document.getElementById('productsGrid');
   if (!productsGrid) return;
-
-  // Предотвращаем двойное навешивание обработчиков
-  if (productsGrid.dataset.listenerAttached === 'true') {
-    return;
-  }
-  productsGrid.dataset.listenerAttached = 'true';
 
   productsGrid.addEventListener('click', e => {
     const card = e.target.closest('.product-card');
@@ -559,69 +534,28 @@ function initializeProductInteraction() {
   }
 }
 
-// ВЕРСИЯ ДЛЯ ОПЛАТЫ ВНУТРИ MINI APP ЧЕРЕЗ STARS
 async function handlePurchase(productId) {
   const product = PRODUCTS[productId];
-
-  // Админ-байпас оставляем
+  
   if (currentUserId === ADMIN_ID) {
     console.log("Админский доступ. Покупка без оплаты.");
     await onSuccessfulPurchase(productId);
     return;
   }
-
-  // Проверим доступность API Mini App
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (!tg || !tg.initData) { // Добавим проверку на initData
-    console.error("Telegram WebApp API недоступен — эмуляция успеха.");
-    // Для отладки в браузере можно раскомментировать
-    // await onSuccessfulPurchase(productId); 
-    alert("Оплата через Telegram доступна только внутри приложения Telegram.");
-    return;
-  }
-
-  try {
-    // Используем URL вашего сервера
-    const API_BASE = 'https://formulaprivate-productionpaymentuknow.up.railway.app';
-    // 1) Просим у бэкенда ссылку на инвойс Stars
-    //    ВАЖНО: передаём initData для серверной валидации подписи
-    const resp = await fetch(`${API_BASE}/api/create-invoice`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId,
-        initData: tg.initData
-      })
-    });
-
-    if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(`Create invoice failed: ${resp.status} ${text}`);
-    }
-    const { invoice_link } = await resp.json();
-
-    // 2) Открываем инвойс ВНУТРИ miniapp
-    tg.openInvoice(invoice_link, async (status) => {
-      // Возможные статусы: 'paid' | 'cancelled' | 'failed' | 'pending'
-      if (status === 'paid') {
-        // 3) Сразу разблокируем товар локально + записываем покупку
-        tg.showAlert('Оплата прошла успешно! Доступ предоставлен.');
-        await onSuccessfulPurchase(productId);
-      } else if (status === 'cancelled') {
-        tg.showAlert('Оплата отменена');
-      } else if (status === 'failed') {
-        tg.showAlert('Платёж не прошёл. Попробуйте ещё раз.');
-      }
-    });
-  } catch (err) {
-    console.error('Ошибка при создании счета:', err);
-    const errorMessage = 'Ошибка создания счёта. Попробуйте позже.';
-    const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) {
-      tg.showAlert(errorMessage);
-    } else {
-      alert(errorMessage);
-    }
+  
+  // Новый флоу: отправляем команду боту для создания счета
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify({
+      command: 'create_invoice',
+      productId: productId,
+      price: product.priceStars
+    }));
+    Telegram.WebApp.showAlert('Счет на оплату отправлен в ваш чат с ботом!');
+    // hideModal(productId); // Удалено, так как модальные окна больше не используются
+  } else {
+    // Fallback для теста в браузере
+    console.log("WebApp недоступен. Симуляция успешной оплаты.");
+    await onSuccessfulPurchase(productId);
   }
 }
 
@@ -629,33 +563,17 @@ async function onSuccessfulPurchase(productId) {
   const api = window.__QUEST_API__;
   const product = PRODUCTS[productId];
 
-  try {
-    // 1. Сохраняем покупку в Supabase (если доступен)
-    if (api && api.addUserPurchase) {
-      await api.addUserPurchase(currentUserId, productId);
-    }
-  } catch (error) {
-    console.warn('Не удалось сохранить покупку в Supabase:', error);
-  }
+  // 1. Сохраняем покупку в Supabase
+  await api.addUserPurchase(currentUserId, productId);
   
   // 2. Обновляем локальный список покупок
-  if (!userPurchases.includes(productId)) {
-    userPurchases.push(productId);
-  }
+  userPurchases.push(productId);
   
-  // 3. Сохраняем в localStorage для оффлайн-режима
-  try {
-    const localPurchases = JSON.parse(localStorage.getItem('quests_user_purchases') || '[]');
-    if (!localPurchases.includes(productId)) {
-      localPurchases.push(productId);
-      localStorage.setItem('quests_user_purchases', JSON.stringify(localPurchases));
-    }
-  } catch (e) {
-    console.warn('Не удалось сохранить покупку в localStorage:', e);
-  }
-  
-  // 4. Обновляем карточку продукта в UI
+  // 3. Обновляем карточку продукта в UI
   populateProducts();
+
+  // 4. Закрываем модальное окно
+  // hideModal(productId); // Удалено, так как модальные окна больше не используются
   
   // 5. Показываем PDF
   setTimeout(() => {
@@ -684,84 +602,5 @@ function hidePdfViewer() {
     // Очищаем iframe, чтобы остановить загрузку/воспроизведение
     const frameEl = document.getElementById('pdfFrame');
     if (frameEl) frameEl.src = '';
-  }
-}
-
-// Инициализация информационных модальных окон
-function initializeInfoModals() {
-  const infoButtons = document.querySelectorAll('.info-button');
-  const infoModalOverlay = document.getElementById('infoModalOverlay');
-  const closeButtons = document.querySelectorAll('.info-modal-close');
-
-  // Открытие модальных окон
-  infoButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      const modalType = button.dataset.modal;
-      openInfoModal(modalType);
-    });
-  });
-
-  // Закрытие по клику на оверлей
-  if (infoModalOverlay) {
-    infoModalOverlay.addEventListener('click', (e) => {
-      if (e.target === infoModalOverlay) {
-        closeAllInfoModals();
-      }
-    });
-  }
-
-  // Закрытие по клику на кнопку закрытия
-  closeButtons.forEach(button => {
-    button.addEventListener('click', closeAllInfoModals);
-  });
-
-  // Закрытие по Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeAllInfoModals();
-    }
-  });
-}
-
-// Открытие информационного модального окна
-function openInfoModal(modalType) {
-  const modal = document.getElementById(`${modalType}Modal`);
-  const overlay = document.getElementById('infoModalOverlay');
-  
-  if (modal && overlay) {
-    // Скрываем все модальные окна
-    closeAllInfoModals();
-    
-    // Показываем нужное
-    modal.classList.remove('hidden');
-    overlay.classList.remove('hidden');
-    
-    // Анимация появления
-    modal.style.opacity = '0';
-    modal.style.transform = 'translate(-50%, -50%) scale(0.9)';
-    
-    setTimeout(() => {
-      modal.style.transition = 'all 0.3s ease';
-      modal.style.opacity = '1';
-      modal.style.transform = 'translate(-50%, -50%) scale(1)';
-    }, 10);
-  }
-}
-
-// Закрытие всех информационных модальных окон
-function closeAllInfoModals() {
-  const modals = document.querySelectorAll('.info-modal');
-  const overlay = document.getElementById('infoModalOverlay');
-  
-  modals.forEach(modal => {
-    modal.classList.add('hidden');
-    modal.style.transition = 'none';
-    modal.style.opacity = '';
-    modal.style.transform = '';
-  });
-  
-  if (overlay) {
-    overlay.classList.add('hidden');
   }
 }

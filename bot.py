@@ -662,68 +662,171 @@ async def handle_grant_promo(update: Update, context: CallbackContext, promo_cod
 
 
 async def handle_webapp_data(update: Update, context: CallbackContext) -> None:
-    """Обработчик данных от MiniApp"""
+    """Обработчик данных от MiniApp (включая команды от рулетки кейсов)"""
     try:
-        if not update.message or not update.message.web_app_data:
+        if not update.message.web_app_data:
             return
 
-        data = json.loads(update.message.web_app_data.data)
-        command = data.get('command')
-        
-        # Старая логика создания инвойса через sendData удалена,
-        # так как теперь инвойсы создаются через /api/create-invoice
-        # и открываются в самом Mini App.
+        # Парсим данные от MiniApp
+        import json
+        try:
+            data = json.loads(update.message.web_app_data.data)
+        except json.JSONDecodeError:
+            print("❌ Ошибка парсинга данных от MiniApp")
+            return
 
-        print(f"📱 Получены данные от MiniApp, но команда не требует обработки ботом: {command}")
+        command = data.get('command')
+        params = data.get('params', {})
+        user_id = update.effective_user.id
+        chat_id = update.effective_chat.id # Явно получаем chat_id здесь
+
+        print(f"📱 MiniApp команда: {command}, параметры: {data}")
+
+        if command == 'create_invoice':
+            product_id = data.get('productId')
+            price_in_stars = data.get('price')
+            # Важно: chat_id здесь - это ID чата с ботом, а user_id - ID пользователя
+            await send_product_invoice(user_id, context, product_id, price_in_stars)
+            return
+
+        # Обработка команд от рулетки кейсов
+        if command == 'galdin':
+            # Активация подписки через промокод
+            target_user_id = params.get('user_id', user_id)
+            days = params.get('days', 30)
+            promo_code = params.get('promo_code', '')
+            
+            success = await grant_subscription(target_user_id, days)
+            
+            if success:
+                await update.message.reply_text(
+                    f"✅ <b>Подписка активирована!</b>\n\n"
+                    f"👤 <b>Пользователь:</b> {target_user_id}\n"
+                    f"📅 <b>Срок:</b> {days} дней\n"
+                    f"🎫 <b>Промокод:</b> {promo_code}\n\n"
+                    f"Подписка активирована автоматически через рулетку кейсов.",
+                    parse_mode='HTML'
+                )
+            else:
+                await update.message.reply_text(
+                    f"❌ <b>Ошибка активации подписки</b>\n\n"
+                    f"Промокод: {promo_code}\n"
+                    f"Обратитесь к администратору.",
+                    parse_mode='HTML'
+                )
+
+        elif command == 'send_to_admin':
+            # Отправка сообщения администратору
+            admin_message = params.get('message', '')
+            promo_code = params.get('promo_code', '')
+            
+            if admin_message:
+                # Отправляем сообщение всем администраторам
+                for admin_username in ADMIN_USERNAMES:
+                    try:
+                        await context.bot.send_message(
+                            chat_id=f"@{admin_username}",
+                            text=f"📱 <b>Сообщение от рулетки кейсов:</b>\n\n{admin_message}",
+                            parse_mode='HTML'
+                        )
+                    except Exception as e:
+                        print(f"❌ Ошибка отправки администратору @{admin_username}: {e}")
+                
+                await update.message.reply_text(
+                    "✅ Сообщение отправлено администратору!",
+                    parse_mode='HTML'
+                )
+
+        elif command == 'promo_used':
+            # Уведомление об использовании промокода
+            promo_code = params.get('promo_code', '')
+            promo_type = params.get('type', '')
+            promo_value = params.get('value', '')
+            
+            await update.message.reply_text(
+                f"🎫 <b>Промокод использован!</b>\n\n"
+                f"🔑 <b>Код:</b> {promo_code}\n"
+                f"📊 <b>Тип:</b> {promo_type}\n"
+                f"💎 <b>Значение:</b> {promo_value}",
+                parse_mode='HTML'
+            )
+
+        else:
+            # Неизвестная команда
+            await update.message.reply_text(
+                "ℹ️ Данные от MiniApp получены, но команда не распознана.",
+                parse_mode='HTML'
+            )
 
     except Exception as e:
         print(f"❌ Ошибка обработки данных MiniApp: {e}")
+        await update.message.reply_text(
+            "❌ Произошла ошибка при обработке данных от приложения.",
+            parse_mode='HTML'
+        )
+
+
+
+async def send_product_invoice(user_id: int, context: CallbackContext, product_id: str, price_in_stars: int):
+    """Отправляет счет на оплату продукта звездами в личный чат с пользователем."""
+    product = PRODUCTS.get(product_id)
+
+    if not product:
+        await context.bot.send_message(user_id, "Ошибка: Продукт не найден.")
+        return
+
+    title = product['title']
+    description = f"Доступ к тренингу «{title}»"
+    payload = f"purchase_{product_id}_{user_id}"
+    currency = "XTR"
+    prices = [LabeledPrice(label=title, amount=price_in_stars)]
+
+    try:
+        await context.bot.send_invoice(
+            chat_id=user_id, # Отправляем инвойс в личный чат
+            title=title,
+            description=description,
+            payload=payload,
+            provider_token=PAYMENT_PROVIDER_TOKEN,
+            currency=currency,
+            prices=prices
+        )
+    except Exception as e:
+        print(f"Ошибка отправки счета пользователю {user_id}: {e}")
+        # Это сообщение увидит пользователь в чате с ботом, если что-то пойдет не так
+        await context.bot.send_message(user_id, "Не удалось создать счет на оплату. Пожалуйста, попробуйте позже или обратитесь в поддержку.")
 
 async def precheckout_callback(update: Update, context: CallbackContext):
-    """Отвечает на pre-checkout запросы. Обязательно для всех платежей."""
+    """Отвечает на pre-checkout запросы."""
     query = update.pre_checkout_query
-    # Просто подтверждаем, что всё в порядке.
-    # Дополнительные проверки (например, доступность товара) можно добавить здесь.
-    await query.answer(ok=True)
+    # Проверяем, что токен платежа правильный (если нужно)
+    if query.invoice_payload.startswith('purchase_'):
+        await query.answer(ok=True)
+    else:
+        await query.answer(ok=False, error_message="Что-то пошло не так...")
 
 async def successful_payment_callback(update: Update, context: CallbackContext):
     """Обрабатывает успешную оплату."""
     payment_info = update.message.successful_payment
-    payload_str = payment_info.invoice_payload
-    charge_id = payment_info.telegram_payment_charge_id # Сохраняем для возможных возвратов
-
+    invoice_payload = payment_info.invoice_payload
+    
     try:
-        # Парсим payload: "user:<id>|product:<pid>|nonce:<...>"
-        payload = dict(p.split(":") for p in payload_str.split("|"))
-        product_id = payload.get("product")
-        user_id = int(payload.get("user"))
-
-        if not product_id or not user_id:
-            raise ValueError("Неполный payload в информации о платеже")
-
+        _, product_id, telegram_id_str = invoice_payload.split('_')
+        telegram_id = int(telegram_id_str)
+        
         # Сохраняем покупку в Supabase
-        # Убедитесь, что таблица user_purchases существует
         result = supabase.table('user_purchases').insert({
-            'telegram_id': user_id,
-            'product_id': product_id,
-            'telegram_payment_charge_id': charge_id, # Сохраняем ID платежа
-            'invoice_payload': payload_str # Сохраняем исходный payload
+            'telegram_id': telegram_id,
+            'product_id': product_id
         }).execute()
         
-        product_title = PRODUCTS.get(product_id, {}).get('title', 'купленный продукт')
-        
         await context.bot.send_message(
-            chat_id=user_id,
-            text=f"✅ Оплата прошла успешно! Вы получили доступ к «{product_title}».\n\n"
-                 f"Чтобы получить доступ, вернитесь в раздел тренингов в Mini App."
+            chat_id=telegram_id,
+            text=f"✅ Оплата прошла успешно! Вы получили доступ к тренингу «{PRODUCTS[product_id]['title']}».\n\n"
+                 f"Чтобы получить доступ, вернитесь в раздел тренингов."
         )
-        print(f"✅ Успешная покупка: user_id={user_id}, product_id={product_id}")
-
     except Exception as e:
-        # В случае ошибки важно логировать детали, чтобы не терять платежи
-        print(f"❌ Ошибка обработки успешного платежа: {e}")
-        print(f"  - Payload: {payload_str}")
-        print(f"  - Charge ID: {charge_id}")
+        print(f"Ошибка обработки успешного платежа: {e}")
 
 
 async def galdin_command(update: Update, context: CallbackContext) -> None:
@@ -1243,27 +1346,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
-# --- КАК СДЕЛАТЬ ВОЗВРАТ ПЛАТЕЖА TELEGRAM STARS ---
-#
-# Для возврата средств пользователю используется метод `refundStarPayment`.
-# https://core.telegram.org/bots/api#refundstarpayment
-#
-# Вам понадобятся:
-# 1. user_id - ID пользователя, которому нужно вернуть звезды.
-# 2. telegram_payment_charge_id - ID платежа, который был сохранен
-#    при обработке `successful_payment`.
-#
-# Пример асинхронной функции для возврата:
-#
-# async def refund_payment(bot: Bot, user_id: int, charge_id: str):
-#     try:
-#         await bot.refund_star_payment(
-#             user_id=user_id,
-#             telegram_payment_charge_id=charge_id
-#         )
-#         print(f"✅ Возврат для charge_id {charge_id} пользователю {user_id} выполнен.")
-#         # Также не забудьте обновить статус покупки в вашей базе данных (Supabase)
-#     except Exception as e:
-#         print(f"❌ Ошибка возврата для charge_id {charge_id}: {e}")
-#
