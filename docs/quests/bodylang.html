@@ -578,7 +578,7 @@
         Посмотрите видео и определите, какое невербальное поведение демонстрирует человек.
       </p>
       
-      <video id="lieVideoPlayer" class="video-player" preload="metadata">
+      <video id="lieVideoPlayer" class="video-player" preload="metadata" controls playsinline>
         <source src="" type="video/mp4">
         Ваш браузер не поддерживает видео.
       </video>
@@ -616,7 +616,7 @@
       </p>
       
       <div class="video-frame">
-        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsInline loop>
+        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsinline loop controls>
           <source src="" type="video/mp4">
           Ваш браузер не поддерживает видео.
         </video>
@@ -905,17 +905,22 @@
     // --- ФАЗА 1: ЛОЖЬ ---
     function loadLiePhase() {
         document.getElementById('lie-detection-phase').style.display = 'block';
-
-        const videoFiles = Object.keys(LIE_VIDEO_DATA);
-        const currentVideoFile = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-        
-        const video = document.getElementById('lieVideoPlayer');
-        setVideoSource(video, `../video/${currentVideoFile}`);
-        video.dataset.correctAnswer = LIE_VIDEO_DATA[currentVideoFile];
+        loadRandomLieVideo();
         
         gameState.lieAttempts = 0;
         updateAttemptsDisplay('lie');
         createLieOptions();
+    }
+
+    function loadRandomLieVideo(retry = 0) {
+      const files = Object.keys(LIE_VIDEO_DATA);
+      const file = files[Math.floor(Math.random() * files.length)];
+      const video = document.getElementById('lieVideoPlayer');
+      setVideoSource(video, `../video/${file}`);
+      video.dataset.correctAnswer = LIE_VIDEO_DATA[file];
+      video.onerror = () => {
+        if (retry < 5) loadRandomLieVideo(retry + 1);
+      };
     }
 
     function createLieOptions() {
@@ -982,18 +987,23 @@
     // --- ФАЗА 2: ЭМОЦИИ ---
     function loadEmotionPhase() {
         document.getElementById('emotion-detection-phase').style.display = 'block';
+        loadRandomEmotionVideo();
         
-        const videoFiles = Object.keys(EMOTION_VIDEO_DATA);
-        const currentVideoFile = videoFiles[Math.floor(Math.random() * videoFiles.length)];
-        
-        const video = document.getElementById('emotionVideoPlayer');
-        setVideoSource(video, `../assets/videos/${currentVideoFile}`);
-        video.dataset.correctAnswer = EMOTION_VIDEO_DATA[currentVideoFile];
-        video.play().catch(e => {});
-
         gameState.emotionAttempts = 0;
         updateAttemptsDisplay('emotion');
         createEmotionOptions();
+    }
+
+    function loadRandomEmotionVideo(retry = 0) {
+      const files = Object.keys(EMOTION_VIDEO_DATA);
+      const file = files[Math.floor(Math.random() * files.length)];
+      const video = document.getElementById('emotionVideoPlayer');
+      setVideoSource(video, `../assets/videos/${file}`);
+      video.dataset.correctAnswer = EMOTION_VIDEO_DATA[file];
+      video.onerror = () => {
+        if (retry < 5) loadRandomEmotionVideo(retry + 1);
+      };
+      video.play().catch(() => {});
     }
     
     function createEmotionOptions() {
@@ -1094,13 +1104,13 @@
       for (let i = 1; i <= count; i++) {
         const type = signals[Math.floor(Math.random() * signals.length)];
         const jitter = Math.floor((Math.random() - 0.5) * baseInterval * 0.6);
-        queue.push({ type, startTime: i * baseInterval + jitter, duration: 700 });
+        queue.push({ type, startTime: i * baseInterval + jitter, duration: 1200, holdMs: 700 });
       }
       // Add 1-2 distractors
       const distractors = Math.random() < 0.5 ? 1 : 2;
       for (let i = 0; i < distractors; i++) {
         const idx = Math.floor(Math.random() * count);
-        queue.splice(idx, 0, { type: 'distractor', startTime: (idx+1) * baseInterval + Math.floor((Math.random()-0.5)*baseInterval*0.4), duration: 400 });
+        queue.splice(idx, 0, { type: 'distractor', startTime: (idx+1) * baseInterval + Math.floor((Math.random()-0.5)*baseInterval*0.4), duration: 600, holdMs: 300 });
       }
       // Sort by startTime and assign to state
       queue.sort((a,b) => a.startTime - b.startTime);
@@ -1113,7 +1123,7 @@
         const gameTime = Date.now() - gameState.signalGame.startTime;
 
         // Idle animation
-        const idleSway = Math.sin(gameTime / 600) * 2;
+        const idleSway = Math.sin(gameTime / 900) * 2.5;
         const man = document.getElementById('manGroup');
         if (man) {
           man.style.transformBox = 'fill-box';
@@ -1151,9 +1161,11 @@
                 document.getElementById('right_arm').setAttribute('d', currentFrame.right);
             }
 
-            if (progress >= 1) {
-                gameState.signalGame.activeSignal = null;
-                resetMannequinPose();
+            // Hold final pose for a while before resetting
+            const holdMs = signal.holdMs || 600;
+            if (signalTime >= signal.duration + holdMs) {
+              gameState.signalGame.activeSignal = null;
+              resetMannequinPose();
             }
         }
 
@@ -1798,8 +1810,8 @@
       if (source) {
         source.setAttribute('src', srcPath);
       }
-      // Set both to maximize compatibility
       videoEl.src = srcPath;
+      videoEl.setAttribute('playsinline', '');
       videoEl.load();
     }
   </script>
