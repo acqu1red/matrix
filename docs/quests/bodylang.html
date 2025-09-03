@@ -643,16 +643,18 @@
       <div class="signal-timer-bar"><div class="signal-timer-fill"></div></div>
       <div class="mannequin-container" id="mannequinContainer">
         <svg id="mannequinSvg" class="mannequin-svg" viewBox="0 0 200 300">
-            <!-- Голова -->
-            <circle id="head" cx="100" cy="40" r="20"/>
-            <!-- Тело -->
-            <path id="torso" d="M 100 60 L 100 160"/>
-            <!-- Руки -->
-            <path id="left_arm" d="M 100 80 L 60 140 L 40 200"/>
-            <path id="right_arm" d="M 100 80 L 140 140 L 160 200"/>
-            <!-- Ноги -->
-            <path id="left_leg" d="M 100 160 L 70 230 L 60 300"/>
-            <path id="right_leg" d="M 100 160 L 130 230 L 140 300"/>
+            <g id="manGroup">
+              <!-- Голова -->
+              <circle id="head" cx="100" cy="40" r="20"/>
+              <!-- Тело -->
+              <path id="torso" d="M 100 60 L 100 160"/>
+              <!-- Руки -->
+              <path id="left_arm" d="M 100 80 L 60 140 L 40 200"/>
+              <path id="right_arm" d="M 100 80 L 140 140 L 160 200"/>
+              <!-- Ноги -->
+              <path id="left_leg" d="M 100 160 L 70 230 L 60 300"/>
+              <path id="right_leg" d="M 100 160 L 130 230 L 140 300"/>
+            </g>
         </svg>
       </div>
       <div class="signal-hints">
@@ -665,7 +667,7 @@
     <!-- Этап 4: Собери лицо -->
     <div id="face-build-phase" class="face-build-container" style="display: none;">
         <h3>Этап 4: Собери лицо</h3>
-        <p>Подбери мимику к подсказке. Готов? Жми “Оценить” — посмотрим, что считал мозг.</p>
+        <p>Подбери мимику к подсказке. Готов? Жми "Оценить" — посмотрим, что считал мозг.</p>
         <div id="faceBuildTarget" class="face-instruction"></div>
         <svg id="faceBuildSvg" class="face-build-svg" viewBox="0 0 200 200">
             <!-- Face shape -->
@@ -908,9 +910,8 @@
         const currentVideoFile = videoFiles[Math.floor(Math.random() * videoFiles.length)];
         
         const video = document.getElementById('lieVideoPlayer');
-        video.src = `../video/${currentVideoFile}`;
+        setVideoSource(video, `../video/${currentVideoFile}`);
         video.dataset.correctAnswer = LIE_VIDEO_DATA[currentVideoFile];
-        video.load();
         
         gameState.lieAttempts = 0;
         updateAttemptsDisplay('lie');
@@ -986,9 +987,8 @@
         const currentVideoFile = videoFiles[Math.floor(Math.random() * videoFiles.length)];
         
         const video = document.getElementById('emotionVideoPlayer');
-        video.src = `../assets/videos/${currentVideoFile}`;
+        setVideoSource(video, `../assets/videos/${currentVideoFile}`);
         video.dataset.correctAnswer = EMOTION_VIDEO_DATA[currentVideoFile];
-        video.load();
         video.play().catch(e => {});
 
         gameState.emotionAttempts = 0;
@@ -1085,16 +1085,25 @@
     }
 
     function generateSignalQueue() {
-      const signals = Object.values(SIGNALS);
+      const totalDuration = gameState.signalGame.duration; // ms
+      const signals = ['self_soothe','barrier','dominance'];
+      const count = 9; // 8-10
+      const baseInterval = Math.floor(totalDuration / (count + 1));
       const queue = [];
-      let currentSignal = null;
 
-      while (queue.length < 3) { // Генерируем 3 сигнала
-        const randomSignal = signals[Math.floor(Math.random() * signals.length)];
-        if (!queue.includes(randomSignal)) {
-          queue.push(randomSignal);
-        }
+      for (let i = 1; i <= count; i++) {
+        const type = signals[Math.floor(Math.random() * signals.length)];
+        const jitter = Math.floor((Math.random() - 0.5) * baseInterval * 0.6);
+        queue.push({ type, startTime: i * baseInterval + jitter, duration: 700 });
       }
+      // Add 1-2 distractors
+      const distractors = Math.random() < 0.5 ? 1 : 2;
+      for (let i = 0; i < distractors; i++) {
+        const idx = Math.floor(Math.random() * count);
+        queue.splice(idx, 0, { type: 'distractor', startTime: (idx+1) * baseInterval + Math.floor((Math.random()-0.5)*baseInterval*0.4), duration: 400 });
+      }
+      // Sort by startTime and assign to state
+      queue.sort((a,b) => a.startTime - b.startTime);
       gameState.signalGame.signalsQueue = queue;
     }
 
@@ -1105,7 +1114,12 @@
 
         // Idle animation
         const idleSway = Math.sin(gameTime / 600) * 2;
-        document.getElementById('torso').style.transform = `translateY(${idleSway}px)`;
+        const man = document.getElementById('manGroup');
+        if (man) {
+          man.style.transformBox = 'fill-box';
+          man.style.transformOrigin = '50% 50%';
+          man.style.transform = `translateY(${idleSway}px)`;
+        }
 
         // Check for signal to start
         const nextSignal = gameState.signalGame.signalsQueue[0];
@@ -1654,7 +1668,8 @@
         stage.addEventListener('mouseleave', dragEnd);
         
         function dragStart(e) {
-            if (e.target === element) {
+            const targetEl = e.target.closest('#userAvatar');
+            if (targetEl && targetEl === element) {
                 e.preventDefault();
                 isDragging = true;
                 
@@ -1763,9 +1778,29 @@
     }
 
     function hapticFeedback(type) {
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
-        }
+        try {
+          if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            const hf = window.Telegram.WebApp.HapticFeedback;
+            if (type === 'error') {
+              hf.notificationOccurred && hf.notificationOccurred('error');
+            } else if (type === 'light' || type === 'medium' || type === 'heavy') {
+              hf.impactOccurred && hf.impactOccurred(type);
+            } else {
+              hf.impactOccurred && hf.impactOccurred('light');
+            }
+          }
+        } catch (_) {}
+    }
+
+    // Utility to reliably set video source and reload
+    function setVideoSource(videoEl, srcPath) {
+      const source = videoEl.querySelector('source');
+      if (source) {
+        source.setAttribute('src', srcPath);
+      }
+      // Set both to maximize compatibility
+      videoEl.src = srcPath;
+      videoEl.load();
     }
   </script>
 </body>
