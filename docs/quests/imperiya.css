@@ -289,3 +289,20 @@ body {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-15px); }
 }
+
+/* Стили для стартовых кнопок */
+.start-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    align-items: center;
+}
+
+.character-tip {
+    font-size: 1.1rem;
+    color: var(--accent-glow);
+    text-align: center;
+    margin: 1.5rem 0;
+    font-weight: 500;
+}

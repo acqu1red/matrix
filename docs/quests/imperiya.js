@@ -731,26 +731,49 @@ function initTelegram() {
 function init() {
     console.log("Initializing game...");
 
+    // Проверяем, что DOM элементы найдены
+    if (!DOM.welcome.startNew) {
+        console.error("Start new button not found!");
+        return;
+    }
+    if (!DOM.welcome.continueGame) {
+        console.error("Continue game button not found!");
+        return;
+    }
+
+    console.log("DOM elements found, binding events...");
+
     // Упрощенная и более надежная привязка событий
-    DOM.welcome.startNew.onclick = () => {
-        console.log("Start new game clicked");
-        gameState = getDefaultState();
-        random = createSeedRandom(gameState.sessionSeed);
-        navigateToStep(1);
-    };
+    const startNewBtn = document.getElementById('start-new-game');
+    const continueBtn = document.getElementById('continue-game');
+    
+    if (startNewBtn) {
+        startNewBtn.addEventListener('click', () => {
+            console.log("Start new game clicked");
+            gameState = getDefaultState();
+            random = createSeedRandom(gameState.sessionSeed);
+            navigateToStep(1);
+        });
+    } else {
+        console.error("Start new button not found by ID!");
+    }
+    
+    if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+            console.log("Continue game clicked");
+            //navigateToStep(gameState.currentStep);
+            // Принудительно инициализируем текущий этап, чтобы восстановить его состояние
+            const currentStageKey = `stage${gameState.currentStep}`;
+            if (GameLogic[currentStageKey] && typeof GameLogic[currentStageKey].init === 'function') {
+                GameLogic[currentStageKey].init();
+            }
+            navigateToStep(gameState.currentStep); // Переносим навигацию после инициализации
+        });
+    } else {
+        console.error("Continue button not found by ID!");
+    }
 
-    DOM.welcome.continueGame.onclick = () => {
-        console.log("Continue game clicked");
-        //navigateToStep(gameState.currentStep);
-        // Принудительно инициализируем текущий этап, чтобы восстановить его состояние
-        const currentStageKey = `stage${gameState.currentStep}`;
-        if (GameLogic[currentStageKey] && typeof GameLogic[currentStageKey].init === 'function') {
-            GameLogic[currentStageKey].init();
-        }
-        navigateToStep(gameState.currentStep); // Переносим навигацию после инициализации
-    };
-
-    DOM.nav.next.onclick = () => {
+    DOM.nav.next.addEventListener('click', () => {
         const currentStep = gameState.currentStep;
         if (currentStep > 0 && currentStep <= TOTAL_STEPS) {
             // Apply stage-end bonuses
@@ -785,23 +808,25 @@ function init() {
         }
         
         navigateToStep(currentStep + 1);
-    };
+    });
 
-    DOM.nav.prev.onclick = () => navigateToStep(gameState.currentStep - 1);
+    DOM.nav.prev.addEventListener('click', () => navigateToStep(gameState.currentStep - 1));
     
-    DOM.topBar.backButton.onclick = () => {
+    DOM.topBar.backButton.addEventListener('click', () => {
         window.location.href = '../quests.html'; 
-    };
+    });
 
-    DOM.choiceModal.overlay.onclick = (e) => {
+    DOM.choiceModal.overlay.addEventListener('click', (e) => {
         if (e.target === DOM.choiceModal.overlay) {
             GameLogic.stage1.closeChoiceModal();
         }
-    };
+    });
 
     // --- Логика загрузки ---
     if (loadState() && gameState.currentStep > 0) {
-        DOM.welcome.continueGame.style.display = 'block';
+        if (continueBtn) {
+            continueBtn.style.display = 'block';
+        }
     } else {
         gameState = getDefaultState();
     }
