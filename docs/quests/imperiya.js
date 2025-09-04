@@ -35,6 +35,12 @@ const DOM = {
     },
     toasts: document.getElementById('toast-container'),
     tooltip: document.getElementById('tooltip-overlay'),
+    // Элементы нового модального окна
+    choiceModal: {
+        overlay: document.getElementById('choice-modal-overlay'),
+        title: document.getElementById('choice-modal-title'),
+        optionsGrid: document.getElementById('choice-options-grid'),
+    }
 };
 
 // ---
@@ -124,92 +130,61 @@ const GameLogic = {
             'experts-shorts-quick-tips': { influence: 4, trust: 2, tip: 'Неплохо, но эксперты могут посчитать это слишком поверхностным.'}
         },
         init() {
-            const palette = document.getElementById('card-palette');
-            palette.innerHTML = '';
-            // Очищаем дроп-зоны при ре-инициализации
-            document.querySelectorAll('#screen-1 .drop-zone').forEach(dz => {
-                const label = dz.querySelector('.drop-zone-label');
-                dz.innerHTML = '';
-                dz.appendChild(label);
-            });
-            
-            Object.entries(this.cards).forEach(([category, items]) => {
-                items.forEach(item => {
-                    const card = createDraggable('card', item.id, item.text);
-                    card.dataset.category = category;
-                    palette.appendChild(card);
-                });
-            });
-            this.setupDropzones();
-        },
-        updateCardVisibility(category, show) {
-            const palette = document.getElementById('card-palette');
-            const cards = palette.querySelectorAll(`.draggable-card[data-category="${category}"]`);
-            cards.forEach(c => {
-                c.style.display = show ? '' : 'none';
-            });
-        },
-        setupDropzones() {
-            const dropzones = document.querySelectorAll('#screen-1 .drop-zone');
-            const palette = document.getElementById('card-palette');
-
-            // Handle dropping on category zones
-            dropzones.forEach(dz => {
-                dz.ondragover = (e) => e.preventDefault();
-                dz.ondragenter = () => dz.classList.add('drag-over');
-                dz.ondragleave = () => dz.classList.remove('drag-over');
-                dz.ondrop = (e) => {
-                    e.preventDefault();
-                    dz.classList.remove('drag-over');
-                    const cardId = e.dataTransfer.getData('text/plain');
-                    const card = document.getElementById(cardId);
-
-                    if (!card || card.dataset.category !== dz.dataset.category) return;
-
-                    // If there's already a card, return it to palette
-                    const existingCard = dz.querySelector('.draggable-card');
-                    if (existingCard) {
-                        palette.appendChild(existingCard);
-                        existingCard.classList.remove('dropped');
-                    }
-
-                    // Move new card to dropzone
-                    dz.appendChild(card);
-                    card.classList.add('dropped');
-                    gameState.choices.stage1[card.dataset.category] = card.dataset.id;
-                    
-                    // Hide all cards of this category from palette
-                    this.updateCardVisibility(card.dataset.category, false);
-
-                    this.checkCompletion();
+            // Убираем старую логику D&D, настраиваем клики
+            document.querySelectorAll('.choice-slot').forEach(slot => {
+                slot.onclick = () => {
+                    const category = slot.dataset.category;
+                    this.openChoiceModal(category);
                 };
             });
-
-            // Handle dropping back on the palette
-            palette.ondragover = (e) => e.preventDefault();
-            palette.ondrop = (e) => {
-                e.preventDefault();
-                const cardId = e.dataTransfer.getData('text/plain');
-                const card = document.getElementById(cardId);
-                
-                // Check if card exists and comes from a drop zone
-                if (card && card.parentElement.classList.contains('drop-zone')) {
-                    const category = card.dataset.category;
-                    
-                    // Update state
-                    gameState.choices.stage1[category] = null;
-                    
-                    // Move card and update styles
-                    palette.appendChild(card);
-                    card.classList.remove('dropped');
-                    
-                    // Show all cards for this category again
-                    this.updateCardVisibility(category, true);
-
-                    // Re-check completion status
-                    this.checkCompletion();
-                }
+            // Сброс отображения при инициализации
+            this.updateSlotsFromState();
+        },
+        openChoiceModal(category) {
+            const modal = DOM.choiceModal;
+            const titles = {
+                audience: 'Выберите Целевую Аудиторию',
+                platform: 'Выберите Площадку',
+                value: 'Выберите Обещание Ценности',
             };
+            modal.title.textContent = titles[category];
+            modal.optionsGrid.innerHTML = ''; // Очищаем опции
+
+            const options = this.cards[category];
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'choice-option';
+                button.textContent = option.text;
+                button.onclick = () => this.selectChoice(category, option.id, option.text);
+                modal.optionsGrid.appendChild(button);
+            });
+            
+            modal.overlay.classList.add('visible');
+        },
+        selectChoice(category, choiceId, choiceText) {
+            gameState.choices.stage1[category] = choiceId;
+            
+            const slot = document.getElementById(`choice-slot-${category}`);
+            slot.querySelector('.choice-value').textContent = choiceText;
+            
+            this.closeChoiceModal();
+            this.checkCompletion();
+        },
+        closeChoiceModal() {
+            DOM.choiceModal.overlay.classList.remove('visible');
+        },
+        updateSlotsFromState() {
+            const choices = gameState.choices.stage1;
+            Object.keys(choices).forEach(category => {
+                const choiceId = choices[category];
+                const slot = document.getElementById(`choice-slot-${category}`);
+                if (choiceId) {
+                    const choiceData = this.cards[category].find(c => c.id === choiceId);
+                    slot.querySelector('.choice-value').textContent = choiceData.text;
+                } else {
+                    slot.querySelector('.choice-value').textContent = 'Нажми для выбора';
+                }
+            });
         },
         checkCompletion() {
             const { audience, platform, value } = gameState.choices.stage1;
@@ -244,6 +219,7 @@ const GameLogic = {
             
             this.setupDropzone();
             const hookInput = document.getElementById('hook-input');
+            hookInput.value = gameState.choices.stage2.hook; // Восстанавливаем значение
             hookInput.placeholder = this.hookTemplates[Math.floor(seededRandom() * this.hookTemplates.length)];
             hookInput.oninput = () => {
                 gameState.choices.stage2.hook = hookInput.value;
@@ -445,6 +421,9 @@ const GameLogic = {
              const simButton = document.getElementById('simulate-week');
              simButton.disabled = true;
              simButton.textContent = 'Симулировать неделю';
+            
+            // Восстанавливаем перетащенные токены
+            this.updateChannelsFromState();
         },
         updateInvestments() {
              const channels = document.querySelectorAll('.monetization-channel');
@@ -457,6 +436,26 @@ const GameLogic = {
              if (totalInvested === this.resources.length) {
                  document.getElementById('simulate-week').disabled = false;
              }
+        },
+        updateChannelsFromState() {
+            const { investments } = gameState.choices.stage4;
+            // Сначала возвращаем все токены в палитру
+            const tokensContainer = document.getElementById('resource-tokens');
+            tokensContainer.innerHTML = '';
+            this.resources.forEach(res => {
+                const token = createDraggable('token resource-token', res.id, res.emoji);
+                tokensContainer.appendChild(token);
+            });
+
+            // Распределяем по слотам согласно состоянию
+            Object.keys(investments).forEach(channelId => {
+                const dropzone = document.querySelector(`#channel-${channelId} .drop-zone`);
+                dropzone.innerHTML = '';
+                investments[channelId].forEach(tokenId => {
+                    const token = document.getElementById(`token-${tokenId}`);
+                    if(token) dropzone.appendChild(token);
+                });
+            });
         },
         simulate() {
             const { trust, influence } = gameState.scores;
@@ -729,8 +728,8 @@ function init() {
     } else {
         gameState = getDefaultState();
     }
+    random = createSeedRandom(gameState.sessionSeed);
 
-    // Обработчики событий
     DOM.welcome.startNew.addEventListener('click', () => {
         gameState = getDefaultState();
         navigateToStep(1);
@@ -738,7 +737,11 @@ function init() {
     });
     DOM.welcome.continueGame.addEventListener('click', () => {
         navigateToStep(gameState.currentStep);
-        // Тут нужна логика для восстановления состояния каждого этапа
+        // Принудительно инициализируем текущий этап, чтобы восстановить его состояние
+        const currentStageKey = `stage${gameState.currentStep}`;
+        if (GameLogic[currentStageKey] && typeof GameLogic[currentStageKey].init === 'function') {
+            GameLogic[currentStageKey].init();
+        }
     });
     
     DOM.nav.next.addEventListener('click', () => {
@@ -779,8 +782,14 @@ function init() {
     });
     DOM.nav.prev.addEventListener('click', () => navigateToStep(gameState.currentStep - 1));
     DOM.topBar.backButton.addEventListener('click', () => {
-        // Предполагается, что quests.html на уровень выше
         window.location.href = '../quests.html'; 
+    });
+
+    // Добавляем закрытие модального окна по клику на оверлей
+    DOM.choiceModal.overlay.addEventListener('click', (e) => {
+        if (e.target === DOM.choiceModal.overlay) {
+            GameLogic.stage1.closeChoiceModal();
+        }
     });
 
     initTelegram();

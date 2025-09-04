@@ -57,21 +57,21 @@
             <!-- Экран 1: Ядро империи -->
             <section id="screen-1" class="game-screen" data-step="1">
                 <div class="screen-content">
-                    <h2>Этап 1: Собери старт-матрицу</h2>
-                    <p>Выбери аудиторию, площадку и обещание ценности. Этот выбор повлияет на всю игру.</p>
-                    <div class="strategy-board">
-                        <div id="dropzone-audience" class="drop-zone" data-category="audience">
-                            <span class="drop-zone-label">🎯 Целевая аудитория</span>
+                    <h2>Этап 1: Ядро Империи</h2>
+                    <p>Определи фундамент своего влияния. Кликни на каждый блок, чтобы сделать выбор.</p>
+                    <div class="choice-board">
+                        <div id="choice-slot-audience" class="choice-slot" data-category="audience">
+                            <span class="choice-label">🎯 Целевая аудитория</span>
+                            <span class="choice-value">Нажми для выбора</span>
                         </div>
-                        <div id="dropzone-platform" class="drop-zone" data-category="platform">
-                             <span class="drop-zone-label">📺 Площадка</span>
+                        <div id="choice-slot-platform" class="choice-slot" data-category="platform">
+                             <span class="choice-label">📺 Площадка</span>
+                             <span class="choice-value">Нажми для выбора</span>
                         </div>
-                        <div id="dropzone-value" class="drop-zone" data-category="value">
-                             <span class="drop-zone-label">💎 Обещание ценности</span>
+                        <div id="choice-slot-value" class="choice-slot" data-category="value">
+                             <span class="choice-label">💎 Обещание ценности</span>
+                             <span class="choice-value">Нажми для выбора</span>
                         </div>
-                    </div>
-                    <div id="card-palette" class="card-palette">
-                        <!-- Карточки будут добавлены через JS -->
                     </div>
                 </div>
             </section>
@@ -191,6 +191,16 @@
         
         <!-- Оверлей для подсказок -->
         <div id="tooltip-overlay" class="tooltip-overlay"></div>
+
+        <!-- Новое модальное окно для выбора -->
+        <div id="choice-modal-overlay" class="choice-modal-overlay">
+            <div class="choice-modal">
+                <h3 id="choice-modal-title">Выберите аудиторию</h3>
+                <div id="choice-options-grid">
+                    <!-- Опции будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
 
         <!-- Тосты -->
         <div id="toast-container" class="toast-container"></div>
