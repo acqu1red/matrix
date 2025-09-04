@@ -1,0 +1,510 @@
+/* ---
+--- Переменные и Темы ---
+--- */
+:root {
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    
+    /* Светлая тема (по умолчанию) */
+    --bg-grad-start: #F8FAFC;
+    --bg-grad-end: #ECF3FF;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --accent-primary: #0EA5E9; /* cyan */
+    --accent-secondary: #F59E0B; /* amber */
+    --panel-bg: rgba(255, 255, 255, 0.6);
+    --panel-border: rgba(255, 255, 255, 0.8);
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --shadow-highlight: rgba(255, 255, 255, 0.7);
+    --btn-primary-bg: var(--accent-primary);
+    --btn-primary-text: #FFFFFF;
+    --btn-secondary-bg: var(--panel-bg);
+    --btn-secondary-text: var(--text-primary);
+    --ethics-good: #22c55e;
+    --ethics-warn: #f59e0b;
+    --ethics-bad: #ef4444;
+}
+
+/* Темная тема (применяется через JS) */
+.dark-theme {
+    --bg-grad-start: #0B1220;
+    --bg-grad-end: #0F172A;
+    --text-primary: #E5E7EB;
+    --text-secondary: #94A3B8;
+    --panel-bg: rgba(30, 41, 59, 0.5); /* slate-800/50% */
+    --panel-border: rgba(51, 65, 85, 0.7); /* slate-700/70% */
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --shadow-highlight: rgba(255, 255, 255, 0.05);
+    --btn-secondary-bg: var(--panel-bg);
+    --btn-secondary-text: var(--text-primary);
+}
+
+
+/* ---
+--- Базовые стили ---
+--- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: var(--font-family);
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: linear-gradient(180deg, var(--bg-grad-start), var(--bg-grad-end));
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.45;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.3s, color 0.3s;
+}
+
+.game-container {
+    width: 100%;
+    height: 100%;
+    max-width: 430px; /* iPhone 14 Pro Max width */
+    max-height: 932px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-grad-start);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px var(--shadow-color);
+    overflow: hidden;
+    position: relative;
+}
+
+/* ---
+--- Верхняя панель ---
+--- */
+.top-bar {
+    display: grid;
+    grid-template-columns: 44px 1fr 100px;
+    align-items: center;
+    padding: 8px;
+    gap: 8px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.back-button {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: var(--panel-bg);
+}
+
+.progress-bar-container {
+    height: 8px;
+    background-color: var(--panel-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--accent-primary);
+    border-radius: 4px;
+    transition: width 0.3s ease-in-out;
+}
+
+.scores {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    font-size: 14px;
+}
+.score-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+/* ---
+--- Экраны и навигация ---
+--- */
+#game-screens {
+    flex-grow: 1;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.game-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    overflow-y: auto;
+}
+
+.game-screen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.screen-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.screen-content h1, .screen-content h2 {
+    font-size: 24px;
+    font-weight: 700;
+}
+.screen-content p {
+    color: var(--text-secondary);
+}
+
+.game-navigation {
+    padding: 16px;
+    border-top: 1px solid var(--panel-border);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* ---
+--- Компоненты ---
+--- */
+.btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s, background-color 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.btn:not(:disabled):active {
+    transform: scale(0.97);
+}
+.btn-primary {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    box-shadow: 0 4px 14px 0 rgba(14, 165, 233, 0.3);
+}
+.btn-secondary {
+    background-color: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+    border: 1px solid var(--panel-border);
+}
+
+/* ---
+--- Этап 1: Drag & Drop ---
+--- */
+.strategy-board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+.drop-zone {
+    min-height: 80px;
+    border: 2px dashed var(--accent-primary);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    transition: background-color 0.2s, border-style 0.2s;
+}
+.drop-zone.drag-over {
+    background-color: rgba(14, 165, 233, 0.1);
+    border-style: solid;
+}
+.drop-zone-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+.card-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+.draggable-card {
+    padding: 10px 16px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px var(--shadow-color), inset 0 1px 1px var(--shadow-highlight);
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.draggable-card.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px var(--shadow-color);
+}
+.draggable-card.dropped {
+    cursor: default;
+    background-color: rgba(14, 165, 233, 0.2);
+}
+.drop-zone .draggable-card {
+    margin-top: 8px;
+}
+
+/* ---
+--- Этап 2: Вирусная лаборатория ---
+--- */
+.viral-lab {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.drop-zone.large { min-height: 100px; }
+.trigger-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+.trigger-chip {
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 20px;
+}
+.hook-editor { margin-top: 20px; }
+input[type="text"], textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--panel-border);
+    background-color: var(--panel-bg);
+    color: var(--text-primary);
+}
+input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3);
+}
+
+.ab-test-container { margin-top: 16px; }
+.ab-results {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+.metrics-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+.metric-bar {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+}
+.bar-label { width: 80px; color: var(--text-secondary); }
+.bar-bg {
+    flex-grow: 1;
+    height: 10px;
+    background-color: var(--panel-bg);
+    border-radius: 5px;
+}
+.bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 5px;
+    background-color: var(--accent-secondary);
+    transition: width 0.5s ease-out;
+}
+
+/* ---
+--- Этап 3: Приёмы и границы ---
+--- */
+.techniques-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+.technique-card {
+    padding: 16px;
+    border-radius: 20px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.technique-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px var(--shadow-color);
+}
+.technique-card.ethical {
+    border-left: 4px solid var(--ethics-good);
+}
+.technique-card.manipulative {
+    border-left: 4px solid var(--ethics-bad);
+}
+.headline-editor { margin-top: 20px; }
+.evaluator {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 12px;
+    font-size: 14px;
+    align-items: center;
+}
+.ethics-indicator {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    background-color: var(--ethics-warn);
+}
+
+/* ---
+--- Этап 4: Монетизация ---
+--- */
+.simulation-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.resource-tokens { display: flex; gap: 8px; }
+.resource-token {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: grab;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+.monetization-channels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+.monetization-channel { text-align: center; }
+.drop-zone.small { min-height: 60px; }
+
+/* ---
+--- Финальный экран ---
+--- */
+.final-screen {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+#confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+.final-scores {
+    font-size: 18px;
+    line-height: 1.6;
+}
+.final-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* ---
+--- Утилиты и оверлеи ---
+--- */
+.toast-container {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+.toast {
+    padding: 12px 20px;
+    border-radius: 24px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 14px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    animation: toast-in 0.3s ease forwards;
+}
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tooltip-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.tooltip-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.tooltip-content {
+    position: absolute;
+    background: var(--panel-bg);
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px var(--shadow-color);
+    max-width: 300px;
+    border: 1px solid var(--panel-border);
+}

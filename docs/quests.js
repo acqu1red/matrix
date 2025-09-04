@@ -19,14 +19,14 @@ const ALL_QUESTS = {
     category: 'Психология',
     tags: ['Средний']
   },
-  'imperial': {
-    id: 'imperial',
+  'imperiya': {
+    id: 'imperiya',
     title: 'ИМПЕРИЯ ВЛИЯНИЯ',
-    description: 'Построй медиа-империю с нуля. Создавай вирусный контент, манипулируй мнением масс и стань королем информации.',
-    button: 'Начать вещание',
-    archetypes: ['biznesmen'],
+    description: 'Создай честную и устойчивую медиа-систему через этичное влияние. Пройди путь от идеи до монетизации.',
+    button: 'Построить империю',
+    archetypes: ['biznesmen', 'psiholog'],
     category: 'Бизнес',
-    tags: ['Средний']
+    tags: ['Новый', 'Лайт']
   },
   'copy': {
     id: 'copy',
@@ -64,8 +64,8 @@ const ALL_QUESTS = {
 
 const ARCHETYPE_QUESTS = {
   'strategist': ['world-government', 'trends', 'competitors'],
-  'psiholog': ['bodylang', 'psychology', 'imperial'],
-  'biznesmen': ['imperial', 'copy', 'competitors']
+  'psiholog': ['bodylang', 'psychology', 'imperiya'],
+  'biznesmen': ['imperiya', 'copy', 'competitors']
 };
 
 let swiperInstance = null;
