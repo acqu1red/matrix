@@ -661,8 +661,8 @@
         <span class="signal-hint-badge">самоуспокоение</span>
         <span class="signal-hint-badge">барьер</span>
         <span class="signal-hint-badge">доминирование</span>
-      </div>
     </div>
+  </div>
 
     <!-- Этап 4: Собери лицо -->
     <div id="face-build-phase" class="face-build-container" style="display: none;">
@@ -711,15 +711,15 @@
           <!-- Аватары -->
           <div id="npcAvatar" class="proxemics-avatar avatar-npc">C</div>
           <div id="userAvatar" class="proxemics-avatar avatar-user">Ты</div>
-      </div>
+        </div>
       <button id="checkDistanceBtn" class="btn-next">Проверить</button>
-    </div>
+        </div>
 
     <!-- Кнопки навигации -->
     <div class="quest-controls">
       <a href="../quests.html" class="btn-back">← Назад к квестам</a>
-    </div>
-
+      </div>
+      
     <!-- Result Modal -->
     <div id="resultModal" class="result-modal-overlay">
         <div class="result-modal">
@@ -735,21 +735,21 @@
   <script>
     // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ ---
     const LIE_VIDEO_DATA = {
-        'dopros1.mp4': 'сепарирование (уход) от вопроса',
-        'dopros2.mp4': 'легкое нахмуривание',
-        'dopros3.mp4': 'поджатие губ',
-        'dopros4.mp4': 'учищенное моргание',
-        'dopros5.mp4': 'поджатие губ',
-        'dopros6.mp4': 'сепарирование (уход) от вопроса',
-        'dopros7.mp4': 'легкое нахмуривание',
-        'dopros8.mp4': 'поджатие губ'
+      'dopros1.mp4': 'сепарирование (уход) от вопроса',
+      'dopros2.mp4': 'легкое нахмуривание',
+      'dopros3.mp4': 'поджатие губ',
+      'dopros4.mp4': 'учищенное моргание',
+      'dopros5.mp4': 'поджатие губ',
+      'dopros6.mp4': 'сепарирование (уход) от вопроса',
+      'dopros7.mp4': 'легкое нахмуривание',
+      'dopros8.mp4': 'поджатие губ'
     };
     const LIE_OPTIONS = [
         'Поджатие губ', 'Учищенное моргание', 'Легкое нахмуривание', 
         'Легкое прикосновение лица (подбородка, носа, вески)', 'Покачивание головы в строну',
         'Сепарирование (уход) от вопроса', 'Отбрасывание головы назад',
-        'Движение суставами (дергание ногой или кистью)',
-        'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
+      'Движение суставами (дергание ногой или кистью)',
+      'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
         'Вскидывание взгляда вверх', 'Быстрое облизывание губ', 'Сглатывание', 'Напряжение челюсти'
     ];
 
@@ -764,7 +764,7 @@
         'rf_15_determination.mp4': 'Решительность', 'rf_16_dominance.mp4': 'Доминирование',
         'rf_17_fear.mp4': 'Страх', 'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
         'rf_19_contempt.mp4': 'Презрение', 'rf_19_submission.mp4': 'Подчинение',
-        'rf_20_surprise.mp4': 'Удивление'
+      'rf_20_surprise.mp4': 'Удивление'
     };
     const EMOTION_OPTIONS = [
         'Скептицизм', 'Гнев', 'Тревога', 'Решительность', 'Страх-Удивление-Отрицание', 'Доминирование',
@@ -888,8 +888,8 @@
         document.getElementById('face-build-phase').style.display = 'none';
         document.getElementById('distance-compass-phase').style.display = 'none';
         
-        updatePhaseIndicator();
-
+      updatePhaseIndicator();
+      
         switch(phase) {
             case 1: loadLiePhase(); break;
             case 2: loadEmotionPhase(); break;
@@ -1060,7 +1060,7 @@
                         btn.disabled = false;
                         btn.classList.remove('correct', 'incorrect');
                     });
-                    createEmotionOptions();
+      createEmotionOptions();
                 }, 2000);
             }
         }
@@ -1402,14 +1402,14 @@
         
         // Показать правильный ответ
         allButtons.forEach(btn => {
-          if (btn.textContent === correctAnswer) {
-            btn.classList.add('correct');
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
           }
         });
 
         if (gameState.lieAttempts >= 3) {
           setTimeout(loadLiePhase, 2000); // Новое видео после 3 промахов
-        } else {
+      } else {
           setTimeout(() => { // Новые варианты для того же видео
             allButtons.forEach(btn => {
               btn.disabled = false;
@@ -1439,14 +1439,14 @@
         updateAttemptsDisplay('emotion');
 
         allButtons.forEach(btn => {
-          if (btn.textContent === correctAnswer) {
-            btn.classList.add('correct');
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
           }
         });
 
         if (gameState.emotionAttempts >= 3) {
           setTimeout(loadEmotionPhase, 2000);
-        } else {
+      } else {
           setTimeout(() => {
             allButtons.forEach(btn => {
               btn.disabled = false;
@@ -1466,9 +1466,9 @@
       badges.forEach((badge, index) => {
         if (index + 1 === gameState.currentPhase) {
           badge.classList.add('active');
-        } else {
+      } else {
           badge.classList.remove('active');
-        }
+      }
       });
     }
 

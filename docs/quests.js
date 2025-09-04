@@ -19,8 +19,8 @@ const ALL_QUESTS = {
     category: 'Психология',
     tags: ['Средний']
   },
-  'funnel': {
-    id: 'funnel',
+  'imperial': {
+    id: 'imperial',
     title: 'ИМПЕРИЯ ВЛИЯНИЯ',
     description: 'Построй медиа-империю с нуля. Создавай вирусный контент, манипулируй мнением масс и стань королем информации.',
     button: 'Начать вещание',
@@ -64,8 +64,8 @@ const ALL_QUESTS = {
 
 const ARCHETYPE_QUESTS = {
   'strategist': ['world-government', 'trends', 'competitors'],
-  'psiholog': ['bodylang', 'psychology', 'funnel'],
-  'biznesmen': ['funnel', 'copy', 'competitors']
+  'psiholog': ['bodylang', 'psychology', 'imperial'],
+  'biznesmen': ['imperial', 'copy', 'competitors']
 };
 
 let swiperInstance = null;
@@ -420,11 +420,7 @@ function initializeNavigation() {
       const questId = questCard.dataset.quest;
       // Проверяем, был ли клик именно по кнопке
       if (e.target.matches('.quest-card-button, .quest-button')) {
-        if (questId === 'funnel') {
-            navigateTo(`quests/influence-empire/index.html`);
-        } else {
-            navigateTo(`quests/${questId}.html`);
-        }
+        navigateTo(`quests/${questId}.html`);
       }
     }
   });
