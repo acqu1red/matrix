@@ -595,7 +595,14 @@ function navigateToStep(step) {
     gameState.currentStep = step;
     
     const nextScreen = document.getElementById(`screen-${step}`);
-    if(nextScreen) nextScreen.classList.add('active');
+    if(nextScreen) {
+        nextScreen.classList.add('active');
+        // Запускаем инициализацию для нового экрана
+        const stageKey = step > 0 && step <= TOTAL_STEPS ? `stage${step}` : (step === TOTAL_STEPS + 1 ? 'final' : null);
+        if (stageKey && GameLogic[stageKey] && typeof GameLogic[stageKey].init === 'function') {
+            GameLogic[stageKey].init();
+        }
+    }
 
     updateUI();
     saveState();
@@ -722,29 +729,28 @@ function initTelegram() {
 }
 
 function init() {
-    // Попытка загрузить сохранение
-    if (loadState() && gameState.currentStep > 0) {
-        DOM.welcome.continueGame.style.display = 'block';
-    } else {
-        gameState = getDefaultState();
-    }
-    random = createSeedRandom(gameState.sessionSeed);
+    console.log("Initializing game...");
 
-    DOM.welcome.startNew.addEventListener('click', () => {
+    // Упрощенная и более надежная привязка событий
+    DOM.welcome.startNew.onclick = () => {
+        console.log("Start new game clicked");
         gameState = getDefaultState();
+        random = createSeedRandom(gameState.sessionSeed);
         navigateToStep(1);
-        GameLogic.stage1.init();
-    });
-    DOM.welcome.continueGame.addEventListener('click', () => {
-        navigateToStep(gameState.currentStep);
+    };
+
+    DOM.welcome.continueGame.onclick = () => {
+        console.log("Continue game clicked");
+        //navigateToStep(gameState.currentStep);
         // Принудительно инициализируем текущий этап, чтобы восстановить его состояние
         const currentStageKey = `stage${gameState.currentStep}`;
         if (GameLogic[currentStageKey] && typeof GameLogic[currentStageKey].init === 'function') {
             GameLogic[currentStageKey].init();
         }
-    });
-    
-    DOM.nav.next.addEventListener('click', () => {
+        navigateToStep(gameState.currentStep); // Переносим навигацию после инициализации
+    };
+
+    DOM.nav.next.onclick = () => {
         const currentStep = gameState.currentStep;
         if (currentStep > 0 && currentStep <= TOTAL_STEPS) {
             // Apply stage-end bonuses
@@ -760,37 +766,46 @@ function init() {
                 updateScore('influence', influenceBonus);
                 showToast(`Прототип готов! +${influenceBonus} влияния.`, 'success');
             } else if (currentStep === 3) {
-                 const honesty = parseInt(document.getElementById('honesty-score').textContent);
-                 const trustChange = Math.round((honesty - 70) / 10);
-                 updateScore('trust', trustChange);
-                 showToast(trustChange >= 0 ? `Ваша честность укрепляет доверие! +${trustChange} доверия.` : `Манипуляции подрывают доверие... ${trustChange} доверия.`, trustChange >= 0 ? 'success' : 'error');
+                 const honestyElement = document.getElementById('honesty-score');
+                 if (honestyElement) {
+                    const honesty = parseInt(honestyElement.textContent);
+                    const trustChange = Math.round((honesty - 70) / 10);
+                    updateScore('trust', trustChange);
+                    showToast(trustChange >= 0 ? `Ваша честность укрепляет доверие! +${trustChange} доверия.` : `Манипуляции подрывают доверие... ${trustChange} доверия.`, trustChange >= 0 ? 'success' : 'error');
+                 }
             } else if (currentStep === 4) {
-                const revenue = parseInt(document.getElementById('revenue-total').textContent);
-                const influenceBonus = Math.round(revenue / 100);
-                updateScore('influence', influenceBonus);
-                showToast(`Финансовый успех увеличил ваше влияние! +${influenceBonus} влияния.`, 'success');
+                const revenueElement = document.getElementById('revenue-total');
+                if (revenueElement) {
+                    const revenue = parseInt(revenueElement.textContent);
+                    const influenceBonus = Math.round(revenue / 100);
+                    updateScore('influence', influenceBonus);
+                    showToast(`Финансовый успех увеличил ваше влияние! +${influenceBonus} влияния.`, 'success');
+                }
             }
         }
         
-        const nextStep = currentStep + 1;
-        navigateToStep(nextStep);
-        const nextStage = `stage${gameState.currentStep}` || (gameState.currentStep === TOTAL_STEPS + 1 ? 'final' : null);
-        
-        if (GameLogic[nextStage]) {
-            GameLogic[nextStage].init();
-        }
-    });
-    DOM.nav.prev.addEventListener('click', () => navigateToStep(gameState.currentStep - 1));
-    DOM.topBar.backButton.addEventListener('click', () => {
-        window.location.href = '../quests.html'; 
-    });
+        navigateToStep(currentStep + 1);
+    };
 
-    // Добавляем закрытие модального окна по клику на оверлей
-    DOM.choiceModal.overlay.addEventListener('click', (e) => {
+    DOM.nav.prev.onclick = () => navigateToStep(gameState.currentStep - 1);
+    
+    DOM.topBar.backButton.onclick = () => {
+        window.location.href = '../quests.html'; 
+    };
+
+    DOM.choiceModal.overlay.onclick = (e) => {
         if (e.target === DOM.choiceModal.overlay) {
             GameLogic.stage1.closeChoiceModal();
         }
-    });
+    };
+
+    // --- Логика загрузки ---
+    if (loadState() && gameState.currentStep > 0) {
+        DOM.welcome.continueGame.style.display = 'block';
+    } else {
+        gameState = getDefaultState();
+    }
+    random = createSeedRandom(gameState.sessionSeed);
 
     initTelegram();
     navigateToStep(gameState.currentStep);
