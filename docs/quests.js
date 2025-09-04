@@ -420,7 +420,11 @@ function initializeNavigation() {
       const questId = questCard.dataset.quest;
       // Проверяем, был ли клик именно по кнопке
       if (e.target.matches('.quest-card-button, .quest-button')) {
-        navigateTo(`quests/${questId}.html`);
+        if (questId === 'funnel') {
+            navigateTo(`quests/influence-empire/index.html`);
+        } else {
+            navigateTo(`quests/${questId}.html`);
+        }
       }
     }
   });
