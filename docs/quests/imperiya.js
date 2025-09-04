@@ -26,6 +26,7 @@ const DOM = {
     },
     final: {
         canvas: document.getElementById('confetti-canvas'),
+        title: document.querySelector('#screen-5 h2'),
         influence: document.getElementById('final-influence'),
         trust: document.getElementById('final-trust'),
         revenue: document.getElementById('final-revenue'),
@@ -42,42 +43,45 @@ const DOM = {
 
 let gameState = {};
 
+// Улучшенная структура состояния для хранения большего количества зависимостей
 function getDefaultState() {
     return {
         currentStep: 0,
         scores: {
-            influence: 0,
-            trust: 50,
+            influence: 0, // Влияние
+            trust: 50,    // Доверие
         },
         resources: {
-            time: 10,
-            ideas: 5,
-            energy: 8,
-            budget: 1000,
+            time: 10,     // Время
+            ideas: 5,     // Идеи
+            energy: 8,    // Энергия
             totalRevenue: 0,
         },
-        stage1: {
-            audience: null,
-            platform: null,
-            value: null,
-        },
-        stage2: {
-            triggers: [],
-            hook: '',
-        },
-        stage3: {
-            headline: 'Вот как получить [результат] за [срок] без [боль]',
-            techniques: {
-                authority: 'manipulative',
-                scarcity: 'manipulative',
-                social_proof: 'manipulative',
+        choices: {
+            stage1: {
+                audience: null,
+                platform: null,
+                value: null,
             },
-        },
-        stage4: {
-            investments: {
-                subscriptions: [],
-                partnerships: [],
-                product: [],
+            stage2: {
+                triggers: [],
+                hook: '',
+            },
+            stage3: {
+                headline: 'Вот как получить [результат] за [срок] без [боль]',
+                techniques: {
+                    authority: 'manipulative',
+                    scarcity: 'manipulative',
+                    social_proof: 'manipulative',
+                },
+            },
+            stage4: {
+                investments: {
+                    subscriptions: [],
+                    partnerships: [],
+                    product: [],
+                },
+                events: [],
             },
         },
         sessionSeed: getSessionSeed(),
@@ -110,11 +114,14 @@ const GameLogic = {
                 { id: 'templates', text: 'Шаблоны для старта' },
             ],
         },
+        // Усложненная матрица синергии с текстовым фидбеком
         synergy: {
-            'newbies-shorts-quick-tips': { influence: 8, trust: 5 },
-            'entrepreneurs-telegram-case-studies': { influence: 10, trust: 7 },
-            'students-shorts-templates': { influence: 7, trust: 6 },
-            'experts-longreads-deep-dives': { influence: 12, trust: 8 },
+            'newbies-shorts-quick-tips': { influence: 8, trust: 5, tip: 'Отличный старт! Новички любят быстрые и полезные видео.' },
+            'entrepreneurs-telegram-case-studies': { influence: 10, trust: 7, tip: 'Предприниматели ценят конкретику и цифры. Telegram - идеальная площадка.' },
+            'students-shorts-templates': { influence: 7, trust: 6, tip: 'Студенты обожают шаблоны, которые экономят время. Короткие видео - их формат.' },
+            'experts-longreads-deep-dives': { influence: 12, trust: 8, tip: 'Эксперты уважают глубину. Длинные форматы подчеркнут вашу компетентность.' },
+            'newbies-longreads-deep-dives': { influence: 2, trust: -5, tip: 'Сложновато... Новички могут испугаться слишком глубоких тем вначале.' },
+            'experts-shorts-quick-tips': { influence: 4, trust: 2, tip: 'Неплохо, но эксперты могут посчитать это слишком поверхностным.'}
         },
         init() {
             const palette = document.getElementById('card-palette');
@@ -135,8 +142,18 @@ const GameLogic = {
             });
             this.setupDropzones();
         },
+        updateCardVisibility(category, show) {
+            const palette = document.getElementById('card-palette');
+            const cards = palette.querySelectorAll(`.draggable-card[data-category="${category}"]`);
+            cards.forEach(c => {
+                c.style.display = show ? '' : 'none';
+            });
+        },
         setupDropzones() {
             const dropzones = document.querySelectorAll('#screen-1 .drop-zone');
+            const palette = document.getElementById('card-palette');
+
+            // Handle dropping on category zones
             dropzones.forEach(dz => {
                 dz.ondragover = (e) => e.preventDefault();
                 dz.ondragenter = () => dz.classList.add('drag-over');
@@ -146,31 +163,57 @@ const GameLogic = {
                     dz.classList.remove('drag-over');
                     const cardId = e.dataTransfer.getData('text/plain');
                     const card = document.getElementById(cardId);
-                    if (card.dataset.category === dz.dataset.category) {
-                        if (dz.querySelector('.draggable-card')) {
-                            // Возвращаем старую карточку
-                            document.getElementById('card-palette').appendChild(dz.querySelector('.draggable-card'));
-                        }
-                        dz.appendChild(card);
-                        gameState.stage1[card.dataset.category] = card.dataset.id;
-                        card.classList.add('dropped');
-                        this.checkCompletion();
+
+                    if (!card || card.dataset.category !== dz.dataset.category) return;
+
+                    // If there's already a card, return it to palette
+                    const existingCard = dz.querySelector('.draggable-card');
+                    if (existingCard) {
+                        palette.appendChild(existingCard);
+                        existingCard.classList.remove('dropped');
                     }
+
+                    // Move new card to dropzone
+                    dz.appendChild(card);
+                    card.classList.add('dropped');
+                    gameState.choices.stage1[card.dataset.category] = card.dataset.id;
+                    
+                    // Hide all cards of this category from palette
+                    this.updateCardVisibility(card.dataset.category, false);
+
+                    this.checkCompletion();
                 };
             });
+
+            // Handle dropping back on the palette
+            palette.ondragover = (e) => e.preventDefault();
+            palette.ondrop = (e) => {
+                e.preventDefault();
+                const cardId = e.dataTransfer.getData('text/plain');
+                const card = document.getElementById(cardId);
+                
+                // Check if card exists and comes from a drop zone
+                if (card && card.parentElement.classList.contains('drop-zone')) {
+                    const category = card.dataset.category;
+                    
+                    // Update state
+                    gameState.choices.stage1[category] = null;
+                    
+                    // Move card and update styles
+                    palette.appendChild(card);
+                    card.classList.remove('dropped');
+                    
+                    // Show all cards for this category again
+                    this.updateCardVisibility(category, true);
+
+                    // Re-check completion status
+                    this.checkCompletion();
+                }
+            };
         },
         checkCompletion() {
-            const { audience, platform, value } = gameState.stage1;
-            if (audience && platform && value) {
-                const key = `${audience}-${platform}-${value}`;
-                const bonus = this.synergy[key] || { influence: 2, trust: 1 };
-                
-                updateScore('influence', bonus.influence);
-                updateScore('trust', bonus.trust);
-                showToast(`Синергия поймана! ✨ +${bonus.influence} влияния, +${bonus.trust} доверия.`);
-                
-                DOM.nav.next.disabled = false;
-            }
+            const { audience, platform, value } = gameState.choices.stage1;
+            DOM.nav.next.disabled = !(audience && platform && value);
         }
     },
     // Этап 2: Вирусная лаборатория
@@ -203,7 +246,7 @@ const GameLogic = {
             const hookInput = document.getElementById('hook-input');
             hookInput.placeholder = this.hookTemplates[Math.floor(seededRandom() * this.hookTemplates.length)];
             hookInput.oninput = () => {
-                gameState.stage2.hook = hookInput.value;
+                gameState.choices.stage2.hook = hookInput.value;
                 this.runABTest();
             };
         },
@@ -217,19 +260,19 @@ const GameLogic = {
                 dz.classList.remove('drag-over');
                 const chipId = e.dataTransfer.getData('text/plain');
                 const chip = document.getElementById(chipId);
-                if (gameState.stage2.triggers.length < 3) {
+                if (chip && gameState.choices.stage2.triggers.length < 3) {
                     dz.appendChild(chip);
-                    gameState.stage2.triggers.push({id: chip.dataset.id, score: chip.dataset.score});
+                    gameState.choices.stage2.triggers.push({id: chip.id.replace('chip-',''), score: chip.dataset.score});
                     chip.classList.add('dropped');
                     this.runABTest();
-                } else {
-                    showToast('Достаточно 2-3 триггеров для старта!');
+                } else if (gameState.choices.stage2.triggers.length >= 3) {
+                    showToast('Больше триггеров не значит лучше!', 'warn');
                 }
             };
         },
         runABTest() {
-            const hook = gameState.stage2.hook;
-            const triggers = gameState.stage2.triggers;
+            const hook = gameState.choices.stage2.hook;
+            const triggers = gameState.choices.stage2.triggers;
             if (hook.length < 10 || triggers.length < 1) {
                 DOM.nav.next.disabled = true;
                 return;
@@ -300,27 +343,27 @@ const GameLogic = {
                 this.updateCard(id);
             });
             const headlineInput = document.getElementById('headline-input');
-            headlineInput.value = gameState.stage3.headline;
+            headlineInput.value = gameState.choices.stage3.headline;
             headlineInput.oninput = () => {
-                gameState.stage3.headline = headlineInput.value;
+                gameState.choices.stage3.headline = headlineInput.value;
                 this.evaluateHeadline();
             };
             this.evaluateHeadline();
         },
         toggleTechnique(id) {
-            gameState.stage3.techniques[id] = gameState.stage3.techniques[id] === 'ethical' ? 'manipulative' : 'ethical';
+            gameState.choices.stage3.techniques[id] = gameState.choices.stage3.techniques[id] === 'ethical' ? 'manipulative' : 'ethical';
             this.updateCard(id);
             this.evaluateHeadline();
         },
         updateCard(id) {
             const card = document.getElementById(`tech-${id}`);
-            const state = gameState.stage3.techniques[id];
+            const state = gameState.choices.stage3.techniques[id];
             card.classList.toggle('ethical', state === 'ethical');
             card.classList.toggle('manipulative', state === 'manipulative');
             card.title = this.techniques[id][state];
         },
         evaluateHeadline() {
-            const text = gameState.stage3.headline.toLowerCase();
+            const text = gameState.choices.stage3.headline.toLowerCase();
             const badWords = ['шок', 'гарантированно', 'сенсация', 'только сегодня', 'успей'];
             
             let clarity = Math.max(0, 100 - Math.abs(text.length - 80));
@@ -331,10 +374,10 @@ const GameLogic = {
             let power = text.split(' ').filter(w => w.length > 4).length * 5;
 
             // Влияние этики приемов
-            const ethicalCount = Object.values(gameState.stage3.techniques).filter(v => v === 'ethical').length;
+            const ethicalCount = Object.values(gameState.choices.stage3.techniques).filter(v => v === 'ethical').length;
             honesty += ethicalCount * 10;
             
-            clarity = Math.min(100, clarity);
+            clarity = Math.round(Math.min(100, clarity));
             honesty = Math.min(100, honesty);
             power = Math.min(100, power);
             
@@ -343,26 +386,35 @@ const GameLogic = {
             document.getElementById('power-score').textContent = Math.round(power);
             
             const indicator = document.getElementById('ethics-indicator');
-            if (honesty > 80) indicator.style.backgroundColor = 'var(--ethics-good)';
-            else if (honesty > 50) indicator.style.backgroundColor = 'var(--ethics-warn)';
-            else indicator.style.backgroundColor = 'var(--ethics-bad)';
-            
-            if (clarity > 50 && power > 30) {
-                DOM.nav.next.disabled = false;
-                const trustChange = Math.round((honesty - 70) / 10);
-                updateScore('trust', trustChange);
-                if (trustChange !== 0) {
-                    showToast(`${trustChange > 0 ? '👍' : '👎'} ${trustChange} доверия`);
-                }
+            if (honesty > 80) {
+                indicator.style.backgroundColor = 'var(--ethics-good)';
+                indicator.style.boxShadow = `0 0 10px var(--ethics-good)`;
+            } else if (honesty > 50) {
+                indicator.style.backgroundColor = 'var(--ethics-warn)';
+                indicator.style.boxShadow = `0 0 10px var(--ethics-warn)`;
             } else {
-                 DOM.nav.next.disabled = true;
+                indicator.style.backgroundColor = 'var(--ethics-bad)';
+                indicator.style.boxShadow = `0 0 10px var(--ethics-bad)`;
             }
+            
+            DOM.nav.next.disabled = !(clarity > 50 && power > 30);
         }
     },
     // Этап 4: Монетизация и сеть
     stage4: {
         resources: [
-            { id: 'time', emoji: '⏳' }, { id: 'ideas', emoji: '💡' }, { id: 'energy', emoji: '⚡️' }
+            { id: 'time', emoji: '⏳', name: 'Время' }, 
+            { id: 'ideas', emoji: '💡', name: 'Идеи' }, 
+            { id: 'energy', emoji: '⚡️', name: 'Энергия' }
+        ],
+        // Добавляем случайные события
+        events: [
+            { text: "Ваш пост стал вирусным! ✨", influence: 15, trust: 5 },
+            { text: "Крупный блогер сделал репост! 🚀", influence: 20, trust: 3 },
+            { text: "Конкуренты скопировали вашу идею... 😠", influence: -5, trust: -5 },
+            { text: "Вы получили престижную награду! 🏆", influence: 10, trust: 10 },
+            { text: "Комментаторы в восторге от вашей честности. ❤️", influence: 5, trust: 15 },
+            { text: "Технический сбой на платформе. 🛠️", influence: -10, trust: 0 },
         ],
         init() {
             const tokensContainer = document.getElementById('resource-tokens');
@@ -383,26 +435,38 @@ const GameLogic = {
                     e.preventDefault();
                     const tokenId = e.dataTransfer.getData('text/plain');
                     const token = document.getElementById(tokenId);
-                    dz.appendChild(token);
-                    this.updateInvestments();
+                    if(token) {
+                        dz.appendChild(token);
+                        this.updateInvestments();
+                    }
                 };
              });
+             // Сброс кнопки симуляции
+             const simButton = document.getElementById('simulate-week');
+             simButton.disabled = true;
+             simButton.textContent = 'Симулировать неделю';
         },
         updateInvestments() {
              const channels = document.querySelectorAll('.monetization-channel');
              channels.forEach(ch => {
                  const channelId = ch.dataset.channel;
                  const tokens = Array.from(ch.querySelectorAll('.resource-token')).map(t => t.id.split('-')[1]);
-                 gameState.stage4.investments[channelId] = tokens;
+                 gameState.choices.stage4.investments[channelId] = tokens;
              });
-             const totalInvested = Object.values(gameState.stage4.investments).flat().length;
-             DOM.nav.next.disabled = totalInvested !== this.resources.length;
+             const totalInvested = Object.values(gameState.choices.stage4.investments).flat().length;
+             if (totalInvested === this.resources.length) {
+                 document.getElementById('simulate-week').disabled = false;
+             }
         },
         simulate() {
             const { trust, influence } = gameState.scores;
-            const { investments } = gameState.stage4;
+            const { investments } = gameState.choices.stage4;
             
-            // Коэффициенты (упрощенно)
+            // Запрещаем повторную симуляцию
+            const simButton = document.getElementById('simulate-week');
+            simButton.disabled = true;
+            simButton.textContent = 'Результаты...';
+
             const subEffort = investments.subscriptions.length * 1.2;
             const partnerEffort = investments.partnerships.length * 1.5;
             const prodEffort = investments.product.length * 1.0;
@@ -419,8 +483,17 @@ const GameLogic = {
             document.getElementById('revenue-total').textContent = totalRevenue;
             document.getElementById('new-followers').textContent = newFollowers;
             
-            showToast(`Неделя прошла! Доход: ${totalRevenue} ₽`);
-            updateScore('influence', Math.round(newFollowers / 100));
+            showToast(`Недельный доход: ${totalRevenue} ₽`, 'success');
+            
+            // Проверяем на случайное событие
+            if (seededRandom() > 0.5) {
+                const event = this.events[Math.floor(seededRandom() * this.events.length)];
+                gameState.choices.stage4.events.push(event.text);
+                updateScore('influence', event.influence);
+                updateScore('trust', event.trust);
+                setTimeout(() => showToast(event.text, event.trust > 5 ? 'success' : 'warn'), 1000);
+            }
+
             DOM.nav.next.disabled = false;
         }
     },
@@ -432,9 +505,13 @@ const GameLogic = {
             DOM.final.revenue.textContent = gameState.resources.totalRevenue;
             
             if (gameState.scores.influence >= 80 && gameState.scores.trust >= 70) {
+                DOM.final.title.textContent = "Ты — Мастер Влияния! 👑";
                 this.runConfetti();
-            } else {
-                 document.querySelector('#screen-5 h2').textContent = "Неплохой старт! Попробуй еще.";
+            } else if (gameState.scores.influence < 50 && gameState.scores.trust < 40) {
+                DOM.final.title.textContent = "Темная сторона силы... 💀";
+            }
+            else {
+                 DOM.final.title.textContent = "Неплохой старт! Попробуй еще.";
             }
             
             if (TWebApp) {
@@ -512,10 +589,14 @@ const GameLogic = {
 
 function navigateToStep(step) {
     if (step < 0 || step > TOTAL_STEPS + 1) return;
+
+    const currentScreen = document.getElementById(`screen-${gameState.currentStep}`);
+    if(currentScreen) currentScreen.classList.remove('active');
+
     gameState.currentStep = step;
     
-    DOM.allScreens.forEach(screen => screen.classList.remove('active'));
-    document.getElementById(`screen-${step}`).classList.add('active');
+    const nextScreen = document.getElementById(`screen-${step}`);
+    if(nextScreen) nextScreen.classList.add('active');
 
     updateUI();
     saveState();
@@ -542,14 +623,14 @@ function updateUI() {
     }
 }
 
-function showToast(message, duration = 3000) {
+function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = 'toast';
+    toast.className = `toast ${type}`;
     toast.textContent = message;
     DOM.toasts.appendChild(toast);
     setTimeout(() => {
         toast.remove();
-    }, duration);
+    }, 3000);
 }
 
 
@@ -663,12 +744,33 @@ function init() {
     DOM.nav.next.addEventListener('click', () => {
         const currentStep = gameState.currentStep;
         if (currentStep > 0 && currentStep <= TOTAL_STEPS) {
-            // "Фиксируем" результат этапа
-            const influenceBonus = Math.floor(seededRandom() * 5 + 2);
-            updateScore('influence', influenceBonus);
+            // Apply stage-end bonuses
+            if (currentStep === 1) {
+                const { audience, platform, value } = gameState.choices.stage1;
+                const key = `${audience}-${platform}-${value}`;
+                const combo = GameLogic.stage1.synergy[key] || { influence: 2, trust: 1, tip: 'Интересное сочетание. Посмотрим, как сработает!' };
+                updateScore('influence', combo.influence);
+                updateScore('trust', combo.trust);
+                showToast(combo.tip, combo.trust > 0 ? 'success' : 'warn');
+            } else if (currentStep === 2) {
+                const influenceBonus = Math.round(gameState.choices.stage2.triggers.length * 2 + gameState.choices.stage2.hook.length / 20);
+                updateScore('influence', influenceBonus);
+                showToast(`Прототип готов! +${influenceBonus} влияния.`, 'success');
+            } else if (currentStep === 3) {
+                 const honesty = parseInt(document.getElementById('honesty-score').textContent);
+                 const trustChange = Math.round((honesty - 70) / 10);
+                 updateScore('trust', trustChange);
+                 showToast(trustChange >= 0 ? `Ваша честность укрепляет доверие! +${trustChange} доверия.` : `Манипуляции подрывают доверие... ${trustChange} доверия.`, trustChange >= 0 ? 'success' : 'error');
+            } else if (currentStep === 4) {
+                const revenue = parseInt(document.getElementById('revenue-total').textContent);
+                const influenceBonus = Math.round(revenue / 100);
+                updateScore('influence', influenceBonus);
+                showToast(`Финансовый успех увеличил ваше влияние! +${influenceBonus} влияния.`, 'success');
+            }
         }
-
-        navigateToStep(currentStep + 1);
+        
+        const nextStep = currentStep + 1;
+        navigateToStep(nextStep);
         const nextStage = `stage${gameState.currentStep}` || (gameState.currentStep === TOTAL_STEPS + 1 ? 'final' : null);
         
         if (GameLogic[nextStage]) {

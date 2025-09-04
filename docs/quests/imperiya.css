@@ -1,97 +1,104 @@
 /* ---
 --- Переменные и Темы ---
 --- */
+@keyframes background-pan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 :root {
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     
-    /* Светлая тема (по умолчанию) */
-    --bg-grad-start: #F8FAFC;
-    --bg-grad-end: #ECF3FF;
-    --text-primary: #0F172A;
-    --text-secondary: #475569;
-    --accent-primary: #0EA5E9; /* cyan */
-    --accent-secondary: #F59E0B; /* amber */
-    --panel-bg: rgba(255, 255, 255, 0.6);
-    --panel-border: rgba(255, 255, 255, 0.8);
-    --shadow-color: rgba(0, 0, 0, 0.05);
-    --shadow-highlight: rgba(255, 255, 255, 0.7);
-    --btn-primary-bg: var(--accent-primary);
+    /* Светлая тема */
+    --bg-color: #f0f4ff;
+    --bg-gradient: linear-gradient(135deg, #e0e7ff, #f0f4ff, #e6f0ff);
+    --text-primary: #1e293b; /* slate-800 */
+    --text-secondary: #64748b; /* slate-500 */
+    --accent-primary: #2563eb; /* blue-600 */
+    --accent-secondary: #f59e0b; /* amber-500 */
+    --panel-bg: rgba(255, 255, 255, 0.5);
+    --panel-border: rgba(226, 232, 240, 0.8); /* slate-200 */
+    --panel-glow: rgba(59, 130, 246, 0.2);
+    --shadow-color: rgba(100, 116, 139, 0.1); /* slate-400/10% */
+    --btn-primary-bg: linear-gradient(45deg, #3b82f6, #60a5fa);
     --btn-primary-text: #FFFFFF;
-    --btn-secondary-bg: var(--panel-bg);
-    --btn-secondary-text: var(--text-primary);
-    --ethics-good: #22c55e;
-    --ethics-warn: #f59e0b;
-    --ethics-bad: #ef4444;
+    --ethics-good: #16a34a; /* green-600 */
+    --ethics-warn: #f59e0b; /* amber-500 */
+    --ethics-bad: #dc2626; /* red-600 */
 }
 
-/* Темная тема (применяется через JS) */
 .dark-theme {
-    --bg-grad-start: #0B1220;
-    --bg-grad-end: #0F172A;
-    --text-primary: #E5E7EB;
-    --text-secondary: #94A3B8;
-    --panel-bg: rgba(30, 41, 59, 0.5); /* slate-800/50% */
-    --panel-border: rgba(51, 65, 85, 0.7); /* slate-700/70% */
+    --bg-color: #020617;
+    --bg-gradient: linear-gradient(135deg, #0f172a, #020617, #1e293b);
+    --text-primary: #e2e8f0; /* slate-200 */
+    --text-secondary: #94a3b8; /* slate-400 */
+    --accent-primary: #60a5fa; /* blue-400 */
+    --accent-secondary: #facc15; /* yellow-400 */
+    --panel-bg: rgba(30, 41, 59, 0.4); /* slate-800/40% */
+    --panel-border: rgba(51, 65, 85, 0.6); /* slate-700/60% */
+    --panel-glow: rgba(96, 165, 250, 0.15);
     --shadow-color: rgba(0, 0, 0, 0.2);
-    --shadow-highlight: rgba(255, 255, 255, 0.05);
-    --btn-secondary-bg: var(--panel-bg);
-    --btn-secondary-text: var(--text-primary);
+    --btn-primary-bg: linear-gradient(45deg, #2563eb, #3b82f6);
 }
 
-
-/* ---
---- Базовые стили ---
---- */
+/* --- Базовые стили --- */
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    font-family: var(--font-family);
-    -webkit-tap-highlight-color: transparent;
+html {
+    font-size: 100%; /* 16px */
 }
 
 body {
-    background: linear-gradient(180deg, var(--bg-grad-start), var(--bg-grad-end));
+    background-color: var(--bg-color);
+    background-image: var(--bg-gradient);
+    background-size: 400% 400%;
+    animation: background-pan 15s ease infinite;
     color: var(--text-primary);
-    font-size: 16px;
-    line-height: 1.45;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background 0.3s, color 0.3s;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .game-container {
     width: 100%;
     height: 100%;
-    max-width: 430px; /* iPhone 14 Pro Max width */
+    max-width: 430px;
     max-height: 932px;
     display: flex;
     flex-direction: column;
-    background: var(--bg-grad-start);
-    border-radius: 24px;
+    background: rgba(255,255,255,0.05); /* Fallback */
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid var(--panel-border);
+    border-radius: 32px;
     box-shadow: 0 25px 50px -12px var(--shadow-color);
     overflow: hidden;
     position: relative;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
-/* ---
---- Верхняя панель ---
---- */
+/* --- Верхняя панель --- */
 .top-bar {
     display: grid;
-    grid-template-columns: 44px 1fr 100px;
+    grid-template-columns: 50px 1fr auto;
     align-items: center;
-    padding: 8px;
-    gap: 8px;
+    padding: 0.5rem 0.75rem;
+    gap: 0.75rem;
     flex-shrink: 0;
     border-bottom: 1px solid var(--panel-border);
+    background: var(--panel-bg);
 }
 
 .back-button {
@@ -105,49 +112,52 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .back-button:hover {
-    background-color: var(--panel-bg);
+    background-color: var(--panel-glow);
+    color: var(--accent-primary);
 }
 
 .progress-bar-container {
-    height: 8px;
-    background-color: var(--panel-bg);
-    border-radius: 4px;
+    height: 10px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 5px;
     overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .progress-bar {
     width: 0%;
     height: 100%;
-    background-color: var(--accent-primary);
-    border-radius: 4px;
-    transition: width 0.3s ease-in-out;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 5px;
+    transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .scores {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    font-size: 14px;
+    gap: 0.75rem;
+    font-size: 0.9rem;
 }
 .score-item {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-weight: 500;
+    gap: 0.25rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 99px;
+    background-color: var(--panel-glow);
 }
+#influence-score { color: var(--accent-primary); }
+#trust-score { color: var(--ethics-good); }
 
-/* ---
---- Экраны и навигация ---
---- */
+/* --- Экраны и навигация --- */
 #game-screens {
     flex-grow: 1;
     position: relative;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 .game-screen {
@@ -156,54 +166,66 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 1.25rem;
     opacity: 0;
-    visibility: hidden;
-    transform: translateX(20px);
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
     overflow-y: auto;
+    pointer-events: none;
 }
 
 .game-screen.active {
     opacity: 1;
-    visibility: visible;
-    transform: translateX(0);
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
-.screen-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+@keyframes content-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
+
+.screen-content > * {
+    animation: content-fade-in 0.5s ease-out both;
+}
+/* Stagger animation for children */
+.screen-content > *:nth-child(2) { animation-delay: 0.1s; }
+.screen-content > *:nth-child(3) { animation-delay: 0.2s; }
+.screen-content > *:nth-child(4) { animation-delay: 0.3s; }
+
 .screen-content h1, .screen-content h2 {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 1.75rem; /* 28px */
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px var(--shadow-color);
 }
 .screen-content p {
     color: var(--text-secondary);
+    font-size: 1.05rem; /* ~17px */
 }
 
 .game-navigation {
-    padding: 16px;
+    padding: 1rem;
     border-top: 1px solid var(--panel-border);
     display: flex;
     justify-content: space-between;
-    gap: 12px;
+    gap: 0.75rem;
+    background: var(--panel-bg);
 }
 
-/* ---
---- Компоненты ---
---- */
+/* --- Компоненты --- */
 .btn {
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 600;
+    padding: 0.875rem 1.5rem; /* 14px 24px */
+    font-size: 1rem;
+    font-weight: 700;
     border: none;
-    border-radius: 16px;
+    border-radius: 1rem;
     cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.2s, background-color 0.2s;
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s;
     -webkit-user-select: none;
     user-select: none;
+    position: relative;
+    overflow: hidden;
 }
 .btn:disabled {
     opacity: 0.5;
@@ -211,300 +233,216 @@ body {
     transform: none;
     box-shadow: none;
 }
+.btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px var(--shadow-color);
+}
 .btn:not(:disabled):active {
-    transform: scale(0.97);
+    transform: translateY(0px) scale(0.98);
 }
 .btn-primary {
-    background-color: var(--btn-primary-bg);
+    background-image: var(--btn-primary-bg);
     color: var(--btn-primary-text);
-    box-shadow: 0 4px 14px 0 rgba(14, 165, 233, 0.3);
+    box-shadow: 0 4px 14px 0 var(--panel-glow);
 }
 .btn-secondary {
-    background-color: var(--btn-secondary-bg);
-    color: var(--btn-secondary-text);
+    background-color: var(--panel-bg);
+    color: var(--text-primary);
     border: 1px solid var(--panel-border);
 }
 
-/* ---
---- Этап 1: Drag & Drop ---
---- */
+/* --- Этап 1: Drag & Drop --- */
 .strategy-board {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 0.75rem;
 }
 .drop-zone {
     min-height: 80px;
-    border: 2px dashed var(--accent-primary);
-    border-radius: 20px;
+    border: 2px dashed var(--panel-border);
+    border-radius: 1.25rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px;
-    transition: background-color 0.2s, border-style 0.2s;
+    padding: 0.75rem;
+    transition: all 0.2s ease-out;
+    position: relative;
 }
 .drop-zone.drag-over {
-    background-color: rgba(14, 165, 233, 0.1);
+    background-color: var(--panel-glow);
+    border-color: var(--accent-primary);
     border-style: solid;
+    transform: scale(1.02);
 }
 .drop-zone-label {
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 0.9rem;
     font-weight: 500;
 }
 .card-palette {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
     justify-content: center;
-    margin-top: 16px;
+    margin-top: 1rem;
 }
 .draggable-card {
-    padding: 10px 16px;
+    padding: 0.75rem 1rem;
     background-color: var(--panel-bg);
     border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    box-shadow: 0 2px 4px var(--shadow-color), inset 0 1px 1px var(--shadow-highlight);
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
     cursor: grab;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    font-weight: 500;
 }
 .draggable-card.dragging {
-    opacity: 0.5;
+    opacity: 0.8;
     cursor: grabbing;
-    transform: scale(1.05);
+    transform: scale(1.05) rotate(3deg);
     box-shadow: 0 8px 16px var(--shadow-color);
+    background-color: var(--panel-glow);
 }
 .draggable-card.dropped {
     cursor: default;
-    background-color: rgba(14, 165, 233, 0.2);
+    background-color: var(--accent-primary);
+    color: var(--btn-primary-text);
+    border-color: transparent;
+    box-shadow: 0 4px 10px var(--panel-glow);
 }
 .drop-zone .draggable-card {
-    margin-top: 8px;
+    margin-top: 0.5rem;
 }
 
-/* ---
---- Этап 2: Вирусная лаборатория ---
---- */
-.viral-lab {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-.drop-zone.large { min-height: 100px; }
+/* --- Этап 2: Вирусная лаборатория --- */
 .trigger-palette {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
+    display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
 }
-.trigger-chip {
-    padding: 8px 14px;
-    font-size: 14px;
-    border-radius: 20px;
+.trigger-chip.draggable-chip {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 99px;
 }
-.hook-editor { margin-top: 20px; }
 input[type="text"], textarea {
     width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 16px;
+    padding: 0.875rem;
+    font-size: 1rem;
+    border-radius: 1rem;
     border: 1px solid var(--panel-border);
     background-color: var(--panel-bg);
     color: var(--text-primary);
+    transition: all 0.2s;
 }
 input[type="text"]:focus, textarea:focus {
     outline: none;
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3);
+    box-shadow: 0 0 0 3px var(--panel-glow);
 }
-
-.ab-test-container { margin-top: 16px; }
+.ab-test-container { margin-top: 1.25rem; }
 .ab-results {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-}
-.metrics-chart {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-.metric-bar {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-}
-.bar-label { width: 80px; color: var(--text-secondary); }
-.bar-bg {
-    flex-grow: 1;
-    height: 10px;
-    background-color: var(--panel-bg);
-    border-radius: 5px;
+    display: grid; grid-template-columns: 1fr; gap: 1rem;
+    margin-top: 0.5rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    background-color: var(--panel-glow);
 }
 .bar-fill {
-    height: 100%;
-    width: 0%;
-    border-radius: 5px;
-    background-color: var(--accent-secondary);
-    transition: width 0.5s ease-out;
+    background: linear-gradient(90deg, var(--accent-secondary), #fde047);
 }
 
-/* ---
---- Этап 3: Приёмы и границы ---
---- */
+/* --- Этап 3: Приёмы и границы --- */
 .techniques-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.75rem;
 }
 .technique-card {
-    padding: 16px;
-    border-radius: 20px;
-    background-color: var(--panel-bg);
+    padding: 1rem;
+    border-radius: 1.25rem;
+    background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     text-align: center;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.technique-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: gray;
+    transition: all 0.3s;
+    transform: scaleX(0.5);
+}
+.technique-card.ethical::before {
+    background-color: var(--ethics-good);
+    transform: scaleX(1);
+}
+.technique-card.manipulative::before {
+    background-color: var(--ethics-bad);
+    transform: scaleX(1);
 }
 .technique-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 16px var(--shadow-color);
 }
-.technique-card.ethical {
-    border-left: 4px solid var(--ethics-good);
-}
-.technique-card.manipulative {
-    border-left: 4px solid var(--ethics-bad);
-}
-.headline-editor { margin-top: 20px; }
 .evaluator {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 12px;
-    font-size: 14px;
-    align-items: center;
+    display: grid; grid-template-columns: 1fr 1fr 1fr 40px;
+    align-items: center; gap: 0.5rem;
+    margin-top: 0.75rem; font-size: 0.9rem;
 }
 .ethics-indicator {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    transition: background-color 0.3s;
+    width: 36px; height: 36px; border-radius: 50%;
+    transition: background-color 0.3s, box-shadow 0.3s;
     background-color: var(--ethics-warn);
+    box-shadow: 0 0 10px var(--ethics-warn);
 }
 
-/* ---
---- Этап 4: Монетизация ---
---- */
-.simulation-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+/* --- Этап 4: Монетизация --- */
+.resource-token.draggable-token {
+    width: 44px; height: 44px; border-radius: 50%;
+    font-size: 1.5rem; /* 24px */
 }
-.resource-tokens { display: flex; gap: 8px; }
-.resource-token {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: grab;
-    background-color: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    box-shadow: 0 2px 4px var(--shadow-color);
+.monetization-channel h4 {
+    font-size: 1rem; margin-bottom: 0.5rem;
 }
-.monetization-channels {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 20px;
-}
-.monetization-channel { text-align: center; }
-.drop-zone.small { min-height: 60px; }
 
-/* ---
---- Финальный экран ---
---- */
-.final-screen {
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
+/* --- Финальный экран --- */
 #confetti-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 10;
 }
-.final-scores {
-    font-size: 18px;
-    line-height: 1.6;
+.final-screen h2 {
+    font-size: 2.25rem; /* 36px */
+    font-weight: 800;
 }
-.final-buttons {
-    margin-top: 20px;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-}
+.final-scores p { font-size: 1.125rem; }
 
-/* ---
---- Утилиты и оверлеи ---
---- */
+/* --- Тосты и оверлеи --- */
 .toast-container {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
+    position: absolute; bottom: 100px;
+    left: 50%; transform: translateX(-50%);
+    z-index: 1000; display: flex; flex-direction: column;
+    gap: 0.5rem; align-items: center;
 }
 .toast {
-    padding: 12px 20px;
-    border-radius: 24px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    font-size: 14px;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    animation: toast-in 0.3s ease forwards;
-}
-@keyframes toast-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    padding: 0.75rem 1.25rem; border-radius: 99px;
+    background-color: rgba(30, 41, 59, 0.8); /* slate-800/80% */
+    color: white; font-size: 0.9rem;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    animation: toast-in 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.tooltip-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
-}
-.tooltip-overlay.visible {
-    opacity: 1;
-    visibility: visible;
-}
-.tooltip-content {
-    position: absolute;
-    background: var(--panel-bg);
-    padding: 16px;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px var(--shadow-color);
-    max-width: 300px;
+.character-tip {
+    padding: 1rem;
+    border-radius: 1rem;
+    background-color: var(--panel-glow);
     border: 1px solid var(--panel-border);
+    margin-top: 1rem;
 }
