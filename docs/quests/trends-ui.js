@@ -24,7 +24,7 @@ class TrendsQuestUI {
     this.attachEventListeners();
     this.showScreen('welcomeScreen');
   }
-  
+
   cacheElements() {
     // Экраны
     this.elements.screens = {
@@ -36,8 +36,8 @@ class TrendsQuestUI {
       stage5: document.getElementById('stage5'),
       results: document.getElementById('resultsScreen')
     };
-    
-    // Кнопки
+      
+      // Кнопки
     this.elements.btnBack = document.getElementById('btnBack');
     this.elements.startQuest = document.getElementById('startQuest');
     
@@ -417,7 +417,7 @@ class TrendsQuestUI {
       this.showScreen('stage3');
     }, 2000);
   }
-  
+
   getEmotionName(emotion) {
     const names = {
       fear: 'Страх',
@@ -430,7 +430,187 @@ class TrendsQuestUI {
   
   // Заглушки для остальных этапов
   initStage3() {
-    this.showToast('Этап 3: Поиск паттернов', 'info');
+    // Рендерим сценарий и настраиваем DnD
+    this.renderPatternScenario();
+  }
+  
+  renderPatternScenario() {
+    const scenario = this.engine.getPatternScenario();
+    if (!scenario) return;
+    
+    // Рендер drop-зон на таймлайне
+    const dropZonesContainer = this.elements.dropZones;
+    dropZonesContainer.innerHTML = '';
+    for (let i = 1; i <= scenario.events.length; i++) {
+      const zone = document.createElement('div');
+      zone.className = 'drop-zone';
+      zone.dataset.position = String(i);
+      zone.innerHTML = `<div class="zone-number">${i}</div>`;
+      dropZonesContainer.appendChild(zone);
+    }
+    
+    // Рендер пула событий
+    const poolRoot = this.elements.eventsPool;
+    const pool = poolRoot.querySelector('.draggable-events') || poolRoot;
+    pool.innerHTML = '';
+    scenario.events.forEach(ev => {
+      const item = document.createElement('div');
+      item.className = 'event-item';
+      item.dataset.eventId = ev.id;
+      item.innerHTML = `
+        <span class="event-icon">${ev.icon}</span>
+        <span class="event-name">${ev.name}</span>
+      `;
+      pool.appendChild(item);
+      this.attachEventDragHandlers(item);
+    });
+    
+    // Подсказка
+    const hintBtn = document.getElementById('showHint');
+    if (hintBtn) {
+      hintBtn.onclick = () => {
+        this.showToast('Подсказка: начало — триггер/изобретение, конец — массовое принятие.', 'info');
+      };
+    }
+    
+    // Кнопка далее после успеха
+    const nextBtn = document.getElementById('nextFromPattern');
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        this.elements.patternResult.style.display = 'none';
+        this.engine.nextStage();
+        this.showScreen('stage4');
+      };
+    }
+  }
+  
+  attachEventDragHandlers(item) {
+    const onStart = (e) => this.handleEventDragStart(e, item);
+    const onMove = (e) => this.handleEventDragMove(e);
+    const onEnd = (e) => this.handleEventDragEnd(e);
+    
+    // Touch
+    item.addEventListener('touchstart', onStart, { passive: true });
+    item.addEventListener('touchmove', onMove, { passive: false });
+    item.addEventListener('touchend', onEnd);
+    
+    // Mouse
+    item.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+  }
+  
+  handleEventDragStart(e, item) {
+    if (this.uiState.currentDragElement) return;
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = item.getBoundingClientRect();
+    
+    this.uiState.currentDragElement = item;
+    this.uiState.dragOffsetX = touch.clientX - rect.left;
+    this.uiState.dragOffsetY = touch.clientY - rect.top;
+    this.uiState.originalParent = item.parentElement;
+    
+    item.classList.add('dragging');
+    item.style.position = 'fixed';
+    item.style.zIndex = '1000';
+    item.style.width = rect.width + 'px';
+    item.style.left = rect.left + 'px';
+    item.style.top = rect.top + 'px';
+  }
+  
+  handleEventDragMove(e) {
+    const item = this.uiState.currentDragElement;
+    if (!item) return;
+    
+    e.preventDefault();
+    const touch = e.touches ? e.touches[0] : e;
+    const left = touch.clientX - this.uiState.dragOffsetX;
+    const top = touch.clientY - this.uiState.dragOffsetY;
+    item.style.left = left + 'px';
+    item.style.top = top + 'px';
+    
+    // Подсветка зон
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+      const r = zone.getBoundingClientRect();
+      if (touch.clientX >= r.left && touch.clientX <= r.right && touch.clientY >= r.top && touch.clientY <= r.bottom) {
+        zone.classList.add('drag-over');
+      } else {
+        zone.classList.remove('drag-over');
+      }
+    });
+  }
+  
+  handleEventDragEnd(e) {
+    const item = this.uiState.currentDragElement;
+    if (!item) return;
+    
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const zone = el && (el.closest ? el.closest('.drop-zone') : null);
+    
+    document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+    
+    if (zone) {
+      // Проверяем, свободна ли зона
+      if (!zone.querySelector('.event-item')) {
+        item.style.position = '';
+        item.style.left = '';
+        item.style.top = '';
+        item.style.width = '';
+        item.style.zIndex = '';
+        item.classList.remove('dragging');
+        zone.appendChild(item);
+        zone.classList.add('has-item');
+        
+        // Клик по элементу в зоне возвращает его в пул
+        item.onclick = () => {
+          zone.classList.remove('has-item');
+          const poolRoot = this.elements.eventsPool;
+          const pool = poolRoot.querySelector('.draggable-events') || poolRoot;
+          pool.appendChild(item);
+          item.onclick = null;
+        };
+        
+        this.validatePatternIfComplete();
+      } else {
+        // Зона занята — возвращаем
+        this.returnDraggedItem(item);
+      }
+    } else {
+      // Не на зоне — возвращаем
+      this.returnDraggedItem(item);
+    }
+    
+    this.uiState.currentDragElement = null;
+  }
+  
+  returnDraggedItem(item) {
+    item.style.position = '';
+    item.style.left = '';
+    item.style.top = '';
+    item.style.width = '';
+    item.style.zIndex = '';
+    item.classList.remove('dragging');
+    if (this.uiState.originalParent) {
+      this.uiState.originalParent.appendChild(item);
+    }
+  }
+  
+  validatePatternIfComplete() {
+    const zones = Array.from(this.elements.dropZones.querySelectorAll('.drop-zone'));
+    const allFilled = zones.every(z => z.querySelector('.event-item'));
+    if (!allFilled) return;
+    
+    const placedIds = zones.map(z => z.querySelector('.event-item')?.dataset.eventId);
+    const result = this.engine.validatePattern(placedIds);
+    if (result.isComplete) {
+      const res = this.elements.patternResult;
+      res.querySelector('.pattern-explanation').textContent = result.explanation || '';
+      res.style.display = 'block';
+      this.showToast('Паттерн найден! Отличная работа!', 'success');
+    } else {
+      this.showToast(`Совпадений: ${result.correctCount}/${result.total}. Попробуй переставить элементы.`, 'warning');
+    }
   }
   
   initStage4() {
@@ -457,7 +637,7 @@ class TrendsQuestUI {
       toast.classList.remove('show');
     }, 3000);
   }
-  
+
   showLoading(show = true) {
     if (this.elements.loadingIndicator) {
       this.elements.loadingIndicator.style.display = show ? 'flex' : 'none';
