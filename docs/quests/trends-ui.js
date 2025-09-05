@@ -113,13 +113,13 @@ class TrendsQuestUI {
         this.initStage2();
         break;
       case 'stage3':
-        this.initStage3();
+        this.initStage4(); // 4-й этап теперь 3-й
         break;
       case 'stage4':
-        this.initStage4();
+        this.initStage5(); // 5-й этап теперь 4-й
         break;
       case 'stage5':
-        this.initStage5();
+        this.showResults(); // Результаты теперь 5-й этап
         break;
       case 'results':
         this.showResults();
@@ -376,7 +376,7 @@ class TrendsQuestUI {
       sector.addEventListener('click', () => this.selectEmotion(sector.dataset.emotion));
     });
     
-    this.elements.confirmEmotion.addEventListener('click', () => this.confirmEmotionAnalysis());
+    // Убираем кнопку подтверждения - переход автоматический
   }
   
   selectEmotion(emotion) {
@@ -446,7 +446,7 @@ class TrendsQuestUI {
     
     setTimeout(() => {
       this.engine.nextStage();
-      this.showScreen('stage3');
+      this.showScreen('stage3'); // Теперь 3-й этап (бывший 4-й)
     }, 2000);
   }
 
@@ -460,257 +460,14 @@ class TrendsQuestUI {
     return names[emotion] || emotion;
   }
   
-  // Заглушки для остальных этапов
-  initStage3() {
-    // Рендерим сценарий и настраиваем DnD
-    this.renderPatternScenario();
-  }
-  
-  renderPatternScenario() {
-    const scenario = this.engine.getPatternScenario();
-    if (!scenario) return;
-    
-    // Рендер drop-зон на таймлайне
-    const dropZonesContainer = this.elements.dropZones;
-    dropZonesContainer.innerHTML = '';
-    for (let i = 1; i <= scenario.events.length; i++) {
-      const zone = document.createElement('div');
-      zone.className = 'drop-zone';
-      zone.dataset.position = String(i);
-      zone.innerHTML = `<div class="zone-number">${i}</div>`;
-      dropZonesContainer.appendChild(zone);
-    }
-    
-    // Рендер пула событий
-    const poolRoot = this.elements.eventsPool;
-    const pool = poolRoot.querySelector('.draggable-events') || poolRoot;
-    pool.innerHTML = '';
-    scenario.events.forEach(ev => {
-      const item = document.createElement('div');
-      item.className = 'event-item';
-      item.dataset.eventId = ev.id;
-      item.innerHTML = `
-        <span class="event-icon">${ev.icon}</span>
-        <span class="event-name">${ev.name}</span>
-      `;
-      pool.appendChild(item);
-      this.attachEventDragHandlers(item);
-    });
-    
-    // Подсказка
-    const hintBtn = document.getElementById('showHint');
-    if (hintBtn) {
-      hintBtn.onclick = () => {
-        this.showToast('Подсказка: начало — триггер/изобретение, конец — массовое принятие.', 'info');
-      };
-    }
-    
-    // Кнопка далее после успеха
-    const nextBtn = document.getElementById('nextFromPattern');
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        this.elements.patternResult.style.display = 'none';
-        this.engine.nextStage();
-        this.showScreen('stage4');
-      };
-    }
-  }
-  
-  attachEventDragHandlers(item) {
-    // Touch события
-    item.addEventListener('touchstart', (e) => this.handleEventDragStart(e, item), { passive: false });
-    item.addEventListener('touchmove', (e) => this.handleEventDragMove(e), { passive: false });
-    item.addEventListener('touchend', (e) => this.handleEventDragEnd(e));
-    
-    // Mouse события
-    item.addEventListener('mousedown', (e) => this.handleEventDragStart(e, item));
-    
-    // Глобальные события только при активном драге
-    this.dragMoveHandler = (e) => this.handleEventDragMove(e);
-    this.dragEndHandler = (e) => this.handleEventDragEnd(e);
-  }
-  
-  handleEventDragStart(e, item) {
-    if (this.uiState.currentDragElement) return;
-    
-    e.preventDefault();
-    const touch = e.touches ? e.touches[0] : e;
-    const rect = item.getBoundingClientRect();
-    
-    this.uiState.currentDragElement = item;
-    this.uiState.dragOffsetX = touch.clientX - rect.left;
-    this.uiState.dragOffsetY = touch.clientY - rect.top;
-    this.uiState.originalParent = item.parentElement;
-    this.uiState.startX = touch.clientX;
-    this.uiState.startY = touch.clientY;
-    
-    // Добавляем глобальные слушатели
-    document.addEventListener('mousemove', this.dragMoveHandler);
-    document.addEventListener('mouseup', this.dragEndHandler);
-    
-    // Плавная анимация начала
-    item.style.transition = 'transform 0.2s ease';
-    item.style.transform = 'scale(1.05)';
-    
-    setTimeout(() => {
-      if (this.uiState.currentDragElement === item) {
-        item.classList.add('dragging');
-        item.style.position = 'fixed';
-        item.style.zIndex = '1000';
-        item.style.width = rect.width + 'px';
-        item.style.left = rect.left + 'px';
-        item.style.top = rect.top + 'px';
-        item.style.transition = 'none';
-        item.style.transform = 'scale(1.05)';
-        item.style.pointerEvents = 'none';
-      }
-    }, 100);
-  }
-  
-  handleEventDragMove(e) {
-    const item = this.uiState.currentDragElement;
-    if (!item) return;
-    
-    e.preventDefault();
-    const touch = e.touches ? e.touches[0] : e;
-    
-    // Плавное движение с учетом инерции
-    const deltaX = touch.clientX - this.uiState.startX;
-    const deltaY = touch.clientY - this.uiState.startY;
-    
-    // Не начинаем драг пока не сдвинулись достаточно далеко
-    if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) return;
-    
-    const left = touch.clientX - this.uiState.dragOffsetX;
-    const top = touch.clientY - this.uiState.dragOffsetY;
-    
-    // Используем transform для более плавной анимации
-    item.style.transform = `translate(${left}px, ${top}px) scale(1.05)`;
-    
-    // Подсветка зон с улучшенной логикой
-    let targetZone = null;
-    document.querySelectorAll('.drop-zone').forEach(zone => {
-      const r = zone.getBoundingClientRect();
-      const centerX = r.left + r.width / 2;
-      const centerY = r.top + r.height / 2;
-      const distance = Math.sqrt(
-        Math.pow(touch.clientX - centerX, 2) + 
-        Math.pow(touch.clientY - centerY, 2)
-      );
-      
-      if (distance < 60) { // Радиус активации
-        zone.classList.add('drag-over');
-        targetZone = zone;
-      } else {
-        zone.classList.remove('drag-over');
-      }
-    });
-    
-    this.uiState.targetZone = targetZone;
-  }
-  
-  handleEventDragEnd(e) {
-    const item = this.uiState.currentDragElement;
-    if (!item) return;
-    
-    // Убираем глобальные слушатели
-    document.removeEventListener('mousemove', this.dragMoveHandler);
-    document.removeEventListener('mouseup', this.dragEndHandler);
-    
-    document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
-    
-    const zone = this.uiState.targetZone;
-    
-    if (zone && !zone.querySelector('.event-item')) {
-      // Анимация прикрепления к зоне
-      const zoneRect = zone.getBoundingClientRect();
-      const zoneCenterX = zoneRect.left + zoneRect.width / 2;
-      const zoneCenterY = zoneRect.top + zoneRect.height / 2;
-      
-      item.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      item.style.transform = `translate(${zoneCenterX - item.offsetWidth/2}px, ${zoneCenterY - item.offsetHeight/2}px) scale(1)`;
-      
-      setTimeout(() => {
-        // Восстанавливаем нормальное позиционирование
-        item.style.position = '';
-        item.style.left = '';
-        item.style.top = '';
-        item.style.width = '';
-        item.style.zIndex = '';
-        item.style.transform = '';
-        item.style.transition = '';
-        item.style.pointerEvents = '';
-        item.classList.remove('dragging');
-        
-        zone.appendChild(item);
-        zone.classList.add('has-item');
-        
-        // Клик по элементу в зоне возвращает его в пул
-        item.onclick = () => {
-          zone.classList.remove('has-item');
-          const poolRoot = this.elements.eventsPool;
-          const pool = poolRoot.querySelector('.draggable-events') || poolRoot;
-          pool.appendChild(item);
-          item.onclick = null;
-          item.style.transform = '';
-        };
-        
-        this.validatePatternIfComplete();
-      }, 300);
-    } else {
-      // Возвращаем в исходное положение
-      this.returnDraggedItem(item);
-    }
-    
-    this.uiState.currentDragElement = null;
-    this.uiState.targetZone = null;
-  }
-  
-  returnDraggedItem(item) {
-    // Плавно возвращаем в исходное положение
-    item.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-    item.style.transform = 'scale(1)';
-    
-    setTimeout(() => {
-      item.style.position = '';
-      item.style.left = '';
-      item.style.top = '';
-      item.style.width = '';
-      item.style.zIndex = '';
-      item.style.transform = '';
-      item.style.transition = '';
-      item.style.pointerEvents = '';
-      item.classList.remove('dragging');
-      
-      if (this.uiState.originalParent) {
-        this.uiState.originalParent.appendChild(item);
-      }
-    }, 400);
-  }
-  
-  validatePatternIfComplete() {
-    const zones = Array.from(this.elements.dropZones.querySelectorAll('.drop-zone'));
-    const allFilled = zones.every(z => z.querySelector('.event-item'));
-    if (!allFilled) return;
-    
-    const placedIds = zones.map(z => z.querySelector('.event-item')?.dataset.eventId);
-    const result = this.engine.validatePattern(placedIds);
-    if (result.isComplete) {
-      const res = this.elements.patternResult;
-      res.querySelector('.pattern-explanation').textContent = result.explanation || '';
-      res.style.display = 'block';
-      this.showToast('Паттерн найден! Отличная работа!', 'success');
-    } else {
-      this.showToast(`Совпадений: ${result.correctCount}/${result.total}. Попробуй переставить элементы.`, 'warning');
-    }
-  }
-  
+  // Этап 3: Прогнозирование (бывший 4-й этап)
   initStage4() {
-    this.showToast('Этап 4: Прогнозирование', 'info');
+    this.showToast('Этап 3: Прогнозирование', 'info');
   }
   
+  // Этап 4: Инвестиции (бывший 5-й этап)
   initStage5() {
-    this.showToast('Этап 5: Инвестиции', 'info');
+    this.showToast('Этап 4: Инвестиции', 'info');
   }
   
   showResults() {

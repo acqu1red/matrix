@@ -1,7 +1,7 @@
 /* ===== TRENDS QUEST DATA ===== */
 
 const QUEST_CONFIG = {
-  stages: 5,
+  stages: 4,
   rewards: {
     base: {
       coins: 50,

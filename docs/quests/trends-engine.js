@@ -23,16 +23,11 @@ class TrendsQuestEngine {
         timeLeft: 60
       },
       stage3: {
-        currentScenario: null,
-        placedEvents: [],
-        attempts: 0
-      },
-      stage4: {
         prediction: [],
         factors: [],
         confidence: 0
       },
-      stage5: {
+      stage4: {
         investments: {},
         daysPassed: 0,
         newsIndex: 0,
@@ -51,179 +46,171 @@ class TrendsQuestEngine {
     this.startQuest = this.startQuest.bind(this);
     this.nextStage = this.nextStage.bind(this);
     this.completeQuest = this.completeQuest.bind(this);
+    this.resetQuest = this.resetQuest.bind(this);
   }
   
+  // Инициализация
   initialize() {
-    console.log('🎮 Инициализация движка квеста...');
     this.loadProgress();
+    return this;
   }
   
+  // Запуск квеста
   startQuest() {
     this.gameState.isRunning = true;
     this.gameState.startTime = Date.now();
     this.gameState.currentStage = 1;
-    this.logEvent('info', 'Квест начат! Удачи в предсказании трендов!');
+    this.logEvent('info', 'Квест "Анализ трендов" начат!');
+    return this;
   }
   
-  // Этап 1: Логика свайпов
+  // Переход на следующий этап
+  nextStage() {
+    if (this.gameState.currentStage < QUEST_CONFIG.stages) {
+      this.gameState.currentStage++;
+      this.logEvent('info', `Переход на этап ${this.gameState.currentStage}`);
+      this.saveProgress();
+    }
+    return this;
+  }
+  
+  // Завершение квеста
+  completeQuest() {
+    this.gameState.isRunning = false;
+    const finalScore = this.calculateFinalScore();
+    this.gameState.score = finalScore;
+    this.checkAchievements();
+    this.logEvent('success', `Квест завершен! Итоговый счет: ${finalScore}`);
+    this.saveProgress();
+    return this;
+  }
+  
+  // Сброс квеста
+  resetQuest() {
+    this.gameState = {
+      currentStage: 0,
+      score: 0,
+      accuracy: 0,
+      portfolio: 1000,
+      reputation: 3,
+      isRunning: false,
+      startTime: null,
+      
+      stage1: {
+        trendsAnalyzed: 0,
+        correctPredictions: 0,
+        currentTrendIndex: 0
+      },
+      stage2: {
+        emotionAnalysis: null,
+        postsAnalyzed: [],
+        timeLeft: 60
+      },
+      stage3: {
+        prediction: [],
+        factors: [],
+        confidence: 0
+      },
+      stage4: {
+        investments: {},
+        daysPassed: 0,
+        newsIndex: 0,
+        profitHistory: [1000]
+      },
+      
+      achievements: [],
+      eventLog: []
+    };
+    
+    this.saveProgress();
+    return this;
+  }
+  
+  // STAGE 1: Анализ трендов
+  getNextTrend() {
+    const trend = TRENDS_DATA[this.gameState.stage1.currentTrendIndex];
+    this.gameState.stage1.currentTrendIndex++;
+    return trend;
+  }
+  
   processTrendSwipe(trendId, direction) {
     const trend = TRENDS_DATA.find(t => t.id === trendId);
-    if (!trend) return null;
+    if (!trend) return { isCorrect: false, feedback: "Тренд не найден" };
     
-    const isCorrect = (direction === 'right' && trend.willSucceed) || 
-                     (direction === 'left' && !trend.willSucceed);
+    const isCorrect = (direction === 'right' && trend.isCorrect) || 
+                     (direction === 'left' && !trend.isCorrect);
     
-    this.gameState.stage1.trendsAnalyzed++;
     if (isCorrect) {
       this.gameState.stage1.correctPredictions++;
       this.gameState.score += 10;
-      this.gameState.accuracy = Math.round((this.gameState.stage1.correctPredictions / this.gameState.stage1.trendsAnalyzed) * 100);
+      this.logEvent('success', `Правильно! +10 очков`);
+    } else {
+      this.gameState.score = Math.max(0, this.gameState.score - 5);
+      this.logEvent('error', `Неправильно! -5 очков`);
     }
     
-    const feedback = isCorrect ? trend.feedback.correct : trend.feedback.incorrect;
+    this.gameState.stage1.trendsAnalyzed++;
     
-    this.logEvent(isCorrect ? 'success' : 'error', feedback);
+    // Проверяем завершение этапа
+    if (this.gameState.stage1.trendsAnalyzed >= TRENDS_DATA.length) {
+      this.nextStage();
+    }
     
     return {
       isCorrect,
-      feedback,
-      score: this.gameState.score,
-      accuracy: this.gameState.accuracy
+      feedback: isCorrect ? trend.explanation : `Неправильно. ${trend.explanation}`,
+      score: this.gameState.score
     };
   }
   
-  getNextTrend() {
-    const index = this.gameState.stage1.currentTrendIndex;
-    if (index >= TRENDS_DATA.length) return null;
-    
-    this.gameState.stage1.currentTrendIndex++;
-    return TRENDS_DATA[index];
-  }
-  
-  // Этап 2: Анализ эмоций
+  // STAGE 2: Эмоциональный анализ
   startEmotionAnalysis() {
-    this.gameState.stage2.timeLeft = 60;
-    this.gameState.stage2.postsAnalyzed = [];
-    
-    // Возвращаем перемешанные посты
-    return shuffleArray(SOCIAL_POSTS_DATA);
+    const posts = shuffleArray(SOCIAL_POSTS_DATA).slice(0, 8);
+    this.gameState.stage2.emotionAnalysis = {
+      posts: posts,
+      emotions: {
+        fear: 0,
+        greed: 0,
+        hope: 0,
+        doubt: 0
+      }
+    };
+    return posts;
   }
   
-  analyzePost(postId, selectedEmotion) {
-    const post = SOCIAL_POSTS_DATA.find(p => p.author === postId);
-    if (!post) return false;
+  analyzePost(author, emotion) {
+    const analysis = this.gameState.stage2.emotionAnalysis;
+    if (!analysis) return;
     
-    const isCorrect = post.emotion === selectedEmotion;
+    analysis.emotions[emotion]++;
+    analysis.postsAnalyzed.push({ author, emotion });
     
-    this.gameState.stage2.postsAnalyzed.push({
-      postId,
-      selectedEmotion,
-      correctEmotion: post.emotion,
-      isCorrect
-    });
-    
-    if (isCorrect) {
-      this.gameState.score += 5;
-    }
-    
-    return isCorrect;
+    // Бонус за правильный анализ
+    this.gameState.score += 5;
+    this.logEvent('info', `Проанализирован пост ${author}: ${emotion}`);
   }
   
   calculateMarketSentiment() {
-    const emotions = {
-      fear: 0,
-      greed: 0,
-      hope: 0,
-      doubt: 0
-    };
+    const analysis = this.gameState.stage2.emotionAnalysis;
+    if (!analysis) return null;
     
-    this.gameState.stage2.postsAnalyzed.forEach(analysis => {
-      if (analysis.isCorrect) {
-        emotions[analysis.correctEmotion]++;
-      }
-    });
-    
+    const emotions = analysis.emotions;
     const total = Object.values(emotions).reduce((sum, val) => sum + val, 0);
+    
     if (total === 0) return null;
     
-    // Находим доминирующую эмоцию
     const dominant = Object.entries(emotions)
-      .sort((a, b) => b[1] - a[1])[0];
+      .sort(([,a], [,b]) => b - a)[0][0];
+    const percentage = Math.round((emotions[dominant] / total) * 100);
     
-    this.gameState.stage2.emotionAnalysis = {
-      dominant: dominant[0],
-      percentage: Math.round((dominant[1] / total) * 100),
-      breakdown: emotions
-    };
-    
-    // Бонус за правильный анализ
-    if (this.gameState.stage2.postsAnalyzed.filter(a => a.isCorrect).length >= 7) {
-      this.gameState.score += 20;
-      this.logEvent('success', 'Отличный анализ эмоций рынка!');
-    }
-    
-    return this.gameState.stage2.emotionAnalysis;
+    return { dominant, percentage, total };
   }
   
-  // Этап 3: Поиск паттернов
-  getPatternScenario() {
-    const scenario = getRandomElement(PATTERN_SCENARIOS);
-    this.gameState.stage3.currentScenario = scenario;
-    
-    // Перемешиваем события
-    const shuffledEvents = shuffleArray(scenario.events);
-    return {
-      ...scenario,
-      events: shuffledEvents
-    };
-  }
-  
-  checkEventPlacement(eventId, position) {
-    const scenario = this.gameState.stage3.currentScenario;
-    if (!scenario) return false;
-    
-    const event = scenario.events.find(e => e.id === eventId);
-    if (!event) return false;
-    
-    return event.order === position;
-  }
-  
-  validatePattern(placedEvents) {
-    const scenario = this.gameState.stage3.currentScenario;
-    if (!scenario) return false;
-    
-    this.gameState.stage3.attempts++;
-    
-    // Проверяем, все ли события на своих местах
-    let correctCount = 0;
-    placedEvents.forEach((eventId, index) => {
-      const event = scenario.events.find(e => e.id === eventId);
-      if (event && event.order === index + 1) {
-        correctCount++;
-      }
-    });
-    
-    const isComplete = correctCount === scenario.events.length;
-    
-    if (isComplete) {
-      const bonus = Math.max(30 - (this.gameState.stage3.attempts - 1) * 5, 10);
-      this.gameState.score += bonus;
-      this.logEvent('success', `Паттерн найден! +${bonus} очков`);
-    }
-    
-    return {
-      isComplete,
-      correctCount,
-      total: scenario.events.length,
-      explanation: isComplete ? scenario.explanation : null
-    };
-  }
-  
-  // Этап 4: Прогнозирование
+  // STAGE 3: Прогнозирование (бывший 4-й этап)
   generateTrendFactors() {
     // Выбираем случайные факторы
     const factors = shuffleArray(TREND_FACTORS).slice(0, 4);
-    this.gameState.stage4.factors = factors;
+    this.gameState.stage3.factors = factors;
     return factors;
   }
   
@@ -237,7 +224,7 @@ class TrendsQuestEngine {
     const volatility = this.calculateVolatility(drawnPoints);
     
     // Учитываем факторы
-    const factorImpact = this.gameState.stage4.factors.reduce((sum, factor) => {
+    const factorImpact = this.gameState.stage3.factors.reduce((sum, factor) => {
       return sum + (factor.impact === 'positive' ? 1 : -1) * parseInt(factor.value);
     }, 0);
     
@@ -245,20 +232,20 @@ class TrendsQuestEngine {
     let predictionScore = 50; // Базовый балл
     
     // Правильный тренд с учетом факторов
-    if (factorImpact > 0 && trend > 0) predictionScore += 30;
-    else if (factorImpact < 0 && trend < 0) predictionScore += 30;
+    if (factorImpact > 0 && trend > 0.1) predictionScore += 30;
+    else if (factorImpact < 0 && trend < -0.1) predictionScore += 30;
     else if (factorImpact === 0 && Math.abs(trend) < 0.1) predictionScore += 20;
     
     // Реалистичная волатильность
     if (volatility > 0.2 && volatility < 0.5) predictionScore += 20;
     
-    this.gameState.stage4.confidence = predictionScore;
+    this.gameState.stage3.confidence = predictionScore;
     this.gameState.score += Math.round(predictionScore / 2);
     
     return {
       score: predictionScore,
       trend: trend > 0 ? 'рост' : trend < 0 ? 'падение' : 'стабильность',
-      volatility: volatility > 0.5 ? 'высокая' : volatility > 0.2 ? 'средняя' : 'низкая',
+      volatility: volatility,
       feedback: this.getPredictionFeedback(predictionScore)
     };
   }
@@ -266,36 +253,36 @@ class TrendsQuestEngine {
   calculateTrend(points) {
     if (points.length < 2) return 0;
     
-    const firstY = points[0].y;
-    const lastY = points[points.length - 1].y;
-    
-    return (lastY - firstY) / firstY;
+    const first = points[0];
+    const last = points[points.length - 1];
+    return (last.y - first.y) / (last.x - first.x);
   }
   
   calculateVolatility(points) {
     if (points.length < 3) return 0;
     
     let totalDeviation = 0;
-    for (let i = 1; i < points.length - 1; i++) {
-      const expected = (points[i-1].y + points[i+1].y) / 2;
-      const deviation = Math.abs(points[i].y - expected) / expected;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const deviation = Math.abs(curr.y - prev.y);
       totalDeviation += deviation;
     }
     
-    return totalDeviation / (points.length - 2);
+    return totalDeviation / (points.length - 1);
   }
   
   getPredictionFeedback(score) {
-    if (score >= 80) return "Отличный прогноз! Ты настоящий визионер!";
+    if (score >= 80) return "Отличный прогноз! Учёл все ключевые факторы.";
     if (score >= 60) return "Хороший анализ! Учёл основные факторы.";
     if (score >= 40) return "Неплохо, но можно точнее проанализировать факторы.";
     return "Прогноз требует доработки. Обрати внимание на факторы влияния.";
   }
   
-  // Этап 5: Инвестиции
+  // STAGE 4: Инвестиции (бывший 5-й этап)
   getAvailableTrends() {
     return INVESTMENT_TRENDS.filter(trend => 
-      !this.gameState.stage5.investments[trend.id]
+      !this.gameState.stage4.investments[trend.id]
     );
   }
   
@@ -306,10 +293,10 @@ class TrendsQuestEngine {
     if (amount > this.gameState.portfolio) return false;
     
     this.gameState.portfolio -= amount;
-    this.gameState.stage5.investments[trendId] = {
+    this.gameState.stage4.investments[trendId] = {
       amount,
       buyPrice: trend.price,
-      buyDay: this.gameState.stage5.daysPassed
+      buyDay: this.gameState.stage4.daysPassed
     };
     
     this.logEvent('info', `Инвестировано $${amount} в ${trend.name}`);
@@ -317,238 +304,138 @@ class TrendsQuestEngine {
   }
   
   simulateMarketDay() {
-    this.gameState.stage5.daysPassed++;
+    this.gameState.stage4.daysPassed++;
     
     let totalValue = this.gameState.portfolio;
     const events = [];
     
     // Симулируем изменения для каждой инвестиции
-    Object.entries(this.gameState.stage5.investments).forEach(([trendId, investment]) => {
+    Object.entries(this.gameState.stage4.investments).forEach(([trendId, investment]) => {
       const trend = INVESTMENT_TRENDS.find(t => t.id === trendId);
       if (!trend) return;
       
       // Генерируем изменение цены на основе волатильности
       const change = this.generatePriceChange(trend.volatility, trend.potential);
-      const newPrice = Math.max(1, trend.price * (1 + change));
+      const newPrice = investment.buyPrice * (1 + change);
+      
+      // Обновляем цену тренда
       trend.price = newPrice;
       
-      const currentValue = (newPrice / investment.buyPrice) * investment.amount;
+      // Рассчитываем прибыль/убыток
+      const currentValue = investment.amount * (newPrice / investment.buyPrice);
+      const profit = currentValue - investment.amount;
+      
       totalValue += currentValue;
       
-      // Генерируем новости
-      if (Math.random() < 0.3 && trend.news.length > 0) {
-        const news = getRandomElement(trend.news);
-        events.push({
-          type: change > 0 ? 'positive' : 'negative',
-          message: `${trend.name}: ${news}`
-        });
-      }
+      events.push({
+        trend: trend.name,
+        change: change,
+        profit: profit,
+        newPrice: newPrice
+      });
     });
     
-    this.gameState.stage5.profitHistory.push(totalValue);
+    // Обновляем историю прибыли
+    this.gameState.stage4.profitHistory.push(totalValue);
     
     return {
-      portfolio: totalValue,
-      daysPassed: this.gameState.stage5.daysPassed,
-      events
+      day: this.gameState.stage4.daysPassed,
+      totalValue: totalValue,
+      events: events
     };
   }
   
   generatePriceChange(volatility, potential) {
-    const volatilityFactors = {
-      low: 0.05,
-      medium: 0.1,
-      high: 0.15,
-      very_high: 0.25
-    };
+    // Базовое изменение на основе потенциала
+    const baseChange = (potential - 0.5) * 0.1;
     
-    const potentialFactors = {
-      low: -0.02,
-      medium: 0.01,
-      high: 0.03,
-      very_high: 0.05,
-      extreme: 0.08
-    };
+    // Случайная волатильность
+    const randomChange = (Math.random() - 0.5) * volatility * 2;
     
-    const v = volatilityFactors[volatility] || 0.1;
-    const p = potentialFactors[potential] || 0.01;
-    
-    // Случайное изменение с учетом волатильности и потенциала
-    const random = (Math.random() - 0.5) * 2 * v;
-    return random + p;
+    return baseChange + randomChange;
   }
   
-  // Общие методы
-  nextStage() {
-    if (this.gameState.currentStage < QUEST_CONFIG.stages) {
-      this.gameState.currentStage++;
-      this.logEvent('info', `Переход к этапу ${this.gameState.currentStage}`);
-      return true;
-    }
-    return false;
-  }
-  
+  // Утилиты
   logEvent(type, message) {
     this.gameState.eventLog.push({
-      type,
-      message,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      type: type,
+      message: message
     });
-    
-    // Ограничиваем размер лога
-    if (this.gameState.eventLog.length > 50) {
-      this.gameState.eventLog.shift();
-    }
   }
   
   saveProgress() {
     try {
-      localStorage.setItem('trendsQuestState', JSON.stringify(this.gameState));
-      localStorage.setItem('trendsQuestCompleted', 'true');
+      localStorage.setItem('trendsQuestProgress', JSON.stringify(this.gameState));
     } catch (e) {
-      console.error('Ошибка сохранения прогресса:', e);
+      console.warn('Не удалось сохранить прогресс:', e);
     }
   }
   
   loadProgress() {
     try {
-      const saved = localStorage.getItem('trendsQuestState');
+      const saved = localStorage.getItem('trendsQuestProgress');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Не загружаем, если квест был завершен
-        if (!parsed.isRunning && parsed.currentStage > QUEST_CONFIG.stages) {
-          return;
-        }
         this.gameState = { ...this.gameState, ...parsed };
       }
     } catch (e) {
-      console.error('Ошибка загрузки прогресса:', e);
+      console.warn('Не удалось загрузить прогресс:', e);
     }
   }
   
   getGameState() {
-    return this.gameState;
-  }
-  
-  completeQuest() {
-    this.gameState.isRunning = false;
-    const finalScore = this.calculateFinalScore();
-    
-    // Проверяем достижения
-    this.checkAchievements();
-    
-    // Сохраняем прогресс
-    this.saveProgress();
-    
-    return {
-      score: finalScore,
-      accuracy: this.gameState.accuracy,
-      profit: Math.round(this.gameState.stage5.profitHistory[this.gameState.stage5.profitHistory.length - 1] - 1000),
-      trendsFound: this.gameState.stage1.correctPredictions,
-      achievements: this.gameState.achievements,
-      rewards: this.calculateRewards(finalScore)
-    };
+    return { ...this.gameState };
   }
   
   calculateFinalScore() {
     let score = this.gameState.score;
     
-    // Бонусы за точность
-    if (this.gameState.accuracy >= 90) score *= 1.5;
-    else if (this.gameState.accuracy >= 75) score *= 1.2;
+    // Бонус за точность
+    const accuracy = this.gameState.stage1.correctPredictions / this.gameState.stage1.trendsAnalyzed;
+    score += Math.round(accuracy * 50);
     
-    // Бонус за прибыль
-    const profit = this.gameState.stage5.profitHistory[this.gameState.stage5.profitHistory.length - 1] - 1000;
-    if (profit > 2000) score += 100;
-    else if (profit > 1000) score += 50;
-    else if (profit > 500) score += 25;
+    // Бонус за портфель
+    const portfolioBonus = Math.max(0, this.gameState.portfolio - 1000);
+    score += Math.round(portfolioBonus / 10);
     
-    return Math.round(score);
+    return Math.max(0, score);
   }
   
   checkAchievements() {
     const achievements = [];
     
-    if (this.gameState.stage1.correctPredictions >= 8) {
-      achievements.push(ACHIEVEMENTS.find(a => a.id === 'trend_hunter'));
+    // Аналитик
+    if (this.gameState.stage1.correctPredictions >= 5) {
+      achievements.push('Аналитик');
     }
     
-    if (this.gameState.stage2.postsAnalyzed.filter(a => a.isCorrect).length >= 8) {
-      achievements.push(ACHIEVEMENTS.find(a => a.id === 'emotion_reader'));
+    // Эмоциональный детектив
+    if (this.gameState.stage2.emotionAnalysis?.postsAnalyzed.length >= 8) {
+      achievements.push('Эмоциональный детектив');
     }
     
-    if (this.gameState.stage3.attempts === 1) {
-      achievements.push(ACHIEVEMENTS.find(a => a.id === 'pattern_master'));
+    // Пророк
+    if (this.gameState.stage3.confidence >= 80) {
+      achievements.push('Пророк');
     }
     
-    const finalProfit = this.gameState.stage5.profitHistory[this.gameState.stage5.profitHistory.length - 1];
-    if (finalProfit >= 4000) {
-      achievements.push(ACHIEVEMENTS.find(a => a.id === 'profit_prophet'));
+    // Инвестор
+    if (this.gameState.portfolio > 1500) {
+      achievements.push('Инвестор');
     }
     
-    if (this.gameState.accuracy >= 90) {
-      achievements.push(ACHIEVEMENTS.find(a => a.id === 'perfect_predictor'));
-    }
-    
-    this.gameState.achievements = achievements.filter(a => a);
+    this.gameState.achievements = achievements;
   }
   
-  calculateRewards(finalScore) {
-    let multiplier = 'normal';
-    
-    if (finalScore >= 500) multiplier = 'perfect';
-    else if (finalScore >= 350) multiplier = 'excellent';
-    else if (finalScore >= 200) multiplier = 'good';
-    
-    const mult = QUEST_CONFIG.rewards.multipliers[multiplier];
+  calculateRewards() {
+    const baseReward = QUEST_CONFIG.rewards.base;
+    const scoreMultiplier = Math.max(1, this.gameState.score / 100);
     
     return {
-      coins: Math.round(QUEST_CONFIG.rewards.base.coins * mult),
-      xp: Math.round(QUEST_CONFIG.rewards.base.xp * mult),
-      multiplier
+      coins: Math.round(baseReward.coins * scoreMultiplier),
+      xp: Math.round(baseReward.xp * scoreMultiplier)
     };
-  }
-  
-  resetQuest() {
-    this.gameState = {
-      currentStage: 0,
-      score: 0,
-      accuracy: 0,
-      portfolio: 1000,
-      reputation: 3,
-      isRunning: false,
-      startTime: null,
-      stage1: {
-        trendsAnalyzed: 0,
-        correctPredictions: 0,
-        currentTrendIndex: 0
-      },
-      stage2: {
-        emotionAnalysis: null,
-        postsAnalyzed: [],
-        timeLeft: 60
-      },
-      stage3: {
-        currentScenario: null,
-        placedEvents: [],
-        attempts: 0
-      },
-      stage4: {
-        prediction: [],
-        factors: [],
-        confidence: 0
-      },
-      stage5: {
-        investments: {},
-        daysPassed: 0,
-        newsIndex: 0,
-        profitHistory: [1000]
-      },
-      achievements: [],
-      eventLog: []
-    };
-    
-    localStorage.removeItem('trendsQuestState');
   }
 }
 
