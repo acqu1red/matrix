@@ -176,6 +176,10 @@ function setupEventListeners() {
     
     dialogAttachBtn.addEventListener('click', () => dialogFileInput.click());
     dialogFileInput.addEventListener('change', handleDialogFileAttach);
+
+    document.getElementById('simulationButton').addEventListener('click', () => {
+        window.location.href = 'quests.html';
+    });
 }
 
 // Установка фильтра
