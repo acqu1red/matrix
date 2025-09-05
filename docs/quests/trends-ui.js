@@ -270,27 +270,44 @@ class TrendsQuestUI {
   }
   
   showDecisionFeedback(result) {
-    const feedback = this.elements.decisionFeedback;
-    feedback.querySelector('.feedback-content').textContent = result.feedback;
-    feedback.classList.add('show');
+    // Показываем краткое уведомление вверху экрана
+    const isCorrect = result.isCorrect;
+    const message = isCorrect ? '✅ Правильно!' : '❌ Неверно!';
+    this.showTopNotification(message, isCorrect ? 'success' : 'error');
+  }
+  
+  showTopNotification(message, type = 'info') {
+    // Создаем или переиспользуем элемент уведомления
+    let notification = document.getElementById('topNotification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'topNotification';
+      notification.className = 'top-notification';
+      document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.className = `top-notification ${type} show`;
     
     setTimeout(() => {
-      feedback.classList.remove('show');
-    }, 2000);
+      notification.classList.remove('show');
+    }, 1500);
   }
   
   // STAGE 2: Эмоциональный радар
   initStage2() {
     const posts = this.engine.startEmotionAnalysis();
-    this.renderSocialPosts(posts);
+    this.uiState.stage2Posts = posts.slice(0, 8); // Ограничиваем 8 постами
+    this.uiState.analyzedPosts = 0;
+    this.renderSocialPosts();
     this.initRadar();
     this.startEmotionTimer();
   }
   
-  renderSocialPosts(posts) {
+  renderSocialPosts() {
     this.elements.socialPosts.innerHTML = '';
     
-    posts.slice(0, 5).forEach(post => {
+    this.uiState.stage2Posts.forEach(post => {
       const postEl = document.createElement('div');
       postEl.className = 'social-post';
       postEl.dataset.author = post.author;
@@ -303,22 +320,24 @@ class TrendsQuestUI {
         </div>
       `;
       
-      postEl.addEventListener('click', () => this.selectPost(postEl));
+      postEl.addEventListener('click', () => this.selectPost(postEl, post));
       this.elements.socialPosts.appendChild(postEl);
     });
   }
   
-  selectPost(postEl) {
+  selectPost(postEl, post) {
     if (postEl.classList.contains('selected')) {
       postEl.classList.remove('selected');
-      this.uiState.selectedPosts.delete(postEl.dataset.author);
+      this.uiState.selectedPost = null;
     } else {
+      // Снимаем выделение с других постов
+      document.querySelectorAll('.social-post.selected').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
       postEl.classList.add('selected');
-      this.uiState.selectedPosts.add(postEl.dataset.author);
+      this.uiState.selectedPost = { element: postEl, data: post };
     }
-    
-    // Активируем кнопку если выбрано достаточно постов
-    this.elements.confirmEmotion.disabled = this.uiState.selectedPosts.size < 3;
   }
   
   initRadar() {
@@ -361,10 +380,13 @@ class TrendsQuestUI {
   }
   
   selectEmotion(emotion) {
-    // Анализируем выбранные посты с этой эмоцией
-    this.uiState.selectedPosts.forEach(author => {
-      this.engine.analyzePost(author, emotion);
-    });
+    if (!this.uiState.selectedPost) {
+      this.showToast('Сначала выберите пост!', 'warning');
+      return;
+    }
+    
+    // Анализируем выбранный пост
+    this.engine.analyzePost(this.uiState.selectedPost.data.author, emotion);
     
     // Визуальный фидбек
     const sector = document.querySelector(`[data-emotion="${emotion}"]`);
@@ -373,17 +395,27 @@ class TrendsQuestUI {
       sector.style.transform = '';
     }, 300);
     
-    // Очищаем выбор
-    this.uiState.selectedPosts.clear();
-    document.querySelectorAll('.social-post.selected').forEach(el => {
-      el.classList.remove('selected');
-    });
+    // Анимируем исчезновение поста
+    const postEl = this.uiState.selectedPost.element;
+    postEl.style.transform = 'scale(0)';
+    postEl.style.opacity = '0';
     
-    // Показываем новые посты
-    const posts = shuffleArray(SOCIAL_POSTS_DATA);
-    this.renderSocialPosts(posts);
+    setTimeout(() => {
+      postEl.remove();
+      this.uiState.analyzedPosts++;
+      
+      // Удаляем пост из массива
+      this.uiState.stage2Posts = this.uiState.stage2Posts.filter(p => 
+        p.author !== this.uiState.selectedPost.data.author
+      );
+      
+      // Проверяем, остались ли посты
+      if (this.uiState.stage2Posts.length === 0) {
+        this.confirmEmotionAnalysis();
+      }
+    }, 300);
     
-    this.elements.confirmEmotion.disabled = true;
+    this.uiState.selectedPost = null;
   }
   
   startEmotionTimer() {
@@ -485,23 +517,23 @@ class TrendsQuestUI {
   }
   
   attachEventDragHandlers(item) {
-    const onStart = (e) => this.handleEventDragStart(e, item);
-    const onMove = (e) => this.handleEventDragMove(e);
-    const onEnd = (e) => this.handleEventDragEnd(e);
+    // Touch события
+    item.addEventListener('touchstart', (e) => this.handleEventDragStart(e, item), { passive: false });
+    item.addEventListener('touchmove', (e) => this.handleEventDragMove(e), { passive: false });
+    item.addEventListener('touchend', (e) => this.handleEventDragEnd(e));
     
-    // Touch
-    item.addEventListener('touchstart', onStart, { passive: true });
-    item.addEventListener('touchmove', onMove, { passive: false });
-    item.addEventListener('touchend', onEnd);
+    // Mouse события
+    item.addEventListener('mousedown', (e) => this.handleEventDragStart(e, item));
     
-    // Mouse
-    item.addEventListener('mousedown', onStart);
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onEnd);
+    // Глобальные события только при активном драге
+    this.dragMoveHandler = (e) => this.handleEventDragMove(e);
+    this.dragEndHandler = (e) => this.handleEventDragEnd(e);
   }
   
   handleEventDragStart(e, item) {
     if (this.uiState.currentDragElement) return;
+    
+    e.preventDefault();
     const touch = e.touches ? e.touches[0] : e;
     const rect = item.getBoundingClientRect();
     
@@ -509,13 +541,30 @@ class TrendsQuestUI {
     this.uiState.dragOffsetX = touch.clientX - rect.left;
     this.uiState.dragOffsetY = touch.clientY - rect.top;
     this.uiState.originalParent = item.parentElement;
+    this.uiState.startX = touch.clientX;
+    this.uiState.startY = touch.clientY;
     
-    item.classList.add('dragging');
-    item.style.position = 'fixed';
-    item.style.zIndex = '1000';
-    item.style.width = rect.width + 'px';
-    item.style.left = rect.left + 'px';
-    item.style.top = rect.top + 'px';
+    // Добавляем глобальные слушатели
+    document.addEventListener('mousemove', this.dragMoveHandler);
+    document.addEventListener('mouseup', this.dragEndHandler);
+    
+    // Плавная анимация начала
+    item.style.transition = 'transform 0.2s ease';
+    item.style.transform = 'scale(1.05)';
+    
+    setTimeout(() => {
+      if (this.uiState.currentDragElement === item) {
+        item.classList.add('dragging');
+        item.style.position = 'fixed';
+        item.style.zIndex = '1000';
+        item.style.width = rect.width + 'px';
+        item.style.left = rect.left + 'px';
+        item.style.top = rect.top + 'px';
+        item.style.transition = 'none';
+        item.style.transform = 'scale(1.05)';
+        item.style.pointerEvents = 'none';
+      }
+    }, 100);
   }
   
   handleEventDragMove(e) {
@@ -524,41 +573,75 @@ class TrendsQuestUI {
     
     e.preventDefault();
     const touch = e.touches ? e.touches[0] : e;
+    
+    // Плавное движение с учетом инерции
+    const deltaX = touch.clientX - this.uiState.startX;
+    const deltaY = touch.clientY - this.uiState.startY;
+    
+    // Не начинаем драг пока не сдвинулись достаточно далеко
+    if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) return;
+    
     const left = touch.clientX - this.uiState.dragOffsetX;
     const top = touch.clientY - this.uiState.dragOffsetY;
-    item.style.left = left + 'px';
-    item.style.top = top + 'px';
     
-    // Подсветка зон
+    // Используем transform для более плавной анимации
+    item.style.transform = `translate(${left}px, ${top}px) scale(1.05)`;
+    
+    // Подсветка зон с улучшенной логикой
+    let targetZone = null;
     document.querySelectorAll('.drop-zone').forEach(zone => {
       const r = zone.getBoundingClientRect();
-      if (touch.clientX >= r.left && touch.clientX <= r.right && touch.clientY >= r.top && touch.clientY <= r.bottom) {
+      const centerX = r.left + r.width / 2;
+      const centerY = r.top + r.height / 2;
+      const distance = Math.sqrt(
+        Math.pow(touch.clientX - centerX, 2) + 
+        Math.pow(touch.clientY - centerY, 2)
+      );
+      
+      if (distance < 60) { // Радиус активации
         zone.classList.add('drag-over');
+        targetZone = zone;
       } else {
         zone.classList.remove('drag-over');
       }
     });
+    
+    this.uiState.targetZone = targetZone;
   }
   
   handleEventDragEnd(e) {
     const item = this.uiState.currentDragElement;
     if (!item) return;
     
-    const touch = e.changedTouches ? e.changedTouches[0] : e;
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const zone = el && (el.closest ? el.closest('.drop-zone') : null);
+    // Убираем глобальные слушатели
+    document.removeEventListener('mousemove', this.dragMoveHandler);
+    document.removeEventListener('mouseup', this.dragEndHandler);
     
     document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
     
-    if (zone) {
-      // Проверяем, свободна ли зона
-      if (!zone.querySelector('.event-item')) {
+    const zone = this.uiState.targetZone;
+    
+    if (zone && !zone.querySelector('.event-item')) {
+      // Анимация прикрепления к зоне
+      const zoneRect = zone.getBoundingClientRect();
+      const zoneCenterX = zoneRect.left + zoneRect.width / 2;
+      const zoneCenterY = zoneRect.top + zoneRect.height / 2;
+      
+      item.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      item.style.transform = `translate(${zoneCenterX - item.offsetWidth/2}px, ${zoneCenterY - item.offsetHeight/2}px) scale(1)`;
+      
+      setTimeout(() => {
+        // Восстанавливаем нормальное позиционирование
         item.style.position = '';
         item.style.left = '';
         item.style.top = '';
         item.style.width = '';
         item.style.zIndex = '';
+        item.style.transform = '';
+        item.style.transition = '';
+        item.style.pointerEvents = '';
         item.classList.remove('dragging');
+        
         zone.appendChild(item);
         zone.classList.add('has-item');
         
@@ -569,31 +652,40 @@ class TrendsQuestUI {
           const pool = poolRoot.querySelector('.draggable-events') || poolRoot;
           pool.appendChild(item);
           item.onclick = null;
+          item.style.transform = '';
         };
         
         this.validatePatternIfComplete();
-      } else {
-        // Зона занята — возвращаем
-        this.returnDraggedItem(item);
-      }
+      }, 300);
     } else {
-      // Не на зоне — возвращаем
+      // Возвращаем в исходное положение
       this.returnDraggedItem(item);
     }
     
     this.uiState.currentDragElement = null;
+    this.uiState.targetZone = null;
   }
   
   returnDraggedItem(item) {
-    item.style.position = '';
-    item.style.left = '';
-    item.style.top = '';
-    item.style.width = '';
-    item.style.zIndex = '';
-    item.classList.remove('dragging');
-    if (this.uiState.originalParent) {
-      this.uiState.originalParent.appendChild(item);
-    }
+    // Плавно возвращаем в исходное положение
+    item.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    item.style.transform = 'scale(1)';
+    
+    setTimeout(() => {
+      item.style.position = '';
+      item.style.left = '';
+      item.style.top = '';
+      item.style.width = '';
+      item.style.zIndex = '';
+      item.style.transform = '';
+      item.style.transition = '';
+      item.style.pointerEvents = '';
+      item.classList.remove('dragging');
+      
+      if (this.uiState.originalParent) {
+        this.uiState.originalParent.appendChild(item);
+      }
+    }, 400);
   }
   
   validatePatternIfComplete() {
@@ -655,7 +747,16 @@ class TrendsQuestUI {
       isDrawing: false,
       selectedTrendForInvest: null,
       emotionTimer: null,
-      selectedPosts: new Set()
+      selectedPosts: new Set(),
+      selectedPost: null,
+      stage2Posts: [],
+      analyzedPosts: 0,
+      targetZone: null,
+      startX: null,
+      startY: null,
+      dragOffsetX: null,
+      dragOffsetY: null,
+      originalParent: null
     };
     
     // Очистка таймеров
