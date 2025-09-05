@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Анализ трендов — Квест по психологии заработка</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quests-black-white.css" />
+  <link rel="stylesheet" href="trends-core.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Шапка квеста -->
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>🔮 Предсказатель трендов</h1>
+        <div class="badge pulse">PRO</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <!-- Экран приветствия -->
+    <div id="welcomeScreen" class="screen active">
+      <div class="welcome-container glass">
+        <div class="welcome-header">
+          <div class="welcome-icon">🔮</div>
+          <h2>Стань предсказателем трендов</h2>
+          <p class="subtitle">Научись видеть будущее раньше других и зарабатывай на этом</p>
+        </div>
+        
+        <div class="welcome-features">
+          <div class="feature-card">
+            <span class="feature-icon">🧠</span>
+            <h3>Психология масс</h3>
+            <p>Понимай, как мыслят люди и что будет популярно завтра</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">📈</span>
+            <h3>Анализ данных</h3>
+            <p>Научись видеть скрытые сигналы в потоке информации</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">💰</span>
+            <h3>Монетизация</h3>
+            <p>Превращай знания о будущем в реальный доход</p>
+          </div>
+        </div>
+
+        <div class="progress-overview">
+          <h4>Твой путь к успеху:</h4>
+          <div class="stages-preview">
+            <div class="stage-preview">
+              <span class="stage-num">1</span>
+              <span class="stage-name">Поймай волну</span>
+            </div>
+            <div class="stage-preview">
+              <span class="stage-num">2</span>
+              <span class="stage-name">Читай эмоции</span>
+            </div>
+            <div class="stage-preview">
+              <span class="stage-num">3</span>
+              <span class="stage-name">Сделай прогноз</span>
+            </div>
+            <div class="stage-preview">
+              <span class="stage-num">4</span>
+              <span class="stage-name">Заработай</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="startQuest" class="btn primary large pulse-btn">
+          <span>🚀 Начать путь к успеху</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Этап 1: Поймай волну (Swipe механика) -->
+    <div id="stage1" class="screen">
+      <div class="stage-header glass">
+        <div class="stage-info">
+          <h2>Этап 1: Поймай волну</h2>
+          <p>Свайпай тренды влево или вправо. Влево - умрёт, вправо - взлетит!</p>
+        </div>
+        <div class="stage-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 0%"></div>
+          </div>
+          <span class="progress-text">0/10</span>
+        </div>
+      </div>
+
+      <div class="swipe-container">
+        <div class="swipe-zone" id="swipeZone">
+          <div class="trend-card" id="currentCard">
+            <div class="trend-image"></div>
+            <h3 class="trend-title"></h3>
+            <p class="trend-description"></p>
+            <div class="trend-stats">
+              <div class="stat">
+                <span class="stat-icon">👥</span>
+                <span class="stat-value"></span>
+              </div>
+              <div class="stat">
+                <span class="stat-icon">📊</span>
+                <span class="stat-value"></span>
+              </div>
+              <div class="stat">
+                <span class="stat-icon">🔥</span>
+                <span class="stat-value"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="decision-feedback" id="decisionFeedback">
+          <div class="feedback-content"></div>
+        </div>
+
+        <div class="swipe-instructions">
+          <span>← Свайп влево = Провал</span>
+          <span>Свайп вправо = Успех →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Этап 2: Читай эмоции (Эмоциональный радар) -->
+    <div id="stage2" class="screen">
+      <div class="stage-header glass">
+        <div class="stage-info">
+          <h2>Этап 2: Читай эмоции рынка</h2>
+          <p>Определи эмоциональный фон аудитории по постам в соцсетях</p>
+        </div>
+        <div class="timer-container">
+          <span class="timer-icon">⏱️</span>
+          <span class="timer" id="emotionTimer">60</span>
+        </div>
+      </div>
+
+      <div class="emotion-radar-container">
+        <div class="social-posts" id="socialPosts">
+          <!-- Динамически генерируемые посты -->
+        </div>
+
+        <div class="emotion-radar" id="emotionRadar">
+          <canvas id="radarCanvas"></canvas>
+          <div class="radar-center">
+            <span>Настроение<br>рынка</span>
+          </div>
+          <div class="emotion-sectors">
+            <div class="sector" data-emotion="fear">
+              <span class="sector-icon">😨</span>
+              <span class="sector-name">Страх</span>
+            </div>
+            <div class="sector" data-emotion="greed">
+              <span class="sector-icon">🤑</span>
+              <span class="sector-name">Жадность</span>
+            </div>
+            <div class="sector" data-emotion="hope">
+              <span class="sector-icon">🤩</span>
+              <span class="sector-name">Надежда</span>
+            </div>
+            <div class="sector" data-emotion="doubt">
+              <span class="sector-icon">🤔</span>
+              <span class="sector-name">Сомнение</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="confirmEmotion" class="btn primary large" disabled>
+          Подтвердить анализ
+        </button>
+      </div>
+    </div>
+
+    <!-- Этап 3: Сделай прогноз (Интерактивный график) -->
+    <div id="stage3" class="screen">
+      <div class="stage-header glass">
+        <div class="stage-info">
+          <h2>Этап 3: Предскажи будущее</h2>
+          <p>Нарисуй пальцем, как будет развиваться тренд</p>
+        </div>
+        <div class="score-display">
+          <span class="score-icon">⭐</span>
+          <span class="score-value" id="predictionScore">0</span>
+        </div>
+      </div>
+
+      <div class="prediction-container">
+        <div class="chart-area">
+          <canvas id="predictionCanvas"></canvas>
+          <div class="chart-labels">
+            <div class="y-axis-label">Популярность</div>
+            <div class="x-axis-label">Время →</div>
+          </div>
+        </div>
+
+        <div class="prediction-tools">
+          <button class="tool-btn active" data-tool="draw">
+            <span>✏️</span>
+            <span>Рисовать</span>
+          </button>
+          <button class="tool-btn" data-tool="erase">
+            <span>🧹</span>
+            <span>Стереть</span>
+          </button>
+          <button class="tool-btn" data-tool="undo">
+            <span>↩️</span>
+            <span>Отменить</span>
+          </button>
+        </div>
+
+        <div class="trend-factors">
+          <h4>Факторы влияния:</h4>
+          <div class="factors-list" id="factorsList">
+            <!-- Генерируются динамически -->
+          </div>
+        </div>
+
+        <button id="submitPrediction" class="btn primary large" disabled>
+          Сделать прогноз
+        </button>
+      </div>
+    </div>
+
+    <!-- Этап 4: Заработай (Симуляция инвестиций) -->
+    <div id="stage4" class="screen">
+      <div class="stage-header glass">
+        <div class="stage-info">
+          <h2>Этап 4: Время зарабатывать!</h2>
+          <p>Инвестируй в найденные тренды и следи за результатом</p>
+        </div>
+        <div class="balance-display">
+          <span class="balance-icon">💰</span>
+          <span class="balance-value" id="currentBalance">$1000</span>
+        </div>
+      </div>
+
+      <div class="investment-game">
+        <div class="portfolio-container">
+          <h3>Твой портфель трендов</h3>
+          <div class="portfolio-slots" id="portfolioSlots">
+            <!-- Генерируются динамически -->
+          </div>
+        </div>
+
+        <div class="market-feed">
+          <h4>Рыночные новости</h4>
+          <div class="news-ticker" id="newsTicker">
+            <!-- Генерируются динамически -->
+          </div>
+        </div>
+
+        <div class="action-panel">
+          <div class="available-trends" id="availableTrends">
+            <!-- Генерируются динамически -->
+          </div>
+          <button id="simulateDay" class="btn primary large">
+            ⏭️ Следующий день
+          </button>
+        </div>
+
+        <div class="profit-chart">
+          <canvas id="profitCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Экран результатов -->
+    <div id="resultsScreen" class="screen">
+      <div class="results-container glass">
+        <div class="results-header">
+          <div class="results-icon trophy">🏆</div>
+          <h2>Поздравляем!</h2>
+          <p>Ты прошёл путь от новичка до профи</p>
+        </div>
+
+        <div class="results-stats">
+          <div class="stat-card">
+            <span class="stat-icon">🎯</span>
+            <span class="stat-label">Точность прогнозов</span>
+            <span class="stat-value" id="accuracyStat">0%</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">💵</span>
+            <span class="stat-label">Заработано</span>
+            <span class="stat-value" id="profitStat">$0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🔥</span>
+            <span class="stat-label">Найдено трендов</span>
+            <span class="stat-value" id="trendsStat">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">⭐</span>
+            <span class="stat-label">Общий рейтинг</span>
+            <span class="stat-value" id="ratingStat">0</span>
+          </div>
+        </div>
+
+        <div class="achievements">
+          <h3>Твои достижения:</h3>
+          <div class="achievement-list" id="achievementList">
+            <!-- Генерируются динамически -->
+          </div>
+        </div>
+
+        <div class="rewards-earned">
+          <h3>Награды:</h3>
+          <div class="reward-items">
+            <div class="reward-item">
+              <span class="reward-icon">🪙</span>
+              <span class="reward-amount" id="coinsReward">0 MULACOIN</span>
+            </div>
+            <div class="reward-item">
+              <span class="reward-icon">⚡</span>
+              <span class="reward-amount" id="xpReward">0 XP</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="shareResults" class="btn secondary">
+            📤 Поделиться
+          </button>
+          <button id="playAgain" class="btn primary">
+            🔄 Пройти ещё раз
+          </button>
+          <button id="exitToMenu" class="btn ghost">
+            ← В меню
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Оверлей для туториалов -->
+    <div id="tutorialOverlay" class="tutorial-overlay" style="display: none;">
+      <div class="tutorial-content">
+        <div class="tutorial-pointer"></div>
+        <div class="tutorial-text"></div>
+        <button class="tutorial-next btn primary small">Далее</button>
+      </div>
+    </div>
+
+    <!-- Toast уведомления -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- Индикатор загрузки -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Скрипты -->
+  <script src="trends-data.js"></script>
+  <script src="trends-engine.js"></script>
+  <script src="trends-ui.js"></script>
+  <script src="trends-main.js"></script>
+</body>
+</html>

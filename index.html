@@ -1,202 +1,168 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrix Quest - Анализ Трендов</title>
-    <meta name="description" content="Стань успешным трейдером! Анализируй тренды, читай эмоции рынка и зарабатывай на прогнозах.">
-    <meta name="keywords" content="трейдинг, анализ трендов, психология, игра, telegram">
-    <meta name="author" content="Matrix Quest">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="Matrix Quest - Анализ Трендов">
-    <meta property="og:description" content="Стань успешным трейдером! Анализируй тренды, читай эмоции рынка и зарабатывай на прогнозах.">
-    <meta property="og:image" content="https://acqu1red.github.io/matrix/assets/og-image.png">
-    <meta property="og:url" content="https://acqu1red.github.io/matrix/">
-    <meta property="og:type" content="website">
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Matrix Quest - Анализ Трендов">
-    <meta name="twitter:description" content="Стань успешным трейдером! Анализируй тренды, читай эмоции рынка и зарабатывай на прогнозах.">
-    <meta name="twitter:image" content="https://acqu1red.github.io/matrix/assets/og-image.png">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="game.css">
-    
-    <!-- Telegram WebApp -->
-    <script src="https://telegram.org/js/games.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Центр Симуляций</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="./quests.css" />
+  <link rel="stylesheet" href="./quests/trends-core.css" />
 </head>
 <body>
-    <!-- Главное меню игры -->
-    <div id="mainMenu" class="screen active">
-        <div class="game-header">
-            <div class="game-logo">
-                <h1>🧠 Matrix Quest</h1>
-                <p>Стань успешным трейдером!</p>
-            </div>
-            <div class="game-stats">
-                <div class="stat-item">
-                    <span class="stat-icon">⭐</span>
-                    <span class="stat-value" id="totalScore">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">🏆</span>
-                    <span class="stat-value" id="achievements">0</span>
-                </div>
-            </div>
+
+  <!-- Onboarding Quiz -->
+  <div class="quiz-overlay hidden" id="quizOverlay">
+    <div class="quiz-container">
+      <!-- Step 1: Intro -->
+      <div class="quiz-step active" data-step="0">
+        <h2 class="quiz-title">Добро пожаловать</h2>
+        <p class="quiz-intro">Ответьте на несколько вопросов, чтобы мы подобрали симуляции лично для вас.</p>
+        <button class="quiz-start-button" data-action="next-step">Начать</button>
+      </div>
+      <!-- Step 2: Question 1 -->
+      <div class="quiz-step" data-step="1">
+        <p class="quiz-progress">Вопрос 1 из 3</p>
+        <h3 class="quiz-question">Что для вас важнее в профессиональном развитии?</h3>
+        <div class="quiz-options">
+          <button class="quiz-option" data-archetype="biznesmen">Построение эффективной бизнес-модели и максимизация прибыли.</button>
+          <button class="quiz-option" data-archetype="psiholog">Глубокое понимание психологии людей для успешных переговоров.</button>
+          <button class="quiz-option" data-archetype="strategist">Разработка долгосрочных стратегий и анализ глобальных трендов.</button>
+        </div>
+      </div>
+      <!-- Step 3: Question 2 -->
+      <div class="quiz-step" data-step="2">
+        <p class="quiz-progress">Вопрос 2 из 3</p>
+        <h3 class="quiz-question">Какая задача кажется вам наиболее интересной?</h3>
+        <div class="quiz-options">
+          <button class="quiz-option" data-archetype="strategist">Управление сложными системами и незаметное влияние на события.</button>
+          <button class="quiz-option" data-archetype="psiholog">Чтение невербальных сигналов и выявление скрытых мотивов.</button>
+          <button class="quiz-option" data-archetype="biznesmen">Создание продукта, который захватит рынок и изменит правила игры.</button>
+        </div>
+      </div>
+      <!-- Step 4: Question 3 -->
+      <div class="quiz-step" data-step="3">
+        <p class="quiz-progress">Вопрос 3 из 3</p>
+        <h3 class="quiz-question">Выберите цитату, которая вам ближе:</h3>
+        <div class="quiz-options">
+          <button class="quiz-option" data-archetype="psiholog">"Не тот умен, кто умеет отличать добро от зла, а тот, кто из двух зол умеет выбирать меньшее."</button>
+          <button class="quiz-option" data-archetype="strategist">"Кто владеет информацией, тот владеет миром."</button>
+          <button class="quiz-option" data-archetype="biznesmen">"Лучший способ предсказать будущее — это создать его."</button>
+        </div>
+      </div>
+      <!-- Step 5: Loading -->
+      <div class="quiz-step" data-step="4">
+        <h2 class="quiz-title">Анализируем ваши ответы...</h2>
+        <div class="spinner"></div>
+          </div>
+          </div>
         </div>
 
-        <div class="quests-grid">
-            <div class="quest-card" data-quest="trends">
-                <div class="quest-icon">📈</div>
-                <h3>Анализ Трендов</h3>
-                <p>Поймай волну, читай эмоции, предскажи будущее и заработай!</p>
-                <div class="quest-stats">
-                    <span>⭐ 4 этапа</span>
-                    <span>⏱️ 15 мин</span>
-                </div>
-                <button class="btn primary" onclick="startQuest('trends')">
-                    Играть
-                </button>
-            </div>
+  <div id="app" class="app hidden">
+    <header class="header" data-animate>
+      <div class="header-content">
+        <h1 class="header-title">Центр Симуляций</h1>
+        <button class="support-button" id="openSupportModal">Поддержка</button>
+          </div>
+    </header>
 
-            <div class="quest-card coming-soon">
-                <div class="quest-icon">🔮</div>
-                <h3>Психология Лжи</h3>
-                <p>Скоро...</p>
-                <div class="quest-stats">
-                    <span>⭐ 5 этапов</span>
-                    <span>⏱️ 20 мин</span>
-                </div>
-                <button class="btn disabled" disabled>
-                    Скоро
-                </button>
-            </div>
+    <main>
+      <section class="featured-quests" data-animate>
+        <h2 class="section-title">Приоритетные Симуляции</h2>
+        <div class="swiper-container">
+          <div class="swiper-wrapper" id="featuredQuestsWrapper">
+            <!-- Сюда будут динамически добавляться квесты -->
+          </div>
+          <div class="swiper-pagination"></div>
+        </div>
+      </section>
 
-            <div class="quest-card coming-soon">
-                <div class="quest-icon">🎯</div>
-                <h3>Профилирование</h3>
-                <p>Скоро...</p>
-                <div class="quest-stats">
-                    <span>⭐ 6 этапов</span>
-                    <span>⏱️ 25 мин</span>
-                </div>
-                <button class="btn disabled" disabled>
-                    Скоро
-                </button>
-            </div>
+      <!-- Секция продуктов удалена -->
+
+      <section class="other-quests">
+        <h2 class="section-title" data-animate>Другие симуляции</h2>
+        <div class="quests-grid" id="otherQuestsGrid">
+          <!-- Сюда будут динамически добавляться остальные квесты -->
+        </div>
+      </section>
+    </main>
         </div>
 
-        <div class="game-footer">
-            <button class="btn ghost" onclick="showSupport()">
-                💬 Поддержка
-            </button>
-            <button class="btn ghost" onclick="showSettings()">
-                ⚙️ Настройки
-            </button>
-        </div>
+  <!-- Product Modals will be injected here by JS -->
+  <div id="modalContainer"></div>
+  
+  <!-- PDF Viewer Modal -->
+  <div class="pdf-viewer-overlay hidden" id="pdfViewerOverlay">
+    <div class="pdf-viewer-container">
+      <div class="pdf-viewer-header">
+        <h3 id="pdfTitle">Название документа</h3>
+        <button class="pdf-viewer-close" id="pdfViewerClose">&times;</button>
+      </div>
+      <div class="pdf-content">
+        <iframe id="pdfFrame" src="" frameborder="0"></iframe>
+      </div>
+      <div class="pdf-viewer-footer">
+        <a href="#" id="pdfDownloadLink" download class="pdf-download-button">Скачать</a>
+  </div>
     </div>
+  </div>
 
-    <!-- Страница поддержки -->
-    <div id="supportScreen" class="screen">
-        <div class="screen-header">
-            <button class="btn back" onclick="showMainMenu()">
-                ← Назад
-            </button>
-            <h2>Поддержка</h2>
+  <!-- Support Modal -->
+  <div id="supportModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Поддержка</h2>
+        <button class="modal-close" id="closeSupportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="support-section">
+          <h3>📞 Связь с нами</h3>
+          <p>Если у вас возникли вопросы или проблемы, мы всегда готовы помочь!</p>
+          
+          <div class="support-options">
+            <a href="https://t.me/matrix_psycho_bot" class="support-option">
+              <span class="support-icon">💬</span>
+              <div class="support-text">
+                <strong>Telegram</strong>
+                <span>Написать в бот</span>
+              </div>
+            </a>
+            
+            <a href="mailto:support@matrixpsycho.com" class="support-option">
+              <span class="support-icon">📧</span>
+              <div class="support-text">
+                <strong>Email</strong>
+                <span>support@matrixpsycho.com</span>
+              </div>
+            </a>
+          </div>
+          
+          <div class="support-info">
+            <h4>Часто задаваемые вопросы:</h4>
+            <div class="faq-item">
+              <strong>Q: Как начать квест?</strong>
+              <p>A: Просто нажмите на карточку квеста и следуйте инструкциям на экране.</p>
+            </div>
+            <div class="faq-item">
+              <strong>Q: Сохраняется ли прогресс?</strong>
+              <p>A: Да, ваш прогресс автоматически сохраняется в браузере.</p>
+            </div>
+            <div class="faq-item">
+              <strong>Q: Можно ли пройти квест заново?</strong>
+              <p>A: Конечно! Вы можете перезапустить любой квест в любое время.</p>
+            </div>
+          </div>
         </div>
-
-        <div class="support-content">
-            <div class="support-section">
-                <h3>📞 Связь с нами</h3>
-                <p>Есть вопросы или предложения? Мы всегда готовы помочь!</p>
-                
-                <div class="contact-methods">
-                    <a href="https://t.me/matrix_support" class="contact-item">
-                        <span class="contact-icon">💬</span>
-                        <span>Telegram: @matrix_support</span>
-                    </a>
-                    <a href="mailto:support@matrix-quest.com" class="contact-item">
-                        <span class="contact-icon">📧</span>
-                        <span>Email: support@matrix-quest.com</span>
-                    </a>
-                </div>
-            </div>
-
-            <div class="support-section">
-                <h3>❓ Частые вопросы</h3>
-                <div class="faq-item">
-                    <h4>Как играть в квесты?</h4>
-                    <p>Выберите квест из главного меню и следуйте инструкциям. Каждый квест состоит из нескольких этапов.</p>
-                </div>
-                <div class="faq-item">
-                    <h4>Как заработать очки?</h4>
-                    <p>Правильно анализируйте тренды, читайте эмоции рынка и делайте точные прогнозы.</p>
-                </div>
-                <div class="faq-item">
-                    <h4>Что такое достижения?</h4>
-                    <p>Достижения открываются за выполнение особых заданий и высокие результаты.</p>
-                </div>
-            </div>
-
-            <div class="support-section">
-                <h3>🎮 Управление</h3>
-                <div class="controls-info">
-                    <div class="control-item">
-                        <span class="control-icon">👆</span>
-                        <span>Тап - выбор и взаимодействие</span>
-                    </div>
-                    <div class="control-item">
-                        <span class="control-icon">👈👉</span>
-                        <span>Свайп - оценка трендов</span>
-                    </div>
-                    <div class="control-item">
-                        <span class="control-icon">✏️</span>
-                        <span>Рисование - прогнозы</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Настройки -->
-    <div id="settingsScreen" class="screen">
-        <div class="screen-header">
-            <button class="btn back" onclick="showMainMenu()">
-                ← Назад
-            </button>
-            <h2>Настройки</h2>
-        </div>
-
-        <div class="settings-content">
-            <div class="setting-item">
-                <label>🔊 Звуки</label>
-                <input type="checkbox" id="soundEnabled" checked>
-            </div>
-            <div class="setting-item">
-                <label>📳 Вибрация</label>
-                <input type="checkbox" id="vibrationEnabled" checked>
-            </div>
-            <div class="setting-item">
-                <label>🌙 Темная тема</label>
-                <input type="checkbox" id="darkTheme" checked>
-            </div>
-        </div>
-    </div>
-
-    <!-- Контейнер для квестов -->
-    <div id="questContainer" class="screen">
-        <!-- Здесь будут загружаться квесты -->
-    </div>
-
-    <!-- Уведомления -->
-    <div id="notification" class="notification"></div>
-
-    <script src="game.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+  <script src="./quests.js"></script>
+  <script src="./quests/trends-data.js"></script>
+  <script src="./quests/trends-engine.js"></script>
+  <script src="./quests/trends-ui.js"></script>
+  <script src="./quests/trends-main.js"></script>
 </body>
 </html>
