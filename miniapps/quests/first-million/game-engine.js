@@ -182,6 +182,10 @@ class FirstMillionEngine {
         
         if (!elementData) return;
         
+        // Проверяем, не добавлен ли уже этот элемент
+        const alreadyAdded = this.gameState.stage1.selectedElements[zoneType].some(el => el.id === elementId);
+        if (alreadyAdded) return;
+        
         // Добавляем в состояние игры
         this.gameState.stage1.selectedElements[zoneType].push(elementData);
         
@@ -195,9 +199,9 @@ class FirstMillionEngine {
             this.showFeedback('Не лучший выбор... -$' + elementData.value, 'error');
         }
         
-        // Добавляем элемент в зону
-        this.addElementToZone(element.cloneNode(true), dropZone);
+        // Скрываем оригинальный элемент
         element.style.display = 'none';
+        element.classList.add('used');
         
         // Проверяем завершение этапа
         this.checkStage1Completion();
@@ -208,15 +212,6 @@ class FirstMillionEngine {
             .find(el => el.id === elementId);
     }
     
-    addElementToZone(element, zone) {
-        const content = zone.querySelector('.zone-content');
-        element.classList.remove('dragging');
-        element.classList.add('placed');
-        element.style.transform = '';
-        element.style.position = 'relative';
-        content.appendChild(element);
-        zone.classList.add('filled');
-    }
     
     checkStage1Completion() {
         const { selectedElements } = this.gameState.stage1;
@@ -1059,9 +1054,11 @@ class FirstMillionEngine {
 
 // Глобальные функции для кнопок
 function goBack() {
-    if (window.history.length > 1) {
-        window.history.back();
+    // Проверяем, находимся ли мы в Telegram WebApp
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.close();
     } else {
+        // Обычная навигация
         window.location.href = '../../../index.html';
     }
 }

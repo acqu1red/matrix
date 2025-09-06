@@ -177,13 +177,22 @@ class TouchHandler {
         
         this.currentPos = { x: clientX, y: clientY };
         
-        // Обновляем позицию клона
-        this.dragClone.style.left = `${clientX - this.offset.x}px`;
-        this.dragClone.style.top = `${clientY - this.offset.y}px`;
+        // Плавное движение с интерполяцией
+        const targetX = clientX - this.offset.x;
+        const targetY = clientY - this.offset.y;
+        
+        // Используем requestAnimationFrame для плавности
+        requestAnimationFrame(() => {
+            this.dragClone.style.left = `${targetX}px`;
+            this.dragClone.style.top = `${targetY}px`;
+        });
         
         // Проверяем пересечение с drop зонами
         const hoveredZone = this.getHoveredDropZone(clientX, clientY);
         this.updateDropZoneHighlight(hoveredZone);
+        
+        // Прокрутка камеры к полям при перетаскивании
+        this.scrollToDropZones();
         
         // Уведомляем игровую логику
         this.dispatchDragEvent('dragmove', {
@@ -241,11 +250,18 @@ class TouchHandler {
         this.dragClone.style.height = `${originalRect.height}px`;
         this.dragClone.style.zIndex = '10000';
         this.dragClone.style.pointerEvents = 'none';
-        this.dragClone.style.transform = 'scale(1.05) rotate(5deg)';
-        this.dragClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+        this.dragClone.style.transform = 'scale(1.1) rotate(3deg)';
+        this.dragClone.style.boxShadow = '0 12px 30px rgba(0,0,0,0.4)';
         this.dragClone.style.transition = 'none';
+        this.dragClone.style.borderRadius = '12px';
+        this.dragClone.style.opacity = '0.95';
         
         document.body.appendChild(this.dragClone);
+        
+        // Плавная анимация появления
+        requestAnimationFrame(() => {
+            this.dragClone.style.transition = 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        });
     }
     
     updateDropZones() {
@@ -305,23 +321,31 @@ class TouchHandler {
     }
     
     handleSuccessfulDrop(dropZone) {
-        // Анимация успешного размещения
-        const rect = dropZone.getBoundingClientRect();
+        // Создаем копию элемента для размещения в зоне
+        const clonedElement = this.currentElement.cloneNode(true);
+        clonedElement.classList.remove('dragging');
+        clonedElement.classList.add('placed');
+        clonedElement.style.transform = 'scale(0.7)';
+        clonedElement.style.transition = 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        clonedElement.style.fontSize = '0.8rem';
+        clonedElement.style.padding = '8px 6px';
         
-        this.currentElement.style.transition = 'all 0.3s ease';
-        this.currentElement.style.transform = 'scale(0.9)';
-        this.currentElement.style.position = 'absolute';
-        this.currentElement.style.left = `${rect.left}px`;
-        this.currentElement.style.top = `${rect.top}px`;
+        // Добавляем элемент в зону
+        const zoneContent = dropZone.querySelector('.zone-content');
+        if (zoneContent) {
+            zoneContent.appendChild(clonedElement);
+            dropZone.classList.add('filled');
+        }
         
-        setTimeout(() => {
-            this.currentElement.style.transition = '';
-            this.currentElement.style.transform = '';
-            this.currentElement.style.position = '';
-            this.currentElement.style.left = '';
-            this.currentElement.style.top = '';
-            this.currentElement.classList.add('placed');
-        }, 300);
+        // Скрываем оригинальный элемент
+        this.currentElement.style.opacity = '0';
+        this.currentElement.style.transform = 'scale(0.8)';
+        this.currentElement.style.pointerEvents = 'none';
+        
+        // Анимация появления в зоне
+        requestAnimationFrame(() => {
+            clonedElement.style.transform = 'scale(1)';
+        });
     }
     
     handleFailedDrop() {
@@ -576,6 +600,27 @@ class TouchHandler {
                     haptic.notificationOccurred('success');
                     break;
             }
+        }
+    }
+    
+    // Прокрутка к полям при перетаскивании
+    scrollToDropZones() {
+        if (!this.isDragging) return;
+        
+        const dropZonesContainer = document.querySelector('.drop-zones');
+        if (!dropZonesContainer) return;
+        
+        const containerRect = dropZonesContainer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        // Если поля не видны или частично видны, прокручиваем к ним
+        if (containerRect.top < 100 || containerRect.bottom > viewportHeight - 100) {
+            const scrollTarget = containerRect.top + window.scrollY - 150;
+            
+            window.scrollTo({
+                top: scrollTarget,
+                behavior: 'smooth'
+            });
         }
     }
     

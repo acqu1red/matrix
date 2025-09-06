@@ -5,26 +5,17 @@ const STARTUP_ELEMENTS = {
     team: [
         { id: 'tech_founder', name: '👨‍💻 IT-основатель', value: 100, correct: true },
         { id: 'marketing_guru', name: '📱 Маркетолог', value: 80, correct: true },
-        { id: 'sales_expert', name: '💼 Продавец', value: 90, correct: true },
-        { id: 'random_friend', name: '🍺 Друг из бара', value: 10, correct: false },
-        { id: 'mom_support', name: '👵 Мама (поддержка)', value: 30, correct: false },
-        { id: 'intern', name: '🎓 Стажер', value: 40, correct: false }
+        { id: 'sales_expert', name: '💼 Продавец', value: 90, correct: true }
     ],
     ideas: [
         { id: 'ai_solution', name: '🤖 AI решение', value: 150, correct: true },
         { id: 'mobile_app', name: '📱 Мобильное приложение', value: 120, correct: true },
-        { id: 'saas_platform', name: '☁️ SaaS платформа', value: 140, correct: true },
-        { id: 'crypto_token', name: '💰 Криптовалюта', value: 20, correct: false },
-        { id: 'nft_project', name: '🎨 NFT проект', value: 15, correct: false },
-        { id: 'food_delivery', name: '🍕 Доставка еды', value: 60, correct: false }
+        { id: 'saas_platform', name: '☁️ SaaS платформа', value: 140, correct: true }
     ],
     resources: [
         { id: 'seed_funding', name: '💰 Стартовый капитал', value: 100, correct: true },
         { id: 'office_space', name: '🏢 Офисное место', value: 80, correct: true },
-        { id: 'development_tools', name: '⚒️ Инструменты разработки', value: 90, correct: true },
-        { id: 'expensive_car', name: '🚗 Дорогая машина', value: 10, correct: false },
-        { id: 'fancy_furniture', name: '🪑 Дорогая мебель', value: 20, correct: false },
-        { id: 'marketing_budget', name: '📊 Бюджет на рекламу', value: 70, correct: false }
+        { id: 'development_tools', name: '⚒️ Инструменты разработки', value: 90, correct: true }
     ]
 };
 

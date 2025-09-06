@@ -307,12 +307,45 @@ body {
     transform: scale(1.05) rotate(5deg);
     z-index: 1000;
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .draggable-item.placed {
     opacity: 0.6;
     transform: scale(0.9);
     pointer-events: none;
+}
+
+.draggable-item.used {
+    opacity: 0.3;
+    transform: scale(0.8);
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* Drag Clone Styles */
+.drag-clone {
+    position: fixed !important;
+    z-index: 10000 !important;
+    pointer-events: none !important;
+    transform: scale(1.1) rotate(3deg) !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4) !important;
+    border-radius: 12px !important;
+    opacity: 0.95 !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+
+/* Placed Element in Zone */
+.zone-content .placed {
+    transform: scale(0.7) !important;
+    font-size: 0.8rem !important;
+    padding: 8px 6px !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    border-radius: 8px !important;
+    margin: 2px !important;
+    display: inline-block !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
 }
 
 /* Stage 2: Client Swiper */
@@ -1246,12 +1279,48 @@ body {
     transition: transform 0.1s ease;
 }
 
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Enhanced Drop Zone Animations */
+.drop-zone {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.drop-zone.drag-over {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.drop-zone.filled {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.2));
+    border-color: #4CAF50;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+}
+
+/* Zone Content Layout */
+.zone-content {
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 8px;
+}
+
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+    
+    html {
+        scroll-behavior: auto;
     }
 }
 
