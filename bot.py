@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = "8435828779:AAFo5UccSatCkqmblr6AW6YrrJli89j6GyQ"
-MINIAPP_URL = "https://t.me/matrix_psycho_bot/matrix"
+MINIAPP_URL = "https://.me/matrix_psycho_bot/matrix"
 
 async def setup_menu_button(application: Application) -> None:
     """Настройка кнопки меню для открытия Mini App"""
@@ -29,9 +29,15 @@ async def setup_menu_button(application: Application) -> None:
     except Exception as e:
         logger.error(f"❌ Ошибка настройки кнопки меню: {e}")
 
+def main() -> None:
+    """Основная функция запуска бота"""
+    logger.info("🚀 Запуск Matrix бота...")
+    
     # Создаем приложение
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     
+    # Регистрируем обработчики
+    application.add_handler(CommandHandler("start", start))
     
     # Настраиваем кнопку меню при запуске
     # setup_menu_button будет вызван после запуска polling
@@ -41,3 +47,6 @@ async def setup_menu_button(application: Application) -> None:
     
     # Запускаем бота
     application.run_polling()
+
+if __name__ == '__main__':
+    main()
