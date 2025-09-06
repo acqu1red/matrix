@@ -13,7 +13,26 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = "8435828779:AAFo5UccSatCkqmblr6AW6YrrJli89j6GyQ"
-MINIAPP_URL = "https://.me/matrix_psycho_bot/matrix"
+MINIAPP_URL = "t.me/matrix_psycho_bot/matrix"
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обработчик команды /start - просто открываем miniapps"""
+    # Настраиваем кнопку меню при первом запуске
+    await setup_menu_button(context.application)
+    
+    if update.message:
+        await update.message.reply_text(
+            "🚀 Добро пожаловать! Используйте кнопку меню для открытия приложения.",
+            reply_markup={
+                "inline_keyboard": [[
+                    {
+                        "text": "💀 Симуляции",
+                        "web_app": {"url": MINIAPP_URL}
+                    }
+                ]]
+            }
+        )
+
 
 async def setup_menu_button(application: Application) -> None:
     """Настройка кнопки меню для открытия Mini App"""
