@@ -13,17 +13,20 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = "8435828779:AAFo5UccSatCkqmblr6AW6YrrJli89j6GyQ"
-MINIAPP_URL = "https://acqu1red.github.io/matrix/index.html"
+MINIAPP_URL = "https://acqu1red.github.io/matrix"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /start - просто открываем miniapps"""
+    # Настраиваем кнопку меню при первом запуске
+    await setup_menu_button(context.application)
+    
     if update.message:
         await update.message.reply_text(
             "🚀 Добро пожаловать! Используйте кнопку меню для открытия приложения.",
             reply_markup={
                 "inline_keyboard": [[
                     {
-                        "text": "🚀 Открыть приложение",
+                        "text": "",
                         "web_app": {"url": MINIAPP_URL}
                     }
                 ]]
@@ -56,10 +59,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     
     # Настраиваем кнопку меню при запуске
-    application.job_queue.run_once(
-        lambda context: asyncio.create_task(setup_menu_button(application)), 
-        when=1
-    )
+    # setup_menu_button будет вызван после запуска polling
     
     logger.info("📝 Обработчики зарегистрированы")
     logger.info("🔄 Запуск polling...")
