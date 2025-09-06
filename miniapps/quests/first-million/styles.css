@@ -263,8 +263,20 @@ body {
 }
 
 .drop-zone.filled {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.2));
     border-color: #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+}
+
+/* Zone Content Layout */
+.zone-content {
+    min-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 8px;
 }
 
 .zone-label {
@@ -307,7 +319,6 @@ body {
     transform: scale(1.05) rotate(5deg);
     z-index: 1000;
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .draggable-item.placed {
@@ -1292,23 +1303,6 @@ html {
 .drop-zone.drag-over {
     transform: scale(1.02);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.drop-zone.filled {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.2));
-    border-color: #4CAF50;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
-}
-
-/* Zone Content Layout */
-.zone-content {
-    min-height: 40px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 8px;
 }
 
 /* Accessibility */

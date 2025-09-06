@@ -212,12 +212,18 @@ class FirstMillionEngine {
             .find(el => el.id === elementId);
     }
     
+    addElementToZone(element, zone) {
+        const content = zone.querySelector('.zone-content');
+        element.classList.remove('dragging');
+        element.classList.add('placed');
+        element.style.transform = '';
+        element.style.position = 'relative';
+        content.appendChild(element);
+        zone.classList.add('filled');
+    }
     
     checkStage1Completion() {
         const { selectedElements } = this.gameState.stage1;
-        const hasAllTypes = selectedElements.team.length > 0 && 
-                          selectedElements.ideas.length > 0 && 
-                          selectedElements.resources.length > 0;
         
         // Проверяем, что все элементы размещены (по 1 в каждой категории)
         const allElementsPlaced = selectedElements.team.length === 1 && 
