@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Первый Миллион | Центр Симуляций</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <div class="startup-logo">💡</div>
+            <h1 class="splash-title">ПЕРВЫЙ МИЛЛИОН</h1>
+            <p class="splash-subtitle">От гаража до IPO</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Инициализация стартапа...</p>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div id="gameContainer" class="game-container hidden">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="back-button" onclick="goBack()">←</div>
+            <div class="game-title">ПЕРВЫЙ МИЛЛИОН</div>
+            <div class="money-counter">$<span id="moneyAmount">5000</span></div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="stage-indicator" id="stageIndicator">Этап 1/7: Гараж</div>
+        </div>
+
+        <!-- Stage 1: Гараж (Drag & Drop идей) -->
+        <div id="stage1" class="game-stage active">
+            <div class="stage-header">
+                <h2>🏠 В гараже твоей мечты</h2>
+                <p>Собери команду и выбери идею для стартапа. Перетаскивай правильные элементы!</p>
+            </div>
+            
+            <div class="garage-scene">
+                <div class="drop-zones">
+                    <div class="drop-zone" id="teamZone" data-type="team">
+                        <div class="zone-label">Команда</div>
+                        <div class="zone-content"></div>
+                    </div>
+                    <div class="drop-zone" id="ideaZone" data-type="idea">
+                        <div class="zone-label">Идея</div>
+                        <div class="zone-content"></div>
+                    </div>
+                    <div class="drop-zone" id="resourceZone" data-type="resource">
+                        <div class="zone-label">Ресурсы</div>
+                        <div class="zone-content"></div>
+                    </div>
+                </div>
+
+                <div class="draggable-items" id="draggableItems">
+                    <!-- Items will be generated dynamically -->
+                </div>
+            </div>
+
+            <div class="stage-actions">
+                <button class="action-btn primary" id="validateStage1" disabled>Запустить стартап!</button>
+            </div>
+        </div>
+
+        <!-- Stage 2: Первые клиенты (Swipe механика) -->
+        <div id="stage2" class="game-stage">
+            <div class="stage-header">
+                <h2>🎯 Поиск первых клиентов</h2>
+                <p>Свайпай потенциальных клиентов. Влево - отклонить, вправо - принять</p>
+            </div>
+
+            <div class="client-swiper">
+                <div class="client-card" id="currentClientCard">
+                    <!-- Client card content -->
+                </div>
+                <div class="swipe-indicators">
+                    <div class="reject-indicator">❌ Отклонить</div>
+                    <div class="accept-indicator">✅ Принять</div>
+                </div>
+            </div>
+
+            <div class="client-stats">
+                <div class="stat">
+                    <span class="stat-label">Клиенты:</span>
+                    <span class="stat-value" id="clientCount">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Выручка:</span>
+                    <span class="stat-value" id="revenueCount">$0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 3: Анализ рынка (Interactive Chart) -->
+        <div id="stage3" class="game-stage">
+            <div class="stage-header">
+                <h2>📊 Анализ рынка</h2>
+                <p>Изучи тренды и выбери направление роста. Нарисуй прогноз пальцем!</p>
+            </div>
+
+            <div class="market-analysis">
+                <div class="chart-container">
+                    <canvas id="marketChart" width="320" height="200"></canvas>
+                    <div class="chart-overlay">
+                        <div class="chart-instruction">Нарисуй свой прогноз →</div>
+                    </div>
+                </div>
+
+                <div class="market-factors">
+                    <h3>Факторы влияния:</h3>
+                    <div class="factors-grid" id="factorsGrid">
+                        <!-- Dynamic factors -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="stage-actions">
+                <button class="action-btn primary" id="analyzeMarket" disabled>Принять решение</button>
+            </div>
+        </div>
+
+        <!-- Stage 4: Масштабирование (Resource Management) -->
+        <div id="stage4" class="game-stage">
+            <div class="stage-header">
+                <h2>⚡ Масштабирование</h2>
+                <p>Распредели ресурсы между отделами. Перетаскивай бюджет wisely!</p>
+            </div>
+
+            <div class="resource-management">
+                <div class="budget-pool">
+                    <h3>Доступный бюджет: $<span id="availableBudget">100000</span></h3>
+                    <div class="money-stack" id="moneyStack">
+                        <!-- Money items for dragging -->
+                    </div>
+                </div>
+
+                <div class="departments">
+                    <div class="department" data-dept="marketing">
+                        <div class="dept-icon">📱</div>
+                        <div class="dept-name">Маркетинг</div>
+                        <div class="dept-budget">$<span>0</span></div>
+                        <div class="dept-drop-zone"></div>
+                    </div>
+                    <div class="department" data-dept="development">
+                        <div class="dept-icon">💻</div>
+                        <div class="dept-name">Разработка</div>
+                        <div class="dept-budget">$<span>0</span></div>
+                        <div class="dept-drop-zone"></div>
+                    </div>
+                    <div class="department" data-dept="sales">
+                        <div class="dept-icon">💼</div>
+                        <div class="dept-name">Продажи</div>
+                        <div class="dept-budget">$<span>0</span></div>
+                        <div class="dept-drop-zone"></div>
+                    </div>
+                    <div class="department" data-dept="hr">
+                        <div class="dept-icon">👥</div>
+                        <div class="dept-name">HR</div>
+                        <div class="dept-budget">$<span>0</span></div>
+                        <div class="dept-drop-zone"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stage-actions">
+                <button class="action-btn primary" id="allocateResources" disabled>Запустить масштабирование</button>
+            </div>
+        </div>
+
+        <!-- Stage 5: Кризис и решения (Quick Decisions) -->
+        <div id="stage5" class="game-stage">
+            <div class="stage-header">
+                <h2>🔥 Время кризиса</h2>
+                <p>Быстро принимай решения! У тебя есть 30 секунд на каждое</p>
+            </div>
+
+            <div class="crisis-management">
+                <div class="timer-container">
+                    <div class="timer" id="crisisTimer">30</div>
+                </div>
+
+                <div class="crisis-scenario" id="crisisScenario">
+                    <!-- Dynamic crisis scenarios -->
+                </div>
+
+                <div class="decision-buttons" id="decisionButtons">
+                    <!-- Dynamic decision options -->
+                </div>
+            </div>
+
+            <div class="crisis-score">
+                <div class="score-item">
+                    <span class="score-label">Решений принято:</span>
+                    <span class="score-value" id="decisionsCount">0/5</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Точность:</span>
+                    <span class="score-value" id="accuracyScore">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 6: Инвестиции (Pitch Presentation) -->
+        <div id="stage6" class="game-stage">
+            <div class="stage-header">
+                <h2>💰 Раунд инвестиций</h2>
+                <p>Создай презентацию для инвесторов. Расставь слайды в правильном порядке!</p>
+            </div>
+
+            <div class="pitch-builder">
+                <div class="slide-templates" id="slideTemplates">
+                    <!-- Draggable slide templates -->
+                </div>
+
+                <div class="presentation-timeline" id="presentationTimeline">
+                    <div class="timeline-slots">
+                        <div class="slide-slot" data-position="1">1</div>
+                        <div class="slide-slot" data-position="2">2</div>
+                        <div class="slide-slot" data-position="3">3</div>
+                        <div class="slide-slot" data-position="4">4</div>
+                        <div class="slide-slot" data-position="5">5</div>
+                    </div>
+                </div>
+
+                <div class="investor-feedback" id="investorFeedback">
+                    <div class="feedback-avatar">👨‍💼</div>
+                    <div class="feedback-text">Перетащи слайды в правильном порядке</div>
+                </div>
+            </div>
+
+            <div class="stage-actions">
+                <button class="action-btn primary" id="presentPitch" disabled>Провести презентацию</button>
+            </div>
+        </div>
+
+        <!-- Stage 7: IPO (Final Challenge) -->
+        <div id="stage7" class="game-stage">
+            <div class="stage-header">
+                <h2>🚀 Выход на IPO</h2>
+                <p>Последний рывок! Подготовь компанию к публичному размещению</p>
+            </div>
+
+            <div class="ipo-preparation">
+                <div class="company-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Оценка компании</div>
+                        <div class="metric-value" id="companyValuation">$1M</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Количество сотрудников</div>
+                        <div class="metric-value" id="employeeCount">10</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Месячная выручка</div>
+                        <div class="metric-value" id="monthlyRevenue">$50K</div>
+                    </div>
+                </div>
+
+                <div class="ipo-checklist" id="ipoChecklist">
+                    <!-- Dynamic checklist items -->
+                </div>
+
+                <div class="stock-price-simulator">
+                    <h3>Цена акции на старте торгов</h3>
+                    <div class="price-display" id="stockPrice">$10.00</div>
+                    <div class="price-controls">
+                        <button class="price-btn" data-action="decrease">📉</button>
+                        <button class="price-btn" data-action="increase">📈</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stage-actions">
+                <button class="action-btn primary" id="launchIPO">🎉 Запустить IPO!</button>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="victoryScreen" class="victory-screen hidden">
+            <div class="victory-content">
+                <div class="victory-icon">🎉</div>
+                <h1 class="victory-title">Поздравляем!</h1>
+                <p class="victory-message">Ты прошел путь от гаража до IPO!</p>
+                
+                <div class="final-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Итоговая оценка:</span>
+                        <span class="stat-value" id="finalValuation">$10M</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Твоя доля:</span>
+                        <span class="stat-value" id="ownershipShare">25%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Личное состояние:</span>
+                        <span class="stat-value" id="personalWealth">$2.5M</span>
+                    </div>
+                </div>
+
+                <div class="achievements" id="achievements">
+                    <!-- Dynamic achievements -->
+                </div>
+
+                <div class="victory-actions">
+                    <button class="action-btn primary" onclick="shareResults()">Поделиться результатом</button>
+                    <button class="action-btn secondary" onclick="playAgain()">Играть снова</button>
+                    <button class="action-btn secondary" onclick="goBack()">В главное меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p class="loading-message">Обрабатываем решение...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="game-data.js"></script>
+    <script src="game-engine.js"></script>
+    <script src="touch-handler.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

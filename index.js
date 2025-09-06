@@ -28,13 +28,14 @@ const ALL_QUESTS = {
     category: 'Бизнес',
     tags: ['Новый', 'Лайт']
   },
-  'copy': {
-    id: 'copy',
+  'first-million': {
+    id: 'first-million',
     title: 'ПЕРВЫЙ МИЛЛИОН',
     description: 'От гаражного стартапа до IPO. Принимай решения, которые приведут твой бизнес к успеху или банкротству.',
+    button: 'Начать стартап',
     archetypes: ['biznesmen'],
     category: 'Бизнес',
-    tags: ['Средний']
+    tags: ['Новый', 'Интерактивный']
   },
   'psychology': {
     id: 'psychology',
@@ -420,7 +421,12 @@ function initializeNavigation() {
       const questId = questCard.dataset.quest;
       // Проверяем, был ли клик именно по кнопке
       if (e.target.matches('.quest-card-button, .quest-button')) {
-        navigateTo(`miniapps/quests/${questId}.html`);
+        // Специальная обработка для нового квеста "Первый миллион"
+        if (questId === 'first-million') {
+          navigateTo(`miniapps/quests/first-million/index.html`);
+        } else {
+          navigateTo(`miniapps/quests/${questId}.html`);
+        }
       }
     }
   });

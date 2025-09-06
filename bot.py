@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = "8435828779:AAFo5UccSatCkqmblr6AW6YrrJli89j6GyQ"
-MINIAPP_URL = "t.me/matrix_psycho_bot/matrix"
+MINIAPP_URL = "https://acqu1red.github.io/matrix"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /start - просто открываем miniapps"""
