@@ -17,13 +17,6 @@ body {
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
-    /* Mobile viewport optimization */
-    height: 100vh;
-    height: 100dvh; /* Dynamic viewport height for mobile */
-    width: 100vw;
-    position: fixed;
-    top: 0;
-    left: 0;
 }
 
 /* Utility Classes */
@@ -129,14 +122,8 @@ body {
 /* Game Container */
 .game-container {
     position: relative;
-    height: 100vh;
-    height: 100dvh;
-    width: 100vw;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    -webkit-overflow-scrolling: touch;
+    min-height: 100vh;
+    padding-bottom: 60px;
 }
 
 /* Header */
@@ -145,14 +132,12 @@ body {
     top: 0;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    padding: 12px 16px;
+    padding: 15px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     z-index: 100;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-    min-height: 60px;
 }
 
 .back-button {
@@ -188,10 +173,9 @@ body {
 
 /* Progress Bar */
 .progress-container {
-    padding: 12px 16px;
+    padding: 15px 20px;
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    flex-shrink: 0;
 }
 
 .progress-bar {
@@ -220,66 +204,56 @@ body {
 /* Game Stages */
 .game-stage {
     display: none;
-    padding: 16px;
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 20px;
+    min-height: calc(100vh - 180px);
 }
 
 .game-stage.active {
-    display: flex;
-    flex-direction: column;
+    display: block;
     animation: slideUp 0.5s ease-out;
 }
 
 .stage-header {
     text-align: center;
-    margin-bottom: 20px;
-    flex-shrink: 0;
+    margin-bottom: 30px;
 }
 
 .stage-header h2 {
-    font-size: 1.3rem;
-    margin-bottom: 8px;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
     color: #333;
-    line-height: 1.2;
 }
 
 .stage-header p {
     color: #666;
-    line-height: 1.4;
-    font-size: 0.9rem;
+    line-height: 1.5;
+    font-size: 0.95rem;
 }
 
 /* Stage 1: Garage (Drag & Drop) */
 .garage-scene {
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    margin-bottom: 16px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 .drop-zones {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex: 1;
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
 .drop-zone {
-    min-height: 70px;
+    min-height: 80px;
     border: 2px dashed #ddd;
-    border-radius: 8px;
-    padding: 12px;
+    border-radius: 10px;
+    padding: 15px;
     transition: all 0.3s ease;
     background: #fafafa;
     position: relative;
-    flex-shrink: 0;
 }
 
 .drop-zone.drag-over {
@@ -309,29 +283,23 @@ body {
 
 .draggable-items {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 16px;
-    flex-shrink: 0;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .draggable-item {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    padding: 12px 8px;
-    border-radius: 8px;
+    padding: 15px 10px;
+    border-radius: 10px;
     text-align: center;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     cursor: move;
     transition: all 0.3s ease;
-    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     touch-action: none;
     user-select: none;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.2;
 }
 
 .draggable-item:active,
@@ -1069,23 +1037,19 @@ body {
 /* Action Buttons */
 .stage-actions {
     text-align: center;
-    margin-top: 20px;
-    flex-shrink: 0;
-    padding-bottom: 20px;
+    margin-top: 30px;
 }
 
 .action-btn {
-    padding: 14px 24px;
+    padding: 15px 30px;
     border: none;
-    border-radius: 20px;
-    font-size: 0.95rem;
+    border-radius: 25px;
+    font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    min-width: 180px;
-    margin: 0 8px 8px;
-    width: 100%;
-    max-width: 280px;
+    min-width: 200px;
+    margin: 0 10px 10px;
 }
 
 .action-btn.primary {
@@ -1239,80 +1203,52 @@ body {
     font-size: 1rem;
 }
 
-/* Mobile 9:16 Format Optimization */
-@media (max-width: 480px) and (max-height: 900px) {
+/* Responsive Design */
+@media (max-width: 480px) {
     .game-header {
-        padding: 10px 14px;
-        min-height: 55px;
+        padding: 12px 15px;
     }
     
     .game-title {
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
     
     .money-counter {
-        padding: 6px 10px;
+        padding: 6px 12px;
         font-size: 0.8rem;
     }
     
-    .stage-header {
-        margin-bottom: 16px;
-    }
-    
     .stage-header h2 {
-        font-size: 1.2rem;
-        margin-bottom: 6px;
+        font-size: 1.3rem;
     }
     
     .stage-header p {
-        font-size: 0.85rem;
-    }
-    
-    .garage-scene {
-        padding: 12px;
-        margin-bottom: 12px;
-    }
-    
-    .drop-zones {
-        gap: 10px;
-        margin-bottom: 16px;
-    }
-    
-    .drop-zone {
-        min-height: 60px;
-        padding: 10px;
+        font-size: 0.9rem;
     }
     
     .draggable-items {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
         gap: 10px;
-        margin-top: 12px;
-    }
-    
-    .draggable-item {
-        padding: 10px 6px;
-        font-size: 0.75rem;
-        min-height: 55px;
     }
     
     .client-card {
         width: 280px;
-        height: 300px;
-        padding: 20px 12px;
+        height: 320px;
+        padding: 25px 15px;
     }
     
     .departments {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 10px;
     }
     
     .timeline-slots {
-        gap: 4px;
+        gap: 5px;
     }
     
     .slide-slot {
-        width: 40px;
-        height: 55px;
+        width: 45px;
+        height: 60px;
     }
     
     .company-metrics {
@@ -1320,49 +1256,9 @@ body {
     }
     
     .action-btn {
-        min-width: 160px;
-        padding: 12px 20px;
+        min-width: 180px;
+        padding: 12px 25px;
         font-size: 0.9rem;
-        margin: 0 4px 6px;
-    }
-    
-    .stage-actions {
-        margin-top: 16px;
-        padding-bottom: 16px;
-    }
-}
-
-/* Ultra-wide mobile screens (9:16) */
-@media (max-width: 430px) and (max-height: 850px) {
-    .game-container {
-        padding: 0;
-    }
-    
-    .game-stage {
-        padding: 12px;
-    }
-    
-    .garage-scene {
-        padding: 10px;
-    }
-    
-    .drop-zone {
-        min-height: 55px;
-        padding: 8px;
-    }
-    
-    .draggable-item {
-        padding: 8px 4px;
-        font-size: 0.7rem;
-        min-height: 50px;
-    }
-    
-    .stage-header h2 {
-        font-size: 1.1rem;
-    }
-    
-    .stage-header p {
-        font-size: 0.8rem;
     }
 }
 
@@ -1386,16 +1282,6 @@ body {
 /* Smooth Scrolling */
 html {
     scroll-behavior: smooth;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* Prevent body scroll on mobile */
-body {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
 }
 
 /* Enhanced Drop Zone Animations */
@@ -1435,19 +1321,6 @@ body {
     
     html {
         scroll-behavior: auto;
-    }
-}
-
-/* Safe Area Support for Mobile */
-@supports (padding: max(0px)) {
-    .game-header {
-        padding-left: max(16px, env(safe-area-inset-left));
-        padding-right: max(16px, env(safe-area-inset-right));
-        padding-top: max(12px, env(safe-area-inset-top));
-    }
-    
-    .stage-actions {
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
     }
 }
 
