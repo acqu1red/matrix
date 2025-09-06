@@ -225,43 +225,12 @@ class FirstMillionEngine {
                                  selectedElements.resources.length === 1;
         
         this.updateActionButton('validateStage1', allElementsPlaced);
-        
-        // Если все элементы размещены, запускаем анимацию поднятия фона
-        if (allElementsPlaced) {
-            this.animateBackgroundRise();
-        }
     }
     
     completeStage1() {
         this.gameState.stage1.completed = true;
         this.calculateStage1Score();
         this.nextStage();
-    }
-    
-    animateBackgroundRise() {
-        const garageScene = document.querySelector('.garage-scene');
-        const draggableItems = document.querySelector('.draggable-items');
-        const stageActions = document.querySelector('.stage-actions');
-        
-        if (!garageScene || !draggableItems || !stageActions) return;
-        
-        // Добавляем классы для анимации
-        garageScene.classList.add('background-rising');
-        draggableItems.classList.add('items-hidden');
-        stageActions.classList.add('actions-rising');
-        
-        // Плавно скрываем элементы для перетаскивания
-        setTimeout(() => {
-            draggableItems.style.display = 'none';
-        }, 500);
-        
-        // Показываем кнопку с анимацией
-        setTimeout(() => {
-            const button = document.getElementById('validateStage1');
-            if (button) {
-                button.style.animation = 'buttonAppear 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            }
-        }, 300);
     }
     
     calculateStage1Score() {
