@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 # Конфигурация
 BOT_TOKEN = "8435828779:AAFo5UccSatCkqmblr6AW6YrrJli89j6GyQ"
 MINIAPP_URL = "https://acqu1red.github.io/matrix"
+HELP_URL = "https://acqu1red.github.io/matrix/supports.html"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /start - просто открываем miniapps"""
@@ -22,7 +23,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     if update.message:
         await update.message.reply_text(
-            "🚀 Добро пожаловать! Используйте кнопку меню для открытия приложения.",
+            "👆 Быстрый обзор основных симуляций и других возможностей внутри Матрицы Симуляций.\n\n"
+            "<b>МАТРИЦА предоставляет доступ к более чем 7 уникальных тренинг-симуляций.<b>\n\n"
+            "👇 Все возможные элементы в системе Матрицы Симуляций.\n\n ",
             reply_markup={
                 "inline_keyboard": [[
                     {

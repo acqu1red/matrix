@@ -348,6 +348,23 @@ body {
     word-wrap: break-word !important;
 }
 
+/* Animation for placed elements when background rises */
+.garage-scene.background-rising .zone-content .placed {
+    animation: elementRise 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes elementRise {
+    0% {
+        transform: scale(0.7) translateY(0);
+    }
+    50% {
+        transform: scale(0.75) translateY(-5px);
+    }
+    100% {
+        transform: scale(0.7) translateY(-2px);
+    }
+}
+
 /* Stage 2: Client Swiper */
 .client-swiper {
     position: relative;
@@ -1038,6 +1055,9 @@ body {
 .stage-actions {
     text-align: center;
     margin-top: 30px;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .action-btn {
@@ -1309,6 +1329,96 @@ html {
     align-items: flex-start;
     justify-content: flex-start;
     padding: 8px;
+}
+
+/* Background Rising Animation */
+.garage-scene {
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.garage-scene.background-rising {
+    margin-bottom: 0;
+    padding-bottom: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    transform: translateY(-20px);
+    position: relative;
+    overflow: hidden;
+}
+
+.garage-scene.background-rising::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    animation: waveEffect 1.5s ease-in-out;
+}
+
+@keyframes waveEffect {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+.draggable-items {
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.draggable-items.items-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    pointer-events: none;
+}
+
+.stage-actions.actions-rising {
+    opacity: 1;
+    transform: translateY(0);
+    margin-top: 30px;
+}
+
+/* Button Appear Animation */
+@keyframes buttonAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05) translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.action-btn {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.action-btn:not(:disabled) {
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 25px rgba(76, 175, 80, 0.5);
+        transform: translateY(-2px);
+    }
 }
 
 /* Accessibility */
