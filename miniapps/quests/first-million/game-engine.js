@@ -84,7 +84,10 @@ class FirstMillionEngine {
         document.addEventListener('mobileDraw', this.handleDrawEvent.bind(this));
         
         // Кнопки этапов
-        document.getElementById('validateStage1')?.addEventListener('click', () => this.completeStage1());
+        document.getElementById('validateStage1')?.addEventListener('click', () => {
+            console.log('Validate Stage 1 clicked');
+            this.completeStage1();
+        });
         document.getElementById('analyzeMarket')?.addEventListener('click', () => this.completeStage3());
         document.getElementById('allocateResources')?.addEventListener('click', () => this.completeStage4());
         document.getElementById('presentPitch')?.addEventListener('click', () => this.completeStage6());
@@ -180,14 +183,20 @@ class FirstMillionEngine {
         const zoneType = dropZone.dataset.type;
         const elementData = this.findElementData(elementId);
         
+        console.log('Handling successful drop:', { elementId, zoneType, elementData });
+        
         if (!elementData) return;
         
         // Проверяем, не добавлен ли уже этот элемент
         const alreadyAdded = this.gameState.stage1.selectedElements[zoneType].some(el => el.id === elementId);
-        if (alreadyAdded) return;
+        if (alreadyAdded) {
+            console.log('Element already added, skipping');
+            return;
+        }
         
         // Добавляем в состояние игры
         this.gameState.stage1.selectedElements[zoneType].push(elementData);
+        console.log('Element added to state:', zoneType, elementData);
         
         // Проверяем правильность выбора
         if (elementData.correct) {
@@ -229,6 +238,13 @@ class FirstMillionEngine {
         const allElementsPlaced = selectedElements.team.length === 1 && 
                                  selectedElements.ideas.length === 1 && 
                                  selectedElements.resources.length === 1;
+        
+        console.log('Stage 1 completion check:', {
+            team: selectedElements.team.length,
+            ideas: selectedElements.ideas.length,
+            resources: selectedElements.resources.length,
+            allPlaced: allElementsPlaced
+        });
         
         this.updateActionButton('validateStage1', allElementsPlaced);
     }
@@ -938,6 +954,9 @@ class FirstMillionEngine {
         const button = document.getElementById(buttonId);
         if (button) {
             button.disabled = !enabled;
+            console.log(`Button ${buttonId} ${enabled ? 'enabled' : 'disabled'}`);
+        } else {
+            console.warn(`Button ${buttonId} not found`);
         }
     }
     
