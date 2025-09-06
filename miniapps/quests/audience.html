@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Анализ аудитории — Квест‑Хаб</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quests-black-white.css" />
+  <style>
+    .audience-analyzer {
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .demographics-panel {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+    }
+    
+    .demographics-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .demographics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    
+    @media (max-width: 768px) {
+      .demographics-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+    
+    .demographic-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .demographic-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    
+    .demographic-chart {
+      height: 120px;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    
+    .chart-segment {
+      position: absolute;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s ease;
+    }
+    
+    .chart-segment:hover {
+      transform: scale(1.05);
+      z-index: 10;
+    }
+    
+    .age-segments {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      height: 100%;
+      gap: 8px;
+    }
+    
+    .age-bar {
+      background: linear-gradient(to top, var(--glow1), var(--glow2));
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      min-width: 30px;
+      transition: all 0.3s ease;
+    }
+    
+    .age-bar:hover {
+      transform: scaleY(1.1);
+    }
+    
+    .age-label {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    
+    .age-value {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    .gender-chart {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .gender-segment {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .gender-male {
+      background: conic-gradient(var(--glow1) 0deg, var(--glow1) 180deg, transparent 180deg);
+    }
+    
+    .gender-female {
+      background: conic-gradient(transparent 0deg, transparent 180deg, var(--glow2) 180deg, var(--glow2) 360deg);
+    }
+    
+    .gender-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: var(--bg1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--text);
+    }
+    
+    .location-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .location-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    
+    .location-name {
+      font-size: 14px;
+      color: var(--text);
+    }
+    
+    .location-percentage {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--glow1);
+    }
+    
+    .interests-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 8px;
+    }
+    
+    .interest-tag {
+      padding: 6px 12px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .interest-tag:hover {
+      background: var(--glass-strong);
+      border-color: var(--glow1);
+    }
+    
+    .analysis-panel {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      text-align: center;
+    }
+    
+    .analysis-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    
+    .analysis-description {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .insight-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .insight-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .insight-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    
+    .insight-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--glow1);
+    }
+    
+    .question-panel {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+    }
+    
+    .question-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .answer-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    
+    @media (max-width: 768px) {
+      .answer-options {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+    
+    .answer-option {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-weight: 500;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    @media (max-width: 768px) {
+      .answer-option {
+        min-height: 60px;
+        padding: 20px 16px;
+        font-size: 16px;
+      }
+    }
+    
+    .answer-option:hover {
+      background: var(--glass-strong);
+      border-color: var(--glow1);
+      transform: translateY(-2px);
+    }
+    
+    .answer-option.selected {
+      background: var(--glow1);
+      color: var(--bg0);
+      border-color: var(--glow1);
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.3);
+    }
+    
+    .answer-option.correct {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+    
+    .answer-option.wrong {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+    
+    .result-panel {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+    
+    .result-panel.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .result-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .result-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .result-description {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    
+    .stat-card {
+      background: var(--glass);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <span class="logoGlow"></span>
+        <h1>Анализ аудитории</h1>
+        <div class="badge">Демография</div>
+      </div>
+      <div class="actions">
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <div class="quest-container">
+      <div class="quest-header">
+        <h2>👥 Анализ аудитории</h2>
+        <div class="theme">Демография • Средний уровень</div>
+      </div>
+
+      <div class="quest-content">
+        <div class="banner">
+          <strong>Задача:</strong> Изучи демографические данные аудитории и ответь на вопросы о целевой группе.
+        </div>
+
+        <div class="audience-analyzer" id="audienceAnalyzer">
+          <div class="analysis-panel">
+            <div class="analysis-title">Демографический анализ</div>
+            <div class="analysis-description">
+              Изучите данные аудитории и ответьте на вопросы о целевой группе.
+            </div>
+            
+            <div class="stats-panel">
+              <div class="stat-card">
+                <div class="stat-value" id="roundsValue">0</div>
+                <div class="stat-label">Вопросы</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="correctValue">0</div>
+                <div class="stat-label">Правильно</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="accuracyValue">0%</div>
+                <div class="stat-label">Точность</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="demographics-panel" id="demographicsPanel">
+            <div class="demographics-title">Демографические данные</div>
+            <div class="demographics-grid">
+              <div class="demographic-card">
+                <div class="demographic-title">Возраст</div>
+                <div class="demographic-chart">
+                  <div class="age-segments" id="ageChart">
+                    <!-- Возрастные группы будут добавлены динамически -->
+                  </div>
+                </div>
+              </div>
+              
+              <div class="demographic-card">
+                <div class="demographic-title">Пол</div>
+                <div class="gender-chart" id="genderChart">
+                  <!-- Гендерная диаграмма будет добавлена динамически -->
+                </div>
+              </div>
+              
+              <div class="demographic-card">
+                <div class="demographic-title">География</div>
+                <div class="location-list" id="locationList">
+                  <!-- Локации будут добавлены динамически -->
+                </div>
+              </div>
+              
+              <div class="demographic-card">
+                <div class="demographic-title">Интересы</div>
+                <div class="interests-grid" id="interestsGrid">
+                  <!-- Интересы будут добавлены динамически -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-icon">🎯</div>
+              <div class="insight-title">Основная аудитория</div>
+              <div class="insight-value" id="mainAudience">-</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-icon">📈</div>
+              <div class="insight-title">Рост аудитории</div>
+              <div class="insight-value" id="audienceGrowth">-</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-icon">💰</div>
+              <div class="insight-title">Платежеспособность</div>
+              <div class="insight-value" id="paymentAbility">-</div>
+            </div>
+          </div>
+
+          <div class="question-panel" id="questionPanel">
+            <div class="question-title" id="questionTitle">Вопрос загружается...</div>
+            <div class="answer-options" id="answerOptions">
+              <!-- Варианты ответов будут добавлены динамически -->
+            </div>
+          </div>
+
+          <div class="result-panel" id="resultPanel">
+            <div class="result-icon" id="resultIcon">📊</div>
+            <div class="result-title" id="resultTitle">Ответ получен</div>
+            <div class="result-description" id="resultDescription">Результат анализа</div>
+          </div>
+
+          <div class="questActions">
+            <button id="startBtn" class="btn primary">Начать анализ</button>
+            <button id="nextBtn" class="btn primary" style="display: none;">Следующий вопрос</button>
+            <button id="resetBtn" class="btn ghost">Сбросить</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="quest-footer">
+        <div class="banner">
+          <strong>Награды:</strong> Фрагменты +3, Опыт +70
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Конфигурация
+    const QUEST_CONFIG = {
+      questionsPerGame: 5,
+      rewards: { fragments: 3, experience: 70 }
+    };
+
+    // Шаблоны аудиторий
+    const AUDIENCE_TEMPLATES = [
+      {
+        id: 1,
+        age: { '18-24': 25, '25-34': 35, '35-44': 20, '45-54': 15, '55+': 5 },
+        gender: { male: 45, female: 55 },
+        locations: [
+          { name: 'Москва', percentage: 30 },
+          { name: 'СПб', percentage: 20 },
+          { name: 'Новосибирск', percentage: 10 },
+          { name: 'Екатеринбург', percentage: 8 },
+          { name: 'Другие', percentage: 32 }
+        ],
+        interests: ['Технологии', 'Образование', 'Карьера', 'Финансы', 'Путешествия', 'Спорт'],
+        insights: {
+          mainAudience: 'Женщины 25-34',
+          growth: '+15% в месяц',
+          paymentAbility: 'Средняя'
+        },
+        questions: [
+          {
+            question: 'Какая возрастная группа преобладает в аудитории?',
+            options: ['18-24 года', '25-34 года', '35-44 года', '45-54 года'],
+            correct: 1
+          },
+          {
+            question: 'Какой пол преобладает в аудитории?',
+            options: ['Мужчины', 'Женщины', 'Поровну', 'Не определено'],
+            correct: 1
+          }
+        ]
+      },
+      {
+        id: 2,
+        age: { '18-24': 40, '25-34': 30, '35-44': 15, '45-54': 10, '55+': 5 },
+        gender: { male: 60, female: 40 },
+        locations: [
+          { name: 'Москва', percentage: 25 },
+          { name: 'СПб', percentage: 15 },
+          { name: 'Казань', percentage: 12 },
+          { name: 'Нижний Новгород', percentage: 10 },
+          { name: 'Другие', percentage: 38 }
+        ],
+        interests: ['Гаджеты', 'Игры', 'Музыка', 'Видео', 'Соцсети', 'Технологии'],
+        insights: {
+          mainAudience: 'Мужчины 18-24',
+          growth: '+25% в месяц',
+          paymentAbility: 'Низкая'
+        },
+        questions: [
+          {
+            question: 'Какая основная аудитория?',
+            options: ['Мужчины 18-24', 'Женщины 25-34', 'Мужчины 35-44', 'Женщины 45-54'],
+            correct: 0
+          },
+          {
+            question: 'Какой уровень платежеспособности?',
+            options: ['Высокий', 'Средний', 'Низкий', 'Не определен'],
+            correct: 2
+          }
+        ]
+      }
+    ];
+
+    // Состояние игры
+    let gameState = {
+      isRunning: false,
+      currentRound: 0,
+      correctAnswers: 0,
+      currentAudience: null,
+      currentQuestion: null,
+      selectedAnswer: null,
+      usedAudiences: []
+    };
+
+    // Элементы
+    const demographicsPanel = document.getElementById('demographicsPanel');
+    const ageChart = document.getElementById('ageChart');
+    const genderChart = document.getElementById('genderChart');
+    const locationList = document.getElementById('locationList');
+    const interestsGrid = document.getElementById('interestsGrid');
+    const questionPanel = document.getElementById('questionPanel');
+    const questionTitle = document.getElementById('questionTitle');
+    const answerOptions = document.getElementById('answerOptions');
+    const resultPanel = document.getElementById('resultPanel');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultDescription = document.getElementById('resultDescription');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const btnBack = document.getElementById('btnBack');
+    const roundsValue = document.getElementById('roundsValue');
+    const correctValue = document.getElementById('correctValue');
+    const accuracyValue = document.getElementById('accuracyValue');
+    const mainAudience = document.getElementById('mainAudience');
+    const audienceGrowth = document.getElementById('audienceGrowth');
+    const paymentAbility = document.getElementById('paymentAbility');
+
+    // Утилиты
+    const toast = (msg, type = 'info') => {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    };
+
+    // Инициализация
+    function init() {
+      setupEventListeners();
+      updateStats();
+    }
+
+    function setupEventListeners() {
+      startBtn.addEventListener('click', startGame);
+      nextBtn.addEventListener('click', nextRound);
+      resetBtn.addEventListener('click', resetGame);
+      btnBack.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '../quests.html';
+        }
+      });
+    }
+
+    function startGame() {
+      if (gameState.isRunning) return;
+      
+      gameState.isRunning = true;
+      gameState.currentRound = 0;
+      gameState.correctAnswers = 0;
+      gameState.usedAudiences = [];
+      
+      updateStats();
+      startBtn.style.display = 'none';
+      nextBtn.style.display = 'inline-block';
+      
+      nextRound();
+      toast('👥 Анализ аудитории начат...', 'info');
+    }
+
+    function nextRound() {
+      if (gameState.currentRound >= QUEST_CONFIG.questionsPerGame) {
+        endGame();
+        return;
+      }
+      
+      gameState.currentRound++;
+      gameState.selectedAnswer = null;
+      
+      // Выбираем случайную аудиторию
+      let availableAudiences = AUDIENCE_TEMPLATES.filter(a => 
+        !gameState.usedAudiences.includes(a.id)
+      );
+      
+      if (availableAudiences.length === 0) {
+        availableAudiences = AUDIENCE_TEMPLATES;
+        gameState.usedAudiences = [];
+      }
+      
+      const randomIndex = Math.floor(Math.random() * availableAudiences.length);
+      gameState.currentAudience = availableAudiences[randomIndex];
+      gameState.usedAudiences.push(gameState.currentAudience.id);
+      
+      // Выбираем случайный вопрос
+      const questionIndex = Math.floor(Math.random() * gameState.currentAudience.questions.length);
+      gameState.currentQuestion = gameState.currentAudience.questions[questionIndex];
+      
+      // Обновляем интерфейс
+      updateDemographics();
+      updateInsights();
+      updateQuestion();
+      
+      // Сбрасываем выбор
+      document.querySelectorAll('.answer-option').forEach(option => {
+        option.className = 'answer-option';
+      });
+      
+      // Скрываем результат
+      resultPanel.classList.remove('show');
+      
+      updateStats();
+      nextBtn.textContent = 'Следующий вопрос';
+      nextBtn.disabled = true;
+      
+      toast(`Вопрос ${gameState.currentRound}/${QUEST_CONFIG.questionsPerGame}`, 'info');
+    }
+
+    function updateDemographics() {
+      const audience = gameState.currentAudience;
+      
+      // Обновляем возрастную диаграмму
+      updateAgeChart(audience.age);
+      
+      // Обновляем гендерную диаграмму
+      updateGenderChart(audience.gender);
+      
+      // Обновляем локации
+      updateLocations(audience.locations);
+      
+      // Обновляем интересы
+      updateInterests(audience.interests);
+    }
+
+    function updateAgeChart(ageData) {
+      ageChart.innerHTML = '';
+      
+      const maxValue = Math.max(...Object.values(ageData));
+      
+      Object.entries(ageData).forEach(([age, percentage]) => {
+        const bar = document.createElement('div');
+        bar.className = 'age-bar';
+        bar.style.height = (percentage / maxValue * 80) + 'px';
+        
+        const value = document.createElement('div');
+        value.className = 'age-value';
+        value.textContent = percentage + '%';
+        
+        const label = document.createElement('div');
+        label.className = 'age-label';
+        label.textContent = age;
+        
+        bar.appendChild(value);
+        bar.appendChild(label);
+        ageChart.appendChild(bar);
+      });
+    }
+
+    function updateGenderChart(genderData) {
+      genderChart.innerHTML = '';
+      
+      const maleSegment = document.createElement('div');
+      maleSegment.className = 'gender-segment gender-male';
+      
+      const femaleSegment = document.createElement('div');
+      femaleSegment.className = 'gender-segment gender-female';
+      
+      const center = document.createElement('div');
+      center.className = 'gender-center';
+      center.textContent = 'Пол';
+      
+      genderChart.appendChild(maleSegment);
+      genderChart.appendChild(femaleSegment);
+      genderChart.appendChild(center);
+    }
+
+    function updateLocations(locations) {
+      locationList.innerHTML = '';
+      
+      locations.forEach(location => {
+        const item = document.createElement('div');
+        item.className = 'location-item';
+        item.innerHTML = `
+          <div class="location-name">${location.name}</div>
+          <div class="location-percentage">${location.percentage}%</div>
+        `;
+        locationList.appendChild(item);
+      });
+    }
+
+    function updateInterests(interests) {
+      interestsGrid.innerHTML = '';
+      
+      interests.forEach(interest => {
+        const tag = document.createElement('div');
+        tag.className = 'interest-tag';
+        tag.textContent = interest;
+        interestsGrid.appendChild(tag);
+      });
+    }
+
+    function updateInsights() {
+      const audience = gameState.currentAudience;
+      
+      mainAudience.textContent = audience.insights.mainAudience;
+      audienceGrowth.textContent = audience.insights.growth;
+      paymentAbility.textContent = audience.insights.paymentAbility;
+    }
+
+    function updateQuestion() {
+      const question = gameState.currentQuestion;
+      
+      questionTitle.textContent = question.question;
+      
+      answerOptions.innerHTML = '';
+      
+      question.options.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'answer-option';
+        optionElement.textContent = option;
+        optionElement.dataset.answerIndex = index;
+        optionElement.addEventListener('click', () => selectAnswer(index));
+        answerOptions.appendChild(optionElement);
+      });
+    }
+
+    function selectAnswer(answerIndex) {
+      if (!gameState.isRunning || gameState.selectedAnswer !== null) return;
+      
+      gameState.selectedAnswer = answerIndex;
+      
+      // Подсвечиваем выбранный ответ
+      document.querySelectorAll('.answer-option').forEach(option => {
+        option.className = 'answer-option';
+        if (parseInt(option.dataset.answerIndex) === answerIndex) {
+          option.classList.add('selected');
+        }
+      });
+      
+      const isCorrect = answerIndex === gameState.currentQuestion.correct;
+      
+      if (isCorrect) {
+        gameState.correctAnswers++;
+        showResult('correct');
+        toast('🎯 Правильно! Отличный анализ!', 'success');
+      } else {
+        showResult('wrong');
+        toast('❌ Неверно. Изучите данные внимательнее.', 'warning');
+      }
+      
+      // Подсвечиваем правильный и неправильный ответы
+      document.querySelectorAll('.answer-option').forEach(option => {
+        const optionIndex = parseInt(option.dataset.answerIndex);
+        if (optionIndex === gameState.currentQuestion.correct) {
+          option.classList.add('correct');
+        } else if (optionIndex === answerIndex && !isCorrect) {
+          option.classList.add('wrong');
+        }
+      });
+      
+      updateStats();
+      nextBtn.disabled = false;
+    }
+
+    function showResult(type) {
+      if (type === 'correct') {
+        resultIcon.textContent = '🎯';
+        resultTitle.textContent = 'Правильно!';
+        resultDescription.textContent = 'Вы верно проанализировали аудиторию.';
+      } else {
+        resultIcon.textContent = '❌';
+        resultTitle.textContent = 'Неверно';
+        resultDescription.textContent = 'Попробуйте внимательнее изучить демографические данные.';
+      }
+      
+      resultPanel.classList.add('show');
+    }
+
+    function endGame() {
+      gameState.isRunning = false;
+      startBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+      
+      const accuracy = Math.round((gameState.correctAnswers / QUEST_CONFIG.questionsPerGame) * 100);
+      
+      if (accuracy >= 80) {
+        toast(`🎉 Отличная работа! Точность: ${accuracy}%`, 'success');
+      } else if (accuracy >= 60) {
+        toast(`👍 Хорошо! Точность: ${accuracy}%`, 'info');
+      } else {
+        toast(`😔 Попробуйте еще раз. Точность: ${accuracy}%`, 'warning');
+      }
+    }
+
+    function resetGame() {
+      gameState = {
+        isRunning: false,
+        currentRound: 0,
+        correctAnswers: 0,
+        currentAudience: null,
+        currentQuestion: null,
+        selectedAnswer: null,
+        usedAudiences: []
+      };
+      
+      ageChart.innerHTML = '';
+      genderChart.innerHTML = '';
+      locationList.innerHTML = '';
+      interestsGrid.innerHTML = '';
+      answerOptions.innerHTML = '';
+      resultPanel.classList.remove('show');
+      startBtn.style.display = 'inline-block';
+      nextBtn.style.display = 'none';
+      
+      updateStats();
+    }
+
+    function updateStats() {
+      roundsValue.textContent = gameState.currentRound;
+      correctValue.textContent = gameState.correctAnswers;
+      
+      const accuracy = gameState.currentRound > 0 
+        ? Math.round((gameState.correctAnswers / gameState.currentRound) * 100)
+        : 0;
+      accuracyValue.textContent = accuracy + '%';
+    }
+
+    // Запуск
+    init();
+  </script>
+</body>
+</html>

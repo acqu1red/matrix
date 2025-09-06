@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>🏢 Твой первый бизнес — Квест‑Хаб</title>
+  
+  <!-- Критические стили inline для мгновенной загрузки -->
+  <style>
+    /* Базовые стили для мгновенного отображения */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1C252C;
+      color: #F6F2F6;
+      line-height: 1.6; 
+      overflow-x: hidden; 
+      min-height: 100vh;
+    }
+    .app { opacity: 1 !important; }
+    
+    /* Критические стили для header */
+    .topbar { 
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(28, 37, 44, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 2px solid #58545B;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(28, 37, 44, 0.8);
+    }
+    .brand h1 { 
+      font-size: 24px; 
+      font-weight: 700; 
+      color: #F6F2F6;
+      text-shadow: 0 2px 4px rgba(28, 37, 44, 0.5);
+    }
+    
+    /* Критические стили для модала */
+    .modal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(28, 37, 44, 0.8);
+      backdrop-filter: blur(15px);
+    }
+    .modalContent {
+      background: rgba(88, 84, 91, 0.98);
+      border: 2px solid #58545B;
+      border-radius: 20px;
+      box-shadow: 0 16px 80px rgba(28, 37, 44, 0.8);
+    }
+    
+    /* Критические стили для квестов */
+    .quest-content {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .quest-stage {
+      display: none;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    .quest-stage.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="business-core.css" />
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="glass topbar">
+      <div class="brand">
+        <h1>🏢 Твой первый бизнес</h1>
+        <div class="badge">Предприниматель</div>
+      </div>
+      <div class="actions">
+        <button id="btnMyBusiness" class="btn ghost">Мой бизнес</button>
+        <button id="btnBack" class="btn ghost">← Назад</button>
+      </div>
+    </header>
+
+    <!-- Информационное модальное окно -->
+    <div id="introModal" class="modal show">
+      <div class="modalContent glass miniapp-modal">
+        <div class="modal-header">
+          <h3>🚀 Добро пожаловать в "Твой первый бизнес"</h3>
+          <p>Создайте успешный бизнес с нуля и станьте миллионером!</p>
+        </div>
+        
+        <div class="intro-content">
+          <div class="intro-section">
+            <h4>🎯 Цель квеста</h4>
+            <p>Выберите нишу бизнеса, наймите команду профессионалов и развивайте компанию до успеха!</p>
+          </div>
+          
+          <div class="intro-section">
+            <h4>📋 Этапы прохождения</h4>
+            <ol>
+              <li><strong>Выбор ниши</strong> - определитесь с направлением бизнеса</li>
+              <li><strong>Найм команды</strong> - подберите специалистов на ключевые позиции</li>
+              <li><strong>Управление</strong> - принимайте решения и развивайте бизнес</li>
+              <li><strong>Результат</strong> - достигните цели и получите награды</li>
+            </ol>
+          </div>
+          
+          <div class="intro-section">
+            <h4>💰 Награды</h4>
+            <div class="rewards-grid">
+              <div class="reward-item">
+                <span class="reward-icon">🪙</span>
+                <span class="reward-amount">50 MULACOIN</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">⭐</span>
+                <span class="reward-amount">200 XP</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="disclaimer">
+            <h4>⚠️ Важно</h4>
+            <p>Каждое решение влияет на успех вашего бизнеса. Выбирайте с умом!</p>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button id="startQuest" class="btn primary miniapp-btn">Начать квест</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Основной контент квеста -->
+    <main class="quest-content">
+      <!-- Этап 1: Выбор ниши бизнеса -->
+      <section id="businessNiche" class="quest-stage">
+        <div class="stage-header">
+          <h2>🎯 Выберите нишу для вашего бизнеса</h2>
+          <p>Каждая ниша имеет свои особенности, риски и потенциал роста</p>
+        </div>
+        
+        <div class="niches-grid">
+          <div class="niche-card" data-niche="marketplace">
+            <div class="niche-icon">🛒</div>
+            <h3>Онлайн-маркетплейс</h3>
+            <p>Платформа для продажи товаров с комиссией</p>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">25,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+180%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-high">Высокая</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="niche-card" data-niche="restaurant">
+            <div class="niche-icon">🍔</div>
+            <h3>Ресторан быстрого питания</h3>
+            <p>Заведение с доставкой и самовывозом</p>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">35,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+85%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-medium">Средняя</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="niche-card" data-niche="saas">
+            <div class="niche-icon">💻</div>
+            <h3>SaaS платформа</h3>
+            <p>Программное обеспечение как услуга</p>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">20,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+220%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-very-high">Очень высокая</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="niche-card" data-niche="agency">
+            <div class="niche-icon">📱</div>
+            <h3>Digital-агентство</h3>
+            <p>Услуги цифрового маркетинга</p>
+            <div class="niche-metrics">
+              <div class="metric">
+                <span class="metric-label">Стартовый капитал</span>
+                <span class="metric-value">22,000 ₽</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Доходность</span>
+                <span class="metric-value">+160%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Сложность</span>
+                <span class="metric-value difficulty-high">Высокая</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stage-actions">
+          <button id="confirmNiche" class="btn primary" disabled>Подтвердить выбор</button>
+        </div>
+      </section>
+
+      <!-- Этап 2: Найм команды -->
+      <section id="teamHiring" class="quest-stage">
+        <div class="stage-header">
+          <h2>👥 Соберите команду профессионалов</h2>
+          <p>Выберите подходящих кандидатов для каждой должности</p>
+        </div>
+        
+        <div class="hiring-container">
+          <!-- Доступные должности -->
+          <div class="positions-section">
+            <h3>📋 Требуемые должности</h3>
+            <div class="positions-grid">
+              <div class="position-slot" data-position="tech" data-occupied="false">
+                <div class="position-icon">💻</div>
+                <div class="position-info">
+                  <h4>Технический директор</h4>
+                  <p>Управление разработкой и IT</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+              
+              <div class="position-slot" data-position="marketing" data-occupied="false">
+                <div class="position-icon">📢</div>
+                <div class="position-info">
+                  <h4>Маркетинг-директор</h4>
+                  <p>Продвижение и реклама</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+              
+              <div class="position-slot" data-position="finance" data-occupied="false">
+                <div class="position-icon">💰</div>
+                <div class="position-info">
+                  <h4>Финансовый директор</h4>
+                  <p>Управление финансами</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+              
+              <div class="position-slot" data-position="operations" data-occupied="false">
+                <div class="position-icon">⚙️</div>
+                <div class="position-info">
+                  <h4>Операционный директор</h4>
+                  <p>Управление процессами</p>
+                </div>
+                <div class="candidate-placeholder">Перетащите кандидата</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Кандидат и кнопка -->
+          <div class="candidate-section">
+            <h3>👤 Текущий кандидат</h3>
+            <div class="current-candidate" id="currentCandidateContainer">
+              <!-- Кандидат будет добавлен динамически -->
+            </div>
+            <div class="candidate-actions">
+              <button id="skipCandidate" class="btn secondary">Пропустить</button>
+              <button id="launchBusiness" class="btn primary" style="display: none;">Запустить бизнес</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Этап 3: Управление бизнесом -->
+      <section id="businessManagement" class="quest-stage">
+        <div class="stage-header">
+          <h2>📊 Управление вашим бизнесом</h2>
+          <p>Принимайте решения и следите за результатами</p>
+        </div>
+        
+        <div class="business-dashboard">
+          <div class="business-stats">
+            <div class="stat-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-info">
+                <span class="stat-label">Капитал</span>
+                <span class="stat-value" id="capitalValue">50,000 ₽</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">📈</div>
+              <div class="stat-info">
+                <span class="stat-label">Доход</span>
+                <span class="stat-value" id="revenueValue">0 ₽</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-info">
+                <span class="stat-label">Команда</span>
+                <span class="stat-value" id="teamSize">0/4</span>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-info">
+                <span class="stat-label">Прогресс</span>
+                <span class="stat-value" id="progressValue">0%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="business-actions">
+            <h3>🎯 Доступные действия</h3>
+            <div class="actions-grid">
+              <button class="action-btn" data-action="marketing">
+                <span class="action-icon">📢</span>
+                <span class="action-text">Маркетинг</span>
+              </button>
+              
+              <button class="action-btn" data-action="development">
+                <span class="action-icon">💻</span>
+                <span class="action-text">Разработка</span>
+              </button>
+              
+              <button class="action-btn" data-action="finance">
+                <span class="action-icon">💰</span>
+                <span class="action-text">Финансы</span>
+              </button>
+              
+              <button class="action-btn" data-action="operations">
+                <span class="action-icon">⚙️</span>
+                <span class="action-text">Операции</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stage-actions">
+          <button id="nextMonth" class="btn primary">Следующий месяц</button>
+        </div>
+      </section>
+
+      <!-- Этап 4: Результаты -->
+      <section id="questResults" class="quest-stage">
+        <div class="stage-header">
+          <h2>🏆 Результаты вашего бизнеса</h2>
+          <p>Посмотрите, как вы справились с задачей!</p>
+        </div>
+        
+        <div class="results-summary">
+          <div class="result-card success">
+            <div class="result-icon">🎉</div>
+            <h3>Поздравляем!</h3>
+            <p>Вы успешно создали и развили бизнес!</p>
+          </div>
+          
+          <div class="final-stats">
+            <h3>📊 Итоговая статистика</h3>
+            <div class="stats-grid">
+              <div class="final-stat">
+                <span class="stat-label">Финальный капитал</span>
+                <span class="stat-value" id="finalCapital">0 ₽</span>
+              </div>
+              
+              <div class="final-stat">
+                <span class="stat-label">Общий доход</span>
+                <span class="stat-value" id="totalRevenue">0 ₽</span>
+              </div>
+              
+              <div class="final-stat">
+                <span class="stat-label">Рост бизнеса</span>
+                <span class="stat-value" id="businessGrowth">0%</span>
+              </div>
+              
+              <div class="final-stat">
+                <span class="stat-label">Качество команды</span>
+                <span class="stat-value" id="teamQuality">0%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="results-actions"><button id="sellBusiness" class="btn primary">Продать бизнес</button> <button id="passiveBusiness" class="btn">Включить пассивный доход (+10 MULACOIN/день)</button></div>
+          <div class="rewards-section">
+            <h3>🎁 Награды за прохождение</h3>
+            <div class="rewards-list">
+              <div class="reward-item">
+                <span class="reward-icon">🪙</span>
+                <span class="reward-text">+50 MULACOIN</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">⭐</span>
+                <span class="reward-text">+200 XP</span>
+              </div>
+              <div class="reward-item">
+                <span class="reward-icon">🏆</span>
+                <span class="reward-text">Достижение "Предприниматель"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stage-actions">
+          <button id="finishQuest" class="btn primary">Завершить квест</button>
+        </div>
+      </section>
+    
+      <!-- Мой бизнес (для пассивного дохода) -->
+      <section id="myBusiness" class="quest-stage">
+        <div class="stage-header">
+          <h2>🏦 Мой бизнес</h2>
+          <p>Состояние вашего пассивного бизнеса</p>
+        </div>
+        <div class="business-dashboard">
+          <div class="business-stats">
+            <div class="stat-card"><div class="stat-icon">🪙</div><div class="stat-info"><span class="stat-label">Всего заработано</span><span class="stat-value" id="passiveTotal">0 MULACOIN</span></div></div>
+            <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-info"><span class="stat-label">Дней в работе</span><span class="stat-value" id="passiveDays">0</span></div></div>
+            <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-info"><span class="stat-label">Статус</span><span class="stat-value" id="passiveStatus">Активен</span></div></div>
+          </div>
+          <div class="events-timeline">
+            <h3>🧯 Проблемы и события</h3>
+            <ul id="passiveIssues" class="events-list"></ul>
+          </div>
+        </div>
+      </section>
+    
+    </main>
+  </div>
+
+  <!-- Скрипты -->
+  <script src="business-data.js"></script>
+  <script src="business-engine.js"></script>
+  <script src="business-ui.js"></script>
+  <script src="business-main.js"></script>
+</body>
+</html>

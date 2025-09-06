@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Язык тела - Формула Quests</title>
+  <link rel="stylesheet" href="./quests-black-white.css">
+  <style>
+    /* Специфичные стили для квеста "Язык тела" */
+    .quest-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Скрываем элементы управления видео в фазе эмоций */
+    #facePhase .video-controls {
+      display: none !important;
+    }
+
+    #facePhase .video-player {
+      pointer-events: none;
+    }
+
+    .phase-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      gap: 8px; /* Добавим небольшой отступ */
+    }
+
+    .phase-badge {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px; /* Немного изменим паддинг */
+      font-size: 12px; /* Уменьшим шрифт для 5 этапов */
+      color: var(--text-muted);
+    }
+
+    .phase-badge.active {
+      background: var(--glow1);
+      color: var(--bg0);
+      font-weight: 600;
+    }
+
+    /* Видео контейнер */
+    .video-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .video-player {
+      width: 100%;
+      max-width: 400px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+
+    .video-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .play-btn {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(102, 247, 213, 0.4);
+    }
+
+    .progress-bar {
+      flex: 1;
+      max-width: 300px;
+      height: 6px;
+      background: var(--glass-strong);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--glow1);
+      width: 0%;
+      transition: width 0.1s ease;
+    }
+
+    .video-annotation {
+      background: linear-gradient(135deg, rgba(102, 247, 213, 0.1), rgba(102, 247, 213, 0.05));
+      border: 1px solid rgba(102, 247, 213, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    /* Контейнер для анимированных лиц */
+    .face-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 30px;
+      text-align: center;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .face-sprite {
+      width: 256px;
+      height: 256px;
+      background-size: calc(var(--cols) * 100%) calc(var(--rows) * 100%);
+      image-rendering: auto;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .face-instruction {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    /* Варианты ответов */
+    .answer-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .answer-option {
+      background: var(--glass);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .answer-option:hover {
+      border-color: var(--glow1);
+      background: var(--glass-strong);
+      transform: translateY(-2px);
+    }
+
+    .answer-option.correct {
+      background: linear-gradient(135deg, var(--success), #22C55E);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .answer-option.incorrect {
+      background: linear-gradient(135deg, var(--warning), #F59E0B);
+      color: white;
+      border-color: var(--warning);
+    }
+
+    /* Счетчик попыток */
+    .attempts-counter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .attempts-text {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .attempts-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .attempt-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .attempt-dot.used {
+      background: var(--warning);
+    }
+
+    /* Кнопки навигации */
+    .quest-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .btn-back {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back:hover {
+      background: var(--glass-strong);
+      border-color: var(--border-strong);
+    }
+
+    /* Модал завершения */
+    .quest-complete {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .quest-complete.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .quest-complete-content {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .quest-complete-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .quest-complete-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 16px;
+    }
+
+    .quest-complete-description {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .quest-rewards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .reward-item {
+      background: var(--glass);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .reward-amount {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--glow1);
+      margin-bottom: 4px;
+    }
+
+    .reward-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-close {
+      background: var(--glow1);
+      color: var(--bg0);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 247, 213, 0.3);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .quest-container {
+        padding: 16px;
+      }
+      
+      .face-sprite {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .answer-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Стили для новых этапов */
+
+    /* Этап 3: Поймай сигнал */
+    .signal-catch-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+      height: 500px; /* Фиксированная высота для стабильности */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .signal-timer-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--glass-strong);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .signal-timer-fill {
+      width: 100%;
+      height: 100%;
+      background: var(--glow1);
+      transition: width 1s linear;
+    }
+    
+    .mannequin-container {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mannequin-svg {
+      width: 200px;
+      height: 300px;
+    }
+
+    .mannequin-svg path, .mannequin-svg circle {
+      stroke: var(--text);
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .signal-hints {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .signal-hint-badge {
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    
+    /* Этап 4: Собери лицо */
+    .face-build-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .face-build-svg {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+      display: block;
+    }
+
+    .face-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 20px;
+    }
+    .control-group {
+      text-align: left;
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+    .control-group input[type="range"] {
+      width: 100%;
+    }
+
+    /* Этап 5: Компас дистанции */
+    .distance-compass-container {
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .proxemics-stage {
+      width: 100%;
+      height: 400px;
+      background: var(--glass-strong);
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+    }
+    
+    .proxemics-zone {
+      position: absolute;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px dashed var(--border);
+    }
+    .proxemics-avatar {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg0);
+      font-weight: bold;
+      user-select: none;
+    }
+    .avatar-user {
+      background: var(--glow1);
+      cursor: grab;
+    }
+    .avatar-npc {
+      background: var(--text-muted);
+    }
+    
+    /* Custom Modal for results */
+    .result-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(2, 0, 16, 0.9);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .result-modal-overlay.show {
+        opacity: 1;
+        pointer-events: all;
+    }
+    .result-modal {
+        background: var(--bg-card);
+        padding: 30px;
+        border-radius: var(--radius);
+        text-align: center;
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    .result-modal-overlay.show .result-modal {
+        transform: scale(1);
+    }
+    .result-modal-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--glow1);
+    }
+    .result-modal-text {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+    .result-modal-button {
+        background: var(--glow1);
+        color: var(--bg0);
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 12px 24px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .result-modal-choices {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="quest-container">
+    <!-- Индикатор фазы -->
+    <div class="phase-indicator">
+      <div class="phase-badge" id="phase1Badge">Этап 1: Ложь</div>
+      <div class="phase-badge" id="phase2Badge">Этап 2: Эмоции</div>
+      <div class="phase-badge" id="phase3Badge">Этап 3: Сигналы</div>
+      <div class="phase-badge" id="phase4Badge">Этап 4: Лицо</div>
+      <div class="phase-badge" id="phase5Badge">Этап 5: Дистанция</div>
+    </div>
+
+    <!-- Этап 1: Видео допрос (Ложь) -->
+    <div id="lie-detection-phase" class="video-container">
+      <h3>Анализ языка тела в видео</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите, какое невербальное поведение демонстрирует человек.
+      </p>
+      
+      <video id="lieVideoPlayer" class="video-player" preload="metadata" controls playsinline>
+        <source src="" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+      </video>
+      
+      <div class="video-controls">
+        <button class="play-btn" id="liePlayBtn">▶️</button>
+        <div class="progress-bar">
+          <div class="progress-fill" id="lieProgressFill"></div>
+        </div>
+      </div>
+      
+      <div class="video-annotation">
+        <strong>💡 Подсказка:</strong> В закрытом канале ты можешь узнать о языке тела намного больше.
+      </div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="lieAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
+      </div>
+      
+      <div class="answer-options" id="lieOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
+
+    <!-- Этап 2: Анализ эмоций -->
+    <div id="emotion-detection-phase" class="video-container" style="display: none;">
+      <h3>Анализ эмоций</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Посмотрите видео и определите эмоцию персонажа.
+      </p>
+      
+      <div class="video-frame">
+        <video id="emotionVideoPlayer" class="video-player" preload="metadata" muted playsinline loop controls>
+          <source src="" type="video/mp4">
+          Ваш браузер не поддерживает видео.
+        </video>
+      </div>
+      
+      <div class="attempts-counter">
+        <span class="attempts-text">Попытки:</span>
+        <div class="attempts-dots" id="emotionAttemptsDots">
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+          <div class="attempt-dot"></div>
+        </div>
+      </div>
+      
+      <div class="answer-options" id="emotionOptions">
+        <!-- Варианты ответов будут добавлены динамически -->
+      </div>
+    </div>
+
+    <!-- Этап 3: Поймай сигнал -->
+    <div id="signal-catch-phase" class="signal-catch-container" style="display: none;">
+      <h3>Этап 3: Поймай сигнал</h3>
+      <p>Лови момент! Увидел необычное движение — тапни. После — назови сигнал.</p>
+      <div class="signal-timer-bar"><div class="signal-timer-fill"></div></div>
+      <div class="mannequin-container" id="mannequinContainer">
+        <svg id="mannequinSvg" class="mannequin-svg" viewBox="0 0 200 300">
+            <g id="manGroup">
+              <!-- Голова -->
+              <circle id="head" cx="100" cy="40" r="20"/>
+              <!-- Тело -->
+              <path id="torso" d="M 100 60 L 100 160"/>
+              <!-- Руки -->
+              <path id="left_arm" d="M 100 80 L 60 140 L 40 200"/>
+              <path id="right_arm" d="M 100 80 L 140 140 L 160 200"/>
+              <!-- Ноги -->
+              <path id="left_leg" d="M 100 160 L 70 230 L 60 300"/>
+              <path id="right_leg" d="M 100 160 L 130 230 L 140 300"/>
+            </g>
+        </svg>
+      </div>
+      <div class="signal-hints">
+        <span class="signal-hint-badge">самоуспокоение</span>
+        <span class="signal-hint-badge">барьер</span>
+        <span class="signal-hint-badge">доминирование</span>
+    </div>
+  </div>
+
+    <!-- Этап 4: Собери лицо -->
+    <div id="face-build-phase" class="face-build-container" style="display: none;">
+        <h3>Этап 4: Собери лицо</h3>
+        <p>Подбери мимику к подсказке. Готов? Жми "Оценить" — посмотрим, что считал мозг.</p>
+        <div id="faceBuildTarget" class="face-instruction"></div>
+        <svg id="faceBuildSvg" class="face-build-svg" viewBox="0 0 200 200">
+            <!-- Face shape -->
+            <path d="M 50 20 C 20 20, 10 80, 20 120 C 30 180, 170 180, 180 120 C 190 80, 180 20, 150 20 Z" fill="#222" stroke="var(--text)" stroke-width="2"/>
+            <!-- Eyes -->
+            <path id="leftEye" d="M 60 70 Q 80 60, 100 70" stroke="var(--text)" stroke-width="3" fill="none"/>
+            <path id="rightEye" d="M 120 70 Q 140 60, 160 70" stroke="var(--text)" stroke-width="3" fill="none"/>
+            <!-- Eyebrows -->
+            <path id="leftEyebrow" d="M 50 50 Q 80 40, 110 50" stroke="var(--text)" stroke-width="4" fill="none"/>
+            <path id="rightEyebrow" d="M 110 50 Q 140 40, 170 50" stroke="var(--text)" stroke-width="4" fill="none"/>
+            <!-- Mouth -->
+            <path id="mouth" d="M 70 140 Q 100 150, 130 140" stroke="var(--text)" stroke-width="3" fill="none"/>
+        </svg>
+        <div class="face-controls">
+            <div class="control-group">
+                <label for="browsSlider">Наклон бровей</label>
+                <input type="range" id="browsSlider" min="-1" max="1" value="0" step="0.1">
+            </div>
+            <div class="control-group">
+                <label for="eyesSlider">Открытость глаз</label>
+                <input type="range" id="eyesSlider" min="-1" max="1" value="0" step="0.1">
+            </div>
+            <div class="control-group">
+                <label for="mouthSlider">Улыбка / Хмурость</label>
+                <input type="range" id="mouthSlider" min="-1" max="1" value="0" step="0.1">
+            </div>
+        </div>
+        <button id="evaluateFaceBtn" class="btn-next">Оценить</button>
+    </div>
+
+    <!-- Этап 5: Компас дистанции -->
+    <div id="distance-compass-phase" class="distance-compass-container" style="display: none;">
+      <h3>Этап 5: Компас дистанции</h3>
+      <p>Расставь себя так, чтобы было комфортно обоим. Поверни корпус — не тараном, а дружелюбно.</p>
+      <div id="proxemicsScenario" class="face-instruction"></div>
+      <div id="proxemicsStage" class="proxemics-stage">
+          <!-- Зоны -->
+          <div class="proxemics-zone" style="width: 800px; height: 800px;"></div>
+          <div class="proxemics-zone" style="width: 400px; height: 400px;"></div>
+          <div class="proxemics-zone" style="width: 150px; height: 150px;"></div>
+          <!-- Аватары -->
+          <div id="npcAvatar" class="proxemics-avatar avatar-npc">C</div>
+          <div id="userAvatar" class="proxemics-avatar avatar-user">Ты</div>
+        </div>
+      <button id="checkDistanceBtn" class="btn-next">Проверить</button>
+        </div>
+
+    <!-- Кнопки навигации -->
+    <div class="quest-controls">
+      <a href="../quests.html" class="btn-back">← Назад к квестам</a>
+      </div>
+      
+    <!-- Result Modal -->
+    <div id="resultModal" class="result-modal-overlay">
+        <div class="result-modal">
+            <h3 id="resultModalTitle" class="result-modal-title"></h3>
+            <p id="resultModalText" class="result-modal-text"></p>
+            <div id="resultModalChoices" class="result-modal-choices"></div>
+            <button id="resultModalButton" class="result-modal-button">Далее</button>
+        </div>
+    </div>
+  </div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ ---
+    const LIE_VIDEO_DATA = {
+      'dopros1.mp4': 'сепарирование (уход) от вопроса',
+      'dopros2.mp4': 'легкое нахмуривание',
+      'dopros3.mp4': 'поджатие губ',
+      'dopros4.mp4': 'учищенное моргание',
+      'dopros5.mp4': 'поджатие губ',
+      'dopros6.mp4': 'сепарирование (уход) от вопроса',
+      'dopros7.mp4': 'легкое нахмуривание',
+      'dopros8.mp4': 'поджатие губ'
+    };
+    const LIE_OPTIONS = [
+        'Поджатие губ', 'Учищенное моргание', 'Легкое нахмуривание', 
+        'Легкое прикосновение лица (подбородка, носа, вески)', 'Покачивание головы в строну',
+        'Сепарирование (уход) от вопроса', 'Отбрасывание головы назад',
+      'Движение суставами (дергание ногой или кистью)',
+      'Взаимодействие с руками, вещами (крутит ручку, трогает пальцы и тд)',
+        'Вскидывание взгляда вверх', 'Быстрое облизывание губ', 'Сглатывание', 'Напряжение челюсти'
+    ];
+
+    const EMOTION_VIDEO_DATA = {
+        'rf_01_skepticism.mp4': 'Скептицизм', 'rf_02_anger.mp4': 'Гнев',
+        'rf_03_anxiety.mp4': 'Тревога', 'rf_04_determination.mp4': 'Решительность',
+        'rf_04_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание', 'rf_05_dominance.mp4': 'Доминирование',
+        'rf_06_fear-surprise-denial.mp4': 'Страх-Удивление-Отрицание', 'rf_07_high-self-esteem.mp4': 'Высокая самооценка',
+        'rf_08_submission.mp4': 'Подчинение', 'rf_09_surprise.mp4': 'Удивление',
+        'rf_10_contempt.mp4': 'Презрение', 'rf_11_thoughtfulness.mp4': 'Задумчивость',
+        'rf_12_skepticism.mp4': 'Скептицизм', 'rf_13_anger.mp4': 'Гнев', 'rf_14_anxiety.mp4': 'Тревога',
+        'rf_15_determination.mp4': 'Решительность', 'rf_16_dominance.mp4': 'Доминирование',
+        'rf_17_fear.mp4': 'Страх', 'rf_18_high-self-esteem.mp4': 'Высокая самооценка',
+        'rf_19_contempt.mp4': 'Презрение', 'rf_19_submission.mp4': 'Подчинение',
+      'rf_20_surprise.mp4': 'Удивление'
+    };
+    const EMOTION_OPTIONS = [
+        'Скептицизм', 'Гнев', 'Тревога', 'Решительность', 'Страх-Удивление-Отрицание', 'Доминирование',
+        'Высокая самооценка', 'Подчинение', 'Удивление', 'Презрение', 'Задумчивость', 'Страх'
+    ];
+    
+    // Этап 3: Поймай сигнал
+    const SIGNALS = {
+      self_soothe: { name: 'Самоуспокоение', prompt: 'Что это было?', options: ['Самоуспокоение', 'Барьер', 'Доминирование'] },
+      barrier: { name: 'Барьер', prompt: 'Что это было?', options: ['Самоуспокоение', 'Барьер', 'Доминирование'] },
+      dominance: { name: 'Доминирование', prompt: 'Что это было?', options: ['Самоуспокоение', 'Барьер', 'Доминирование'] }
+    };
+
+    // Этап 4: Собери лицо
+    const FACE_BUILD_TARGETS = {
+        joy: { name: 'Умеренная радость', vector: { brows: -0.2, eyes: 0.1, mouth: 0.8 } },
+        anger: { name: 'Легкое раздражение', vector: { brows: 0.7, eyes: -0.4, mouth: -0.6 } },
+        surprise: { name: 'Удивление', vector: { brows: 0.8, eyes: 0.8, mouth: 0.3 } },
+        sadness: { name: 'Грусть', vector: { brows: 0.2, eyes: -0.5, mouth: -0.7} }
+    };
+    
+    // Этап 5: Компас дистанции
+    const PROXEMICS_SCENARIOS = [
+        { id: 'colleague', text: 'Коллега, которого знаешь шапочно, хочет спросить совет', zone: 'social', angle: 30 },
+        { id: 'friend', text: 'Близкий друг, тихий разговор', zone: 'personal', angle: 15 },
+        { id: 'stranger', text: 'Незнакомец на остановке', zone: 'public', angle: 120 }
+    ];
+
+    const SIGNAL_ANIMATIONS = {
+        idle: {
+            torso: "M 100 60 L 100 160",
+            left_arm: "M 100 80 L 60 140 L 40 200",
+            right_arm: "M 100 80 L 140 140 L 160 200"
+        },
+        self_soothe: [ // рука к шее
+            { t: 0, d: "M 100 80 L 140 140 L 160 200" }, // start
+            { t: 0.3, d: "M 100 80 L 120 100 L 110 70" }, // lift
+            { t: 0.6, d: "M 100 80 L 110 80 L 100 60" }, // touch neck
+            { t: 1, d: "M 100 80 L 140 140 L 160 200" } // return
+        ],
+        barrier: [ // скрещивание рук
+            { t: 0, left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" },
+            { t: 0.5, left: "M 100 80 L 80 120 L 120 120", right: "M 100 80 L 120 120 L 80 120" },
+            { t: 1, left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" }
+        ],
+        dominance: [ // расправление плеч
+             { t: 0, torso: "M 100 60 L 100 160", left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" },
+             { t: 0.5, torso: "M 100 55 L 100 165", left: "M 100 80 L 55 145 L 35 205", right: "M 100 80 L 145 145 L 165 205" },
+             { t: 1, torso: "M 100 60 L 100 160", left: "M 100 80 L 60 140 L 40 200", right: "M 100 80 L 140 140 L 160 200" }
+        ]
+    };
+
+    let gameState = {
+        currentPhase: 1,
+        lieAttempts: 0,
+        emotionAttempts: 0,
+        acquiredBadges: new Set(),
+        signalGame: {
+            running: false,
+            timerId: null,
+            animationFrameId: null,
+            startTime: 0,
+            duration: 30000,
+            activeSignal: null,
+            score: 0,
+            misses: 0,
+            detectionWindowMs: 700,
+            signalsQueue: [],
+        }
+    };
+
+    // --- ИНИЦИАЛИЗАЦИЯ ---
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init() {
+        setupEventListeners();
+        loadPhase(gameState.currentPhase);
+        document.getElementById('resultModalButton').addEventListener('click', () => {
+        const modal = document.getElementById('resultModal');
+        if (modal.callback) {
+            modal.callback();
+        }
+        modal.classList.remove('show');
+      });
+    }
+
+    function setupEventListeners() {
+        const lieVideo = document.getElementById('lieVideoPlayer');
+        const liePlayBtn = document.getElementById('liePlayBtn');
+        const lieProgressFill = document.getElementById('lieProgressFill');
+
+        liePlayBtn.addEventListener('click', () => {
+            if (lieVideo.paused) {
+                lieVideo.play();
+                liePlayBtn.textContent = '⏸️';
+            } else {
+                lieVideo.pause();
+                liePlayBtn.textContent = '▶️';
+            }
+        });
+
+        lieVideo.addEventListener('timeupdate', () => {
+            const progress = (lieVideo.currentTime / lieVideo.duration) * 100;
+            lieProgressFill.style.width = `${progress}%`;
+        });
+
+        lieVideo.addEventListener('ended', () => {
+            liePlayBtn.textContent = '▶️';
+        });
+        
+        document.getElementById('mannequinContainer').addEventListener('click', handleMannequinTap);
+        document.getElementById('evaluateFaceBtn').addEventListener('click', handleFaceEvaluation);
+        document.getElementById('checkDistanceBtn').addEventListener('click', handleDistanceCheck);
+    }
+    
+    // --- УПРАВЛЕНИЕ ФАЗАМИ ---
+    function loadPhase(phase) {
+        document.getElementById('lie-detection-phase').style.display = 'none';
+        document.getElementById('emotion-detection-phase').style.display = 'none';
+        document.getElementById('signal-catch-phase').style.display = 'none';
+        document.getElementById('face-build-phase').style.display = 'none';
+        document.getElementById('distance-compass-phase').style.display = 'none';
+        
+      updatePhaseIndicator();
+      
+        switch(phase) {
+            case 1: loadLiePhase(); break;
+            case 2: loadEmotionPhase(); break;
+            case 3: loadSignalCatchPhase(); break;
+            case 4: loadFaceBuildPhase(); break;
+            case 5: loadDistanceCompassPhase(); break;
+            default: completeQuest();
+        }
+    }
+
+    function nextPhase() { gameState.currentPhase++; loadPhase(gameState.currentPhase); }
+
+    // --- ФАЗА 1: ЛОЖЬ ---
+    function loadLiePhase() {
+        document.getElementById('lie-detection-phase').style.display = 'block';
+        loadRandomLieVideo();
+        
+        gameState.lieAttempts = 0;
+        updateAttemptsDisplay('lie');
+        createLieOptions();
+    }
+
+    function loadRandomLieVideo(retry = 0) {
+      const files = Object.keys(LIE_VIDEO_DATA);
+      const file = files[Math.floor(Math.random() * files.length)];
+      const video = document.getElementById('lieVideoPlayer');
+      setVideoSource(video, `../video/${file}`);
+      video.dataset.correctAnswer = LIE_VIDEO_DATA[file];
+      video.onerror = () => {
+        if (retry < 5) loadRandomLieVideo(retry + 1);
+      };
+    }
+
+    function createLieOptions() {
+        const video = document.getElementById('lieVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const options = new Set([correctAnswer]);
+
+        while (options.size < 5) {
+            const randomOption = LIE_OPTIONS[Math.floor(Math.random() * LIE_OPTIONS.length)];
+            options.add(randomOption);
+        }
+        
+        const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+        
+        const container = document.getElementById('lieOptions');
+        container.innerHTML = '';
+        
+        shuffledOptions.forEach(optionText => {
+            const button = document.createElement('button');
+            button.className = 'answer-option';
+            button.textContent = optionText;
+            button.onclick = () => handleLieAnswer(optionText, button);
+            container.appendChild(button);
+        });
+    }
+
+    function handleLieAnswer(answer, button) {
+        const video = document.getElementById('lieVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const allButtons = document.querySelectorAll('#lieOptions .answer-option');
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (answer === correctAnswer) {
+            button.classList.add('correct');
+            hapticFeedback('light');
+            setTimeout(nextPhase, 2000);
+        } else {
+            button.classList.add('incorrect');
+            hapticFeedback('error');
+            gameState.lieAttempts++;
+            updateAttemptsDisplay('lie');
+            
+            // Показать правильный ответ
+            allButtons.forEach(btn => {
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (gameState.lieAttempts >= 3) {
+                setTimeout(loadLiePhase, 2000); // Новое видео после 3 промахов
+            } else {
+                 setTimeout(() => { // Новые варианты для того же видео
+                    allButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('correct', 'incorrect');
+                    });
+                    createLieOptions();
+                }, 2000);
+            }
+        }
+    }
+
+    // --- ФАЗА 2: ЭМОЦИИ ---
+    function loadEmotionPhase() {
+        document.getElementById('emotion-detection-phase').style.display = 'block';
+        loadRandomEmotionVideo();
+        
+        gameState.emotionAttempts = 0;
+        updateAttemptsDisplay('emotion');
+        createEmotionOptions();
+    }
+
+    function loadRandomEmotionVideo(retry = 0) {
+      const files = Object.keys(EMOTION_VIDEO_DATA);
+      const file = files[Math.floor(Math.random() * files.length)];
+      const video = document.getElementById('emotionVideoPlayer');
+      setVideoSource(video, `../assets/videos/${file}`);
+      video.dataset.correctAnswer = EMOTION_VIDEO_DATA[file];
+      video.onerror = () => {
+        if (retry < 5) loadRandomEmotionVideo(retry + 1);
+      };
+      video.play().catch(() => {});
+    }
+    
+    function createEmotionOptions() {
+        const video = document.getElementById('emotionVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const options = new Set([correctAnswer]);
+
+        while (options.size < 4) {
+            const randomOption = EMOTION_OPTIONS[Math.floor(Math.random() * EMOTION_OPTIONS.length)];
+            options.add(randomOption);
+        }
+
+        const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+        
+        const container = document.getElementById('emotionOptions');
+        container.innerHTML = '';
+        
+        shuffledOptions.forEach(optionText => {
+            const button = document.createElement('button');
+            button.className = 'answer-option';
+            button.textContent = optionText;
+            button.onclick = () => handleEmotionAnswer(optionText, button);
+            container.appendChild(button);
+        });
+    }
+
+    function handleEmotionAnswer(answer, button) {
+        const video = document.getElementById('emotionVideoPlayer');
+        const correctAnswer = video.dataset.correctAnswer;
+        const allButtons = document.querySelectorAll('#emotionOptions .answer-option');
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (answer === correctAnswer) {
+            button.classList.add('correct');
+            hapticFeedback('light');
+            setTimeout(nextPhase, 2000);
+        } else {
+            button.classList.add('incorrect');
+            hapticFeedback('error');
+            gameState.emotionAttempts++;
+            updateAttemptsDisplay('emotion');
+
+            allButtons.forEach(btn => {
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (gameState.emotionAttempts >= 3) {
+                setTimeout(loadEmotionPhase, 2000);
+            } else {
+                setTimeout(() => {
+                    allButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('correct', 'incorrect');
+                    });
+      createEmotionOptions();
+                }, 2000);
+            }
+        }
+    }
+
+    // --- ФАЗА 3: ПОЙМАЙ СИГНАЛ ---
+    function loadSignalCatchPhase() {
+      document.getElementById('signal-catch-phase').style.display = 'flex';
+      startSignalGame();
+    }
+
+    function startSignalGame() {
+      let game = gameState.signalGame;
+      game.running = true;
+      game.startTime = Date.now();
+      game.score = 0;
+      
+      // TODO: Сгенерировать очередь сигналов
+      generateSignalQueue();
+      
+      const timerFill = document.querySelector('#signal-catch-phase .signal-timer-fill');
+      timerFill.style.transition = 'none';
+      timerFill.style.width = '100%';
+      
+      setTimeout(() => {
+          timerFill.style.transition = `width ${game.duration / 1000}s linear`;
+          timerFill.style.width = '0%';
+      }, 100);
+
+      // Запускаем анимацию
+      animateMannequin();
+    }
+
+    function generateSignalQueue() {
+      const totalDuration = gameState.signalGame.duration; // ms
+      const signals = ['self_soothe','barrier','dominance'];
+      const count = 9; // 8-10
+      const baseInterval = Math.floor(totalDuration / (count + 1));
+      const queue = [];
+
+      for (let i = 1; i <= count; i++) {
+        const type = signals[Math.floor(Math.random() * signals.length)];
+        const jitter = Math.floor((Math.random() - 0.5) * baseInterval * 0.6);
+        queue.push({ type, startTime: i * baseInterval + jitter, duration: 1200, holdMs: 700 });
+      }
+      // Add 1-2 distractors
+      const distractors = Math.random() < 0.5 ? 1 : 2;
+      for (let i = 0; i < distractors; i++) {
+        const idx = Math.floor(Math.random() * count);
+        queue.splice(idx, 0, { type: 'distractor', startTime: (idx+1) * baseInterval + Math.floor((Math.random()-0.5)*baseInterval*0.4), duration: 600, holdMs: 300 });
+      }
+      // Sort by startTime and assign to state
+      queue.sort((a,b) => a.startTime - b.startTime);
+      gameState.signalGame.signalsQueue = queue;
+    }
+
+    function animateMannequin() {
+        if (!gameState.signalGame.running) return;
+
+        const gameTime = Date.now() - gameState.signalGame.startTime;
+
+        // Idle animation
+        const idleSway = Math.sin(gameTime / 900) * 2.5;
+        const man = document.getElementById('manGroup');
+        if (man) {
+          man.style.transformBox = 'fill-box';
+          man.style.transformOrigin = '50% 50%';
+          man.style.transform = `translateY(${idleSway}px)`;
+        }
+
+        // Check for signal to start
+        const nextSignal = gameState.signalGame.signalsQueue[0];
+        if (nextSignal && gameTime >= nextSignal.startTime && !gameState.signalGame.activeSignal) {
+            gameState.signalGame.activeSignal = gameState.signalGame.signalsQueue.shift();
+            gameState.signalGame.activeSignal.animationStart = Date.now();
+        }
+
+        // Animate active signal
+        if (gameState.signalGame.activeSignal) {
+            const signal = gameState.signalGame.activeSignal;
+            const signalTime = Date.now() - signal.animationStart;
+            const progress = Math.min(signalTime / signal.duration, 1);
+
+            const animationData = SIGNAL_ANIMATIONS[signal.type];
+            
+            // This is a simplified interpolation. A real implementation would parse and interpolate path points.
+            if (signal.type === 'self_soothe') {
+                const currentFrame = animationData.find((frame, i) => progress >= frame.t && (animationData[i+1] ? progress < animationData[i+1].t : true));
+                document.getElementById('right_arm').setAttribute('d', currentFrame.d);
+            } else if (signal.type === 'barrier') {
+                const currentFrame = animationData.find((frame, i) => progress >= frame.t && (animationData[i+1] ? progress < animationData[i+1].t : true));
+                document.getElementById('left_arm').setAttribute('d', currentFrame.left);
+                document.getElementById('right_arm').setAttribute('d', currentFrame.right);
+            } else if (signal.type === 'dominance') {
+                const currentFrame = animationData.find((frame, i) => progress >= frame.t && (animationData[i+1] ? progress < animationData[i+1].t : true));
+                document.getElementById('torso').setAttribute('d', currentFrame.torso);
+                document.getElementById('left_arm').setAttribute('d', currentFrame.left);
+                document.getElementById('right_arm').setAttribute('d', currentFrame.right);
+            }
+
+            // Hold final pose for a while before resetting
+            const holdMs = signal.holdMs || 600;
+            if (signalTime >= signal.duration + holdMs) {
+              gameState.signalGame.activeSignal = null;
+              resetMannequinPose();
+            }
+        }
+
+        requestAnimationFrame(animateMannequin);
+    }
+
+    function resetMannequinPose() {
+        document.getElementById('torso').setAttribute('d', SIGNAL_ANIMATIONS.idle.torso);
+        document.getElementById('left_arm').setAttribute('d', SIGNAL_ANIMATIONS.idle.left_arm);
+        document.getElementById('right_arm').setAttribute('d', SIGNAL_ANIMATIONS.idle.right_arm);
+    }
+
+    function handleMannequinTap() {
+        if (!gameState.signalGame.running) return;
+
+        const tapTime = Date.now();
+        const signal = gameState.signalGame.activeSignal;
+        
+        if (signal) {
+            const timeSinceSignalStart = tapTime - signal.animationStart;
+            if (timeSinceSignalStart > 100 && timeSinceSignalStart < gameState.signalGame.detectionWindowMs + 100) { // a small buffer
+                hapticFeedback('light');
+                
+                // Pause game
+                cancelAnimationFrame(gameState.signalGame.animationFrameId);
+                clearTimeout(gameState.signalGame.timerId);
+
+                const signalData = SIGNALS[signal.type];
+                showChoiceModal(
+                    'Что это было?',
+                    'Классифицируй увиденный сигнал.',
+                    signalData.options,
+                    (choice) => {
+                        if (choice === signalData.name) {
+                            gameState.signalGame.score += 1; // Bonus point
+                            showPhaseResult("Правильно!", `+1 очко за верную классификацию.`, resumeSignalGame, true);
+                        } else {
+                            showPhaseResult("Ошибка!", `Это был сигнал "${signalData.name}".`, resumeSignalGame, true);
+                        }
+                    }
+                );
+                
+                // Base score for timing
+                const timingAccuracy = Math.abs(timeSinceSignalStart - (signal.duration / 2));
+                gameState.signalGame.score += (timingAccuracy <= 200) ? 2 : 1;
+
+                gameState.signalGame.activeSignal = null; // Prevent multi-taps
+                resetMannequinPose();
+            }
+        }
+    }
+
+    function resumeSignalGame() {
+        if (gameState.currentPhase !== 3) return;
+        
+        gameState.signalGame.running = true;
+        const remainingTime = gameState.signalGame.duration - (Date.now() - gameState.signalGame.startTime);
+        if (remainingTime > 0) {
+            gameState.signalGame.timerId = setTimeout(endSignalGame, remainingTime);
+            gameState.signalGame.animationFrameId = requestAnimationFrame(animateMannequin);
+        } else {
+            endSignalGame();
+        }
+    }
+
+    function endSignalGame() {
+      gameState.signalGame.running = false;
+      clearTimeout(gameState.signalGame.timerId);
+      cancelAnimationFrame(gameState.signalGame.animationFrameId);
+      // console.log(`Signal game ended. Score: ${signalGame.score}`);
+      
+      gameState.acquiredBadges.add('Наблюдатель');
+      // TODO: Показать результаты и кнопку "Далее"
+      nextPhase();
+    }
+
+    // TODO: Загрузка фазы 4: Собери лицо
+    function loadFaceBuildPhase() {
+        document.getElementById('face-build-phase').style.display = 'block';
+        
+        const targets = Object.keys(FACE_BUILD_TARGETS);
+        const currentTargetKey = targets[Math.floor(Math.random() * targets.length)];
+        const currentTarget = FACE_BUILD_TARGETS[currentTargetKey];
+        
+        document.getElementById('faceBuildTarget').textContent = `Задание: ${currentTarget.name}`;
+        document.getElementById('faceBuildSvg').dataset.targetKey = currentTargetKey;
+        
+        // Сброс и привязка слайдеров
+        ['browsSlider', 'eyesSlider', 'mouthSlider'].forEach(id => {
+            const slider = document.getElementById(id);
+            slider.value = 0;
+            slider.addEventListener('input', updateFaceSvg);
+        });
+        updateFaceSvg();
+    }
+
+    function updateFaceSvg() {
+        const brows = parseFloat(document.getElementById('browsSlider').value); // -1 to 1
+        const eyes = parseFloat(document.getElementById('eyesSlider').value);   // -1 to 1
+        const mouth = parseFloat(document.getElementById('mouthSlider').value); // -1 to 1
+        
+        const leftEyebrow = document.getElementById('leftEyebrow');
+        const rightEyebrow = document.getElementById('rightEyebrow');
+        const leftEye = document.getElementById('leftEye');
+        const rightEye = document.getElementById('rightEye');
+        const mouthPath = document.getElementById('mouth');
+
+        // Брови: наклон
+        leftEyebrow.setAttribute('d', `M 50 ${50 - brows*10} Q 80 ${40 - brows * 10}, 110 ${50 + brows * 10}`);
+        rightEyebrow.setAttribute('d', `M 110 ${50 + brows * 10} Q 140 ${40 - brows * 10}, 170 ${50 - brows*10}`);
+        
+        // Глаза: открытость (изменение кривизны верхнего века)
+        leftEye.setAttribute('d', `M 60 70 Q 80 ${70 - 15 * eyes}, 100 70`);
+        rightEye.setAttribute('d', `M 120 70 Q 140 ${70 - 15 * eyes}, 160 70`);
+        
+        // Рот: улыбка/хмурость
+        mouthPath.setAttribute('d', `M 70 140 Q 100 ${140 + 20 * mouth}, 130 140`);
+    }
+    
+    // TODO: Загрузка фазы 5: Компас дистанции
+    function loadDistanceCompassPhase() {
+        document.getElementById('distance-compass-phase').style.display = 'block';
+        // Здесь будет логика для 5 этапа
+        setTimeout(nextPhase, 3000); // Временно для демонстрации
+    }
+    
+    function handleDistanceCheck() {
+        // Здесь будет логика для 5 этапа
+        // Например, получение позиции аватара пользователя
+        const userAvatar = document.getElementById('userAvatar');
+        const userAvatarRect = userAvatar.getBoundingClientRect();
+        const userAvatarX = userAvatarRect.left + userAvatarRect.width / 2;
+        const userAvatarY = userAvatarRect.top + userAvatarRect.height / 2;
+
+        // Получение позиции NPC аватара
+        const npcAvatar = document.getElementById('npcAvatar');
+        const npcAvatarRect = npcAvatar.getBoundingClientRect();
+        const npcAvatarX = npcAvatarRect.left + npcAvatarRect.width / 2;
+        const npcAvatarY = npcAvatarRect.top + npcAvatarRect.height / 2;
+
+        // Вычисление углов
+        const angle = Math.atan2(npcAvatarY - userAvatarY, npcAvatarX - userAvatarX) * (180 / Math.PI);
+        const distance = Math.sqrt(Math.pow(npcAvatarX - userAvatarX, 2) + Math.pow(npcAvatarY - userAvatarY, 2));
+
+        // Сравнение с целевым углом и расстоянием
+        const scenario = PROXEMICS_SCENARIOS[Math.floor(Math.random() * PROXEMICS_SCENARIOS.length)];
+        const targetAngle = scenario.angle;
+        const targetDistance = scenario.zone === 'personal' ? 100 : scenario.zone === 'social' ? 200 : 300; // Примерные значения
+
+        const angleDiff = Math.abs(angle - targetAngle);
+        const distanceDiff = Math.abs(distance - targetDistance);
+
+        let score = 0;
+        if (angleDiff < 10 && distanceDiff < 50) { // Примерные пороги
+            score = 100;
+        } else if (angleDiff < 20 && distanceDiff < 100) {
+            score = 70;
+        } else if (angleDiff < 30 && distanceDiff < 150) {
+            score = 40;
+        }
+
+        gameState.acquiredBadges.add('Навигатор дистанции');
+        showPhaseResult("Дистанция оценена!", `Ваш результат: ${Math.round(score)}%`, nextPhase);
+    }
+
+    // --- ЛОГИКА ОТВЕТОВ ---
+
+    // Создание вариантов ответов для лжи
+    function createLieOptions() {
+      const video = document.getElementById('lieVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const options = new Set([correctAnswer]);
+
+      while (options.size < 5) {
+        const randomOption = LIE_OPTIONS[Math.floor(Math.random() * LIE_OPTIONS.length)];
+        options.add(randomOption);
+      }
+      
+      const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+      
+      const container = document.getElementById('lieOptions');
+      container.innerHTML = '';
+      
+      shuffledOptions.forEach(optionText => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = optionText;
+        button.onclick = () => handleLieAnswer(optionText, button);
+        container.appendChild(button);
+      });
+    }
+
+    // Создание вариантов ответов для эмоций
+    function createEmotionOptions() {
+      const video = document.getElementById('emotionVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const options = new Set([correctAnswer]);
+
+      while (options.size < 4) {
+        const randomOption = EMOTION_OPTIONS[Math.floor(Math.random() * EMOTION_OPTIONS.length)];
+        options.add(randomOption);
+      }
+      
+      const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+      
+      const container = document.getElementById('emotionOptions');
+      container.innerHTML = '';
+      
+      shuffledOptions.forEach(optionText => {
+        const button = document.createElement('button');
+        button.className = 'answer-option';
+        button.textContent = optionText;
+        button.onclick = () => handleEmotionAnswer(optionText, button);
+        container.appendChild(button);
+      });
+    }
+
+    // Обработка ответа на ложь
+    function handleLieAnswer(answer, button) {
+      const video = document.getElementById('lieVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const allButtons = document.querySelectorAll('#lieOptions .answer-option');
+      allButtons.forEach(btn => btn.disabled = true);
+
+      if (answer === correctAnswer) {
+        button.classList.add('correct');
+        hapticFeedback('light');
+        setTimeout(nextPhase, 2000);
+      } else {
+        button.classList.add('incorrect');
+        hapticFeedback('error');
+        gameState.lieAttempts++;
+        updateAttemptsDisplay('lie');
+        
+        // Показать правильный ответ
+        allButtons.forEach(btn => {
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+          }
+        });
+
+        if (gameState.lieAttempts >= 3) {
+          setTimeout(loadLiePhase, 2000); // Новое видео после 3 промахов
+      } else {
+          setTimeout(() => { // Новые варианты для того же видео
+            allButtons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+            createLieOptions();
+          }, 2000);
+        }
+      }
+    }
+
+    // Обработка ответа на эмоции
+    function handleEmotionAnswer(answer, button) {
+      const video = document.getElementById('emotionVideoPlayer');
+      const correctAnswer = video.dataset.correctAnswer;
+      const allButtons = document.querySelectorAll('#emotionOptions .answer-option');
+      allButtons.forEach(btn => btn.disabled = true);
+
+      if (answer === correctAnswer) {
+        button.classList.add('correct');
+        hapticFeedback('light');
+        setTimeout(nextPhase, 2000);
+      } else {
+        button.classList.add('incorrect');
+        hapticFeedback('error');
+        gameState.emotionAttempts++;
+        updateAttemptsDisplay('emotion');
+
+        allButtons.forEach(btn => {
+        if (btn.textContent === correctAnswer) {
+          btn.classList.add('correct');
+          }
+        });
+
+        if (gameState.emotionAttempts >= 3) {
+          setTimeout(loadEmotionPhase, 2000);
+      } else {
+          setTimeout(() => {
+            allButtons.forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('correct', 'incorrect');
+            });
+            createEmotionOptions();
+          }, 2000);
+        }
+      }
+    }
+
+    // --- UI ОБНОВЛЕНИЯ ---
+
+    // Обновление индикатора фазы
+    function updatePhaseIndicator() {
+      const badges = document.querySelectorAll('.phase-badge');
+      badges.forEach((badge, index) => {
+        if (index + 1 === gameState.currentPhase) {
+          badge.classList.add('active');
+      } else {
+          badge.classList.remove('active');
+      }
+      });
+    }
+
+    // Обновление отображения попыток
+    function updateAttemptsDisplay(phase) {
+      const dots = document.querySelectorAll(`#${phase}AttemptsDots .attempt-dot`);
+      const attempts = phase === 'lie' ? gameState.lieAttempts : gameState.emotionAttempts;
+      
+      dots.forEach((dot, index) => {
+        if (index < attempts) {
+          dot.classList.add('used');
+        } else {
+          dot.classList.remove('used');
+        }
+      });
+    }
+
+    // --- ЗАВЕРШЕНИЕ КВЕСТА ---
+    function completeQuest() {
+      const modal = document.getElementById('questComplete');
+      
+      // Добавляем бейджи в модальное окно
+      const badgesContainer = document.getElementById('reward-badges');
+      badgesContainer.innerHTML = '';
+      if(gameState.acquiredBadges.size > 0) {
+          const title = document.createElement('h4');
+          title.textContent = 'Полученные навыки:';
+          badgesContainer.appendChild(title);
+          gameState.acquiredBadges.forEach(badge => {
+              const badgeEl = document.createElement('span');
+              badgeEl.className = 'signal-hint-badge'; // Используем тот же стиль
+              badgeEl.textContent = badge;
+              badgesContainer.appendChild(badgeEl);
+          });
+      }
+
+      modal.classList.add('show');
+      
+      // Сохраняем награды
+      if (window.parent && window.parent.addRewards) {
+        window.parent.addRewards(3, 500, 'bodylang', 'Язык тела', 'medium');
+      } else {
+        // Fallback на localStorage
+        const userId = localStorage.getItem('currentUserId') || 'default';
+        const userDataKey = `userData_${userId}`;
+        const savedData = localStorage.getItem(userDataKey);
+        
+        if (savedData) {
+          const userData = JSON.parse(savedData);
+          userData.mulacoin = (userData.mulacoin || 0) + 3;
+          userData.exp = (userData.exp || 0) + 500;
+          localStorage.setItem(userDataKey, JSON.stringify(userData));
+        }
+      }
+    }
+
+    // Закрытие модала завершения
+    function closeQuestComplete() {
+      const modal = document.getElementById('questComplete');
+      modal.classList.remove('show');
+      window.location.href = '../quests.html';
+    }
+
+    // --- УТИЛИТЫ АНИМАЦИИ ---
+    function parsePath(d) {
+        const points = [];
+        const commands = d.split(/(?=[ML])/);
+        commands.forEach(command => {
+            const type = command.charAt(0);
+            const Cords = command.substring(1).trim().split(' ');
+            Cords.forEach(c => {
+                const [x, y] = c.split(',').map(parseFloat);
+                if (!isNaN(x) && !isNaN(y)) {
+                    points.push({ x, y });
+                }
+            });
+        });
+        return points;
+    }
+    
+    function formatPath(points) {
+        return points.map(p => `${p.x},${p.y}`).join(' ');
+    }
+
+    function lerp(start, end, t) {
+        return start * (1 - t) + end * t;
+    }
+
+    function interpolatePath(keyframes, progress, currentPoints = null) {
+        if (progress <= 0) return keyframes[0].p1 ? [keyframes[0].p1, keyframes[0].p2, keyframes[0].p3] : currentPoints;
+        if (progress >= 1) return keyframes[keyframes.length - 1].p1 ? [keyframes[keyframes.length - 1].p1, keyframes[keyframes.length - 1].p2, keyframes[keyframes.length - 1].p3] : currentPoints;
+
+        const segmentIndex = keyframes.findIndex((kf, i) => 
+            progress >= kf.t && (keyframes[i+1] && progress < keyframes[i+1].t)
+        );
+        
+        if (segmentIndex === -1) return currentPoints;
+
+        const startKeyframe = keyframes[segmentIndex];
+        const endKeyframe = keyframes[segmentIndex + 1];
+        
+        const segmentProgress = (progress - startKeyframe.t) / (endKeyframe.t - startKeyframe.t);
+        
+        // Handle partial keyframes for multi-limb animation
+        const basePoints = currentPoints || [startKeyframe.p1, startKeyframe.p2, startKeyframe.p3];
+        const interpolatedPoints = basePoints.map((point, i) => {
+            const pStart = startKeyframe[`p${i+1}`] || point;
+            const pEnd = endKeyframe[`p${i+1}`] || pStart;
+            return {
+                x: lerp(pStart.x, pEnd.x, segmentProgress),
+                y: lerp(pStart.y, pEnd.y, segmentProgress)
+            };
+        });
+
+        return interpolatedPoints;
+    }
+
+    // --- ФАЗА 4: СОБЕРИ ЛИЦО ---
+    function handleFaceEvaluation() {
+        const targetKey = document.getElementById('faceBuildSvg').dataset.targetKey;
+        const targetVector = FACE_BUILD_TARGETS[targetKey].vector;
+        
+        const userVector = {
+            brows: parseFloat(document.getElementById('browsSlider').value),
+            eyes: parseFloat(document.getElementById('eyesSlider').value),
+            mouth: parseFloat(document.getElementById('mouthSlider').value)
+        };
+        
+        const similarity = cosineSimilarity(targetVector, userVector);
+        const score = Math.max(0, Math.round(similarity * 100));
+
+        gameState.acquiredBadges.add('Скульптор эмоций');
+        showPhaseResult("Лицо оценено!", `Сходство: ${score}%.`, nextPhase);
+    }
+
+    // --- ФАЗА 5: КОМПАС ДИСТАНЦИИ ---
+    function handleDistanceCheck() {
+        // Здесь будет логика для 5 этапа
+        // Например, получение позиции аватара пользователя
+        const userAvatar = document.getElementById('userAvatar');
+        const userAvatarRect = userAvatar.getBoundingClientRect();
+        const userAvatarX = userAvatarRect.left + userAvatarRect.width / 2;
+        const userAvatarY = userAvatarRect.top + userAvatarRect.height / 2;
+
+        // Получение позиции NPC аватара
+        const npcAvatar = document.getElementById('npcAvatar');
+        const npcAvatarRect = npcAvatar.getBoundingClientRect();
+        const npcAvatarX = npcAvatarRect.left + npcAvatarRect.width / 2;
+        const npcAvatarY = npcAvatarRect.top + npcAvatarRect.height / 2;
+
+        // Вычисление углов
+        const angle = Math.atan2(npcAvatarY - userAvatarY, npcAvatarX - userAvatarX) * (180 / Math.PI);
+        const distance = Math.sqrt(Math.pow(npcAvatarX - userAvatarX, 2) + Math.pow(npcAvatarY - userAvatarY, 2));
+
+        // Сравнение с целевым углом и расстоянием
+        const scenario = PROXEMICS_SCENARIOS[Math.floor(Math.random() * PROXEMICS_SCENARIOS.length)];
+        const targetAngle = scenario.angle;
+        const targetDistance = scenario.zone === 'personal' ? 100 : scenario.zone === 'social' ? 200 : 300; // Примерные значения
+
+        const angleDiff = Math.abs(angle - targetAngle);
+        const distanceDiff = Math.abs(distance - targetDistance);
+
+        let score = 0;
+        if (angleDiff < 10 && distanceDiff < 50) { // Примерные пороги
+            score = 100;
+        } else if (angleDiff < 20 && distanceDiff < 100) {
+            score = 70;
+        } else if (angleDiff < 30 && distanceDiff < 150) {
+            score = 40;
+        }
+
+        gameState.acquiredBadges.add('Навигатор дистанции');
+        showPhaseResult("Дистанция оценена!", `Ваш результат: ${Math.round(score)}%`, nextPhase);
+    }
+
+    // --- УТИЛИТЫ ---
+    function cosineSimilarity(vecA, vecB) {
+        const keys = Object.keys(vecA);
+        let dotProduct = 0;
+        let normA = 0;
+        let normB = 0;
+        for (const key of keys) {
+            dotProduct += (vecA[key] || 0) * (vecB[key] || 0);
+            normA += (vecA[key] || 0) ** 2;
+            normB += (vecB[key] || 0) ** 2;
+        }
+        normA = Math.sqrt(normA);
+        normB = Math.sqrt(normB);
+        if (normA === 0 || normB === 0) {
+            return 0;
+        }
+        return dotProduct / (normA * normB);
+    }
+    
+    function makeDraggable(element) {
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        const stage = element.parentElement;
+
+        stage.addEventListener('mousedown', dragStart, {passive: false});
+        stage.addEventListener('touchstart', dragStart, {passive: false});
+
+        stage.addEventListener('mousemove', drag, {passive: false});
+        stage.addEventListener('touchmove', drag, {passive: false});
+
+        stage.addEventListener('mouseup', dragEnd);
+        stage.addEventListener('touchend', dragEnd);
+        stage.addEventListener('mouseleave', dragEnd);
+        
+        function dragStart(e) {
+            const targetEl = e.target.closest('#userAvatar');
+            if (targetEl && targetEl === element) {
+                e.preventDefault();
+                isDragging = true;
+                
+                if (e.type === 'touchstart') {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+
+                const computedStyle = window.getComputedStyle(element);
+                const transform = computedStyle.getPropertyValue('transform');
+                if (transform && transform !== 'none') {
+                    const matrix = new DOMMatrix(transform);
+                    initialX = matrix.m41;
+                    initialY = matrix.m42;
+                } else {
+                    initialX = 0;
+                    initialY = 0;
+                }
+                
+                element.style.cursor = 'grabbing';
+            }
+        }
+        
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                let currentX, currentY;
+                if (e.type === 'touchmove') {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                } else {
+                    currentX = e.clientX;
+                    currentY = e.clientY;
+                }
+
+                const dx = currentX - startX;
+                const dy = currentY - startY;
+                
+                element.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px)`;
+            }
+        }
+
+        function dragEnd(e) {
+            if(isDragging) {
+                isDragging = false;
+                element.style.cursor = 'grab';
+            }
+        }
+    }
+    
+    function showChoiceModal(title, text, options, callback) {
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultModalTitle').textContent = title;
+        document.getElementById('resultModalText').textContent = text;
+        
+        const choicesContainer = document.getElementById('resultModalChoices');
+        choicesContainer.innerHTML = '';
+        
+        options.forEach(optionText => {
+            const button = document.createElement('button');
+            button.className = 'result-modal-button';
+            button.textContent = optionText;
+            button.onclick = () => {
+                modal.classList.remove('show');
+                callback(optionText);
+            };
+            choicesContainer.appendChild(button);
+        });
+
+        document.getElementById('resultModalButton').style.display = 'none';
+        choicesContainer.style.display = 'flex';
+        modal.classList.add('show');
+    }
+
+    function showPhaseResult(title, text, callback, autoClose = true) {
+        const modal = document.getElementById('resultModal');
+        document.getElementById('resultModalTitle').textContent = title;
+        document.getElementById('resultModalText').textContent = text;
+        modal.callback = callback;
+
+        const choicesContainer = document.getElementById('resultModalChoices');
+        const nextButton = document.getElementById('resultModalButton');
+        
+        choicesContainer.style.display = 'none';
+        nextButton.style.display = 'block';
+        nextButton.onclick = () => {
+             modal.classList.remove('show');
+             if(callback) callback();
+        };
+
+        modal.classList.add('show');
+        
+        if (autoClose) {
+            setTimeout(() => {
+                if (modal.classList.contains('show')) {
+                    modal.classList.remove('show');
+                    if (callback) callback();
+                }
+            }, 2000);
+        } else {
+            document.getElementById('resultModalButton').style.display = 'block';
+        }
+    }
+
+    function hapticFeedback(type) {
+        try {
+          if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            const hf = window.Telegram.WebApp.HapticFeedback;
+            if (type === 'error') {
+              hf.notificationOccurred && hf.notificationOccurred('error');
+            } else if (type === 'light' || type === 'medium' || type === 'heavy') {
+              hf.impactOccurred && hf.impactOccurred(type);
+            } else {
+              hf.impactOccurred && hf.impactOccurred('light');
+            }
+          }
+        } catch (_) {}
+    }
+
+    // Utility to reliably set video source and reload
+    function setVideoSource(videoEl, srcPath) {
+      const source = videoEl.querySelector('source');
+      if (source) {
+        source.setAttribute('src', srcPath);
+      }
+      videoEl.src = srcPath;
+      videoEl.setAttribute('playsinline', '');
+      videoEl.load();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Квест: Анализ Конкурентов</title>
+    <link rel="stylesheet" href="./competitor-analysis.css">
+</head>
+<body>
+    <div id="quest-container">
+        <div id="start-screen" class="screen active">
+            <h1>Квест: Шпионские Игры</h1>
+            <p>Вы - специальный агент, внедренный в корпорацию-конкурента. Ваша миссия: раскрыть их секреты. Готовы?</p>
+            <button id="start-quest-btn">Начать миссию</button>
+        </div>
+
+        <div id="stage-1" class="screen">
+            <h2>Этап 1: Профилирование CEO</h2>
+            <p>Это CEO компании "InnovateCorp". Изучите его профиль и определите его психотип.</p>
+            <img src="../assets/photovideo/ceo.jpg" alt="CEO" id="ceo-image">
+            <div id="ceo-dossier">
+                <p><strong>Имя:</strong> Алексей Волков</p>
+                <p><strong>Хобби:</strong> Экстремальные виды спорта, шахматы.</p>
+                <p><strong>Цитата:</strong> "Победа - это единственный приемлемый результат."</p>
+            </div>
+            <div id="options-1" class="options">
+                <button class="option">Доминантный</button>
+                <button class="option">Тревожный</button>
+                <button class="option">Креативный</button>
+            </div>
+        </div>
+
+        <div id="stage-2" class="screen">
+            <h2>Этап 2: Анализ рекламы</h2>
+            <p>Перетащите названия манипуляций на рекламные баннеры, которые им соответствуют.</p>
+            <div id="ad-container">
+                <div class="ad-banner" data-manipulation="social-proof">
+                    <img src="../assets/photovideo/ad1.jpg" alt="Ad 1">
+                    <p>"9 из 10 экспертов выбирают нас!"</p>
+                </div>
+                <div class="ad-banner" data-manipulation="scarcity">
+                    <img src="../assets/photovideo/ad2.jpg" alt="Ad 2">
+                    <p>"Только сегодня! Скидка 50%!"</p>
+                </div>
+            </div>
+            <div id="manipulation-tags">
+                <div class="draggable-tag" draggable="true">Социальное доказательство</div>
+                <div class="draggable-tag" draggable="true">Дефицит</div>
+            </div>
+        </div>
+
+        <div id="stage-3" class="screen">
+            <!-- Content for stage 3 -->
+        </div>
+
+        <div id="final-screen" class="screen">
+            <h2>Миссия выполнена!</h2>
+            <p>Вы блестяще справились! У вас талант к анализу и пониманию людей. Это лишь малая часть того, чему вы можете научиться.</p>
+            <p>Готовы стать настоящим мастером бизнес-разведки и психологии?</p>
+            <button id="to-main-menu-btn">В главное меню</button>
+        </div>
+
+        <div id="navigation-buttons">
+            <button id="back-btn">Назад</button>
+            <button id="main-menu-btn">Главное меню</button>
+        </div>
+    </div>
+    <script src="./competitor-analysis.js"></script>
+</body>
+</html>

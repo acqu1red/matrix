@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Империя Влияния</title>
+    <link rel="stylesheet" href="./imperiya.css">
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+</head>
+<body>
+    <!-- SVG-спрайт для иконок -->
+    <svg style="display: none;">
+        <symbol id="icon-crown" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z"></path>
+        </symbol>
+        <symbol id="icon-brain" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 2a9 9 0 0 0-9 9c0 2.39 1.43 4.47 3.43 5.54c.26.14.57.26.85.42c.2.12.38.25.57.39c.35.25.68.51 1 .78c.42.36.82.73 1.15 1.14c.18.22.35.45.5.68c.17.25.32.51.45.78l.05.09c.08.13.15.27.22.4h.01c.21.39.33.81.33 1.25a1 1 0 0 1-2 0c0-.2-.06-.39-.16-.56c-.05-.08-.1-.17-.16-.25l-.05-.09c-.1-.18-.24-.4-.38-.6c-.14-.22-.3-.43-.46-.64c-.3-.38-.67-.72-1.06-1.06c-.3-.26-.6-.5-1-.73c-.2-.14-.38-.27-.58-.4c-.28-.16-.58-.28-.85-.42A7 7 0 0 1 5 11a7 7 0 0 1 7-7a7 7 0 0 1 5.6 11.64c-.06.13-.12.26-.17.39c-.06.13-.11.26-.16.39c-.19.46-.36.9-.48 1.34c-.1.35-.15.7-.15 1.04a3 3 0 0 0 6 0a3 3 0 0 0-3-3c-.34 0-.68.05-1.02.15c-.44.12-.88.3-1.32.49c-.13.06-.26.12-.39.17c-.13.06-.26.11-.39.16c-.46.19-.9.36-1.34.48c-.35.1-.7.15-1.04.15a3 3 0 0 0-3 3a3 3 0 0 0 3 3c.34 0 .68-.05 1.02-.15c.44-.12.88-.3 1.32-.49c.13-.06.26-.12.39-.17c.13-.06.26-.11.39-.16c.46-.19.9.36-1.34.48c.35.1.7.15 1.04.15a3 3 0 0 0 3-3a3 3 0 0 0-1.15-2.26c.45-.44.8-.93 1.04-1.46c.26-.54.41-1.13.41-1.74a9 9 0 0 0-9-9Z"></path>
+        </symbol>
+        <symbol id="icon-chart" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M21 21H3V3h18v18M15 17v-4h2v4h-2m-4 0v-6h2v6h-2m-4 0V9h2v8H7Z"></path>
+        </symbol>
+        <symbol id="icon-back" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M20 11v2H8l5.5 5.5l-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5L8 11h12Z"></path>
+        </symbol>
+    </svg>
+
+    <div class="game-container">
+        <!-- Верхняя панель -->
+        <header class="top-bar">
+            <button class="back-button" aria-label="Назад к квестам">
+                <svg width="24" height="24"><use href="#icon-back"></use></svg>
+            </button>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="scores">
+                <span class="score-item influence" title="Влияние">👑 <span id="influence-score">0</span></span>
+                <span class="score-item trust" title="Доверие">🤝 <span id="trust-score">50</span></span>
+            </div>
+        </header>
+
+        <main id="game-screens">
+            <!-- Экран 0: Приветствие -->
+            <section id="screen-0" class="game-screen active" data-step="0">
+                <div class="screen-content">
+                    <div class="character-avatar">👑</div>
+                    <h1>Империя Влияния</h1>
+                    <p>За 5–10 минут ты создашь честную и устойчивую медиа-систему — без стресса и лишней теории.</p>
+                    <p class="character-tip">📈 Готов построить свою империю?</p>
+                    <div class="start-buttons">
+                        <button class="btn btn-secondary" id="continue-game" style="display: none;">Продолжить</button>
+                        <button class="btn btn-primary" id="start-new-game">Начать с нуля</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Экран 1: Ядро империи -->
+            <section id="screen-1" class="game-screen" data-step="1">
+                <div class="screen-content">
+                    <h2>Этап 1: Ядро Империи</h2>
+                    <p>Определи фундамент своего влияния. Кликни на каждый блок, чтобы сделать выбор.</p>
+                    <div class="choice-board">
+                        <div id="choice-slot-audience" class="choice-slot" data-category="audience">
+                            <span class="choice-label">🎯 Целевая аудитория</span>
+                            <span class="choice-value">Нажми для выбора</span>
+                        </div>
+                        <div id="choice-slot-platform" class="choice-slot" data-category="platform">
+                             <span class="choice-label">📺 Площадка</span>
+                             <span class="choice-value">Нажми для выбора</span>
+                        </div>
+                        <div id="choice-slot-value" class="choice-slot" data-category="value">
+                             <span class="choice-label">💎 Обещание ценности</span>
+                             <span class="choice-value">Нажми для выбора</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Экран 2: Вирусная лаборатория -->
+            <section id="screen-2" class="game-screen" data-step="2">
+                <div class="screen-content">
+                    <h2>Этап 2: Вирусная лаборатория</h2>
+                    <p>Собери эмоциональное ядро для своего контента. От этого зависит его виральность.</p>
+                    <div class="viral-lab">
+                        <div id="trigger-dropzone" class="drop-zone large" data-category="trigger">
+                            <span class="drop-zone-label">Перетащи сюда до 3 триггеров</span>
+                        </div>
+                        <div id="trigger-palette" class="trigger-palette">
+                             <!-- Триггеры-чипы будут добавлены через JS -->
+                        </div>
+                    </div>
+                    <div class="hook-editor">
+                        <h3>Напиши "крючок" (Hook)</h3>
+                        <input type="text" id="hook-input" placeholder="Пример: Как я заработал 1000$ на...">
+                        <div class="ab-test-container">
+                            <h4>⚡️ Экспресс A/B-тест</h4>
+                            <div class="ab-results">
+                                <div class="variant-a">
+                                    <p><strong>Вариант A:</strong> <span id="variant-a-text"></span></p>
+                                    <div class="metrics-chart" id="chart-a"></div>
+                                </div>
+                                <div class="variant-b">
+                                    <p><strong>Вариант Б (улучшенный):</strong> <span id="variant-b-text"></span></p>
+                                    <div class="metrics-chart" id="chart-b"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Экран 3: Приёмы и границы -->
+            <section id="screen-3" class="game-screen" data-step="3">
+                <div class="screen-content">
+                    <h2>Этап 3: Этичная редактура</h2>
+                    <p>Убеждай, а не манипулируй. Переключи приёмы в "этичный" режим и отредактируй заголовок.</p>
+                    <div id="techniques-grid" class="techniques-grid">
+                        <!-- Карточки приемов будут добавлены через JS -->
+                    </div>
+                    <div class="headline-editor">
+                        <h3>Оценщик заголовков</h3>
+                        <textarea id="headline-input" rows="3" placeholder="Пример: 3 способа улучшить..."></textarea>
+                        <div class="evaluator">
+                            <div class="eval-metric clarity" title="Насколько заголовок понятен">Ясность: <span id="clarity-score">0</span></div>
+                            <div class="eval-metric honesty" title="Наличие кликбейта и ложных обещаний">Честность: <span id="honesty-score">0</span></div>
+                            <div class="eval-metric power" title="Сила призыва к действию и эмоций">Сила: <span id="power-score">0</span></div>
+                            <div id="ethics-indicator" class="ethics-indicator" title="Общий индикатор этичности"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Экран 4: Монетизация и сеть -->
+            <section id="screen-4" class="game-screen" data-step="4">
+                <div class="screen-content">
+                    <h2>Этап 4: Первая прибыль</h2>
+                    <p>Распредели свои ресурсы (Время, Идеи, Энергия), чтобы получить доход и вырастить свою империю.</p>
+                    <div class="simulation-controls">
+                        <div id="resource-tokens" class="resource-tokens">
+                            <!-- Жетоны ресурсов будут добавлены через JS -->
+                        </div>
+                        <button class="btn" id="simulate-week" disabled>Симулировать неделю</button>
+                    </div>
+                    <div class="monetization-channels">
+                        <div id="channel-subs" class="monetization-channel" data-channel="subscriptions">
+                            <h4>🤝 Подписки</h4>
+                            <div class="drop-zone small"></div>
+                        </div>
+                        <div id="channel-partners" class="monetization-channel" data-channel="partnerships">
+                            <h4>🔗 Партнёрки</h4>
+                            <div class="drop-zone small"></div>
+                        </div>
+                        <div id="channel-product" class="monetization-channel" data-channel="product">
+                            <h4>📦 Свой продукт</h4>
+                            <div class="drop-zone small"></div>
+                        </div>
+                    </div>
+                    <div class="simulation-results">
+                        <h3>Результаты недели:</h3>
+                        <div class="result-metrics">
+                            <p>💰 Выручка: <span id="revenue-total">0</span> ₽</p>
+                            <p>📈 Новые подписчики: <span id="new-followers">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Экран 5: Финал -->
+            <section id="screen-5" class="game-screen" data-step="5">
+                <div class="screen-content final-screen">
+                    <canvas id="confetti-canvas"></canvas>
+                    <h2>Ты — Король информации (этичный 😎)</h2>
+                    <div class="final-scores">
+                        <p>👑 Итоговое влияние: <span id="final-influence"></span></p>
+                        <p>🤝 Уровень доверия: <span id="final-trust"></span></p>
+                        <p>💰 Общий доход: <span id="final-revenue"></span> ₽</p>
+                    </div>
+                    <div class="final-buttons">
+                        <button class="btn btn-primary" id="restart-game">Сыграть снова</button>
+                        <button class="btn btn-secondary" id="share-results" style="display: none;">Поделиться</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Навигация -->
+        <footer class="game-navigation">
+            <button class="btn" id="prev-step" disabled>Назад</button>
+            <button class="btn btn-primary" id="next-step" disabled>Дальше</button>
+        </footer>
+        
+        <!-- Оверлей для подсказок -->
+        <div id="tooltip-overlay" class="tooltip-overlay"></div>
+
+        <!-- Новое модальное окно для выбора -->
+        <div id="choice-modal-overlay" class="choice-modal-overlay">
+            <div class="choice-modal">
+                <h3 id="choice-modal-title">Выберите аудиторию</h3>
+                <div id="choice-options-grid">
+                    <!-- Опции будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Тосты -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+    <script src="./imperiya.js" type="module"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ services:
     startCommand: python bot_webhook.py
     envVars:
       - key: TELEGRAM_BOT_TOKEN
-        value: 7593794536:AAGSiEJolK1O1H5LMtHxnbygnuhTDoII6qc
+        value: 8435828779:AAFo5UccSatCkqmblr6AW6YrrJli89j6GyQ
       - key: PUBLIC_BASE_URL
         value: https://formulaprivate-productionpaymentuknow.up.railway.app
       - key: PRIVATE_CHANNEL_ID
@@ -24,7 +24,7 @@ services:
       - key: FAIL_REDIRECT_URL
         value: ""
       - key: PAYMENT_MINIAPP_URL
-        value: https://acqu1red.github.io/formulaprivate/payment.html
+        value: https://acqu1red.github.io/matrix/payment.html
       - key: SUPABASE_URL
         value: https://uhhsrtmmuwoxsdquimaa.supabase.co
       - key: SUPABASE_KEY
