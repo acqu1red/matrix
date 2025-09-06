@@ -26,7 +26,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             reply_markup={
                 "inline_keyboard": [[
                     {
-                        "text": "",
+                        "text": "💀 Симуляции",
                         "web_app": {"url": MINIAPP_URL}
                     }
                 ]]
