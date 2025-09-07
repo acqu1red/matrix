@@ -312,9 +312,6 @@ body {
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     touch-action: none;
     user-select: none;
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
 }
 
 .draggable-item:active,
@@ -346,11 +343,7 @@ body {
     box-shadow: 0 12px 30px rgba(0,0,0,0.4) !important;
     border-radius: 12px !important;
     opacity: 0.95 !important;
-    transition: none !important;
-    will-change: transform !important;
-    backface-visibility: hidden !important;
-    -webkit-backface-visibility: hidden !important;
-    transform-style: preserve-3d !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }
 
 /* Placed Element in Zone */
@@ -1091,6 +1084,28 @@ body {
 
 .action-btn:not(:disabled):active {
     transform: scale(0.98);
+}
+
+.action-btn:disabled {
+    opacity: 0.6;
+    transform: scale(0.98);
+    transition: all 0.3s ease;
+}
+
+.action-btn:not(:disabled) {
+    opacity: 1;
+    transform: scale(1);
+    transition: all 0.3s ease;
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+    0%, 100% { 
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    50% { 
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+    }
 }
 
 /* Victory Screen */

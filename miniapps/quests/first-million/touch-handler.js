@@ -181,8 +181,11 @@ class TouchHandler {
         const targetX = clientX - this.offset.x;
         const targetY = clientY - this.offset.y;
         
-        // Прямое обновление позиции для максимальной плавности
-        this.dragClone.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scale(1.1) rotate(3deg)`;
+        // Используем requestAnimationFrame для плавности
+        requestAnimationFrame(() => {
+            this.dragClone.style.left = `${targetX}px`;
+            this.dragClone.style.top = `${targetY}px`;
+        });
         
         // Проверяем пересечение с drop зонами
         const hoveredZone = this.getHoveredDropZone(clientX, clientY);
@@ -240,23 +243,25 @@ class TouchHandler {
     createDragClone(originalRect) {
         this.dragClone = this.currentElement.cloneNode(true);
         this.dragClone.classList.add('drag-clone');
-        
-        // Используем transform для лучшей производительности
         this.dragClone.style.position = 'fixed';
-        this.dragClone.style.left = '0px';
-        this.dragClone.style.top = '0px';
+        this.dragClone.style.left = `${originalRect.left}px`;
+        this.dragClone.style.top = `${originalRect.top}px`;
         this.dragClone.style.width = `${originalRect.width}px`;
         this.dragClone.style.height = `${originalRect.height}px`;
         this.dragClone.style.zIndex = '10000';
         this.dragClone.style.pointerEvents = 'none';
-        this.dragClone.style.transform = `translate3d(${originalRect.left}px, ${originalRect.top}px, 0) scale(1.1) rotate(3deg)`;
+        this.dragClone.style.transform = 'scale(1.1) rotate(3deg)';
         this.dragClone.style.boxShadow = '0 12px 30px rgba(0,0,0,0.4)';
         this.dragClone.style.transition = 'none';
         this.dragClone.style.borderRadius = '12px';
         this.dragClone.style.opacity = '0.95';
-        this.dragClone.style.willChange = 'transform';
         
         document.body.appendChild(this.dragClone);
+        
+        // Плавная анимация появления
+        requestAnimationFrame(() => {
+            this.dragClone.style.transition = 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        });
     }
     
     updateDropZones() {

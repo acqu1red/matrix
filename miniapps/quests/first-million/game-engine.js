@@ -82,28 +82,6 @@ class FirstMillionEngine {
         document.addEventListener('mobileDrag', this.handleDragEvent.bind(this));
         document.addEventListener('mobileSwipe', this.handleSwipeEvent.bind(this));
         document.addEventListener('mobileDraw', this.handleDrawEvent.bind(this));
-        
-        // Кнопки этапов
-        document.getElementById('validateStage1')?.addEventListener('click', () => {
-            console.log('Validate Stage 1 clicked');
-            this.completeStage1();
-        });
-        document.getElementById('analyzeMarket')?.addEventListener('click', () => this.completeStage3());
-        document.getElementById('allocateResources')?.addEventListener('click', () => this.completeStage4());
-        document.getElementById('presentPitch')?.addEventListener('click', () => this.completeStage6());
-        document.getElementById('launchIPO')?.addEventListener('click', () => this.completeStage7());
-        
-        // IPO controls
-        document.querySelectorAll('.price-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.adjustStockPrice(e.target.dataset.action));
-        });
-        
-        // Checklist items
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.checklist-item')) {
-                this.toggleChecklistItem(e.target.closest('.checklist-item'));
-            }
-        });
     }
     
     initializeTouchHandler() {
@@ -137,6 +115,15 @@ class FirstMillionEngine {
         this.updateProgress(1);
         this.generateDraggableElements();
         this.updateActionButton('validateStage1', false);
+        
+        // Инициализируем обработчик кнопки для этого этапа
+        const button = document.getElementById('validateStage1');
+        if (button) {
+            // Удаляем старый обработчик если есть
+            button.removeEventListener('click', this.completeStage1);
+            // Добавляем новый
+            button.addEventListener('click', () => this.completeStage1());
+        }
     }
     
     generateDraggableElements() {
@@ -183,20 +170,14 @@ class FirstMillionEngine {
         const zoneType = dropZone.dataset.type;
         const elementData = this.findElementData(elementId);
         
-        console.log('Handling successful drop:', { elementId, zoneType, elementData });
-        
         if (!elementData) return;
         
         // Проверяем, не добавлен ли уже этот элемент
         const alreadyAdded = this.gameState.stage1.selectedElements[zoneType].some(el => el.id === elementId);
-        if (alreadyAdded) {
-            console.log('Element already added, skipping');
-            return;
-        }
+        if (alreadyAdded) return;
         
         // Добавляем в состояние игры
         this.gameState.stage1.selectedElements[zoneType].push(elementData);
-        console.log('Element added to state:', zoneType, elementData);
         
         // Проверяем правильность выбора
         if (elementData.correct) {
@@ -239,17 +220,16 @@ class FirstMillionEngine {
                                  selectedElements.ideas.length === 1 && 
                                  selectedElements.resources.length === 1;
         
-        console.log('Stage 1 completion check:', {
-            team: selectedElements.team.length,
-            ideas: selectedElements.ideas.length,
-            resources: selectedElements.resources.length,
-            allPlaced: allElementsPlaced
-        });
+        // Показываем уведомление о прогрессе
+        if (allElementsPlaced) {
+            this.showFeedback('🎉 Все готово! Можно запускать стартап!', 'success');
+        }
         
         this.updateActionButton('validateStage1', allElementsPlaced);
     }
     
     completeStage1() {
+        this.showFeedback('🚀 Стартап запущен! Переходим к поиску клиентов...', 'success');
         this.gameState.stage1.completed = true;
         this.calculateStage1Score();
         this.nextStage();
@@ -399,6 +379,13 @@ class FirstMillionEngine {
         this.setupMarketChart();
         this.generateMarketFactors();
         this.updateActionButton('analyzeMarket', false);
+        
+        // Инициализируем обработчик кнопки
+        const button = document.getElementById('analyzeMarket');
+        if (button) {
+            button.removeEventListener('click', this.completeStage3);
+            button.addEventListener('click', () => this.completeStage3());
+        }
     }
     
     setupMarketChart() {
@@ -525,6 +512,13 @@ class FirstMillionEngine {
         this.updateProgress(4);
         this.generateMoneyItems();
         this.updateActionButton('allocateResources', false);
+        
+        // Инициализируем обработчик кнопки
+        const button = document.getElementById('allocateResources');
+        if (button) {
+            button.removeEventListener('click', this.completeStage4);
+            button.addEventListener('click', () => this.completeStage4());
+        }
     }
     
     generateMoneyItems() {
@@ -744,6 +738,13 @@ class FirstMillionEngine {
         this.updateProgress(6);
         this.generateSlideTemplates();
         this.updateActionButton('presentPitch', false);
+        
+        // Инициализируем обработчик кнопки
+        const button = document.getElementById('presentPitch');
+        if (button) {
+            button.removeEventListener('click', this.completeStage6);
+            button.addEventListener('click', () => this.completeStage6());
+        }
     }
     
     generateSlideTemplates() {
@@ -796,6 +797,26 @@ class FirstMillionEngine {
         this.updateProgress(7);
         this.generateIPOChecklist();
         this.updateCompanyMetrics();
+        
+        // Инициализируем обработчики кнопок
+        const launchButton = document.getElementById('launchIPO');
+        if (launchButton) {
+            launchButton.removeEventListener('click', this.completeStage7);
+            launchButton.addEventListener('click', () => this.completeStage7());
+        }
+        
+        // IPO controls
+        document.querySelectorAll('.price-btn').forEach(btn => {
+            btn.removeEventListener('click', this.adjustStockPrice);
+            btn.addEventListener('click', (e) => this.adjustStockPrice(e.target.dataset.action));
+        });
+        
+        // Checklist items
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.checklist-item')) {
+                this.toggleChecklistItem(e.target.closest('.checklist-item'));
+            }
+        });
     }
     
     generateIPOChecklist() {
@@ -954,9 +975,14 @@ class FirstMillionEngine {
         const button = document.getElementById(buttonId);
         if (button) {
             button.disabled = !enabled;
-            console.log(`Button ${buttonId} ${enabled ? 'enabled' : 'disabled'}`);
-        } else {
-            console.warn(`Button ${buttonId} not found`);
+            // Добавляем визуальную обратную связь
+            if (enabled) {
+                button.style.opacity = '1';
+                button.style.transform = 'scale(1)';
+            } else {
+                button.style.opacity = '0.6';
+                button.style.transform = 'scale(0.98)';
+            }
         }
     }
     
