@@ -20,10 +20,17 @@ class PsychologyMoneyQuest {
     }
 
     init() {
+        console.log('Initializing quest with screens:', this.screens.length);
         this.setupEventListeners();
         this.setupDragAndDrop();
         this.updateProgress();
         this.setupMobileOptimizations();
+        
+        // Ensure first screen is visible
+        if (this.screens.length > 0) {
+            this.screens[0].classList.add('active');
+            console.log('First screen activated');
+        }
     }
 
     setupEventListeners() {
@@ -581,27 +588,40 @@ class PsychologyMoneyQuest {
     }
 
     nextScreen() {
+        console.log('nextScreen called, currentScreen:', this.currentScreen, 'totalScreens:', this.totalScreens);
         if (this.currentScreen < this.totalScreens - 1) {
+            // Hide current screen
             this.screens[this.currentScreen].classList.remove('active');
             this.screens[this.currentScreen].classList.add('exiting');
             
             setTimeout(() => {
                 this.screens[this.currentScreen].classList.remove('exiting');
                 this.currentScreen++;
+                console.log('Switching to screen:', this.currentScreen);
+                
+                // Show next screen
                 this.screens[this.currentScreen].classList.add('active');
                 this.updateProgress();
                 this.updateNavigation();
+                
+                // Scroll to top of new screen
+                this.screens[this.currentScreen].scrollTop = 0;
             }, 300);
         }
     }
 
     previousScreen() {
+        console.log('previousScreen called, currentScreen:', this.currentScreen);
         if (this.currentScreen > 0) {
             this.screens[this.currentScreen].classList.remove('active');
             this.currentScreen--;
+            console.log('Switching to screen:', this.currentScreen);
             this.screens[this.currentScreen].classList.add('active');
             this.updateProgress();
             this.updateNavigation();
+            
+            // Scroll to top of previous screen
+            this.screens[this.currentScreen].scrollTop = 0;
         }
     }
 
