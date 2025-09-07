@@ -110,8 +110,12 @@ body::after {
 .screen.active {
   opacity: 1;
   transform: translateX(0) scale(1);
-  pointer-events: auto;
+  pointer-events: auto !important;
   z-index: 10;
+}
+
+.screen.active * {
+  pointer-events: auto;
 }
 
 .screen.exiting {

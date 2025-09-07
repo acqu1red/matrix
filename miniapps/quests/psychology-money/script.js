@@ -27,16 +27,32 @@ class PsychologyMoneyQuest {
     }
 
     setupEventListeners() {
-        // Navigation buttons
-        document.getElementById('start-quest-btn').addEventListener('click', () => this.nextScreen());
-        document.getElementById('stage-1-next').addEventListener('click', () => this.nextScreen());
-        document.getElementById('stage-2-next').addEventListener('click', () => this.nextScreen());
-        document.getElementById('stage-3-next').addEventListener('click', () => this.nextScreen());
-        document.getElementById('stage-4-next').addEventListener('click', () => this.nextScreen());
-        document.getElementById('restart-quest-btn').addEventListener('click', () => this.restartQuest());
-        document.getElementById('to-main-menu-btn').addEventListener('click', () => this.goToMainMenu());
-        document.getElementById('back-btn').addEventListener('click', () => this.previousScreen());
-        document.getElementById('main-menu-btn').addEventListener('click', () => this.goToMainMenu());
+        // Navigation buttons with error handling
+        try {
+            const startBtn = document.getElementById('start-quest-btn');
+            const stage1Next = document.getElementById('stage-1-next');
+            const stage2Next = document.getElementById('stage-2-next');
+            const stage3Next = document.getElementById('stage-3-next');
+            const stage4Next = document.getElementById('stage-4-next');
+            const restartBtn = document.getElementById('restart-quest-btn');
+            const toMainMenuBtn = document.getElementById('to-main-menu-btn');
+            const backBtn = document.getElementById('back-btn');
+            const mainMenuBtn = document.getElementById('main-menu-btn');
+
+            if (startBtn) startBtn.addEventListener('click', () => this.nextScreen());
+            if (stage1Next) stage1Next.addEventListener('click', () => this.nextScreen());
+            if (stage2Next) stage2Next.addEventListener('click', () => this.nextScreen());
+            if (stage3Next) stage3Next.addEventListener('click', () => this.nextScreen());
+            if (stage4Next) stage4Next.addEventListener('click', () => this.nextScreen());
+            if (restartBtn) restartBtn.addEventListener('click', () => this.restartQuest());
+            if (toMainMenuBtn) toMainMenuBtn.addEventListener('click', () => this.goToMainMenu());
+            if (backBtn) backBtn.addEventListener('click', () => this.previousScreen());
+            if (mainMenuBtn) mainMenuBtn.addEventListener('click', () => this.goToMainMenu());
+
+            console.log('Event listeners setup completed');
+        } catch (error) {
+            console.error('Error setting up event listeners:', error);
+        }
 
         // Stage 2: Emotion recognition
         this.setupEmotionRecognition();
@@ -46,14 +62,20 @@ class PsychologyMoneyQuest {
     }
 
     setupMobileOptimizations() {
-        // Prevent zoom on double tap
+        // Prevent zoom on double tap (only for actual double taps, not regular clicks)
         let lastTouchEnd = 0;
+        let lastTarget = null;
+        
         document.addEventListener('touchend', (event) => {
             const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
+            const currentTarget = event.target;
+            
+            // Only prevent if it's a true double tap on the same element
+            if (now - lastTouchEnd <= 300 && currentTarget === lastTarget) {
                 event.preventDefault();
             }
             lastTouchEnd = now;
+            lastTarget = currentTarget;
         }, false);
 
         // Add haptic feedback for Telegram
@@ -235,11 +257,11 @@ class PsychologyMoneyQuest {
 
     // STAGE 3: Persuasion Power Sorting
     setupStage3DragDrop() {
-        const arguments = document.querySelectorAll('#stage-3 .argument-item');
+        const argumentItems = document.querySelectorAll('#stage-3 .argument-item');
         const sortSlots = document.querySelectorAll('#stage-3 .sort-slot');
         let completedSorts = 0;
 
-        arguments.forEach(argument => {
+        argumentItems.forEach(argument => {
             // Desktop drag events
             argument.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', argument.dataset.power);
@@ -661,19 +683,45 @@ class PsychologyMoneyQuest {
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.close();
         } else {
-            // Fallback for testing
-            window.location.href = '../../index.html';
+            // Fallback for testing - improved path handling
+            try {
+                window.location.href = '../../index.html';
+            } catch (error) {
+                console.error('Navigation error:', error);
+                // Alternative fallback
+                window.history.back();
+            }
         }
     }
 }
 
 // Initialize the quest when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new PsychologyMoneyQuest();
+    console.log('DOM loaded, initializing PsychologyMoneyQuest...');
+    try {
+        const quest = new PsychologyMoneyQuest();
+        console.log('Quest initialized successfully:', quest);
+        
+        // Additional check for start button
+        const startBtn = document.getElementById('start-quest-btn');
+        console.log('Start button found:', startBtn);
+        if (startBtn) {
+            console.log('Start button styles:', window.getComputedStyle(startBtn));
+        }
+    } catch (error) {
+        console.error('Error initializing quest:', error);
+    }
 });
 
 // Telegram WebApp initialization
 if (window.Telegram?.WebApp) {
+    console.log('Telegram WebApp detected');
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
+} else {
+    console.log('Running in browser mode');
 }
+
+// Additional debug info
+console.log('Script loaded at:', new Date());
+console.log('User agent:', navigator.userAgent);
