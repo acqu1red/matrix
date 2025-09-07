@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Психология Денег</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div id="quest-container">
+        <!-- Стартовый экран -->
+        <div id="start-screen" class="screen active">
+            <div class="screen-content">
+                <h1 class="quest-title">💰 ПСИХОЛОГИЯ ДЕНЕГ</h1>
+                <p class="quest-subtitle">Изучи психологию богатства. Освой триггеры влияния, читай эмоции и превращай знания в деньги.</p>
+                <div class="quest-features">
+                    <div class="feature-item">🧠 Изучи психологические триггеры</div>
+                    <div class="feature-item">😊 Научись читать эмоции</div>
+                    <div class="feature-item">💬 Освой силу убеждения</div>
+                    <div class="feature-item">💸 Найди свой путь к деньгам</div>
+                </div>
+                <button id="start-quest-btn" class="primary-button">Начать путешествие</button>
+            </div>
+        </div>
+
+        <!-- Этап 1: Психологические триггеры -->
+        <div id="stage-1" class="screen">
+            <div class="screen-content">
+                <div class="stage-header">
+                    <span class="stage-number">1/4</span>
+                    <h2 class="stage-title">🎯 Психологические Триггеры</h2>
+                    <p class="stage-description">Перетащи триггеры на подходящие ситуации. Узнай, что заставляет людей действовать!</p>
+                </div>
+
+                <div class="stage-1-content">
+                    <div class="situations-container">
+                        <div class="situation-card" data-trigger="scarcity">
+                            <div class="situation-icon">⏰</div>
+                            <h3>Ограниченное предложение</h3>
+                            <p>"Последние 3 товара на складе!"</p>
+                            <div class="drop-zone" data-trigger="scarcity"></div>
+                        </div>
+                        
+                        <div class="situation-card" data-trigger="social-proof">
+                            <div class="situation-icon">👥</div>
+                            <h3>Популярность товара</h3>
+                            <p>"Этот товар покупают чаще всего"</p>
+                            <div class="drop-zone" data-trigger="social-proof"></div>
+                        </div>
+                        
+                        <div class="situation-card" data-trigger="authority">
+                            <div class="situation-icon">🏆</div>
+                            <h3>Экспертная оценка</h3>
+                            <p>"Рекомендовано специалистами"</p>
+                            <div class="drop-zone" data-trigger="authority"></div>
+                        </div>
+                    </div>
+
+                    <div class="triggers-container">
+                        <div class="trigger-item draggable" data-trigger="scarcity" draggable="true">
+                            <span class="trigger-emoji">⚡</span>
+                            <span class="trigger-name">Дефицит</span>
+                        </div>
+                        <div class="trigger-item draggable" data-trigger="social-proof" draggable="true">
+                            <span class="trigger-emoji">🌟</span>
+                            <span class="trigger-name">Социальное доказательство</span>
+                        </div>
+                        <div class="trigger-item draggable" data-trigger="authority" draggable="true">
+                            <span class="trigger-emoji">👑</span>
+                            <span class="trigger-name">Авторитет</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stage-feedback" id="stage-1-feedback"></div>
+                <button id="stage-1-next" class="primary-button disabled" disabled>Далее</button>
+            </div>
+        </div>
+
+        <!-- Этап 2: Чтение эмоций -->
+        <div id="stage-2" class="screen">
+            <div class="screen-content">
+                <div class="stage-header">
+                    <span class="stage-number">2/4</span>
+                    <h2 class="stage-title">😊 Чтение Эмоций</h2>
+                    <p class="stage-description">Нажми на правильную эмоцию. Научись понимать, что чувствуют клиенты!</p>
+                </div>
+
+                <div class="stage-2-content">
+                    <div class="emotion-scenario">
+                        <div class="scenario-text" id="scenario-text">
+                            Клиент долго изучает товар, часто оглядывается по сторонам, кусает губу и теребит в руках кошелек...
+                        </div>
+                        <div class="scenario-image">💭</div>
+                    </div>
+
+                    <div class="emotions-grid">
+                        <div class="emotion-card" data-emotion="doubt">
+                            <div class="emotion-face">😕</div>
+                            <div class="emotion-name">Сомнение</div>
+                        </div>
+                        <div class="emotion-card" data-emotion="joy">
+                            <div class="emotion-face">😊</div>
+                            <div class="emotion-name">Радость</div>
+                        </div>
+                        <div class="emotion-card" data-emotion="anger">
+                            <div class="emotion-face">😠</div>
+                            <div class="emotion-name">Злость</div>
+                        </div>
+                        <div class="emotion-card" data-emotion="fear">
+                            <div class="emotion-face">😰</div>
+                            <div class="emotion-name">Страх</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stage-feedback" id="stage-2-feedback"></div>
+                <button id="stage-2-next" class="primary-button disabled" disabled>Далее</button>
+            </div>
+        </div>
+
+        <!-- Этап 3: Сила убеждения -->
+        <div id="stage-3" class="screen">
+            <div class="screen-content">
+                <div class="stage-header">
+                    <span class="stage-number">3/4</span>
+                    <h2 class="stage-title">💬 Сила Убеждения</h2>
+                    <p class="stage-description">Расставь аргументы по силе воздействия. От самого слабого к самому сильному!</p>
+                </div>
+
+                <div class="stage-3-content">
+                    <div class="arguments-container" id="arguments-container">
+                        <div class="argument-item" data-power="1" draggable="true">
+                            <div class="argument-icon">📊</div>
+                            <div class="argument-text">"У нас хорошие отзывы"</div>
+                            <div class="argument-power">Сила: ?</div>
+                        </div>
+                        <div class="argument-item" data-power="2" draggable="true">
+                            <div class="argument-icon">🏆</div>
+                            <div class="argument-text">"Наш продукт #1 в категории"</div>
+                            <div class="argument-power">Сила: ?</div>
+                        </div>
+                        <div class="argument-item" data-power="3" draggable="true">
+                            <div class="argument-icon">💰</div>
+                            <div class="argument-text">"Окупится за месяц"</div>
+                            <div class="argument-power">Сила: ?</div>
+                        </div>
+                        <div class="argument-item" data-power="4" draggable="true">
+                            <div class="argument-icon">❤️</div>
+                            <div class="argument-text">"Ваши близкие будут благодарны"</div>
+                            <div class="argument-power">Сила: ?</div>
+                        </div>
+                    </div>
+
+                    <div class="sorting-zone">
+                        <div class="zone-label">Перетащи сюда аргументы от слабого к сильному:</div>
+                        <div class="sort-slots" id="sort-slots">
+                            <div class="sort-slot" data-position="1">
+                                <span class="slot-number">1</span>
+                                <span class="slot-label">Слабый</span>
+                            </div>
+                            <div class="sort-slot" data-position="2">
+                                <span class="slot-number">2</span>
+                                <span class="slot-label">Средний</span>
+                            </div>
+                            <div class="sort-slot" data-position="3">
+                                <span class="slot-number">3</span>
+                                <span class="slot-label">Сильный</span>
+                            </div>
+                            <div class="sort-slot" data-position="4">
+                                <span class="slot-number">4</span>
+                                <span class="slot-label">Мощный</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stage-feedback" id="stage-3-feedback"></div>
+                <button id="stage-3-next" class="primary-button disabled" disabled>Далее</button>
+            </div>
+        </div>
+
+        <!-- Этап 4: Путь к деньгам -->
+        <div id="stage-4" class="screen">
+            <div class="screen-content">
+                <div class="stage-header">
+                    <span class="stage-number">4/4</span>
+                    <h2 class="stage-title">💸 Путь к Деньгам</h2>
+                    <p class="stage-description">Выбери стратегию заработка, которая подходит твоему психотипу!</p>
+                </div>
+
+                <div class="stage-4-content">
+                    <div class="psychotype-test">
+                        <div class="test-question" id="psychotype-question">
+                            Какой подход к работе тебе ближе?
+                        </div>
+                        <div class="test-options">
+                            <div class="option-card" data-psychotype="analyst">
+                                <div class="option-icon">📈</div>
+                                <div class="option-title">Аналитик</div>
+                                <div class="option-desc">Изучаю данные, планирую стратегии</div>
+                            </div>
+                            <div class="option-card" data-psychotype="creator">
+                                <div class="option-icon">🎨</div>
+                                <div class="option-title">Творец</div>
+                                <div class="option-desc">Создаю контент, вдохновляю людей</div>
+                            </div>
+                            <div class="option-card" data-psychotype="communicator">
+                                <div class="option-icon">🗣️</div>
+                                <div class="option-title">Коммуникатор</div>
+                                <div class="option-desc">Общаюсь, убеждаю, продаю</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="strategy-result" id="strategy-result" style="display: none;">
+                        <div class="result-title">Твоя стратегия заработка:</div>
+                        <div class="result-content" id="result-content"></div>
+                        <div class="result-tips" id="result-tips"></div>
+                    </div>
+                </div>
+
+                <div class="stage-feedback" id="stage-4-feedback"></div>
+                <button id="stage-4-next" class="primary-button disabled" disabled>Завершить</button>
+            </div>
+        </div>
+
+        <!-- Финальный экран -->
+        <div id="final-screen" class="screen">
+            <div class="screen-content">
+                <div class="final-animation">💰✨</div>
+                <h2 class="final-title">Поздравляем!</h2>
+                <p class="final-description">
+                    Ты прошел путь от изучения психологических триггеров до понимания своей стратегии заработка. 
+                    Теперь ты знаешь, как работает психология денег!
+                </p>
+                
+                <div class="final-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">4</div>
+                        <div class="stat-label">Навыка освоено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">💡</div>
+                        <div class="stat-label">Инсайтов получено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">🎯</div>
+                        <div class="stat-label">Цель достигнута</div>
+                    </div>
+                </div>
+
+                <div class="final-actions">
+                    <button id="restart-quest-btn" class="secondary-button">Пройти еще раз</button>
+                    <button id="to-main-menu-btn" class="primary-button">В главное меню</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Навигация -->
+        <div id="navigation-panel">
+            <button id="back-btn" class="nav-button" disabled>
+                <span class="nav-icon">←</span>
+                <span class="nav-text">Назад</span>
+            </button>
+            <button id="main-menu-btn" class="nav-button">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Меню</span>
+            </button>
+        </div>
+
+        <!-- Прогресс бар -->
+        <div id="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+            <div class="progress-text" id="progress-text">0%</div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>

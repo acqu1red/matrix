@@ -45,13 +45,13 @@ const ALL_QUESTS = {
     category: 'Психология',
     tags: ['Средний']
   },
-  'competitors': {
-    id: 'competitors',
-    title: 'АНАЛИЗ КОНКУРЕНТОВ',
-    description: 'Выйди на тропу войны. Изучи слабости врага, используй их и стань монополистом на рынке.',
-    archetypes: ['biznesmen', 'strategist'],
-    category: 'Стратегия',
-    tags: ['Сложный']
+  'psychology-money': {
+    id: 'psychology-money',
+    title: 'ПСИХОЛОГИЯ ДЕНЕГ',
+    description: 'Изучи психологию богатства. Освой триггеры влияния, читай эмоции и превращай знания в деньги.',
+    archetypes: ['psiholog', 'biznesmen'],
+    category: 'Психология',
+    tags: ['Интерактивный', 'Средний']
   },
   'trends': {
     id: 'trends',
@@ -64,9 +64,9 @@ const ALL_QUESTS = {
 };
 
 const ARCHETYPE_QUESTS = {
-  'strategist': ['world-government', 'trends', 'competitors'],
-  'psiholog': ['bodylang', 'psychology', 'imperiya'],
-  'biznesmen': ['imperiya', 'copy', 'competitors']
+  'strategist': ['world-government', 'trends'],
+  'psiholog': ['bodylang', 'psychology', 'imperiya', 'psychology-money'],
+  'biznesmen': ['imperiya', 'psychology-money', 'first-million']
 };
 
 let swiperInstance = null;
@@ -421,9 +421,11 @@ function initializeNavigation() {
       const questId = questCard.dataset.quest;
       // Проверяем, был ли клик именно по кнопке
       if (e.target.matches('.quest-card-button, .quest-button')) {
-        // Специальная обработка для нового квеста "Первый миллион"
+        // Специальная обработка для квестов с отдельными папками
         if (questId === 'first-million') {
           navigateTo(`miniapps/quests/first-million/index.html`);
+        } else if (questId === 'psychology-money') {
+          navigateTo(`miniapps/quests/psychology-money/index.html`);
         } else {
           navigateTo(`miniapps/quests/${questId}.html`);
         }
