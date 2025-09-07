@@ -3,7 +3,8 @@
   position: relative;
   min-height: 100vh;
   background: linear-gradient(135deg, #0B1020 0%, #1A2332 100%);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: 'Inter', sans-serif;
 }
 
