@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`;
                 
-                // Show feedback
+                // Show feedback & card glow
                 const feedbackLeft = card.querySelector('.feedback.left');
                 const feedbackRight = card.querySelector('.feedback.right');
                 
@@ -112,19 +112,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (deltaX > 20) {
                     feedbackRight.style.opacity = opacity;
                     feedbackLeft.style.opacity = 0;
+                    card.classList.add('right');
+                    card.classList.remove('left');
                 } else if (deltaX < -20) {
                    feedbackLeft.style.opacity = opacity;
                    feedbackRight.style.opacity = 0;
+                   card.classList.add('left');
+                   card.classList.remove('right');
                 } else {
                     feedbackLeft.style.opacity = 0;
                     feedbackRight.style.opacity = 0;
+                    card.classList.remove('left', 'right');
                 }
             };
 
             const onPointerUp = (e) => {
                 if (!isDragging) return;
                 isDragging = false;
-                card.classList.remove('dragging');
+                card.classList.remove('dragging', 'left', 'right');
                 
                 document.removeEventListener('pointermove', onPointerMove);
                 document.removeEventListener('pointerup', onPointerUp);
@@ -139,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (card.parentNode) {
                            card.parentNode.removeChild(card);
                         }
-                        cards.pop();
+                        cards.shift(); // Use shift() because of the reversed array
                         updateCardStack();
                         if (cards.length === 0) {
                             document.querySelector('.swipe-radar-container').classList.add('hidden');
@@ -155,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             function onPointerDown(e) {
+                e.preventDefault(); // Prevents text selection and page swipe
                 isDragging = true;
                 card.classList.add('dragging');
                 startPoint = { x: e.clientX, y: e.clientY };
