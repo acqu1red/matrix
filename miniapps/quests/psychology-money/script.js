@@ -332,10 +332,16 @@ class PsychologyMoneyQuest {
 
     // STAGE 4: Psychotype Test
     setupPsychotypeTest() {
+        console.log('Setting up psychotype test...');
         const optionCards = document.querySelectorAll('#stage-4 .option-card');
         const resultDiv = document.getElementById('strategy-result');
         const resultContent = document.getElementById('result-content');
         const resultTips = document.getElementById('result-tips');
+        
+        console.log('Found option cards:', optionCards.length);
+        console.log('Found result div:', resultDiv);
+        console.log('Found result content:', resultContent);
+        console.log('Found result tips:', resultTips);
 
         const strategies = {
             analyst: {
@@ -355,8 +361,15 @@ class PsychologyMoneyQuest {
             }
         };
 
-        optionCards.forEach(card => {
-            card.addEventListener('click', () => {
+        optionCards.forEach((card, index) => {
+            console.log(`Setting up option card ${index}:`, card);
+            
+            // Desktop click event
+            card.addEventListener('click', (e) => {
+                console.log('Option card clicked:', card.dataset.psychotype);
+                e.preventDefault();
+                e.stopPropagation();
+                
                 // Remove previous selections
                 optionCards.forEach(c => c.classList.remove('selected'));
                 
@@ -368,10 +381,14 @@ class PsychologyMoneyQuest {
                 
                 // Show strategy result
                 const strategy = strategies[psychotype];
-                resultContent.innerHTML = `<strong>${strategy.title}</strong><br>${strategy.content}`;
-                resultTips.innerHTML = strategy.tips.split('\n').map(tip => `<div>${tip}</div>`).join('');
+                if (resultContent && resultTips) {
+                    resultContent.innerHTML = `<strong>${strategy.title}</strong><br>${strategy.content}`;
+                    resultTips.innerHTML = strategy.tips.split('\n').map(tip => `<div>${tip}</div>`).join('');
+                }
                 
-                resultDiv.style.display = 'block';
+                if (resultDiv) {
+                    resultDiv.style.display = 'block';
+                }
                 
                 // Enable next button immediately after selection
                 console.log('Psychotype selected:', psychotype, 'Enabling stage-4-next button');
@@ -386,16 +403,24 @@ class PsychologyMoneyQuest {
                 this.showFeedback('stage-4', 'Отлично! Ты нашел свой путь к деньгам! 💸', 'success');
             });
 
-            // Add mobile touch optimization
+            // Mobile touch events
             card.addEventListener('touchstart', (e) => {
+                console.log('Touch start on option card:', card.dataset.psychotype);
                 e.preventDefault();
                 card.style.transform = 'scale(0.98)';
             });
 
             card.addEventListener('touchend', (e) => {
+                console.log('Touch end on option card:', card.dataset.psychotype);
                 e.preventDefault();
                 card.style.transform = '';
+                // Trigger click event
+                card.click();
             });
+            
+            // Ensure card is clickable
+            card.style.cursor = 'pointer';
+            card.style.pointerEvents = 'auto';
         });
     }
 

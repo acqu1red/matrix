@@ -616,6 +616,9 @@ body::after {
   cursor: pointer;
   transition: var(--transition);
   text-align: left;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .option-card:hover {
@@ -626,6 +629,10 @@ body::after {
 
 .option-card:active {
   transform: scale(0.98);
+}
+
+.option-card * {
+  pointer-events: none;
 }
 
 .option-card.selected {
