@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>5 женских манипуляций</title>
+    <link rel="stylesheet" href="../../../index.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="quest-container">
+        <!-- Ethics Screen -->
+        <div class="screen active" id="ethics-screen">
+            <div class="screen-content">
+                <h1 class="title">Цель квеста</h1>
+                <p class="description">
+                    Цель квеста — уважительная коммуникация, отказ от стереотипов; невербальные сигналы — не равно согласие; манипуляции — не «женские/мужские», а поведенческие паттерны.
+                </p>
+                <button class="button" id="start-quest-btn">Я понимаю</button>
+            </div>
+        </div>
+
+        <!-- Stage 1: Radar -->
+        <div class="screen" id="stage-1-screen">
+            <div class="screen-content">
+                <h2 class="stage-title">Этап 1: «Радар»</h2>
+                <p class="stage-description">Включи наблюдательность. Научись отличать обычные сигналы от потенциальных манипуляций.</p>
+                <div class="swipe-radar-container">
+                    <div id="swipe-cards-container"></div>
+                    <div class="swipe-instructions">
+                        <p>Свайп влево — обычное поведение. Свайп вправо — флирт/интерес.</p>
+                    </div>
+                </div>
+                <div id="stage-1-quiz" class="hidden">
+                    <h3 class="quiz-title">Мини-викторина: Сигнал vs. Контекст</h3>
+                    <div id="quiz-question-container"></div>
+                    <div id="quiz-timer">10</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 2: 7 Situations -->
+        <div class="screen" id="stage-2-screen">
+            <div class="screen-content">
+                 <h2 class="stage-title">Этап 2: 7 ситуаций</h2>
+                 <p class="stage-description">Где грань между флиртом и манипуляцией? Разберем на примерах.</p>
+                 <div id="chat-container"></div>
+            </div>
+        </div>
+
+        <!-- Stage 3: Adult Strategy -->
+        <div class="screen" id="stage-3-screen">
+            <div class="screen-content">
+                <h2 class="stage-title">Этап 3: Мой ответ — взрослая стратегия</h2>
+                <p class="stage-description">Собери свой ответ из готовых блоков или напиши сам.</p>
+                <div id="strategy-scene"></div>
+                <div id="strategy-builder">
+                    <div id="strategy-options"></div>
+                    <input type="text" id="strategy-input" placeholder="Или введите свой вариант...">
+                    <button class="button" id="submit-strategy-btn">Ответить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 4: Boss Battle -->
+        <div class="screen" id="stage-4-screen">
+            <div class="screen-content">
+                <h2 class="stage-title">Этап 4: Бой с боссом</h2>
+                <p class="stage-description">Вечеринка. Используй все, что узнал. У тебя 8 секунд на ключевые решения.</p>
+                <div id="boss-battle-scene"></div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="results-screen">
+            <div class="screen-content">
+                <h1 class="title">Результаты</h1>
+                <div class="scales-container">
+                    <div class="scale">
+                        <label>Осознанность</label>
+                        <progress id="awareness-progress" value="0" max="100"></progress>
+                    </div>
+                    <div class="scale">
+                        <label>Границы</label>
+                        <progress id="boundaries-progress" value="0" max="100"></progress>
+                    </div>
+                    <div class="scale">
+                        <label>Теплота</label>
+                        <progress id="warmth-progress" value="0" max="100"></progress>
+                    </div>
+                </div>
+                <div id="achievements-container">
+                    <h3>Достижения:</h3>
+                    <ul id="achievements-list"></ul>
+                </div>
+                <button class="button" id="restart-quest-btn">Пройти заново</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

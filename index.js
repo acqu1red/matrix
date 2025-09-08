@@ -10,14 +10,14 @@ const ALL_QUESTS = {
     category: 'Стратегия',
     tags: ['Сложный']
   },
-  'bodylang': {
-    id: 'bodylang',
-    title: 'ДЕТЕКТОР ЛЖИ',
-    description: 'Читай людей как открытую книгу. Распознавай ложь по жестам и мимике. Никто больше не сможет тебя обмануть.',
-    button: 'Начать допрос',
+  'female-manipulation': {
+    id: 'female-manipulation',
+    title: '5 ЖЕНСКИХ МАНИПУЛЯЦИЙ',
+    description: 'Научись распознавать, отличать от флирта и грамотно реагировать на женские манипуляции. От радар-детектора до "босса".',
+    button: 'Начать курс',
     archetypes: ['psiholog'],
     category: 'Психология',
-    tags: ['Средний']
+    tags: ['Новый', 'Интерактивный']
   },
   'imperiya': {
     id: 'imperiya',
@@ -57,7 +57,7 @@ const ALL_QUESTS = {
 
 const ARCHETYPE_QUESTS = {
   'strategist': ['world-government', 'trends'],
-  'psiholog': ['bodylang', 'imperiya', 'psychology-money'],
+  'psiholog': ['female-manipulation', 'imperiya', 'psychology-money'],
   'biznesmen': ['imperiya', 'psychology-money', 'first-million']
 };
 
@@ -420,6 +420,8 @@ function initializeNavigation() {
           navigateTo(`miniapps/quests/first-million/index.html`);
         } else if (questId === 'psychology-money') {
           navigateTo(`miniapps/quests/psychology-money/index.html`);
+        } else if (questId === 'female-manipulation') {
+          navigateTo(`miniapps/quests/female-manipulation/index.html`);
         } else {
           navigateTo(`miniapps/quests/${questId}.html`);
         }
