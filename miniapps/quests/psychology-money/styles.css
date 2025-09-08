@@ -778,6 +778,11 @@ body::after {
   gap: 20px;
 }
 
+/* Adjust menu button position to be slightly more to the left */
+#main-menu-btn {
+  margin-right: 10px;
+}
+
 .nav-button {
   background: rgba(13, 11, 31, 0.9);
   backdrop-filter: blur(10px);

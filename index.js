@@ -37,14 +37,6 @@ const ALL_QUESTS = {
     category: 'Бизнес',
     tags: ['Новый', 'Интерактивный']
   },
-  'psychology': {
-    id: 'psychology',
-    title: 'ПСИХОЛОГИЯ ЛЖИ',
-    description: 'Вскрой код психологии переговоров. Заставь клиентов платить больше и наслаждайся своей властью.',
-    archetypes: ['psiholog'],
-    category: 'Психология',
-    tags: ['Средний']
-  },
   'psychology-money': {
     id: 'psychology-money',
     title: 'КОГНИТИВНЫЙ ЗАРАБОТОК',
@@ -65,7 +57,7 @@ const ALL_QUESTS = {
 
 const ARCHETYPE_QUESTS = {
   'strategist': ['world-government', 'trends'],
-  'psiholog': ['bodylang', 'psychology', 'imperiya', 'psychology-money'],
+  'psiholog': ['bodylang', 'imperiya', 'psychology-money'],
   'biznesmen': ['imperiya', 'psychology-money', 'first-million']
 };
 
@@ -76,25 +68,6 @@ let currentUserId = null;
 const ADMIN_ID = '708907063'; // ID администратора
 
 const PRODUCTS = {
-  'psychology-lie': {
-    title: 'ПСИХОЛОГИЯ ЛЖИ',
-    shortDescription: 'Запрещенные техники влияния.',
-    modalTitle: 'Вся правда о лжи',
-    modalDescription: `
-      <p class="modal-intro"><strong>99% людей не умеют распознавать ложь.</strong> Этот тренинг поместит вас в 1% лучших.</p>
-      <ul class="modal-features">
-        <li><strong>Биологические маркеры:</strong> Как тело выдает лжеца против его воли.</li>
-        <li><strong>Техники спецслужб:</strong> Методы, которые используют для допросов.</li>
-        <li><strong>Практические кейсы:</strong> Разбор реальных ситуаций для оттачивания навыка.</li>
-      </ul>
-      <p class="modal-outro"><strong>После этого курса ни одна ложь не пройдет мимо вас.</strong></p>
-    `,
-    priceStars: 28,
-    priceRub: '50 руб.',
-    oldPriceRub: '499 руб.',
-    discount: '90%',
-    pdfUrl: 'miniapps/products/psychology-lie.pdf'
-  },
   'profiling-pro': {
     title: 'ПРОФАЙЛИНГ PRO',
     shortDescription: 'Чтение людей от А до Я.',
@@ -324,11 +297,28 @@ function populateQuests(archetype) {
   
   featuredWrapper.innerHTML = '';
   otherWrapper.innerHTML = '';
+  
+  // Ensure we have exactly 3 featured quests for the slider
+  const allQuestIds = Object.keys(ALL_QUESTS);
+  let featuredQuests = featuredIds.map(id => ALL_QUESTS[id]).filter(Boolean);
+  
+  // If we have less than 3 featured quests, add more from other categories
+  if (featuredQuests.length < 3) {
+    const remainingQuests = allQuestIds
+      .filter(id => !featuredIds.includes(id))
+      .map(id => ALL_QUESTS[id])
+      .filter(Boolean);
+    
+    featuredQuests = featuredQuests.concat(remainingQuests.slice(0, 3 - featuredQuests.length));
+  }
+  
+  // Take exactly 3 quests for featured slider
+  featuredQuests = featuredQuests.slice(0, 3);
 
-  const featuredHtml = featuredIds.map(id => createFeaturedQuestCard(ALL_QUESTS[id])).join('');
+  const featuredHtml = featuredQuests.map(quest => createFeaturedQuestCard(quest)).join('');
   featuredWrapper.innerHTML = featuredHtml;
 
-  const otherIds = Object.keys(ALL_QUESTS).filter(id => !featuredIds.includes(id));
+  const otherIds = Object.keys(ALL_QUESTS).filter(id => !featuredQuests.map(q => q.id).includes(id));
   const otherHtml = otherIds.map(id => createOtherQuestCard(ALL_QUESTS[id])).join('');
   otherWrapper.innerHTML = otherHtml;
 }
@@ -380,6 +370,10 @@ function initializeSwiper() {
     slidesPerView: 'auto',
     loop: true,
     loopedSlides: 3, // Ensure there are enough cloned slides for smooth looping
+    allowTouchMove: true,
+    touchRatio: 1,
+    touchAngle: 45,
+    simulateTouch: true,
     coverflowEffect: {
       rotate: 0,
       stretch: 80,
