@@ -95,40 +95,40 @@ document.addEventListener('DOMContentLoaded', () => {
             let startPoint = { x: 0, y: 0 };
             let isDragging = false;
             
-            function onPointerDown(e) {
-                if (e.target !== card) return;
-                isDragging = true;
-                card.classList.add('dragging');
-                startPoint = { x: e.clientX, y: e.clientY };
-                document.addEventListener('pointermove', onPointerMove);
-                document.addEventListener('pointerup', onPointerUp);
-            }
-            
-            function onPointerMove(e) {
+            const onPointerMove = (e) => {
                 if (!isDragging) return;
                 const currentPoint = { x: e.clientX, y: e.clientY };
                 const deltaX = currentPoint.x - startPoint.x;
                 const deltaY = currentPoint.y - startPoint.y;
                 const rotate = deltaX * 0.1;
 
-                e.target.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`;
+                card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotate}deg)`;
                 
                 // Show feedback
-                const feedbackLeft = e.target.querySelector('.feedback.left');
-                const feedbackRight = e.target.querySelector('.feedback.right');
-
+                const feedbackLeft = card.querySelector('.feedback.left');
+                const feedbackRight = card.querySelector('.feedback.right');
+                
+                const opacity = Math.min(Math.abs(deltaX) / 100, 1);
                 if (deltaX > 20) {
-                    feedbackRight.style.opacity = Math.min(Math.abs(deltaX) / 100, 1);
+                    feedbackRight.style.opacity = opacity;
+                    feedbackLeft.style.opacity = 0;
                 } else if (deltaX < -20) {
-                   feedbackLeft.style.opacity = Math.min(Math.abs(deltaX) / 100, 1);
+                   feedbackLeft.style.opacity = opacity;
+                   feedbackRight.style.opacity = 0;
+                } else {
+                    feedbackLeft.style.opacity = 0;
+                    feedbackRight.style.opacity = 0;
                 }
-            }
-            
-            function onPointerUp(e) {
+            };
+
+            const onPointerUp = (e) => {
                 if (!isDragging) return;
                 isDragging = false;
                 card.classList.remove('dragging');
                 
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+
                 const deltaX = e.clientX - startPoint.x;
                 if (Math.abs(deltaX) > 100) {
                     const direction = deltaX > 0 ? 1 : -1;
@@ -136,11 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.style.opacity = 0;
                     
                     setTimeout(() => {
-                        swipeContainer.removeChild(card);
+                        if (card.parentNode) {
+                           card.parentNode.removeChild(card);
+                        }
                         cards.pop();
                         updateCardStack();
                         if (cards.length === 0) {
-                            // End of swipe cards, start quiz
                             document.querySelector('.swipe-radar-container').classList.add('hidden');
                             document.getElementById('stage-1-quiz').classList.remove('hidden');
                             initStage1Quiz();
@@ -151,9 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                    card.style.transform = '';
                    card.querySelectorAll('.feedback').forEach(f => f.style.opacity = 0);
                 }
-
-                document.removeEventListener('pointermove', onPointerMove);
-                document.removeEventListener('pointerup', onPointerUp);
+            };
+            
+            function onPointerDown(e) {
+                isDragging = true;
+                card.classList.add('dragging');
+                startPoint = { x: e.clientX, y: e.clientY };
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
             }
             
             card.addEventListener('pointerdown', onPointerDown);

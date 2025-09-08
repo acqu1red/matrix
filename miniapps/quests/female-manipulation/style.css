@@ -1,10 +1,14 @@
 :root {
   --quest-bg: #020010;
+  --quest-bg-animated: radial-gradient(ellipse at 50% 50%, rgba(138, 127, 255, 0.1) 0%, transparent 70%);
   --quest-text: #F0F0FF;
   --quest-text-secondary: #9A97C0;
   --quest-accent: #8A7FFF;
+  --quest-accent-secondary: #a29bfe;
   --quest-card-bg: linear-gradient(145deg, #191636, #110F2B);
   --quest-border: rgba(138, 127, 255, 0.2);
+  --green-glow: rgba(74, 222, 128, 0.5);
+  --red-glow: rgba(248, 113, 113, 0.5);
 }
 
 body {
@@ -20,13 +24,31 @@ body {
   overflow-x: hidden;
 }
 
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--quest-bg-animated);
+    animation: bg-glow 15s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes bg-glow {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
 #quest-container {
   width: 100%;
   max-width: 480px;
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background-color: var(--quest-bg);
+  background-color: transparent; /* Make it transparent to see the animated body bg */
 }
 
 .screen {
@@ -46,6 +68,8 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: rgba(2, 0, 16, 0.5); /* Semi-transparent screen background */
+  backdrop-filter: blur(5px);
 }
 
 .screen.active {
@@ -61,7 +85,10 @@ body {
 .title {
   font-size: 28px;
   font-weight: 800;
-  color: var(--quest-accent);
+  background: linear-gradient(90deg, var(--quest-accent-secondary), var(--quest-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 20px;
 }
 
@@ -77,17 +104,19 @@ body {
   padding: 14px 28px;
   border-radius: 12px;
   border: none;
-  background: var(--quest-accent);
+  background: linear-gradient(90deg, var(--quest-accent), var(--quest-accent-secondary));
   color: var(--quest-text);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 16px;
+  box-shadow: 0 5px 15px rgba(138, 127, 255, 0.2);
 }
 
 .button:hover {
   filter: brightness(1.1);
   transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(138, 127, 255, 0.3);
 }
 
 .stage-title {
@@ -138,11 +167,36 @@ body {
     box-sizing: border-box;
     cursor: grab;
     user-select: none;
+    touch-action: none; /* Prevent scrolling on mobile */
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s ease;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     will-change: transform, opacity;
+    overflow: hidden; /* Hide overflowing shimmer */
 }
 
+.swipe-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 70%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: skewX(-30deg);
+    animation: shimmer 5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -150%;
+    }
+    50% {
+        left: 150%;
+    }
+    100% {
+        left: -150%;
+    }
+}
 .swipe-card.dragging {
     transition: none;
 }
@@ -165,27 +219,33 @@ body {
 
 .swipe-card .feedback {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    right: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
     text-align: center;
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 28px;
+    font-weight: 800;
     opacity: 0;
     transition: opacity 0.3s ease;
-    padding: 10px;
-    border-radius: 10px;
-    color: white;
+    padding: 10px 20px;
+    border-radius: 15px;
+    border: 3px solid;
+    text-shadow: 0 0 10px;
+    width: 150px;
 }
 
 .swipe-card .feedback.left {
-    border: 2px solid #3498db;
-    color: #3498db;
+    border-color: var(--quest-accent-secondary);
+    color: var(--quest-accent-secondary);
+    text-shadow: 0 0 10px var(--quest-accent-secondary);
+    transform: translate(-50%, -50%) rotate(-15deg);
 }
 
 .swipe-card .feedback.right {
-    border: 2px solid #e74c3c;
-    color: #e74c3c;
+    border-color: var(--quest-accent);
+    color: var(--quest-accent);
+    text-shadow: 0 0 10px var(--quest-accent);
+    transform: translate(-50%, -50%) rotate(15deg);
 }
 
 .swipe-instructions {
