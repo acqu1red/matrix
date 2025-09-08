@@ -373,8 +373,17 @@ class PsychologyMoneyQuest {
                 
                 resultDiv.style.display = 'block';
                 
-                // Enable next button
-                this.completeStage4();
+                // Enable next button immediately after selection
+                console.log('Psychotype selected:', psychotype, 'Enabling stage-4-next button');
+                const stage4NextBtn = document.getElementById('stage-4-next');
+                if (stage4NextBtn) {
+                    stage4NextBtn.disabled = false;
+                    stage4NextBtn.classList.remove('disabled');
+                    console.log('Stage 4 next button enabled');
+                }
+                
+                // Show feedback
+                this.showFeedback('stage-4', 'Отлично! Ты нашел свой путь к деньгам! 💸', 'success');
             });
 
             // Add mobile touch optimization
@@ -574,11 +583,7 @@ class PsychologyMoneyQuest {
 
     completeStage4() {
         this.questData.stage4Completed = true;
-        this.showFeedback('stage-4', 'Отлично! Ты нашел свой путь к деньгам! 💸', 'success');
-        setTimeout(() => {
-            document.getElementById('stage-4-next').disabled = false;
-            document.getElementById('stage-4-next').classList.remove('disabled');
-        }, 1000);
+        console.log('Stage 4 completed, quest data:', this.questData);
     }
 
     showFeedback(stage, message, type) {

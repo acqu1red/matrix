@@ -47,7 +47,7 @@ const ALL_QUESTS = {
   },
   'psychology-money': {
     id: 'psychology-money',
-    title: 'ПСИХОЛОГИЯ ДЕНЕГ',
+    title: 'КОГНИТИВНЫЙ ЗАРАБОТОК',
     description: 'Изучи психологию богатства. Освой триггеры влияния, читай эмоции и превращай знания в деньги.',
     archetypes: ['psiholog', 'biznesmen'],
     category: 'Психология',

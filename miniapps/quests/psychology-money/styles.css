@@ -764,9 +764,11 @@ body::after {
   right: 20px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   z-index: 100;
   margin-top: auto;
   padding: 20px;
+  gap: 20px;
 }
 
 .nav-button {
@@ -783,6 +785,9 @@ body::after {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+  flex: 1;
+  justify-content: center;
+  max-width: 120px;
 }
 
 .nav-button:hover:not(:disabled) {
@@ -897,6 +902,12 @@ body::after {
     position: sticky;
     bottom: 0;
     padding: 16px;
+    gap: 16px;
+  }
+  
+  .nav-button {
+    max-width: 100px;
+    font-size: 12px;
   }
 }
 
