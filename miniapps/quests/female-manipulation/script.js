@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         warmth: 0
     };
     const achievements = new Set();
+    let currentStreak = 0;
+    let maxStreak = 0;
 
     function showScreen(screenIndex) {
         screens.forEach((screen, index) => {
@@ -19,6 +21,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         currentScreen = screenIndex;
+    }
+
+    function showFeedback(type, message) {
+        const feedbackEl = document.createElement('div');
+        feedbackEl.className = `feedback-popup ${type}`;
+        feedbackEl.textContent = message;
+        feedbackEl.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: ${type === 'correct' ? '#2ecc71' : '#e74c3c'};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 18px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: feedbackPop 0.5s ease;
+        `;
+        
+        document.body.appendChild(feedbackEl);
+        
+        setTimeout(() => {
+            if (feedbackEl.parentNode) {
+                feedbackEl.parentNode.removeChild(feedbackEl);
+            }
+        }, 1500);
     }
     
     startQuestBtn.addEventListener('click', () => {
@@ -44,17 +75,32 @@ document.addEventListener('DOMContentLoaded', () => {
             {
                 question: "Девушка в кафе улыбается и быстро отводит взгляд. Что это вероятнее всего?",
                 options: ["Она вас высмеивает", "Проявление интереса или вежливости", "У нее нервный тик"],
-                correct: 1
+                correct: 1,
+                explanation: "Быстрый отвод взгляда после улыбки часто указывает на застенчивость или интерес."
             },
             {
                 question: "Коллега постоянно касается вашей руки во время разговора. Что делать?",
                 options: ["Проигнорировать, это ничего не значит", "Сказать прямо, что вам некомфортно", "Ударить в ответ"],
-                correct: 1
+                correct: 1,
+                explanation: "Важно четко обозначить свои границы, если что-то доставляет дискомфорт."
             },
             {
                 question: "Ваша партнерша обиделась и молчит второй день. Это...",
                 options: ["Нормальное поведение, ей нужно время", "Пассивная агрессия и манипуляция", "Она просто очень занята"],
-                correct: 1
+                correct: 1,
+                explanation: "Молчание как наказание — это форма пассивной агрессии и эмоционального шантажа."
+            },
+            {
+                question: "Она говорит: 'Если ты меня любишь, купишь мне это платье'. Это...",
+                options: ["Романтический жест", "Эмоциональная манипуляция", "Шутка"],
+                correct: 1,
+                explanation: "Связывание любви с материальными покупками — классическая манипуляция."
+            },
+            {
+                question: "Девушка играет с волосами, глядя на вас. Это означает...",
+                options: ["Она нервничает", "Возможный интерес или флирт", "У нее чешется голова"],
+                correct: 1,
+                explanation: "Игра с волосами при зрительном контакте часто является признаком заинтересованности."
             }
         ]
     };
@@ -79,14 +125,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         function updateCardStack() {
+            // Reset all cards first
             cards.forEach((card, index) => {
-                const zIndex = cards.length - index;
-                card.element.style.zIndex = zIndex;
+                card.element.style.display = 'none';
+                card.element.style.zIndex = 0;
+                card.element.style.transform = '';
+                card.element.style.opacity = '1';
+            });
 
-                if (index > 2) {
-                    card.element.style.display = 'none';
-                } else {
-                    card.element.style.display = 'flex';
+            // Show only the first 3 cards
+            cards.slice(0, 3).forEach((card, index) => {
+                card.element.style.display = 'flex';
+                card.element.style.zIndex = 3 - index;
+                
+                if (index === 0) {
+                    card.element.style.transform = 'scale(1) translateY(0)';
+                    card.element.style.opacity = '1';
+                } else if (index === 1) {
+                    card.element.style.transform = 'scale(0.95) translateY(-10px)';
+                    card.element.style.opacity = '0.8';
+                } else if (index === 2) {
+                    card.element.style.transform = 'scale(0.9) translateY(-20px)';
+                    card.element.style.opacity = '0.6';
                 }
             });
         }
@@ -137,6 +197,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const deltaX = e.clientX - startPoint.x;
                 if (Math.abs(deltaX) > 100) {
                     const direction = deltaX > 0 ? 1 : -1;
+                    const cardData = cards.find(c => c.element === card)?.data;
+                    
+                    // Add score based on correct classification
+                    if (cardData) {
+                        const isCorrect = (direction > 0 && cardData.type === 'interest') || 
+                                        (direction < 0 && cardData.type === 'neutral');
+                        if (isCorrect) {
+                            userScores.awareness += 5;
+                            currentStreak++;
+                            maxStreak = Math.max(maxStreak, currentStreak);
+                            showFeedback('correct', 'Отлично!');
+                        } else {
+                            currentStreak = 0;
+                            showFeedback('incorrect', 'Подумайте еще раз...');
+                        }
+                    }
+                    
                     card.style.transform = `translate(${direction * 500}px, ${e.clientY - startPoint.y}px) rotate(${direction * 30}deg)`;
                     card.style.opacity = 0;
                     
@@ -144,7 +221,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (card.parentNode) {
                            card.parentNode.removeChild(card);
                         }
-                        cards.shift(); // Use shift() because of the reversed array
+                        // Remove the card from the array
+                        const cardIndex = cards.findIndex(c => c.element === card);
+                        if (cardIndex !== -1) {
+                            cards.splice(cardIndex, 1);
+                        }
                         updateCardStack();
                         if (cards.length === 0) {
                             document.querySelector('.swipe-radar-container').classList.add('hidden');
@@ -180,15 +261,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const timerEl = document.getElementById('quiz-timer');
         let currentQuestionIndex = 0;
         let timer;
-        let timeLeft = 10;
+        let timeLeft = 15; // Increased time
+        let correctAnswers = 0;
+
+        // Add progress bar
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = `
+            width: 100%;
+            height: 6px;
+            background: rgba(138, 127, 255, 0.2);
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        `;
+        const progressFill = document.createElement('div');
+        progressFill.style.cssText = `
+            height: 100%;
+            background: linear-gradient(90deg, var(--quest-accent), var(--quest-accent-secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        `;
+        progressBar.appendChild(progressFill);
+        questionContainer.parentNode.insertBefore(progressBar, questionContainer);
 
         function showQuestion(index) {
             clearInterval(timer);
-            timeLeft = 10;
+            timeLeft = 15;
             timerEl.textContent = timeLeft;
+            
+            // Update progress
+            progressFill.style.width = `${(index / stage1Data.quiz.length) * 100}%`;
 
             const questionData = stage1Data.quiz[index];
             questionContainer.innerHTML = `
+                <div class="quiz-progress-text">Вопрос ${index + 1} из ${stage1Data.quiz.length}</div>
                 <p class="quiz-question">${questionData.question}</p>
                 <div class="quiz-options">
                     ${questionData.options.map((opt, i) => `<button class="quiz-option" data-index="${i}">${opt}</button>`).join('')}
@@ -220,24 +326,56 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(timer);
             const selectedIndex = parseInt(e.target.dataset.index);
             const correctIndex = stage1Data.quiz[currentQuestionIndex].correct;
+            const questionData = stage1Data.quiz[currentQuestionIndex];
+            
+            // Disable all options
+            const allOptions = questionContainer.querySelectorAll('.quiz-option');
+            allOptions.forEach(opt => opt.disabled = true);
             
             if (selectedIndex === correctIndex) {
                 e.target.classList.add('correct');
                 userScores.awareness += 10;
+                correctAnswers++;
+                showFeedback('correct', 'Правильно!');
             } else {
                 e.target.classList.add('incorrect');
+                // Show correct answer
+                allOptions[correctIndex].classList.add('correct');
+                showFeedback('incorrect', 'Неправильно!');
             }
+
+            // Show explanation
+            setTimeout(() => {
+                const explanationEl = document.createElement('div');
+                explanationEl.className = 'quiz-explanation';
+                explanationEl.style.cssText = `
+                    background: rgba(138, 127, 255, 0.1);
+                    border: 1px solid var(--quest-border);
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-top: 15px;
+                    font-size: 14px;
+                    color: var(--quest-text-secondary);
+                    animation: fadeIn 0.5s ease;
+                `;
+                explanationEl.textContent = questionData.explanation;
+                questionContainer.appendChild(explanationEl);
+            }, 500);
 
             setTimeout(() => {
                 currentQuestionIndex++;
                 if (currentQuestionIndex < stage1Data.quiz.length) {
                     showQuestion(currentQuestionIndex);
                 } else {
-                    // End of quiz
-                    showScreen(2);
-                    initStage2();
+                    // End of quiz - show results
+                    const accuracy = Math.round((correctAnswers / stage1Data.quiz.length) * 100);
+                    showFeedback('correct', `Викторина завершена! Точность: ${accuracy}%`);
+                    setTimeout(() => {
+                        showScreen(2);
+                        initStage2();
+                    }, 2000);
                 }
-            }, 1000);
+            }, 2000);
         }
 
         showQuestion(0);
@@ -334,9 +472,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const choiceIndex = parseInt(e.target.dataset.index);
             const choice = situation.options[choiceIndex];
 
+            // Disable all options
+            const allOptions = chatOptionsContainer.querySelectorAll('.chat-option');
+            allOptions.forEach(opt => opt.disabled = true);
+
             // Update scores
             for (const key in choice.score) {
                 userScores[key] = (userScores[key] || 0) + choice.score[key];
+            }
+
+            // Visual feedback
+            if (choice.score.boundaries > 0) {
+                showFeedback('correct', 'Отличный выбор!');
+            } else if (choice.score.boundaries < 0) {
+                showFeedback('incorrect', 'Подумайте о границах...');
             }
 
             appendMessage(choice.text, 'user');
@@ -426,7 +575,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function showScene(index) {
             const scene = stage3Data[index];
-            sceneEl.textContent = `Ситуация: "${scene.scene}"`;
+            sceneEl.innerHTML = `
+                <div class="scene-header">Ситуация ${index + 1} из ${stage3Data.length}</div>
+                <div class="scene-text">"${scene.scene}"</div>
+            `;
             inputEl.value = '';
 
             optionsEl.innerHTML = `
@@ -439,15 +591,43 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.strategy-option-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     inputEl.value += scene.tools[btn.dataset.tool] + " ";
+                    inputEl.focus();
                 });
             });
             
-            // Timer logic will be added here
+            // Add timer
+            let timeLeft = 30;
+            const timerDisplay = document.createElement('div');
+            timerDisplay.className = 'strategy-timer';
+            timerDisplay.style.cssText = `
+                text-align: center;
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--quest-accent);
+                margin-bottom: 15px;
+            `;
+            timerDisplay.textContent = `Время: ${timeLeft}с`;
+            
+            // Remove existing timer if any
+            const existingTimer = document.querySelector('.strategy-timer');
+            if (existingTimer) existingTimer.remove();
+            
+            optionsEl.parentNode.insertBefore(timerDisplay, optionsEl);
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Время: ${timeLeft}с`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleSubmit();
+                }
+            }, 1000);
         }
         
         submitBtn.addEventListener('click', handleSubmit);
 
         function handleSubmit() {
+            clearInterval(timer);
             const scene = stage3Data[currentSceneIndex];
             const userAnswer = inputEl.value.toLowerCase();
             let score = 0;
@@ -456,15 +636,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const foundKeywords = scene.keywords.filter(kw => userAnswer.includes(kw));
                 score += foundKeywords.length * 5; // Bonus for keywords
                 userScores.boundaries += score;
+                
+                // Show feedback based on score
+                if (score > 10) {
+                    showFeedback('correct', 'Отличный ответ!');
+                } else if (score > 5) {
+                    showFeedback('correct', 'Хорошо!');
+                } else {
+                    showFeedback('incorrect', 'Можно лучше...');
+                }
+            } else {
+                showFeedback('incorrect', 'Попробуйте написать больше...');
             }
             
-            currentSceneIndex++;
-            if (currentSceneIndex < stage3Data.length) {
-                showScene(currentSceneIndex);
-            } else {
-                showScreen(4);
-                initStage4();
-            }
+            setTimeout(() => {
+                currentSceneIndex++;
+                if (currentSceneIndex < stage3Data.length) {
+                    showScene(currentSceneIndex);
+                } else {
+                    showScreen(4);
+                    initStage4();
+                }
+            }, 1500);
         }
         
         showScene(0);
@@ -594,6 +787,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (boundariesScore > 70) achievements.add("Границы без драмы");
         if (awarenessScore > 70) achievements.add("Не читаю мысли");
         if (warmthScore > 70) achievements.add("Экологичный отказ");
+        if (maxStreak >= 5) achievements.add("Серия побед");
+        if (boundariesScore > 50 && awarenessScore > 50 && warmthScore > 50) achievements.add("Мастер коммуникации");
+        if (boundariesScore === 100) achievements.add("Непробиваемые границы");
+        if (awarenessScore === 100) achievements.add("Читатель душ");
+
+        // Add statistics
+        const statsContainer = document.createElement('div');
+        statsContainer.className = 'stats-container';
+        statsContainer.style.cssText = `
+            background: rgba(138, 127, 255, 0.1);
+            border: 1px solid var(--quest-border);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        `;
+        statsContainer.innerHTML = `
+            <h3 style="margin-bottom: 15px; color: var(--quest-accent);">Статистика</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
+                <div>Максимальная серия: <strong>${maxStreak}</strong></div>
+                <div>Общий балл: <strong>${awarenessScore + boundariesScore + warmthScore}</strong></div>
+            </div>
+        `;
+        
+        const resultsScreen = document.getElementById('results-screen');
+        const scalesContainer = resultsScreen.querySelector('.scales-container');
+        scalesContainer.parentNode.insertBefore(statsContainer, scalesContainer.nextSibling);
 
         const achievementsList = document.getElementById('achievements-list');
         achievementsList.innerHTML = '';

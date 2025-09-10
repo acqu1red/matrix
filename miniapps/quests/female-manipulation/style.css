@@ -209,6 +209,21 @@ body::before {
         left: -150%;
     }
 }
+
+@keyframes feedbackPop {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
 .swipe-card.dragging {
     transition: none;
 }
@@ -316,6 +331,24 @@ body::before {
     font-size: 24px;
     font-weight: 700;
     color: var(--quest-accent);
+}
+
+.quiz-progress-text {
+    font-size: 14px;
+    color: var(--quest-text-secondary);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.quiz-explanation {
+    background: rgba(138, 127, 255, 0.1);
+    border: 1px solid var(--quest-border);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--quest-text-secondary);
+    animation: fadeIn 0.5s ease;
 }
 
 /* Stage 2: Chat Styles */
@@ -511,4 +544,46 @@ progress::-webkit-progress-value {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 14px;
+    animation: achievementPop 0.5s ease;
+}
+
+@keyframes achievementPop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.scene-header {
+    font-size: 14px;
+    color: var(--quest-accent);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.scene-text {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.strategy-timer {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--quest-accent);
+    margin-bottom: 15px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
