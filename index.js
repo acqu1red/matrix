@@ -422,6 +422,8 @@ function initializeNavigation() {
           navigateTo(`miniapps/quests/psychology-money/index.html`);
         } else if (questId === 'female-manipulation') {
           navigateTo(`miniapps/quests/female-manipulation/index.html`);
+        } else if (questId === 'world-government') {
+          navigateTo(`miniapps/quests/world-government/index.html`);
         } else {
           navigateTo(`miniapps/quests/${questId}.html`);
         }
