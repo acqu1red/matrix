@@ -16,11 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
         screens.forEach((screen, index) => {
             if (index === screenIndex) {
                 screen.classList.add('active');
+                screen.style.display = 'flex';
             } else {
                 screen.classList.remove('active');
+                screen.style.display = 'none';
             }
         });
         currentScreen = screenIndex;
+        
+        // Scroll to top when switching screens
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showFeedback(type, message) {
@@ -29,18 +34,20 @@ document.addEventListener('DOMContentLoaded', () => {
         feedbackEl.textContent = message;
         feedbackEl.style.cssText = `
             position: fixed;
-            top: 50%;
+            top: 20px;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             background: ${type === 'correct' ? '#2ecc71' : '#e74c3c'};
             color: white;
-            padding: 15px 25px;
-            border-radius: 25px;
+            padding: 12px 20px;
+            border-radius: 20px;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 16px;
             z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             animation: feedbackPop 0.5s ease;
+            max-width: 90%;
+            text-align: center;
         `;
         
         document.body.appendChild(feedbackEl);
@@ -49,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (feedbackEl.parentNode) {
                 feedbackEl.parentNode.removeChild(feedbackEl);
             }
-        }, 1500);
+        }, 2000);
     }
     
     startQuestBtn.addEventListener('click', () => {
@@ -458,13 +465,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function showSituation(index) {
             const situation = stage2Data[index];
-            appendMessage(situation.situation, 'bot');
+            
+            // Add typing indicator
+            const typingEl = document.createElement('div');
+            typingEl.className = 'typing-indicator';
+            typingEl.innerHTML = `
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            typingEl.style.cssText = `
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 12px 18px;
+                border-radius: 18px;
+                margin-bottom: 12px;
+                align-self: flex-start;
+                max-width: 80px;
+                animation: fadeIn 0.5s forwards;
+            `;
+            chatContainer.appendChild(typingEl);
+            
+            setTimeout(() => {
+                if (typingEl.parentNode) {
+                    typingEl.parentNode.removeChild(typingEl);
+                }
+                appendMessage(situation.situation, 'bot');
+                
+                setTimeout(() => {
+                    chatOptionsContainer.innerHTML = situation.options.map((opt, i) => 
+                        `<button class="chat-option" data-index="${i}">${opt.text}</button>`
+                    ).join('');
 
-            chatOptionsContainer.innerHTML = situation.options.map((opt, i) => 
-                `<button class="button chat-option" data-index="${i}">${opt.text}</button>`
-            ).join('');
-
-            document.querySelectorAll('.chat-option').forEach(btn => btn.addEventListener('click', handleOptionChoice));
+                    document.querySelectorAll('.chat-option').forEach(btn => btn.addEventListener('click', handleOptionChoice));
+                }, 500);
+            }, 1500);
         }
 
         function handleOptionChoice(e) {

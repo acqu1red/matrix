@@ -45,18 +45,16 @@ body::before {
 #quest-container {
   width: 100%;
   max-width: 480px;
-  height: 100vh;
+  min-height: 100vh;
   position: relative;
-  overflow: hidden;
   background-color: transparent; /* Make it transparent to see the animated body bg */
+  padding-bottom: 20px;
 }
 
 .screen {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
   opacity: 0;
@@ -66,10 +64,11 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   background: rgba(2, 0, 16, 0.5); /* Semi-transparent screen background */
   backdrop-filter: blur(5px);
+  margin-bottom: 20px;
 }
 
 .screen.active {
@@ -212,15 +211,16 @@ body::before {
 
 @keyframes feedbackPop {
     0% {
-        transform: translate(-50%, -50%) scale(0.5);
+        transform: translateX(-50%) translateY(-20px);
         opacity: 0;
+        scale: 0.8;
     }
     50% {
-        transform: translate(-50%, -50%) scale(1.1);
+        transform: translateX(-50%) translateY(0) scale(1.05);
         opacity: 1;
     }
     100% {
-        transform: translate(-50%, -50%) scale(1);
+        transform: translateX(-50%) translateY(0) scale(1);
         opacity: 1;
     }
 }
@@ -354,38 +354,92 @@ body::before {
 /* Stage 2: Chat Styles */
 #chat-container {
     width: 100%;
-    height: 400px;
-    background: var(--bg-secondary);
-    border-radius: 15px;
+    height: 350px;
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border-radius: 20px;
     border: 1px solid var(--quest-border);
     display: flex;
     flex-direction: column;
-    padding: 10px;
+    padding: 15px;
     box-sizing: border-box;
     overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+#chat-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(138, 127, 255, 0.1), transparent);
+    border-radius: 20px 20px 0 0;
+    pointer-events: none;
+}
+
+#chat-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to top, rgba(138, 127, 255, 0.1), transparent);
+    border-radius: 0 0 20px 20px;
+    pointer-events: none;
 }
 
 .chat-message {
     max-width: 80%;
-    padding: 10px 15px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    line-height: 1.4;
+    padding: 12px 18px;
+    border-radius: 18px;
+    margin-bottom: 12px;
+    line-height: 1.5;
     opacity: 0;
     transform: translateY(10px);
     animation: fadeIn 0.5s forwards;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .chat-message.bot {
-    background-color: var(--accent-secondary);
-    color: var(--quest-text);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
     align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-message.bot::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 8px 0;
+    border-color: transparent #764ba2 transparent transparent;
 }
 
 .chat-message.user {
-    background-color: var(--quest-accent);
-    color: var(--quest-bg);
+    background: linear-gradient(135deg, var(--quest-accent), var(--quest-accent-secondary));
+    color: white;
     align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-message.user::before {
+    content: '';
+    position: absolute;
+    right: -8px;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 8px 8px;
+    border-color: transparent transparent transparent var(--quest-accent-secondary);
 }
 
 @keyframes fadeIn {
@@ -399,7 +453,67 @@ body::before {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+}
+
+.chat-option {
+    background: linear-gradient(135deg, var(--quest-accent-secondary), var(--quest-accent));
+    border: none;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(138, 127, 255, 0.3);
+    text-align: left;
+    line-height: 1.4;
+}
+
+.chat-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(138, 127, 255, 0.4);
+    filter: brightness(1.1);
+}
+
+.chat-option:active {
+    transform: translateY(0);
+}
+
+.chat-option:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
 }
 
 /* Stage 3: Strategy Builder Styles */
