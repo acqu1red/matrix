@@ -659,7 +659,7 @@ class WorldGovernmentQuest {
     if (audio) audio.pause();
     this.stopVideoBackground();
     
-    window.location.href = '../../index.html';
+    window.location.href = '../quests.html';
   }
 }
 

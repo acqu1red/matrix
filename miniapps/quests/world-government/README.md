@@ -2,9 +2,10 @@
 
 ## Структура файлов
 - `index.html` - основная страница квеста
-- `style.css` - стили квеста
-- `script.js` - основная логика квеста
-- `stories.js` - сюжетные линии и истории
+- `world-government.css` - стили квеста
+- `world-government.js` - основная логика квеста
+- `world-government-stories.js` - сюжетные линии и истории
+- `quests-black-white.css` - общие стили темы
 - `assets/` - папка для изображений
 
 ## Куда положить новое изображение острова
@@ -21,12 +22,12 @@ miniapps/quests/world-government/assets/island.png
 - Стиль: изометрическая проекция
 - Прозрачный фон (опционально)
 
-## Обновленные пути
-Все пути в файлах обновлены для работы с новой структурой папок:
-- CSS файлы: `../../quests-black-white.css`
-- Изображение острова: `./assets/island.png`
-- JavaScript файлы: `./script.js`, `./stories.js`
-- Возврат на главную: `../../index.html`
+## Пути
+Все пути сохранены как в оригинальном квесте:
+- CSS файлы: `./quests-black-white.css`, `./world-government.css`
+- Изображение острова: `../assets/photovideo/ostrov.png` (оригинальный путь)
+- JavaScript файлы: `./world-government.js`, `./world-government-stories.js`
+- Возврат на главную: `../quests.html`
 
 ## Навигация
 Квест доступен через главную страницу по пути:
